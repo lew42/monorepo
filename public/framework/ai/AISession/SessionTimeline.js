@@ -67,7 +67,7 @@ export default class SessionTimeline extends View {
 		all.forEach(r => per[r.kind] = (per[r.kind] ?? 0) + 1);
 		const rows = all.filter(r => this.on.has(r.kind)), stick = this.stick || this.at_bottom();
 		for (const [kind] of SessionTimelineRows.KINDS) if (this.counts[kind]) this.counts[kind].el.textContent = per[kind] ?? 0;
-		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events`;
+		this.$count.el.textContent = !all.length ? (this.seen.size >= 2 ? "No events" : "Reading this session's record…") : rows.length === all.length ? `${all.length} event${all.length === 1 ? "" : "s"}` : `${rows.length} of ${all.length} events — ${all.length - rows.length} hidden by Filters ▾`;
 		this.el.dataset.total = all.length;
 		this.$list.empty(() => {
 			if (!all.length) return void (this.seen.size >= 2 && p.c("muted stl-none", "Nothing is recorded for this session yet: it has no prompts and no record lines."));

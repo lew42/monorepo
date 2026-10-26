@@ -103,7 +103,12 @@ export default class SessionOutline {
 		const url = SessionOutline.path_of(t), node = url ? this.by_url.get(url) ?? null : null;
 		const kids = [...(t._tasks ?? [])].map(k => this.record_item(k));
 		if (node && !this.used.has(node)){ this.used.add(node); kids.push(...node.kids.map(k => this.node_item(k)).filter(Boolean)); }
-		return this.item({ kind: "record", id: t.id, title: t.get_one("title") ?? t.id, state: t.state, task: t, node, at: SessionOutline.time(t), kids });
+		// `type: "Prompt"/"Question"` on the record line picks the CLASS at replay time (Item.types) and is not itself stored data, so it
+		// can't be read back with get_one — `constructor.name` is what the record itself is (core/Task's own trace() reads it the same way,
+		// and this module stays import-free on purpose: DOM-free, so node and the browser build the same thing from the same lines).
+		const cn = t.constructor?.name, record_type = cn === "Prompt" || cn === "Question" ? cn : null;
+		const title = t.get_one("title") ?? (record_type === "Prompt" ? t.label : record_type === "Question" ? t.text : null) ?? t.id;
+		return this.item({ kind: "record", id: t.id, title, state: t.state, task: t, node, at: SessionOutline.time(t), kids, record_type });
 	}
 
 	/** An unreferenced, non-session folder node as an item; null for one a record task points at or a child heads (drawn elsewhere). */

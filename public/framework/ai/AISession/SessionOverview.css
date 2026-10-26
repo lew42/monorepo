@@ -2,6 +2,7 @@
 @layer site {
 	/* the stats bar: four figures, the one bar, its caption; sticky under the page head on every tab */
 	.sov-stats { position: sticky; top: 0; z-index: 6; display: flex; flex-direction: column; gap: .5em; padding: .75em 1em; background: var(--surface); border-bottom: 1px solid var(--mob-line); border-radius: 4px; }
+	.sov-stats[hidden] { display: none; }   /* `display: flex` above is author-origin, which always beats the UA [hidden] rule — without this the bar stays visible, empty, whenever JS sets `hidden` instead of removing the class */
 	.sov-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .5em 1.5em; }
 	.sov-stat { display: flex; flex-direction: column; min-width: 0; }
 	.sov-k { color: color-mix(in srgb, var(--ink) 60%, transparent); text-transform: uppercase; font-size: .7em; letter-spacing: .06em; }

@@ -9,9 +9,10 @@ export default class SessionTimelineRows {
 		["prompt", "Prompts", "record_voice_over"], ["task", "Tasks added and changed", "add_task"], ["done", "Tasks done", "check_circle"],
 		["child", "Child sessions started", "play_circle"], ["landed", "Child sessions landed", "flag"], ["note", "Notes", "sticky_note_2"],
 		["decision", "Decisions", "gavel"], ["review", "Reviews", "rate_review"], ["commit", "Commits", "commit"],
-		["session", "Session start and stop", "power_settings_new"], ["log", "Log lines", "notes"], ["tag", "Tag lines", "sell"], ["other", "Other lines", "more_horiz"],
+		["session", "Session start and stop", "power_settings_new"], ["chat", "Chat (owner and assistant)", "forum"],
+		["log", "Log lines", "notes"], ["tag", "Tag lines", "sell"], ["plumbing", "Voice plumbing (placement, relay, pauses, word-by-word text)", "cable"], ["other", "Other, unrecognized lines", "more_horiz"],
 	];
-	static HIDDEN = ["log", "tag"];   // off until the reader turns them on
+	static HIDDEN = ["log", "tag", "plumbing"];   // off until the reader turns them on
 	static LANDED = ["landed", "complete", "done", "closed"];
 
 	// ---- rows: no DOM, so the test can call them ---------------------------------------------------------------------------------
@@ -86,9 +87,19 @@ export default class SessionTimelineRows {
 		if (l.session && typeof l.session === "object") return { kind: "session", at, text: "Session started" + (l.session.kind ? " (" + l.session.kind + ")" : "") };
 		if (l.assign !== undefined || l.agent !== undefined) return { kind: "session", at, text: "Agent assigned" + (l.assign?.role ? ": " + l.assign.role : "") };
 		if (typeof l.msg === "string") return { kind: SessionTimelineRows.KINDS.some(k => k[0] === l.type) ? l.type : "log", at, text: clip(l.msg) };
+		// `chat` is the real conversation (owner and assistant; unlike the "prompt" rows below it also has the assistant's replies).
+		// `place`, `sent` and `quiet` are internal relay/pause bookkeeping: real, but not worth reading by default.
+		if (l.chat !== undefined) return { kind: "chat", at, text: (l.chat?.from?.kind === "owner" ? "You: " : "Reply: ") + clip(l.chat?.text ?? "") };
+		if (l.place !== undefined) return { kind: "plumbing", at, text: "Placed: " + clip(l.place?.text ?? "") };
+		if (l.sent !== undefined) return { kind: "plumbing", at, text: "Relayed to " + (l.sent?.to ?? "?") + (Array.isArray(l.sent?.re) ? ` (${l.sent.re.length} lines)` : "") };
+		if (l.quiet !== undefined) return { kind: "plumbing", at, text: "Quiet" + (l.quiet?.ms ? ` (${l.quiet.ms}ms)` : "") };
 		const inner = Object.values(l).find(v => v && typeof v === "object" && !Array.isArray(v) && (v.tasks || typeof v.task === "string"));
 		if (inner) return { ...SessionTimelineRows.row(inner, titles), at: at ?? SessionTimelineRows.time_of(inner) };
-		const key = Object.keys(l).find(k => !["by", "ts", "at"].includes(k)) ?? "line";
+		// A prompt's own text arriving word by word (`{"raw":{"push":"…"}}`, `{"paragraphs":{"append":…}}`), nested under its p-<id> key:
+		// the finished prompt already gets its own "prompt" row below (from prompts.jsonl), so this is plumbing, not a second copy of it.
+		const only = Object.keys(l).find(k => !["by", "ts", "at"].includes(k)), ov = only ? l[only] : null;
+		if (ov && typeof ov === "object" && (ov.raw?.push !== undefined || ov.paragraphs !== undefined)) return { kind: "plumbing", at, text: "Prompt text updated" };
+		const key = only ?? "line";
 		return { kind: "other", at, text: key + ": " + clip(typeof l[key] === "string" ? l[key] : JSON.stringify(l[key]), 160) };
 	}
 
