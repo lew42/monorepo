@@ -80,8 +80,16 @@ export class Popover {
 		}
 
 		// A real `<button>` fires "click" for a mouse click AND for Enter/Space on
-		// the keyboard — nothing extra to wire for that half of the proof.
-		this.anchor.addEventListener("click", () => this.toggle());
+		// the keyboard — nothing extra to wire for that half of the proof. The anchor is never
+		// registered as the box's native "invoker" (that needs a real `popovertarget` attribute,
+		// which a plain JS-built button does not get), so the browser's own light-dismiss treats a
+		// second click on the anchor as a click OUTSIDE the popover: it closes the box on `pointerdown`,
+		// before this "click" handler runs, and toggle() then sees it already closed and reopens it —
+		// a tap that should close the menu instead reopens it every time. Capture "was it open" on
+		// pointerdown, before light-dismiss can act, so the click only ever does the opposite.
+		let was_open = false;
+		this.anchor.addEventListener("pointerdown", () => { was_open = this.showing(); });
+		this.anchor.addEventListener("click", () => { was_open ? this.close() : this.open(); });
 	}
 
 	open(){
@@ -155,9 +163,13 @@ export function menu(anchor, items, opts = {}){
 		anchor, trigger: "click", role: "menu",
 		place: opts.place ?? "bottom",
 		content(){
-			items.forEach(item => button.c("ux-popover-item").attr("type", "button").attr("role", "menuitem")
-				.text(item.text)
-				.click(() => { pop.close(); item.pick?.(); }));
+			items.forEach(item => {
+					const $item = button.c("ux-popover-item").attr("type", "button").attr("role", "menuitem")
+					.text(item.text)
+						.click(() => { pop.close(); item.pick?.(); });
+					// `current: true` marks the row the page is on (bold + aria-current).
+					if (item.current){ $item.attr("aria-current", "true"); $item.el.style.fontWeight = "700"; }
+				});
 		},
 	});
 

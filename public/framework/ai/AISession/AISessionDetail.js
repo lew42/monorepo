@@ -147,10 +147,11 @@ export default class AISessionDetail extends Page {
 	log_urls(){
 		return this._log_urls ??= AISessionDetail.load_row(this.home.url, this.id).then(async row => {
 			const session_id = row?.session_id ?? this.id;
+			if (this.segs) return [this.url + "page.jsonl"];   // the url already names the dated folder (a voice session's "v-…" id fails the uuid check below, but needs no lookup to find its own folder)
 			if (!/^[0-9a-f]{8}-/.test(session_id)) return [];
 			await AISessionRows.load_index(this.home.url);   // fills AISession.days, so the dated folder is known
 			if (!AISession.slugs.has(session_id)) await AISessionDetail.folder_from_day(row, session_id);   // a named folder (2026/10/07/can-you-check-usage/): without it the log is looked for at <day>/<uuid>/ and 404s
-			const own = this.segs ? this.url : AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
+			const own = AISession.days.has(session_id) ? AISession.dir_url(session_id).pathname
 				: new URL(`./${AISession.day(new Date())}/${AISessionDetail.slug(row, session_id)}/`, AISession.root_url()).pathname;
 			this._old_url = AISessionDetail.dir_index().then(index => {
 				const old = AISessionDetail.dir_of(index, session_id);
@@ -320,11 +321,9 @@ export default class AISessionDetail extends Page {
 			this.chat_ok = has_prompts || AICost.is_tab(row ?? (snap ? { id: snap.agent, role: snap.agent } : null));
 			if (this.chat_ok){ ["chat", "coverage"].forEach(k => buttons[k].el.hidden = false); if (want === "chat" || want === "coverage") show(want); }
 			AISessionRows.load_index(url).then(() => this.retitle(AISessionRows.display_name(row ?? { id, session_id }, AISessionRows.tree).text));   // a VS Code tab has no sessions.json row; its title is in the index
-			if (!/^[0-9a-f]{8}-/.test(session_id)){   // a name no agent list or index maps to a uuid: nothing on disk to ask for
-				$conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
-				return;
-			}
-			conv.session = session_id;
+			const is_uuid = /^[0-9a-f]{8}-/.test(session_id);   // a voice session's id ("v-…") is not a uuid, but it still has a folder, a record and tasks: only the Claude-Code transcript below needs the uuid form
+			if (!is_uuid) $conv.append(() => p.c("muted", "This agent has no session id yet, so there is no transcript or log to show."));
+			else conv.session = session_id;
 			const coverage = new AISessionCoverage(session_id);
 			$coverage.append(coverage.view);
 			this.show_role($role, row, session_id);   // the Role class: this session's role and its properties
@@ -337,7 +336,7 @@ export default class AISessionDetail extends Page {
 				const logs = this.logs = urls.map(open);
 				this._old_url?.then(old => { if (old && this.logs === logs) logs.push(open(old)); });
 			});
-			if (!this.follow && /^[0-9a-f]{8}-/.test(session_id)){
+			if (!this.follow && is_uuid){
 				const f = new AISessionFollow(session_id); f.on_lines = lines => { conv.add(lines); coverage.add_raw(lines); };   // the first pull draws the history, later pulls append live
 				this.follow = f.start();   // tails the log and corrects the grid row (doc/realtime.md)
 				this.follow.then(() => { if (!conv.count) $conv.append(() => p.c("muted", AISessionDetail.NO_TRANSCRIPT)); });

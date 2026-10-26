@@ -1,0 +1,16 @@
+{"session":{"id":"v-8olmat5","home":"/framework/ext/drawer/","kind":"voice","at":"2026-10-25T20:10:48.202-05:00","project":"monorepo","host":"localhost:63375","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-10-25T20:10:48.481-05:00","fast":"5f282aca-d7b1-45b9-ba23-f4e892036253","smart":null,"how":{"fast":"new"}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1792977048607","raw":["hello from the 1200 proof. And a second sentence."],"paragraphs":[{"id":"a","text":"hello from the 1200 proof. And a second sentence."}]}},"ts":"2026-10-26T01:10:48.607Z","by":"fast"}
+{"chat":{"at":"2026-10-25T20:10:48.610-05:00","session":"v-8olmat5","path":"/framework/ext/drawer/","from":{"kind":"owner"},"via":"text","text":"hello from the 1200 proof. And a second sentence.","prompt":"p-1792977048607","said_at":"2026-10-26T01:10:48.191Z","floor":"done"}}
+{"sent":{"to":"fast","at":"2026-10-25T20:10:48.701-05:00","re":["2026-10-25T20:10:48.610-05:00"],"delay_ms":510}}
+{"backing":{"at":"2026-10-25T20:10:48.908-05:00","fast":"5f282aca-d7b1-45b9-ba23-f4e892036253","smart":"481824ca-e1fc-4356-88f9-775c35570d70","how":{"smart":"new"}}}
+{"sent":{"to":"smart","at":"2026-10-25T20:10:48.911-05:00","re":["2026-10-25T20:10:48.610-05:00"],"delay_ms":720}}
+{"place":{"re":"2026-10-25T20:10:48.610-05:00","to":"same","edit":"improve","text":"Hello from the 1200 proof. And a second sentence."},"by":"voice-assistant-v-8olmat5","ts":"2026-10-26T01:10:51.989Z"}
+{"sessions":[{"id":"voice-assistant-v-8olmat5","task":"/framework/ai/sessions/2026/10/25/v-8olmat5/"}],"by":"voice-assistant-v-8olmat5","ts":"2026-10-26T01:10:51.990Z"}
+{"react":{"at":"2026-10-25T20:10:53.592-05:00","session":"v-8olmat5","re":"2026-10-25T20:10:48.610-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-8olmat5"}}}
+{"refined":{"at":"2026-10-25T20:11:07.679-05:00","re":"2026-10-25T20:10:48.610-05:00","sentences":[{"n":1,"text":"Hello from the 1200 proof."},{"n":2,"text":"And a second sentence."}],"sections":[{"id":"sec1","heading":"Greeting","items":[{"id":"sec1-i1","text":"Hello from the 1200 proof.","cites":[1,2]}]}],"flags":[{"sentence_n":2,"question":"what does \"1200 proof\" refer to or is this a mis-hearing?","confidence":0.3,"source":"model"}],"cost_usd":0.22541060000000002}}
+{"chat":{"at":"2026-10-25T20:16:51.472-05:00","session":"v-8olmat5","path":"/framework/ext/drawer/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-25T20:10:48.610-05:00"}}
+{"backing":{"at":"2026-10-25T20:21:49.219-05:00","fast":"5f282aca-d7b1-45b9-ba23-f4e892036253","smart":"481824ca-e1fc-4356-88f9-775c35570d70","how":{"fast":"resume"}}}
+{"log":{"at":"2026-10-25T20:26:56-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-25T20:31:56-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-25T20:37:07-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}

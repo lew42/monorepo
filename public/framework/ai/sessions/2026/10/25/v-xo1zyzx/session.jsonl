@@ -1,3 +1,5 @@
 {"session":{"id":"v-xo1zyzx","home":"/framework/ux/Dictate/","kind":"voice","at":"2026-10-25T19:34:14.663-05:00","project":"monorepo","host":"localhost:63375","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
 {"backing":{"at":"2026-10-25T19:34:14.814-05:00","fast":"a01a3ee9-1908-4552-83b9-f703fb3ebe5d","smart":null,"how":{"fast":"new"}}}
 {"log":{"at":"2026-10-25T19:42:49-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-25T19:52:49-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-25T19:57:49-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}

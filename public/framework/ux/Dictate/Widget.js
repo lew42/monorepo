@@ -478,6 +478,9 @@ Widget.Thread = class WidgetThread extends View {
 			after.insertAdjacentElement("afterend", node);
 		}
 		if (parent) node.dataset.under = t.at;
+		// A Question card replaces the plain bubble it came from: hide that source bubble (view only, the log keeps it).
+		// Hiding is idempotent, so a second Question from the same bubble changes nothing.
+		if (parent && t.question) parent.style.display = "none";
 		rows.set(t.id, node);
 		this.anchor();
 	}

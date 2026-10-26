@@ -64,3 +64,4 @@
 {"file":"failures.jsonl"}
 {"file":"improvements.jsonl"}
 {"file":"shots/"}
+{"file":"shots/","gone":true}
