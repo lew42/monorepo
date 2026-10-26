@@ -1844,3 +1844,6 @@
 {"at":"2026-10-26T01:59:26.924Z","target":"public/framework/ai/sessions/2026/10/25/session-e06424f1/mastermind-worktree-pool","verdict":"queued","kind":"landing"}
 {"at":"2026-10-26T01:59:32.411Z","target":"public/framework/ai/sessions/2026/10/25/session-e06424f1/mastermind-worktree-pool","verdict":"spawned","to":"clarity-mastermind-worktree-pool"}
 {"at":"2026-10-25T21:10:00-05:00","target":"public/framework/ai/sessions/2026/10/25/session-e06424f1/mastermind-worktree-pool","verdict":"rewrote","what":"Title was a truncated sentence; outcome had no ticked asks or links. Rewrote both in session.jsonl.","to":"session.jsonl"}
+{"at":"2026-10-26T04:33:24.543Z","target":"public/framework/ai/todo.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-26T04:34:25.544Z","target":"public/framework/ai/todo.md","verdict":"spawned","to":"clarity-ai"}
+{"at":"2026-10-25T12:00:00Z","target":"public/framework/ai/todo.md","verdict":"rewrote","what":"rename-proposal entry: broken task link fixed (sessions/ missing), 90-word paragraph split into labelled bullets","to":"public/framework/ai/todo.md"}
