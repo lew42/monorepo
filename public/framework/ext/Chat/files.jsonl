@@ -28,3 +28,10 @@
 {"file":"failures.jsonl"}
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
+{"file":"failures.jsonl","gone":true}
+{"file":"chunks.js"}
+{"file":"chunks.test.mjs"}
+{"file":"test/"}
+{"file":"test/","gone":true}
+{"file":"cursors.js"}
+{"file":"cursors.css"}
