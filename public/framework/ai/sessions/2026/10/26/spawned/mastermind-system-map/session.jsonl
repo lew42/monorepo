@@ -27,3 +27,11 @@
 {"commit":"c9a95450346f"}
 {"log":{"at":"2026-10-26T18:05:00-05:00","msg":"Added system-map 3c (List, ids, JSONL replay, tasks list, V1 chat pseudo-property) and system-proposal Lists and the chat (derived chat, one home list, Refs, session-wide never-reused ids). No code."}}
 {"log":{"at":"2026-10-26T18:20:09-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-26T18:30:20-05:00","did":"edit","files":["public/framework/ai/agents.md"]}}
+{"action":{"at":"2026-10-26T18:30:21-05:00","did":"edit","files":["public/framework/readme.md"]}}
+{"commit":"6953660a3e5b"}
+{"log":{"at":"2026-10-26T18:31:09-05:00","msg":"Pass done (6953660a3): system-map 3d voice Q&A + fast seat/transport/Refine facts + 10 doc holes; system-proposal data-first shape with breaks, Session/Task out of core with migration checklist a-m, tests table, 23 numbered changes; test rule added to agents.md and framework/readme.md. Note: audits used two in-process Explore agents after spawn_agent minions were refused (no pool worktree). card_reply not sent (card id unknown)."}}
+{"log":{"at":"2026-10-26T18:38:41-05:00","msg":"session resumed"}}
+{"commit":"b945747cb4c5"}
+{"log":{"at":"2026-10-26T18:45:47-05:00","msg":"Map 3e/3f/3g + proposal changes 24-31 landed (pseudo-properties, voice session = wrapper record with two real seats, 14 refinement systems with run evidence, ordinal sentence ids recommended, generic Chat). Investigation used in-process Explore agents (Servex minions unavailable), contrary to role text."}}
+{"log":{"at":"2026-10-26T18:45:56-05:00","msg":"session resumed"}}
