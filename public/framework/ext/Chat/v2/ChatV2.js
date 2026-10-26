@@ -219,7 +219,11 @@ export default class ChatV2 extends JSONL {
 	sentences(n, replies){
 		const M = this.constructor.Model;
 		let last_para = null;
+		// A sentence that became a Question card shows only as the card (view only; the log keeps it).
+		const asked = new Set(this.model.children(n).filter(k => M.kind(k) === "Question")
+			.flatMap(k => [k.anchor?.sentence, k.sentence, ...(k.cites ?? [])]).filter(Boolean));
 		for (const s of M.sentences(n)) {
+			if (asked.has(s.id)) continue;
 			const here = replies.filter(r => M.anchor(r)?.sentence === s.id);
 			const new_para = s.para !== last_para && last_para !== null;
 			last_para = s.para;
@@ -277,7 +281,7 @@ export default class ChatV2 extends JSONL {
 		else icon(TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);   // a Task's avatar IS its state checkbox
 		div.c("chat-v2-body", () => {
 			div.c("chat-v2-child-head", () => {
-				span.c("chat-v2-child-text", M.label(n));
+				(question ? h3 : span).c("chat-v2-child-text", M.label(n));
 			});
 			if (answer) div.c("chat-v2-answer", answer.text);
 		});

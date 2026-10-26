@@ -42,6 +42,7 @@
 	.chat-v2-child-head { display: flex; align-items: center; flex-wrap: wrap; gap: .4em; }
 	/* The text goes last and wants 18em: on a phone it drops to its own line under the icon, kind and phase. */
 	.chat-v2-child-text { order: 1; flex: 1 1 18em; min-width: 0; overflow-wrap: anywhere; }
+	h3.chat-v2-child-text { margin: 0; }
 	.chat-v2-kind, .chat-v2-phase { color: var(--subtle); font-size: .8em; text-transform: uppercase; letter-spacing: .04em; }
 	.chat-v2-state { color: var(--subtle); flex: 0 0 auto; }
 	.chat-v2-state.is-complete { color: var(--ok, #2a9d4a); }
