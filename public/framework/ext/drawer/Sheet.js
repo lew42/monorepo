@@ -272,7 +272,7 @@ export class SheetPanel extends View {
 			div.c("drawer-rail-sheet-heading flex v-center", () => {
 				this.$title = button.c("drawer-rail-sheet-title", this.title + " ▾").attr("type", "button").attr("aria-haspopup", "menu").attr("aria-expanded", "false")
 					.click(e => { e.stopPropagation(); this.toggle_menu(); });
-				this.session_switcher();   // a way back to an older session, not just a New session tap (one-dictation item 4, 2026-10-25)
+				this.switcher = this.session_switcher();   // a way back to an older session, not just a New session tap (one-dictation item 4, 2026-10-25)
 				this.v2 = new ChatView({ slot: () => this.$slot?.el, mount: () => this.mount });
 				this.v2.chip();
 				this.$path = span.c("drawer-rail-sheet-path muted");
@@ -486,8 +486,9 @@ export class SheetPanel extends View {
 		this.mount?.remove();
 		this.feed?.stop();
 		this.v2_off_change?.(); this.v2?.release();
+		this.switcher?.stop?.();
 		this.$slot?.empty();
-		this.mount = this.panel = this.feed = this.v2_off_change = null;
+		this.mount = this.panel = this.feed = this.v2_off_change = this.switcher = null;
 		return this;
 	}
 

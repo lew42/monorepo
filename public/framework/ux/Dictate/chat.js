@@ -385,7 +385,7 @@ export function session_switcher(mount, { label = "+ New session", title = "Clea
 					button.c("drawer-row").attr("type", "button").ac(is_live && "on")
 						.click(() => { $list.el.hidden = true; if (!is_live) chat.resume(row.session).catch(e => quiet_note("could not switch to that session", e)); })
 						.append(() => {
-							span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? row.session));
+							span.c("drawer-row-title", (is_live ? "● " : "") + (row.title ?? "Session " + row.session));
 							small.c("muted", is_live ? "the current conversation" : ago(row.last_at ?? row.at));
 						});
 				}));

@@ -138,7 +138,7 @@ async function fetch_agent_states(session){
  *  this strip is new code, so it is built with that fix already in it, not after). */
 function session_header({ card, view }){
 	const $box = div.c("drawer-ai-session flex v");
-	let $chips = null, chip_timer = null;
+	let $chips = null, chip_timer = null, switcher = null;
 
 	function draw_chips(session){
 		if (!$chips) return;
@@ -177,8 +177,12 @@ function session_header({ card, view }){
 
 			// The one shared switcher (one-dictation item 4): `chat.js`’s `session_switcher()`,
 			// also used by the phone sheet’s head now — one control, not a second hand-rolled
-			// copy per surface (CLAUDE.md law 6, “one of everything”).
-			chat.session_switcher(() => live_chat, { label: "+ New session" });
+			// copy per surface (CLAUDE.md law 6, “one of everything”). `paint()` reruns on every
+			// session change, so the OLD switcher's own subscription is stopped first — the same
+			// leak this file's own mount-rebuild comment (below) already guards against.
+			switcher?.stop();
+			switcher = chat.session_switcher(() => live_chat, { label: "+ New session" });
+			div.c("drawer-ai-switcher flex v-center wrap", () => view.chip("drawer-ai-switch-btn"));
 		});
 	}
 
@@ -191,7 +195,7 @@ function session_header({ card, view }){
 	// `$box` is disconnected — `stop()` below clears the timer itself regardless).
 	chip_timer = setInterval(() => draw_chips(chat.current()), 10000);
 
-	return { view: $box, stop(){ unsubscribe(); clearInterval(chip_timer); } };
+	return { view: $box, stop(){ unsubscribe(); switcher?.stop(); clearInterval(chip_timer); } };
 }
 
 /* THE ONE LIVE MOUNT. `ai()` below builds a `chat.js` mount every time the drawer
