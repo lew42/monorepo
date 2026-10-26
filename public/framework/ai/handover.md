@@ -40,10 +40,11 @@ The owner moved to dictating in the browser; this tab stopped its half-hourly ch
   - the session page: [/framework/ai/sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/](sessions/e00f55c9-bad4-4ee2-899e-d629ea1eede6/);
   - its briefs: [sessions-and-tasks/](sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/), one folder per effort, each with `requirements.md`.
 - **Completion (item tool, `{summary:{}}` on the session page):**
-  - 56%: 286 of 509 tasks done, 60 stopped, 163 open;
+  - 56%: 286 of 509 top-level tasks done, 223 undone (the 60 stopped are left out of the 509);
   - owner-ask undone rate 14.9% (47 deferred with a home), so not red;
   - cost $1,700 ($322 this tab, $1,378 children).
 - **Open work is found by code, not by memory.** The queue page's Dropped view lists tasks whose agent stopped ([/framework/ai/queue/](queue/)); the biggest open records are `mastermind-page` (core/Page, waiting), `deputy` (waiting) and `dictation-debug` (one open task: the four dictation leftovers).
+- **Open questions for the owner and core/Task** (its inbox, lines i-mvoilnfaacn and i-mvoiq4d2nzk): plain definitions for every state, deferral levels, which set each number counts, the 20% red line (the tab's guess), and carrying 223 open tasks forward so they are not forgotten.
 - **Known gaps, not yet fixed:**
   - 170 of 186 child-session entries are "unlinked", so children's open tasks may not count toward the session number;
   - ~166 files are left staged in the main tree's index by a failed merge, mostly log noise (commit by path);
