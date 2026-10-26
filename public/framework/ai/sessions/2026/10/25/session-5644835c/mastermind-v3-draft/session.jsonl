@@ -6,3 +6,23 @@
 {"sessions":[{"id":"mastermind-v3-draft","task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-v3-draft/"}],"by":"mastermind-v3-draft","ts":"2026-10-26T22:10:20.527Z"}
 {"log":{"at":"2026-10-26T17:17:59-05:00","msg":"task-loop status ask 1: asked mastermind-v3-draft","ask":1}}
 {"log":{"text":"V3 built in worktree chat-v3 (19 tests pass). Proving V1 unchanged: in-place.mjs on main tree = 'sentence was sent' fails (pre-existing); checking 'words grew' in worktree vs my Widget.js edit."},"by":"mastermind-v3-draft","ts":"2026-10-26T22:20:32.007Z"}
+{"commit":"42ab0ebbf2fc"}
+{"commit":"381e67298b07"}
+{"commit":"bbe9092b6199"}
+{"commit":"e7491569608f"}
+{"commit":"763b5f45d159"}
+{"commit":"94322cde0b68"}
+{"v3-draft-ext-chat-v3-chatv3-js-streams-s":{"complete":{"outcome":"ChatV3 draws the tasks list as it is, merged to michael/dev","evidence":["public/framework/ext/Chat/v3/ChatV3.js","ChatV3.test.mjs 19/19 on michael/dev"],"confidence":"high","caveats":["per-sentence Prompts deliberately not built (owner correction)"]}},"v3-live-words-raw-gray-while-moving-touc":{"complete":{"outcome":"gray while moving (8 s), solid after; unsent draft faint; #id permalink per card","evidence":["ChatV3.test.mjs live checks","shots/chat-v3-demo/"],"confidence":"medium","caveats":["completion rule is a client guess; no real per-task route"]}},"v3-toggle-v3-chip-beside-v2-session-page":{"complete":{"outcome":"v3 chip beside v2 in sheet, drawer and session Chat tab; not default","evidence":["ext/drawer/ChatView.js","ChatV2.test.mjs 53/53 after merge"],"confidence":"medium","caveats":["V1 in-place.mjs: only 'the sentence was sent' fails, same as before the merge (pre-existing)"]}},"v3-review-shots-400-1920-merge-mjs-repor":{"complete":{"outcome":"reviewed (Sonnet, 6 findings answered), shots at 4 widths, merged","evidence":["review-record.jsonl","merge commit on michael/dev"],"confidence":"high","caveats":[]}},"by":"mastermind-v3-draft","ts":"2026-10-26T22:34:06.329Z"}
+{"assign":{"landed_at":"2026-10-26T17:34:39-05:00","title":"Chat V3 rough draft: a plain view over the session's tasks list, behind its own v3 chip","outcome":"Merged to michael/dev. ChatV3 replays only task lines through a real Session; raw gray while moving, solid after; replies and questions nested in the Prompt. V1 unchanged (one-line chat-live event). Open decisions: per-sentence vs append, id scheme, completion rule, groups overlay, per-task route.","links":["/framework/ext/Chat/v3/","/framework/ext/Chat/v3/readme.md"]}}
+{"log":{"at":"2026-10-26T17:34:44-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-26T17:34:44-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-26T22:34:44.702Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-26T17:34:44-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-26T17:34:48-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-26T17:34:48-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-26T17:34:49-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-26T17:35:21-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-10-25T14:07:07.973Z","msg":"Servex restart 04:02 for the chat-v2 writers set off an OOM crash loop (exit 134 every ~75 s): the Crumbs watchdog worker inherited --import and spawned another, unbounded. A detached Sonnet minion (session 6b1e0f4a, $0.86, brief servex-oom/requirements.md) fixed it at 5af4f5188; up since 04:16."}}
+{"assign":{"at":"2026-10-26T17:36:06-05:00","outcome":"Chat V3 is merged to michael/dev, behind its own v3 chip (not the default). Demo: [Chat v3](/framework/ext/Chat/v3/). Docs: [readme](/framework/ext/Chat/v3/readme.md).\n- [x] V3 draws the session's tasks list, Prompts at the root: ChatV3.test.mjs 19/19\n- [x] Raw words gray while moving, solid after; title + cleaned text; replies nested: live checks in ChatV3.test.mjs, shots/chat-v3-demo/\n- [x] v3 chip beside v2, scroll lock kept: ChatV2.test.mjs 53/53\n- [ ] V1 and V2 unchanged: V1 in-place.mjs still fails \"the sentence was sent\", same as before the merge\n- [x] Reviewed, 6 findings answered: review-record.jsonl\nOpen: per-sentence vs append, id scheme, completion rule, groups, per-task route."}}
+{"log":{"at":"2026-10-26T17:36:25-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-26T17:38:10-05:00","msg":"session resumed"}}
