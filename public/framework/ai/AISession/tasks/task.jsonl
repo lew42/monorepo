@@ -8,3 +8,7 @@
 {"task":"/framework/ai/AISession/tasks/remove-the-all-sessions-back-button-on-t/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:26.125Z"}
 {"task":"/framework/ai/AISession/tasks/remove-the-top-line-that-repeats-the-ses/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:26.321Z"}
 {"task":"/framework/ai/AISession/tasks/fix-the-page-load-error-that-appears-aft/","by":"helper-undone-to-tasks","ts":"2026-10-23T06:00:26.467Z"}
+{"task":"/framework/ai/AISession/tasks/session-page-overview-clear-the-leftover/","by":"session-smart-v-9dvbbrn","ts":"2026-10-26T20:25:25.906Z"}
+{"task":"/framework/ai/AISession/tasks/chat-tab-on-every-session-page-talk-to-a/","by":"session-smart-v-9dvbbrn","ts":"2026-10-26T20:33:46.854Z"}
+{"task":"/framework/ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover/","moved_from":"/framework/ai/AISession/tasks/session-page-overview-clear-the-leftover/","by":"TaskToSession","ts":"2026-10-26T21:01:55.746Z"}
+{"task":"/framework/ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a/","moved_from":"/framework/ai/AISession/tasks/chat-tab-on-every-session-page-talk-to-a/","by":"TaskToSession","ts":"2026-10-26T21:01:55.834Z"}

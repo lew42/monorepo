@@ -8,3 +8,8 @@
 {"task":"/framework/ext/drawer/tasks/coral-badge-when-readme-is-staying/","by":"session-smart-v-8sqhbnl","ts":"2026-10-17T18:25:48.294Z"}
 {"task":"/framework/ext/drawer/tasks/coral-badge-when-readme-is-staying/","by":"session-smart-v-8sqhbnl","ts":"2026-10-17T18:25:48.295Z"}
 {"sessions":[{"id":"helper-sheet-handoff-proof","task":"/framework/ext/drawer/tasks/"},{"id":"session-smart-v-8sqhbnl","task":"/framework/ext/drawer/tasks/"}],"by":"session-smart-v-8sqhbnl","ts":"2026-10-17T18:25:48.302Z"}
+{"task":"/framework/ext/drawer/tasks/amber-badge-when-readme-is-stale/","by":"session-smart-v-7bnqmeh","ts":"2026-10-21T00:47:35.499Z"}
+{"task":"/framework/ext/drawer/tasks/amber-badge-when-readme-is-stale/","by":"session-smart-v-7bnqmeh","ts":"2026-10-21T00:47:35.500Z"}
+{"sessions":[{"id":"helper-sheet-handoff-proof","task":"/framework/ext/drawer/tasks/"},{"id":"session-smart-v-8sqhbnl","task":"/framework/ext/drawer/tasks/"},{"id":"session-smart-v-7bnqmeh","task":"/framework/ext/drawer/tasks/"}],"by":"session-smart-v-7bnqmeh","ts":"2026-10-21T00:47:35.508Z"}
+{"task":"/framework/ext/drawer/tasks/mobile-sheet-page-cannot-scroll-to-the-b/","by":"session-smart-v-9dvbbrn","ts":"2026-10-26T20:29:20.154Z"}
+{"task":"/framework/ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b/","moved_from":"/framework/ext/drawer/tasks/mobile-sheet-page-cannot-scroll-to-the-b/","by":"TaskToSession","ts":"2026-10-26T21:01:55.904Z"}
