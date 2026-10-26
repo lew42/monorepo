@@ -28,3 +28,5 @@ The **v3** chip beside the **v2** chip in the ✦ sheet and the drawer's AI tab 
 ## Test
 
 `ChatV3.test.mjs` (headless Playwright, 19 checks: fixture order, titles, solid vs gray, nesting, show raw, live append, raw append-only, windowing on a copy of a real log, the log only appended to): `node ChatV3.test.mjs [base-url] [shots-dir]`. It writes `live-v3-*.jsonl` copies beside the v2 fixture (gitignored) and deletes them.
+
+`failures.jsonl` here is the page-error log the test run wrote while the draft was built (a since-fixed `scrollIntoView` error); it is a record, kept.
