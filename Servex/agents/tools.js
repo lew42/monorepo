@@ -206,19 +206,19 @@ function session_tools(agents){
 	const SESSION = { type: "string", description: "The session id, `v-…`, as your brief names it." };
 	return [
 		tool("session_summary",
-			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about."
-			+ " Call it once the topic is clear, and again whenever it shifts. Writes `session.summary.json` beside the session file, a fresh"
-			+ " `started` line (with the title) in the home folder's `ai/log.jsonl`, and renames the session's own folder to match (`rename_session`,"
-			+ " below) — the session id never changes, only where its files sit on disk.",
+			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about, and"
+			+ " what the Switch-session dropdown shows instead of the bare `v-…` id. Call it once the topic is clear, and again whenever"
+			+ " it shifts. Writes `session.summary.json` beside the session file and a fresh `started` line (with the title) in the home"
+			+ " folder's `ai/log.jsonl`; a live client redraws the new title from one `renamed` event on the session's own stream.",
 			{ session: SESSION,
 				title: { type: "string", description: "At most 6 words, e.g. `Voice session plumbing`." },
 				summary: { type: "string", description: "One plain line: what was asked, and what is in flight." } },
 			["session", "title", "summary"],
 			(args, ctx) => JSON.stringify(sessions().summarize({ ...args, session: caller_session(ctx.caller) ?? args.session }))),
 		tool("rename_session",
-			"Rename a voice session: moves its folder (`ai/sessions/YYYY/MM/DD/<name>/`) to match a new title, so the same name reads in"
-			+ " the Switch-session dropdown and on disk. The session id is the key and never changes; `session_summary` already calls this"
-			+ " whenever the title changes, so you rarely need it directly — it exists on its own for a later rename-proposal flow.",
+			"Retitle a voice session without writing a fresh summary — keeps whatever summary it already has. The session id is the key"
+			+ " and never changes; `session_summary` already renames on every title change, so you rarely need this directly — it exists"
+			+ " on its own for a later rename-proposal flow (offer a new title, nothing else).",
 			{ session: SESSION, title: { type: "string", description: "The new title to rename to." } },
 			["session", "title"],
 			(args, ctx) => JSON.stringify(sessions().rename_session({ ...args, session: caller_session(ctx.caller) ?? args.session }))),

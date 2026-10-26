@@ -60,7 +60,8 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 
 | Tool | Who calls it | What it writes |
 |---|---|---|
-| `session_summary({session, title, summary})` | the smart assistant, in its first turn and when the topic shifts | `<session>.summary.json`, and a `started` line in the home's `ai/log.jsonl` when the title changed |
+| `session_summary({session, title, summary})` | the smart assistant, once the topic is clear (usually a couple of turns in, not forced on the first) and again when it shifts | `<session>.summary.json`, a `started` line in the home's `ai/log.jsonl` when the title changed, and a `{kind: "renamed", title}` event on the session's own stream |
+| `rename_session({session, title})` | a future rename-proposal flow; `session_summary` already covers the normal case | the same title write as `session_summary`, keeping whatever summary the session already has — **never** a folder move: the session's own folder stays named by its id forever (tried and dropped, 2026-10-25 — it broke the item tool's own path for that session; see `core/Item/readme.md`) |
 | `session_line({session, text, re, level})` | the smart assistant | a `chat` line; with `level`, a refined line |
 | `dir_log({dir, line})` | any agent; the smart assistant as it goes | one validated line in `<dir>/ai/log.jsonl` |
 
@@ -73,7 +74,7 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 | `POST /api/session/say` | `{session, path, text, via, raw?, floor?, cues?, quiet_ms?}` | `{ok, at, answered_by: [{kind, id: "fast", agent}, {kind, id: "smart", agent}]}` at once |
 | `POST /api/session/nav` | `{session, from, to}` | `{ok}` |
 | `POST /api/session/quiet` | `{session, ms, mic_off?, path?}` | `{ok, released}` |
-| `GET /api/session/<id>/stream` | | server-sent events: `{kind: "stream", role, text}` (a reply so far, whole; `""` when it ends) and `{kind: "line", line}` (each line as it is written) |
+| `GET /api/session/<id>/stream` | | server-sent events: `{kind: "stream", role, text}` (a reply so far, whole; `""` when it ends), `{kind: "line", line}` (each line as it is written), and `{kind: "renamed", title}` (the title just changed — a live client redraws it, keyed by the session's own id; there is no path to track since the folder never moves) |
 | `POST /api/session/floor` | `{session, floor}` | `{ok, floor, released}`: `"done"` writes a held fast reply |
 | `POST /api/session/settings` | `{session, gap_ms?, every?}` | `{ok, gap_ms, every}`: the session's wake knobs (stored as `wake` in sessions.json; `null` drops one back to the default; out of range is a 400); no knobs reads them back. See [wake-policy](/framework/ux/Dictate/doc/wake-policy.md) |
 | `GET /api/sessions?page=/x/&limit=10&host=` | | `{ok, sessions: [{session, home, title, summary, at, last_at}]}`, newest first: the sessions named in that folder's `ai/log.jsonl`, or whose `home`/`visited` in `sessions.json` names it |

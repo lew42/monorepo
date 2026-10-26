@@ -399,7 +399,12 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 				// the phone) never fires `chat.on_change` HERE, so the list can go stale between
 				// real changes. Every click re-runs `paint()`, which re-fetches `recent_project`;
 				// the `open_menu?.showing()` guard above means a menu already open is never torn
-				// down mid-read, so what's showing now stays put and the NEXT open is fresh.
+				// down mid-read. Known gap: the click that is OPENING the menu fires the native
+				// open synchronously, before the fetch resolves, so THIS open still shows the rows
+				// from the last paint — the fetch lands a moment later and the NEXT open is fresh.
+				// `ux/Popover.menu()` bakes its row list in at build time with no update method, so
+				// making the just-opened list itself live would mean reworking that shared component;
+				// not done here.
 				$switch.el.addEventListener("click", () => { paint(); });
 			}
 			button.c("ux-dictate-chat-new-session drawer-ai-switch-btn", "+").attr("type", "button")

@@ -1,11 +1,9 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { place, HOME } from "../home.js";
 import LogLine from "../../Server/LogLine.mjs";
-import { slugify } from "../../Server/session-migrate.mjs";
 import { model as tier_model } from "./tiers.js";
 import Usage from "../Usage.js";
 import { page_path } from "./Layers.js";
@@ -900,61 +898,36 @@ export default class Sessions {
 		Object.assign(s, { title, summary });
 		fs.mkdirSync(path.dirname(this.summary_file(s)), { recursive: true });
 		fs.writeFileSync(this.summary_file(s), JSON.stringify({ id: s.id, home: s.home, title, summary, at, visited: s.visited ?? [] }, null, 2));
-		if (changed) this.presence(s, s.home, "started");
-		/* RENAME ON TITLE CHANGE (owner, 2026-10-25): a title set the usual way renames the
-		 * session's own folder too, with no second call — never fatal to the title write itself. */
-		if (changed) try { this.rename(s, title); } catch (e){ console.error(`sessions: rename on title change: ${e.message}`); }
+		if (changed){
+			this.presence(s, s.home, "started");
+			/* A live client (the Switch-session dropdown, an open Chat) redraws the title from this
+			 * one event, keyed by the session's id — never by a path, so there is nothing for it to
+			 * track (owner, 2026-10-25, "no client-side path bookkeeping"). */
+			this.push(s.id, { kind: "renamed", title });
+		}
 		this.save();
 		return { ok: true, session: s.id, title, summary, at };
 	}
 
-	/* RENAME (owner, 2026-10-25): the session's own folder name tracks its title, so the same
-	 * name reads in the Switch-session dropdown and on disk (`ai/sessions/YYYY/MM/DD/<name>/`).
-	 * The session's id NEVER moves — it stays the key of `this.map` and the only thing any
-	 * reader resolves by; only the directory and `s.file` change, in this one Servex-owned step
-	 * (never a find-and-replace across JSONL: an old line keeps whatever path it was written
-	 * with, and every reader goes by id). Servex is the single writer for both the in-memory
-	 * state and the files, so this is the one place a rename happens, and it emits one `renamed`
-	 * event on the session's own live stream so an open client redraws the title from it instead
-	 * of tracking the path itself. A no-op when the title doesn't change the slug (same name, or
-	 * no good slug to make). Best-effort: a `follow()` on the session's OLD file path is pointed
-	 * at the new one if Servex's `Follow` instance is reachable; nothing else is chased down —
-	 * CLAUDE.md law 6 leaves a general move-with-reference-update to the Item system later, not
-	 * built here (see public/framework/core/Item's own note). */
-	rename(s, title){
-		const slug = slugify(title);
-		const old_rel = path.posix.dirname(s.file), day_rel = path.posix.dirname(old_rel), base = path.posix.basename(old_rel);
-		if (!slug || slug === base) return { renamed: false };
-		const day_disk = this.disk(day_rel);
-		let name = slug, n = 2;
-		while (name !== base && fs.existsSync(path.join(day_disk, name))) name = `${slug}-${n++}`;
-		if (name === base) return { renamed: false };
-		const old_disk = this.disk(old_rel), new_disk = path.join(day_disk, name);
-		fs.mkdirSync(day_disk, { recursive: true });
-		let tracked = "";
-		try { tracked = execFileSync("git", ["-C", this.repo, "ls-files", old_disk], { windowsHide: true }).toString().trim(); } catch {}
-		if (tracked) execFileSync("git", ["-C", this.repo, "mv", old_disk, new_disk], { windowsHide: true });
-		else fs.renameSync(old_disk, new_disk);
-		const old_file = s.file, new_rel = `${day_rel}/${name}`;
-		s.file = old_file.replace(old_rel, new_rel);
-		this.save();
-		try {
-			const subs = this.servex?.follow?.subs ?? [];
-			const old_path = old_file.replace(/^\/+/, ""), new_path = s.file.replace(/^\/+/, "");
-			for (const sub of subs) if (sub.path === old_path) sub.path = new_path;
-		} catch {}
-		this.push(s.id, { kind: "renamed", title, file: s.file });
-		return { renamed: true, from: old_rel, to: new_rel };
-	}
-
-	/* The tool-facing wrapper (tools.js's `rename_session`): looks the session up by id, which
-	 * never changes, then renames it as above. */
+	/* RETITLE WITHOUT A FULL RE-SUMMARY (tools.js's `rename_session`): for a future rename-PROPOSAL
+	 * (owner, 2026-10-25) that only has a new title to offer, not a fresh one-line summary. Keeps
+	 * the session's current summary (or, for a session with none yet, the title itself) and goes
+	 * through `summarize()`, so the title write, the `started` line and the `renamed` push event
+	 * all happen exactly once, the same way either caller reaches them.
+	 *
+	 * NOT a folder move (dropped after review, 2026-10-25): the owner's ask was "the folder name
+	 * tracks the title too", but the session's own folder is handed out as a literal path ONCE, at
+	 * spawn, as the item tool's `path` for the rest of that session's life (`spawn()`'s `where`
+	 * string, below) — moving it would break the very agent calling this tool's own record-keeping
+	 * the instant it ran, with no way to tell it the path changed mid-conversation. A bookmarked
+	 * dated-folder url (`page_tools.js`'s `DATED_SESSION`) would 404 the same way. A real fix needs
+	 * a resolve-by-id indirection the Item system does not have yet: public/framework/core/Item's
+	 * own readme now carries this gap. Only the title moves; the folder stays `v-<id>` forever. */
 	rename_session({ session, title } = {}){
 		const s = this.get(session);
 		title = String(title ?? "").trim();
 		if (!title) throw Object.assign(new Error("rename_session needs `title`, the name to rename to"), { status: 400 });
-		const r = this.rename(s, title);   // mutates s.file; read it back AFTER, or this returns the stale pre-rename path
-		return { ok: true, session: s.id, file: s.file, ...r };
+		return this.summarize({ session, title, summary: this.summary_of(s).summary || title });
 	}
 
 	/* A line from the smart assistant. `re` alone: a reply to that owner line. `re` +
