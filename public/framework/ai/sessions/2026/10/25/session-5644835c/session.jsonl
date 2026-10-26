@@ -1,0 +1,8 @@
+{"session":{"id":"5644835c-b41c-4f8a-b24a-42bb6256e627","kind":"vscode-tab","at":"2026-10-26T00:43:22.802Z"},"by":"item (first query)"}
+{"log":{"at":"2026-10-25T23:50:31-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-25T23:55:31-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-page-mobile-layout/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.890Z"}
+{"task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-names/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.892Z"}
+{"task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-page-blank/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.947Z"}
+{"task":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-switcher/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.960Z"}
+{"note":{"id":"caveats-mastermind-session-names","msg":"/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-names/ completed with caveats: the dropdown title and the session's own folder name (always v-<id>) deliberately no longer match -- posted as an owner_note, not fixed; a general item-level rename-with-reference-update does not exist yet (core/Item/readme.md); the rename-proposal card is not built (ai/todo.md); the opening click of the dropdown still shows the pre-fetch list, not the just-refreshed one"},"by":"mastermind-session-names","ts":"2026-10-26T05:02:10.496Z"}

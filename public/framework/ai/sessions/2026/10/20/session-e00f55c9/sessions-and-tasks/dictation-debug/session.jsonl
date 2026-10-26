@@ -222,3 +222,7 @@
 {"log":{"at":"2026-10-25T18:21:42-05:00","msg":"dropped: drawer-split: owner minion-drawer-split is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/drawer-split/","reason":"owner-stopped"}}
 {"log":{"at":"2026-10-25T18:21:42-05:00","msg":"dropped: pipeline-doc: owner minion-pipeline-doc is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/pipeline-doc/","reason":"owner-stopped"}}
 {"log":{"at":"2026-10-25T19:06:24-05:00","msg":"dropped: task-completion: no owner agent was ever assigned","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/task-completion/","reason":"never-assigned"}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/earlier/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.882Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/fix-v2-checkbox/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.884Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/servex-oom/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.886Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/task-completion/","by":"SessionRecord --links","ts":"2026-10-26T05:00:30.888Z"}
