@@ -24,3 +24,6 @@
 {"log":{"at":"2026-10-25T19:16:20-05:00","msg":"task-loop status ask 2: could not ask: Agent minion-chat-live was not woken: it was stopped on purpose by task-mastermind-2 at 2026-10-25T18:51:01-05:00. Pass revive: true to wake it anyway.","ask":2}}
 {"log":{"at":"2026-10-25T19:22:57-05:00","heartbeat":"deliberate","msg":"minion-chat-live its agent is not running: it was stopped on purpose by task-mastermind-2 at 2026-10-25T18:51:01-05:00; not revived."}}
 {"log":{"at":"2026-10-25T19:27:56-05:00","msg":"task-loop status ask 3: could not ask: Agent minion-chat-live was not woken: it was stopped on purpose by task-mastermind-2 at 2026-10-25T18:51:01-05:00. Pass revive: true to wake it anyway.","ask":3}}
+{"log":{"at":"2026-10-25T20:17:00-05:00","heartbeat":"deliberate","msg":"minion-chat-live its agent is not running: it was stopped on purpose by task-mastermind-2 at 2026-10-25T18:51:01-05:00; not revived."}}
+{"log":{"at":"2026-10-25T20:40:11-05:00","heartbeat":"deliberate","msg":"minion-chat-live its agent is not running: it was stopped on purpose by task-mastermind-2 at 2026-10-25T18:51:01-05:00; not revived."}}
+{"stop":{"at":"2026-10-25T21:40:12-05:00","why":"dropped: owner minion-chat-live is stopped"}}

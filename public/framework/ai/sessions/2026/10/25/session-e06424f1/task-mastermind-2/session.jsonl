@@ -189,3 +189,20 @@
 {"log":{"text":"dataflow-doc done: ux/Dictate/doc/data-flow.md sections 11-19 (commit 837d0641a, worktree dataflow-doc). Unverified inline: Session.open end-to-end, item tool writing minted id, Tail.js path guard for Session.open. chunk-ack stays held."},"by":"task-mastermind-2","ts":"2026-10-26T02:34:42.104Z"}
 {"log":{"at":"2026-10-25T21:37:41-05:00","msg":"session resumed"}}
 {"log":{"text":"V2 trace (v-sq8y7db, no minion): 114 Questions but 0 answer lines in session.jsonl; ChatV2.child_body (ChatV2.js:317) renders answer.text and ChatV2Model reads n.answer, so the renderer is fine. The smart seat answers as 542 chat lines (from.kind assistant), which ChatV2Model.apply drops (ChatV2Model.js:18 returns null). Only 35 of 609 Prompts have title/text (M.refined, ChatV2Model.js:85), so the rest draw raw sentence rows. Empty checkbox = a type Task child in phase idle (TaskView.STAGE.idle = check_box_outline_blank, ChatV2.js:312); 38 Task rows exist, none started. Questions use help_outline, not a checkbox."},"by":"task-mastermind-2","ts":"2026-10-26T02:38:41.742Z"}
+{"log":{"at":"2026-10-25T21:40:36-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:40:43-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T21:43:08-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:45:15-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T21:46:28-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:46:28-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T21:48:25-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:48:39-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T21:50:23-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T21:56:22-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T21:57:29-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T22:00:14-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T22:01:28-05:00","msg":"session ended (other) without landing"}}
+{"log":{"at":"2026-10-25T22:06:50-05:00","heartbeat":"check","msg":"status check sent to task-mastermind-2"}}
+{"log":{"at":"2026-10-25T22:06:54-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-25T22:07:25-05:00","heartbeat":"answered","msg":"Idle, with nothing running. `data-flow.md` §22 and §22a and the `session-smart.md` Sonnet fix are committed on `worktree/dataflow-doc` (`1e5ca2866`). The branch is unmerged because `merge.mjs` needs a"}}
+{"log":{"at":"2026-10-25T22:08:28-05:00","msg":"session ended (other) without landing"}}
