@@ -209,7 +209,7 @@ The rule is now in [agents.md](agents.md) and [framework/readme.md](../readme.md
 | **`Sheet`** | none | New: sizes, drag clamp, panel register/unregister. |
 | `List`, `Item` | `List.test.mjs`, `Item.test.mjs`, `Item.basic.test.mjs` | Add the bubbling question (does a nested `add` announce at the session) as one test, since the log depends on it. |
 
-## All proposed changes, one list (approve or reject each; nothing is built yet; 31 changes)
+## All proposed changes, one list (approve or reject each; nothing is built yet; 32 changes)
 
 Folder moves and shims:
 
@@ -272,6 +272,7 @@ Added 2026-10-26 (refinement census, voice structure, pseudo-properties, generic
     - **Fade:** sentences show grey and small as said; when a `RefinedPrompt` with `of: ["t14.s3", ...]` lands they collapse into its card with a "show raw" chevron. "Fade" is a view rule keyed off `of`.
     - **The rule: never chop or reorder a bubble, and never overwrite text the owner is reading.** The V1 bug (an AI reply splitting or pushing down the owner's bubble) came from V1 drawing one line per sentence in arrival order (`{chat}` lines, `Widget.js`), so an AI line landing mid-thought landed *between* the owner's sentences. The fix is structural, not a patch: the view groups by turn, an owner turn's bubble only ever grows at its end, and replies are children of the turn drawn after it. Likewise the fast seat writes `settled` once (change 21) and a later pass never rewrites a displayed sentence; a refinement is a new `RefinedPrompt` beside it. Test: `ChatView.test.mjs`, feed an owner turn, an AI reply, and two more owner sentences; assert the owner bubble holds all sentences in order and the reply sits after it. Risk low.
 31. **Voice kinds stay separate in the data** (map 3f table): `kind` on the record is `voice` (a), `cloud-voice-agent` (b) or `external` (c); the Assistant class (change 6) owns only (a). (b) and (c) keep their own code and get the same honest `seats`/cost rule.
+32. **Fold the two task viewers and the two maps** (map 3h.1). `AITask` (session-store tasks) and `TaskPage` (module tasks) become one viewer in `core/Task`, `AITask` keeps only the AI day/board views. `ai/systems-map.md` stays as the generated directory (sizes by script) and links into `system-map.md` for sessions, tasks and chat. Risk: medium (two pages share tabs). Test: both a session task and a module task open in the one viewer; `node Server/ReadmeOrphans.mjs` stays clean.
 
 **Build order** (each step keeps V1 and V2 working): 22 (tests), 1-3, 4-8 with 19, 9-11 with 17, 28, 24, 18 and 21 and 20, 25-27 and 31 (cleanups), 26, 29-30, then 15, 12-14, 16 on a private Servex, then 23.
 

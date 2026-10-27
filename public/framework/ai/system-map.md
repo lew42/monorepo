@@ -211,6 +211,21 @@ The older list of eight, with how they differ: [doc/prompt-refinement-map.md](do
 
 **Result: two systems earn their keep** (the fast seat's one pass, row 1, and the smart seat's refine-the-whole-Prompt, rows 2/7/4 merged). The other twelve are duplicates, dormant, or by-hand history. Counting `Sessions.refine` plus Echo's cleaner plus `LiveRefine` plus `tidy`, the same sentence can be cleaned by up to four code paths; today two actually fire (rows 1 and 2).
 
+## 3h. The Process class: what it is and whether it runs (audited 2026-10-27)
+
+**What it is.** `class Process extends Task` ([core/Task/Process.js](/framework/core/Task/Process.js), 110 lines): its children are named steps, always in series. It is data plus one decision, `next()`; it never changes itself. `Servex/ProcessRunner.js` (191 lines) is the node side: it replays the file, asks `next()`, writes the line, and launches the step. Templates are subclasses with `static steps` in `core/Task/processes/` (`build` 8 steps, `design`, `investigate`). Created in one call: `item({path: <session>, delta: {tasks: {add: {title, process: "build", brief}}}})`. Doc: [core/Task/doc/process.md](/framework/core/Task/doc/process.md).
+
+**It does run outside the SDK context.** `ProcessRunner` is built in `Servex.js` (289), woken by the item tool after any write to a process file (`hooks.changed`), by an agent turn end (`Agents.js` 1787) and by the TaskLoop tick (resume after a restart). When a step completes, node sends `Process.prompt(N+1)` (the step text, the brief, every earlier outcome) to a fresh agent, the previous step's agent (`same`) or the creator (`owner`). Each step's cost is measured and a stalled step is pulsed.
+
+**It does not trigger node functions.** A step launches a session (`run: fresh | same | owner | wait`) and nothing else; there is no step type that calls a function. Gap, not a bug: a "run NavCheck" or "merge" step is today an agent told to run it.
+
+**Does it run anywhere today? Barely.** Six task files carry `"class":"Process"` in the whole repo: five in `session-e00f55c9` (10-20) and one test, `e2e-check-process` (10-22). Totals read from the files: the real one, `readmes-page`, has 9 spawns and 6 completes over 10-22 to 10-25; of the four 10-25 `chat-*` ones, one reached a spawn and a complete and the rest sit at 0. No Process was created after 10-25 and none is on this week's sessions. The old [ai/process](/framework/ai/process/) page is unrelated (a stale 2026-09-19 view of agent work). Verdict: **built, tested (`Process.test.mjs`, `ProcessRunner.test.mjs`), wired into Servex, and used by one real task plus a few starts.** Nothing depends on it, so it is the cheapest place to put mandatory sequences (see [roles-proposal.md](roles-proposal.md), role versus process).
+
+### 3h.1 Reconcile: `AITask/` and `systems-map.md` beside this file
+
+- **`ai/AITask/`** (`class AITask extends Page`): the *viewer* for one session-store task folder and the day/board views of the AI front page. Different from `core/Task` (the Task data class and `TaskPage`, the module-task viewer). Two viewers for one data shape is the duplication; folded by proposal change 32 (below in system-proposal.md), not a rename now.
+- **`ai/systems-map.md`** (63 lines, last change 2026-10-13): a *directory of systems* (one row per system: where it lives, entry readme, size, a note), written by hand with git-log numbers. This file, `system-map.md`, is a *how it works* map of sessions, tasks, prompts and chat. **Different purpose, partly duplicate**: its rows for sessions and tasks repeat what 1-3 here say, and its sizes are stale. Recommendation: keep it as the index, regenerate the numbers by script (law 7), and replace its Sessions/Tasks/Chat rows with links into this file. Not merged: a directory and an explanation should not share one page.
+
 ## 4. Where the boundaries are wrong today
 
 1. **Chat is split across `ux/Dictate` and `ext/Chat`.** The mount (`chat.js`), bubble list (`Widget.js`) and session switcher are in `ux/Dictate`; the engine (`Chat.js`), composer and mic are in `ext/Chat`. Already found in `ux/Dictate/doc/map.md` (D6, proposal 4).
