@@ -193,3 +193,72 @@ An agent needs these after `/compact`; the first message and any Skill-tool resu
 ## 7. Compaction policy, for the front matter
 
 `compact_after` is today `{tokens}` per row: one nudge when an idle agent passes it, never auto mid-flight; minions `null`; default 200k; sleep-compact at 100k before going dormant; auto-compact past 400k (`roles.js:27-35`, `Agents.js:1617-1670`). Keep exactly this, written as the `compact_after` field. Alternative: one global policy plus per-role `null`; rejected because mastermind (150k) and voice roles already differ.
+
+## 8. Mechanism recommendation: skill vs readme pointer vs load tool
+
+What a skill is: text an agent chooses to load, which lands in context as a tool result. Nothing carries it through compaction, and nothing says it was needed. The ways to get text to an agent:
+
+| | when it arrives | survives compaction | logged | fails silently |
+|---|---|---|---|---|
+| Skill (on demand) | agent decides | no | yes (`"msg":"skill: X"` in session and task logs, via `ledger.mjs`) | yes: not loading is invisible |
+| Pointer in the system prompt ("for X read path/readme.md") | agent decides | the pointer does; the text read does not | no: a plain `Read` has no per-readme count (`ledger.mjs` counts only Skill calls) | yes |
+| Tool (`load_module`, `readme_modules`, in `Experts.js`) | agent decides | no (a result) | not verified: I found no per-call log line for it in `tools.js` | partly |
+| Inlined into the system prompt at spawn (role text, readme chain, `mastermind.md`) | before turn 1 | **yes** | yes (`skills.jsonl`, `where: "system"`) | **no** |
+
+Evidence from the counts (since 2026-10-12): hand `Skill` calls are frequent where the skill is a procedure the agent reaches for at a known moment: `finish-task` 137, `minion` 93, `sub-mastermind` 58, `page` 44. They are near zero where the trigger is vague (`auditor`, `research`, `skill-improvement`, `ui`: 0). So on-demand loading works when a visible moment calls for it ("I am done": finish-task) and fails where the agent must notice it needs it. I have no counts for pointer-followed reads, because nothing records them, so "is a pointer as reliable as a skill" is unmeasured. It should be no worse than a skill description (both are one line the agent reads, then decides), but it loses the logging a skill has.
+
+Recommendation, one rule with two layers:
+1. **Anything a role must always know is inlined at spawn** (role file, path readme chain, `<path>/mastermind.md`). Never behind a pointer or a skill. Changes 1 to 11 finish moving the rest in.
+2. **Everything else is a readme pointer written as a trigger, "when you are about to X, load module Y"**, and the loading is done by `load_module` (one tool, one call, one log line), not a bare `Read` and not a Skill. A skill is kept only for a standalone utility (section 9). One mechanism for reference text means one place to measure.
+
+Change 12 (low risk): make `load_module` write one line per call to a `loads` log (`agent`, `role`, `module`, `bytes`, `ts`), the same shape as `skills.jsonl`. Test: spawn a minion, have it call `load_module core/Page`, check the line exists with its agent id.
+
+Measurement plan (a node script, per compute-don't-recall): each role's front matter gets a `loads:` list of modules it should read before a kind of work. A script `Servex/agents/loads-audit.mjs` joins the `loads` and `skills` logs by agent id and prints, per role: agents spawned, percent that loaded each expected module, median turn of the first load. A role under about 80 percent on a module has that module inlined (layer 1) or its pointer reworded. Run weekly. Until change 12 lands the only proxy is skill-load counts, which cannot say what was missed.
+
+## 9. Skills to keep
+
+Genuinely on-demand, standalone utilities with no role identity in them. They cost nothing unloaded.
+
+- `check-claude-usage`: runs a script and reads the numbers (20 loads).
+- `fans`: diagnoses process spin on this machine (4).
+- `finish-task`: a short close-out procedure. Keep, and also inline its 5 lines in `minion.md` and `mastermind.md`: 137 hand loads show agents need it, and a step someone must always do is a candidate for a process step (section 11).
+- `documentation`, `code`, `css`, `layout`, `navigation`, `content`: reference for a kind of edit, loaded when a task touches that area.
+- `figma` and the `figma:*` plugin skills (32 loads for `figma-use`): plugin-owned, not ours to move.
+- `past-work`: a computed search; its output is already inlined into briefs.
+- Rarely used reference skills (`color`, `ui`, `make`, `new-css-class`, `openrouter`): keep dormant; 0 uses in 14 days.
+- `skill-improvement`, `auditor`, `fork-claude-session`: keep only if a caller still names them; otherwise retire.
+
+## 10. Role-level text still living in skills
+
+Each of these says who an agent is or what it must always do, so it belongs in a role file (system prompt), not behind a load:
+
+| skill | role-level content | move to |
+|---|---|---|
+| `minion` (93 hand loads) | the never-list, how to report, log shape | `minion.md` (partly there; delete the pointer) |
+| `sub-mastermind` (58) | owning one task end to end; three-message report | `mastermind.md` (already folded in; delete skill) |
+| `servex-mastermind`, `system-architect` | alias text, AI-system keeper posture | `mastermind.md` at path `public/framework/ai/` |
+| `review` (163 injected + 4 called) | what a reviewer checks and how it answers | `reviewer.md` (a phase, section 11) |
+| `clarity` (333 injected) | the clarity pass | `clarity.md` (a phase, section 11) |
+| `finish-task` | landing steps every agent must do | inline in `minion.md` and `mastermind.md` |
+| `page` | page-building rules | `mastermind.md` when the path is a page module |
+| `voice-assistant`, `voice-mastermind`, `master-assistant`, `every-prompt` | voice posture and routing | `voice.md` |
+
+"Should be used but is not" can only be answered from a log of loads. The decisive check is `finish-task`: agents that ended with no close-out line are the silent skips. Change 12's script reports it.
+
+## 11. Role vs process
+
+- **Role** = who an agent is: system-prompt text, model, posture, set at spawn, lasting the agent's life.
+- **Process** = a sequence node walks an agent through (`core/Task/Process.js`, `Servex/ProcessRunner.js`). Steps are sessions (`run: fresh | same | owner | wait`); when step N completes, node injects step N+1's prompt with the earlier outcomes. Templates `build`, `design`, `investigate` are in `core/Task/processes/`. It runs outside the SDK context, so compaction cannot drop it. Only 6 Process task files exist and 1 is real; a step can launch a session but not call a node function yet.
+
+A role that is really "a step someone must always do after X" should become a process phase with a node-written prompt. A role that is an identity across many turns stays a role.
+
+| today's role | becomes | saves | risk |
+|---|---|---|---|
+| `reviewer` (363 spawns) | phase `review` (BuildProcess `improve-plan` and `review` already use `role: reviewer`; DesignProcess `review-shots`, `review` too) | no standing agent to remember to call; a skipped review is visible (step not done, task not landed) | the step's session still needs posture text, so keep `reviewer.md` and let the phase supply the prompt; a task with no process stays unreviewed |
+| `clarity` (427 spawns, woken per landing) | phase after `execute` | no waiting agent holding RAM; the pass cannot be skipped | today's per-landing wake is the only trigger for work outside a process; convert after processes cover those tasks |
+| `checker` (0 spawns) | deleted; its job is the `review` phase | one fewer row | none |
+| `mastermind`, `minion`, `helper`, voice rows | stay roles | n/a | n/a |
+
+Order: do not convert until processes are in real use (1 real file today). Convert `reviewer` first, since its phases already exist; `clarity` second, once its trigger is a step and not a wake-up.
+
+Change 13 (medium risk): add `phase: true` to the front matter of `reviewer`, `clarity`, `checker`. A phase role is spawned by `ProcessRunner` with a node-written prompt; a hand `spawn_agent` of it warns once. Test: run the `build` template on a toy task, check `improve-plan` and `review` sessions start by themselves in order and the task will not land until both finish. Follow-up: let a step call a node function (for example `finish-task` as code), which removes the largest silent skip.
