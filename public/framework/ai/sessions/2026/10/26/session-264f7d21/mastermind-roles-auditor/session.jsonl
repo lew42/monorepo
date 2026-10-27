@@ -8,3 +8,6 @@
 {"log":{"at":"2026-10-26T19:04:28-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-26T19:10:31-05:00","heartbeat":"deliberate","msg":"mastermind-roles-auditor its agent is not running: it was stopped on purpose by mastermind-system-map at 2026-10-26T19:04:34-05:00; not revived."}}
 {"log":{"at":"2026-10-26T19:17:59-05:00","msg":"task-loop status ask 1: mastermind-roles-auditor was stopped on purpose; not woken","ask":1}}
+{"log":{"at":"2026-10-26T19:22:59-05:00","msg":"task-loop status ask 2: mastermind-roles-auditor was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-10-26T19:27:59-05:00","msg":"task-loop status ask 3: mastermind-roles-auditor was stopped on purpose; not woken","ask":3}}
+{"log":{"at":"2026-10-26T19:32:59-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
