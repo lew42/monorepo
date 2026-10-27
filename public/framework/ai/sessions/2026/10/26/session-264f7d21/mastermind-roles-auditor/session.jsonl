@@ -11,3 +11,5 @@
 {"log":{"at":"2026-10-26T19:22:59-05:00","msg":"task-loop status ask 2: mastermind-roles-auditor was stopped on purpose; not woken","ask":2}}
 {"log":{"at":"2026-10-26T19:27:59-05:00","msg":"task-loop status ask 3: mastermind-roles-auditor was stopped on purpose; not woken","ask":3}}
 {"log":{"at":"2026-10-26T19:32:59-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"complete":{"outcome":"The helper's roles-proposal.md work landed in commits 79a25c721 and 856dfece8; the helper is no longer running.","evidence":["commit 79a25c721","commit 856dfece8","public/framework/ai/roles-proposal.md"],"confidence":"medium","caveats":["roles-proposal.md is over its line cap"]},"by":"mastermind-system-map","ts":"2026-10-27T01:28:47.957Z"}
+{"sessions":[{"id":"mastermind-system-map","task":"/framework/ai/sessions/2026/10/26/session-264f7d21/mastermind-roles-auditor/"}],"by":"mastermind-system-map","ts":"2026-10-27T01:28:47.958Z"}
