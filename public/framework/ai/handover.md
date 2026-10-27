@@ -5,50 +5,29 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-26 17:52 UTC, last 24 h)
+## NOW (computed 2026-10-27 03:52 UTC, last 24 h)
 
-**Pace:** Week: 66% used · 66% gone · 100% of pace (slow right down, 2 days 9 hours left)
+**Pace:** Week: 27% used · 72% gone · 38% of pace (room to spend, 1 day 23 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (15):**
-- [Task (owner, 2026-10-25): voice sessions in the "Switch session" dropdown (ux/Dictate/chat.js session_switcher](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-names/) (mastermind-session-names)
-- [Session page: voice sessions no longer stall Overview/Timeline/Tasks/Board/Coverage; More popover closes on a ](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-page-blank/) (mastermind-session-page-blank)
-- [Agent-name links in chat go to a page that does not exist. ext/Mention/Mention.js agent_entry() (line ~106) bu](/framework/ai/sessions/2026/10/25/session-15fa7f56/mastermind-agent-name-links-resolve/) (mastermind-agent-name-links-resolve)
-- [Load the `minion` skill first. Your brief is C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\10\25\se](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-minion-dataflow-doc/) (minion-minion-dataflow-doc)
-- [resurface: Question card moves on answer](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-minion-resurface/) (minion-minion-resurface)
-- [Read the brief at C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\10\25\session-e06424f1\task-masterm](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-chat-split-fixes/) (minion-chat-split-fixes)
-- [Fast and smart seats: what each does, gaps, split, experiments](/framework/ai/sessions/2026/10/25/session-e06424f1/mastermind/) (mastermind)
-- [Read and do the brief at C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\10\25\session-e06424f1\task-](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-open-bubble-last/) (minion-open-bubble-last)
-- [WakePolicy: sentence_count only counts finished sentences](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-wake-count/) (minion-wake-count)
-- [Chat scroll: locked and pinned to the bottom, no jumps](/framework/ai/sessions/2026/10/25/session-53d50878/task-mastermind-3/) (task-mastermind-3)
-- [text-check: skip generated files, read the newest outcome](/framework/ai/sessions/2026/10/25/spawned/mastermind-ai/) (mastermind-ai)
-- [Roles/spawning audit, settlement bug, mastermind-process review](/framework/ai/sessions/2026/10/25/session-e06424f1/mastermind-roles-and-settling/) (mastermind-roles-and-settling)
-- …and 3 more (the [task list](/framework/ai/tasks/))
+**Landed (2):**
+- [Budget: $6. You are a helper doing ONE read-only investigation plus ONE doc; do the work yourself, spawn nobod](/framework/ai/sessions/2026/10/26/session-264f7d21/mastermind-roles-auditor/) (mastermind-roles-auditor)
+- [System map and proposal: dictation, sheet, chat, session, task, prompt](/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map/) (mastermind-system-map)
 
-**Open, touched in the window (11):**
-- [You are a fresh child of voice session v-sq8y7db (page /framework/ai/sessions/2026/10/25/v-sq8y7db/). You cont](/framework/ai/sessions/2026/10/25/session-e06424f1/task-mastermind-2/) (task-mastermind-2)
-- [Owner reports /framework/core/Page/ looks broken on mobile: its cards are clearly not aligned properly. 1) Tak](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-page-mobile-layout/) (mastermind-page-mobile-layout)
-- [Load the `minion` skill first. Your brief is C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\10\25\se](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-minion-chunk-ack-2/) (minion-minion-chunk-ack-2)
-- [Build the session switcher in the dictate widget (also the mobile sheet), in a worktree, reviewed, landed via ](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-switcher/) (mastermind-session-switcher)
-- [Load the `minion` skill first. Your brief is C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\10\25\se](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-minion-chunk-ack/) (minion-minion-chunk-ack)
-- [Load the minion skill first. Your brief: public/framework/ai/sessions/2026/10/25/session-e06424f1/task-masterm](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-chat-roles/) (minion-chat-roles)
-- [Load the minion skill. Budget $5. URGENT regression diagnosis. Work only in your worktree C:\Code\lew42\worktr](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-dictation-mangle/) (minion-dictation-mangle)
-- [Read and do the brief at C:\Code\lew42\monorepo\public\framework\ai\sessions\2026\10\25\session-e06424f1\task-](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-prompt-per-smart/) (minion-prompt-per-smart)
-- [Load the minion skill, then do the brief at public/framework/ai/sessions/2026/10/25/session-e06424f1/task-mast](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-chat-live/) (minion-chat-live)
-- [You are the task-mastermind for the Dictate module (public/framework/ux/Dictate/). The owner wants you to mana](/framework/ai/sessions/2026/10/25/session-9ea7030a/task-mastermind-dictate-improve/) (task-mastermind-dictate-improve)
-- …and 1 more (the [task list](/framework/ai/tasks/))
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-207263721 servex: log sweep (31 files)
-af6d1102b servex: log sweep (31 files)
-fffa57e20 servex: log sweep (31 files)
-ca06fc158 servex: log sweep (31 files)
-5a656e8a5 servex: log sweep (31 files)
-170b6eb4f servex: log sweep (31 files)
-59bef8768 servex: log sweep (31 files)
-96320ef6a servex: log sweep (31 files)
+9a9472068 servex: log sweep (31 files)
+ea942df93 servex: log sweep (31 files)
+7bcf11ab2 servex: log sweep (32 files)
+4921dc5ac servex: log sweep (31 files)
+8603873b1 servex: log sweep (33 files)
+fb8c67d1a servex: log sweep (32 files)
+c8b02d000 servex: log sweep (35 files)
+8fbaafa6c ai: chat-architectures.md, four alternative data shapes for the voice session chat, with a recommendation
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
