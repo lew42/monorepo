@@ -2,6 +2,8 @@
 
 Proposal only (2026-10-26, from the owner's direction through the cloud voice agent). Nothing here is built, and chat V1 and V2 must keep working at every step. [system-map.md](system-map.md) is what IS; this file is what SHOULD be. The reasons for each move are the "boundaries" list in the map, section 4.
 
+> Four alternative data architectures for the chat, with a recommendation: [chat-architectures.md](chat-architectures.md).
+
 ## Class architecture (final, 2026-10-27)
 
 The current agreed shape. It replaces the older `Part`, `RefinedPrompt`, `Sentence` and `turn` text further down (change 28 gives the reasons and the migration). Vanilla JS; every class is DOM-free, one per file, in `ai/AISession/` except `AITask`. ✅ holds against the code, ⚠ does not or needs a decision.
