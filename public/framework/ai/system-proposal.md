@@ -2,6 +2,54 @@
 
 Proposal only (2026-10-26, from the owner's direction through the cloud voice agent). Nothing here is built, and chat V1 and V2 must keep working at every step. [system-map.md](system-map.md) is what IS; this file is what SHOULD be. The reasons for each move are the "boundaries" list in the map, section 4.
 
+## Class architecture (final, 2026-10-27)
+
+The current agreed shape. It replaces the older `Part`, `RefinedPrompt`, `Sentence` and `turn` text further down (change 28 gives the reasons and the migration). Vanilla JS; every class is DOM-free, one per file, in `ai/AISession/` except `AITask`. ✅ holds against the code, ⚠ does not or needs a decision.
+
+```js
+class AISession extends Item {          // today core/Session/Session.js + ai/AISession/
+  prompts;   // List<Prompt>   one per Whisper sentence (or typed message), flat, never edited
+  sections;  // List<Section>  the refined cards
+  chat;      // Chat           { messages }
+  tasks;     // List<AITask>   each `from: <section id>`
+  // key methods: place(prompt_id, where) is NOT a method: the fast seat writes item-tool lines;
+  //   get transcript()          prompts in order, joined: the raw words, regenerated
+  //   section_of(prompt_id)     reverse index, computed on replay
+  //   unplaced                  prompts no paragraph cites (the chat draws them raw)
+  //   progress                  tasks done / total, rolled up (cost the same way)
+}
+class Prompt extends Item {             // ONE sentence. Light: not a Task
+  id; text; said_at; selection;         // optional selection = what the owner pointed at
+}
+class Section extends Item {            // a card: one idea
+  id; title; summary;
+  paragraphs;                           // List<Paragraph>
+  // key methods: get prompt_ids() (all paragraphs' `of`, in order); get text() (cleaned text or the cited prompts)
+}
+class Paragraph extends Item {          // a run of sentences inside a Section
+  id; of = [];                          // plain id array of Prompt ids (plain_lists = ["of"])
+  text;                                 // optional cleaned text
+  // key methods: push(prompt_id) -> {of:{push:id}}
+}
+class Chat extends Item {               // the conversation beside the prompts
+  messages;                             // List<Message>, time order
+  // key methods: replies_to(prompt_id) -> messages whose `re` is that id
+}
+class Message extends Item { by; text; at; re; kind /* "reply" | "note" | "question" */ }
+class AITask extends Item {             // work with a done
+  id; title; state; from /* a Section id */; /* + the existing Task fields: cost, completion, children */
+}
+```
+
+**Placement.** The fast seat decides once per sentence, with an item-tool line: append to the last paragraph, start a new paragraph, or start a new section; the time since the last sentence is one input. The smart seat writes tasks, questions and replies. Servex builds the current state (last section, last paragraph, seconds since the last sentence) into each wake line.
+
+**Check against the code (what does not hold as stated):**
+- ⚠ **`Paragraph` has no file.** There is no `core/Task/Paragraph.js`: the class is inside `core/Task/Prompt.js` (lines 11-14, an `Item` with `plain_lists = ["sentences"]`, plus a `Paragraphs` list with `append`/`replace`). Earlier text of this proposal listed a `Paragraph.js` and is fixed. **Recommendation: a new small `Paragraph` class in its own file (`ai/AISession/Paragraph.js`), lifted from `Prompt.js`, with `of` added. Do not reuse `core/Page/PageParagraph.js`:** it is a `PageContentItem` that holds one string and draws a `<p>` through `View`, so it is page content, not session data, it has no id list, and importing it pulls the DOM view layer into Servex. The only reason to reuse it would be drawing a Section as a Page; the Section view can wrap its text in a `<p>` itself.
+- ⚠ **`page.chat` does not exist.** Nothing in `core/Page` has a `chat` property, and there is no `Chat` or `Message` data class anywhere: `Chat` today means view classes (`ChatPanel`, `ChatV2`, `ChatV3`, `ext/drawer/ChatView`). The only "chat" data is V1's `{chat}` lines, which `Session.apply_line` stores through its `put` fall-through. So `Chat { messages }` is new, and "same shape as page.chat" has nothing to match yet: define it here, then give Page the same class if wanted. Two things to settle: (1) the **name collides** with this proposal's own "`Chat` (one class): the view" (below); keep the data class `Chat` and call the view `ChatView` in the narrative, or name the data class `Conversation`; (2) old `{chat: "text"}` lines must fold into `chat.messages` on replay (the compatibility fold in "Lists and the chat").
+- ⚠ **`Prompt` as a light Item breaks the current `Prompt extends Task`** (state, cost, completion, `Prompt.test.mjs`, `PromptRecords`, `PromptTrace`): old sessions need a legacy path (change 28, item 1).
+- ⚠ **`Section`/`Paragraph`/`Message` need new keys** in `page_tools.js` (`SESSION_KEYS` 417, `PROMPT_KEYS` 423), `PromptLines.js` and `ChatV2Model.fold`; a `push` op on `of`.
+- ✅ `prompts`, `sections`, `tasks` as `List`s with id lookup replay, plain id arrays (no `Ref`), and `tasks[].from` all hold: `List` persistence and `Item.find` already do this.
+
 ## The shape in one picture
 
 ```
@@ -26,7 +74,7 @@ core/                                                   core/                   
   Session/Session.js   class Session extends Task        Item, List, Page, ...      (Dated.js takes Day from util/)
   Task/Task.js         class Task extends Item         ai/
   Task/Prompt.js       class Prompt extends Task         AISession/AISession.js  class AISession extends Item
-  Task/Question.js, Paragraph.js, Process.js,            AITask/AITask.js        class AITask extends Item
+  Task/Question.js, Process.js,            AITask/AITask.js        class AITask extends Item
     Project.js, TaskQueue.js, TaskPage.js, ...           AITask/Prompt.js, Question.js, Process.js, Project.js,
 ai/AISession/AISession.js  extends Session                 TaskQueue.js          extend AITask
 ai/AITask/AITask.js        extends Page (viewer)         AITask/RefinedPrompt.js class RefinedPrompt extends AITask
@@ -49,7 +97,7 @@ Servex/agents/Sessions.js   voice + wake + refine         (v2/, v3/ become ChatV
 - `ext/Chat/v2/ChatV2.js, v3/ChatV3.js → ext/Chat/ChatView.js` renderers (5), merge
 - `core/Session/Session.js → ai/AISession/AISession.js`, **merge** with the class already there (12)
 - `core/Task/Task.js → ai/AITask/AITask.js` (13); **rename** `ai/AITask/AITask.js → ai/AITask/AITaskPage.js` (13)
-- `core/Task/{Prompt,Question,Paragraph,Process,Project,TaskQueue,TaskPage,TaskView,TasksPage}.js → ai/AITask/` (14)
+- `core/Task/{Prompt,Question,Process,Project,TaskQueue,TaskPage,TaskView,TasksPage}.js → ai/AITask/` (14); `Paragraph` is not a file: it is a class inside `Prompt.js` and moves out to `ai/AISession/Paragraph.js` (see the final architecture)
 - `core/Task/sentences.js → util/sentences.js`; `core/Item/Dated.js` takes `Day` from a neutral home (15)
 - **new:** `ai/AITask/RefinedPrompt.js` (10), `ai/Assistant/Assistant.js` (6), `ext/Chat/Message.js` (29), `Servex/agents/Refiner.js` (25)
 - **delete:** `session-assistant.txt`, roles `assistant` and `session-fast`, `Echo.js`, `Chain.js`, `Placement.js`, `RefineQueue.mjs`, `PromptAudit.mjs`, day batch tools, `/api/tidy` (25, 27)
@@ -94,7 +142,7 @@ class RefinedPrompt extends AITask { of /* ["t14.s3", "t14.s4"] */; title; text;
 | the global voice session (`create_controller` in `chat.js`, sessionStorage `lew42-voice-session`) | **`Assistant` class in `framework/ai`** (change 6; first proposed as `VoiceSession` in `ux/Dictate/`) | Today nothing can hold or inspect it as an instance. |
 | `ext/Session/Session.js` (functions only) | stays an `ext` client; its calls become methods on `VoiceSession` | The client is plumbing; the class owns the state. |
 | `core/Session/Session.js` (`Session extends Task`) | **`ai/AISession/` as `AISession`**, merged into the class that is already there (change 12 below) | Superseded 2026-10-26: the owner wants Session and Task out of core. See "Moving Session and Task out of core". |
-| `core/Task/*` (`Task`, `Prompt`, `Question`, `Paragraph`, `Process`, `Project`, ...) | **`ai/AITask/` as `AITask`; `Prompt`, `Question`, `Paragraph`, `Process`, `Project` keep their names and extend it** (changes 13-16 below); add `RefinedPrompt.js` beside them | Superseded 2026-10-26: Task is the AI task-management system, not a core primitive. |
+| `core/Task/*` (`Task`, `Prompt`, `Question`, `Process`, `Project`, ...) | **`ai/AITask/` as `AITask`; `Question`, `Process`, `Project` keep their names and extend it** (changes 13-16 below); `RefinedPrompt` was dropped (change 28); `Prompt` becomes a light Item in `ai/AISession/` | Superseded 2026-10-26: Task is the AI task-management system, not a core primitive. |
 | `ai/AISession/` (session detail page and its tab renderers) | stays | It already has the right job; it mounts the Chat (below). |
 
 ## Classes
@@ -103,13 +151,15 @@ class RefinedPrompt extends AITask { of /* ["t14.s3", "t14.s4"] */; title; text;
 - **`Chat`** (one class): the view, the composer, the mic (built in, optional), the session switcher and the New session button. A caller passes `{session?, dictation: true|false}`. It mounts in the sheet (global voice session, switcher, mic), on a session detail page (a fixed session, no switcher, no mic), or alone. The three versions become renderers behind it (`view: "bubbles" | "tree" | "cards"`, today V1, V2, V3), chosen by one setting instead of two chips in the sheet head.
 - **`Assistant`** (was `VoiceSession`; owns the switcher and New session too): the controller today, as a class with the same `ensure()` (one shared promise), `reset()` and `fresh` rules.
 - **`Dictation`**: the engine is already `Dictate`; the proposal only gives the one-per-tab instance a name and a home.
-- **`RefinedPrompt`**: new; see below.
+- **`RefinedPrompt`**: dropped; `Section` and `Paragraph` replace it (see "Class architecture (final)" at the top).
 
 ## How the session detail page and the chat fit
 
 The detail page ([`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AISessionDetail.js)) has a Chat tab with three chips today: "Chat" (the Claude transcript, `AISessionConversation`), "Chat v2" and "Chat v3" on `session.jsonl`. With one `Chat` class the tab mounts `new Chat({session})` and the chips become the `view` setting; the transcript view stays a fourth `view` because an SDK agent's words live in the Claude transcript, not in `session.jsonl`.
 
 ## Prompts: raw first, refined by reference
+
+> Older text: `RefinedPrompt`, `turn` ids and the `Assistant` name below are superseded by "Class architecture (final)" at the top of this file (change 28). Read the bullets for their reasoning only.
 
 - **Raw `Prompt` is one turn (superseded by change 28: a turn holds many sentences, each stored once as `t14.s3`).** Fields `at`, `text` (the sentence verbatim), optional `selection`. Appended to `session.jsonl` in order. Never edited, never merged. Reading the raw lines in order regenerates the transcript.
 - **`RefinedPrompt`: its own line type** that groups raw prompts, with `title` and cleaned `text`.
@@ -175,7 +225,7 @@ The detail page ([`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AIS
 |---|---|---|---|---|
 | a | Task-folder `page.js` stubs: `import { TaskPage } from "/framework/core/Task/TaskPage.js"` | 822 | Path in the import. **Do not edit them.** Keep a one-line re-export at the old path; later a scripted move with a dry run and manifest rewrites them. | Medium. A missed one blanks that task page. |
 | b | `Servex/agents/page_tools.js:501` (`PAGE_JS`, the template that makes those stubs) | 1 | New stubs point at the new path. | Low, but do it with (a), or old and new stubs differ. |
-| c | `core/Task/*` itself: `Task`, `Prompt`, `Question`, `Paragraph`, `Process`, `Project`, `TaskPage`, `TaskView`, `TasksPage`, `TaskQueue`, `sentences`, `Day`... | about 14 files | Move to `ai/AITask/`. Re-export shims at the old paths. | High (it is the base of everything below). |
+| c | `core/Task/*` itself: `Task`, `Prompt`, `Question`, `Process`, `Project`, `TaskPage`, `TaskView`, `TasksPage`, `TaskQueue`, `sentences`, `Day`... | about 14 files | Move to `ai/AITask/`. Re-export shims at the old paths. | High (it is the base of everything below). |
 | d | `core/Session/*` (`Session`, `Day`, `SessionTasks`, `SessionSettings`, `SessionMenu`) | about 5 files | `Session` and its helpers to `ai/AISession/`; `Day.js` to a neutral util/core home (it is a date helper). Shims at the old paths. | High for `Session`; low for the helpers. |
 | e | Core leaks: `core/Page/Page.class.js:416` (TasksPage), `core/Item/Dated.js:4` (Day.js) | 2 | Cut the dependency: Page must load TasksPage only when the page asks for it; Dated takes `Day` from its new neutral home. | **High:** both are on every page's load path. |
 | f | Non-ai importers: `ext/Chat/chunks.js` (sentences), `ext/Doc/Doc.js:170`, `ux/Dictate/Widget.js:10`, `ext/Chat/v2` x2, `v3`, `ext/Refine/PromptRun.js`, `public/live/LiveTasks.js` | 8 | Imports go to the new path. `ext` and `ux` importing `ai` reverses the "imports flow down" rule, so `sentences.js` (a plain helper) goes to `util/`, and the rest must be reviewed one by one. | Medium. |
@@ -201,7 +251,7 @@ The rule is now in [agents.md](agents.md) and [framework/readme.md](../readme.md
 |---|---|---|
 | `Session` / **`AISession`** | `core/Session/Session.test.mjs`, `session-task.test.mjs`; `ai/AISession/` has cost, index, outline and timeline tests but none for the class itself | Keep both and move them with the class (change 12 depends on them); add a replay test for the record shape and one for the log. |
 | **`AITask`** (today `Task`) | `core/Task/Task.test.mjs`, `child-verb.test.mjs` | Keep and move first; they are the proof the move is safe. |
-| `Prompt`, `Question`, `Process`, `Project`, `TaskQueue`, `TasksPage` | `Prompt.test.mjs`, `Question.test.mjs`, `Process.test.mjs`, `Project.test.mjs`, `TaskQueue.test.mjs`, `TasksPage.test.mjs` (load-sensitive) | Nothing new; `Paragraph` has none (add). |
+| `Prompt`, `Question`, `Process`, `Project`, `TaskQueue`, `TasksPage` | `Prompt.test.mjs`, `Question.test.mjs`, `Process.test.mjs`, `Project.test.mjs`, `TaskQueue.test.mjs`, `TasksPage.test.mjs` (load-sensitive) | Nothing new; `Paragraph` (inside `Prompt.js` today) has none (add). |
 | **`RefinedPrompt`** | none (class is new) | New: build one from three raw ids, replay the line, check the reverse index and completion. |
 | **`session.log`** | none | New: replay a fixture `session.jsonl` and assert the log equals the creation lines in file order, once per replay shape; this is the "log matches the file" test from the data-first section. |
 | **`Assistant`** | none | New, node-side logic only: create, resume, switch return the right session id and prewarm calls (the fast/smart spawn stubbed). |
@@ -237,7 +287,7 @@ Data:
 11. Session-wide unique ids (one counter, never reused, tombstones), a `Ref` item, and a derived `session.log` List of Refs built from creation events in file order (never its own stored line). Risk medium; first answer the open List question (does `add` announce at the session?).
 12. **`Session` moves to `ai/AISession/` and merges with the existing `AISession` class there** (one name, one class). Alternative: two classes, a record class and a transcript reader. Risk high (base class; 20 importers plus the shims).
 13. **`Task` moves out of core into `ai/AITask/` as `AITask`**, and the existing viewer `ai/AITask/AITask.js` (a `Page`) is renamed `AITaskPage` (about 18 importers). Alternative: name the moved class `AITaskRecord`. Risk high.
-14. `Prompt`, `Question`, `Paragraph`, `Process`, `Project`, `TaskQueue`, `TaskPage`, `TaskView`, `TasksPage` move with it and extend `AITask`. Risk high (see the checklist, a-m).
+14. `Prompt`, `Question`, `Process`, `Project`, `TaskQueue`, `TaskPage`, `TaskView`, `TasksPage` move with it and extend `AITask`. Risk high (see the checklist, a-m).
 15. Cut core's two dependencies on Task/Session before moving: `core/Page/Page.class.js:416` loads `TasksPage` only when asked; `core/Item/Dated.js:4` takes `Day` from a neutral home; `sentences.js` goes to `util/`. Risk high: both are on every page's load path.
 16. Leave re-export shims at every old `core/Task/*` and `core/Session/*` path; change the template in `page_tools.js:501`; later rewrite the 822 task-folder `page.js` stubs by script (dry run, manifest) and remove the shims. Risk medium.
 
@@ -270,7 +320,7 @@ Added 2026-10-26 (refinement census, voice structure, pseudo-properties, generic
     AISession
       prompts:  List<Prompt>     one per Whisper sentence (or typed message), flat, never edited
       sections: List<Section>    the cards: {title, summary, paragraphs: List<Paragraph {of: [prompt ids]}>}
-      messages: List<Message>    AI replies and notes in time order, each `re: <prompt id>`, NOT nested
+      chat:     Chat             { messages: List<Message> }: AI replies and notes in time order, each `re: <prompt id>`, NOT nested
       tasks:    List<AITask>     work, each `from: <section id>`
     ```
     Tested against the code, it holds and is simpler than change 28's first draft:
