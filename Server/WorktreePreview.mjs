@@ -40,7 +40,9 @@ export default class WorktreePreview {
 	}
 
 	/* Is this worktree's work on the base? Its HEAD is an ancestor of the base, its diff against the base is empty,
-	 * or merge.mjs applied that head (.merge-landed.json in the main checkout). The same three tests the clean-up uses. */
+	 * or merge.mjs applied that head (.merge-landed.json in the main checkout). Synchronous, so the reaper can ask it. It
+	 * lacks Pool.landed()'s file-by-file test (async, needs a Pool): a branch whose content landed without its commits
+	 * reads unmerged here and is held until the folder is removed or the 48-hour backstop, never freed early. */
 	static merged(dir, { base = WorktreePreview.BASE, main = null } = {}){
 		const git = (...a) => spawnSync("git", ["--no-optional-locks", "-C", dir, ...a], { encoding: "utf8", windowsHide: true });
 		if (git("merge-base", "--is-ancestor", "HEAD", base).status === 0) return true;
