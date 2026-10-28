@@ -1,13 +1,5 @@
-`{ type: this.wire(), id: this.id, data: this.data }`, plus `items` **only when
-non-empty** (`if (this.items.length) json.items = this.items.toJSON()`).
+## The saved shape
 
-Called implicitly by `JSON.stringify` — nothing calls `toJSON()` directly except
-tests. `items` omitted-when-empty (rather than `[]`) keeps a leaf node's wire
-form to three keys instead of four.
+`{ "type": "Box", "id": "shop", "data": { … }, "items": [ … ] }`: the type name from `register`, the id, every field under `data`, and each List the item owns as an array under its own name, only when it is not empty (a leaf saves three keys, not four).
 
-**Never mentions `parent` or `saver`.** Both are instance properties assigned
-outside the constructor's own fields, so `JSON.stringify`'s default behavior
-would include them if this method didn't exist — this override is what makes a
-parent→child→parent cycle *unserializable by construction* rather than merely
-"not currently serialized." See [`hydrate()`](hydrate.md) for how `parent` comes
-back.
+`parent`, `store` and `views` are never written, so a saved item cannot point back up. `Item.hydrate` reads this shape back and restores each `parent` by adding the members to their lists.

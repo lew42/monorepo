@@ -87,7 +87,7 @@ Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-sa
 
 The target model (the owner, 2026-10-21): any item holds items on demand, adding is a reference and moving is explicit, every added item gets persistence recursively, storage targets vary and are visible: [doc/owner-2026-10-21-items-hold-items.md](./doc/owner-2026-10-21-items-hold-items.md).
 
-A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`).
+A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`). The core test the [Item page](/framework/core/Item/) draws step by step is `Item.steps.js`; `node Item.steps.test.mjs` runs the same steps. The page's life-cycle picture is `Item.life.js` and its method pages are `Item.methods.js` plus `doc/method/<name>.md` for `set`, `get` and `toJSON` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
 
 ## Watch out
 
@@ -115,7 +115,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [Watch a tree being built](/framework/core/Item/watch/) — step through it: every object in the default view as it is made and changed, every line it saves beside it, then a replay of those lines. Files: `watch/` (`Watch.js`, `Box.js`, `ScratchStore.js`).
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
-- `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
+- `doc/method/*.md`, `doc/property/*.md` — one note per verb and field, each with its trap. The [Methods tab](/framework/core/Item/methods/) shows three of them (`set`, `get`, `toJSON`); the rest are read here, and many predate `set()` as a delta.
 - Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
 - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
 - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
