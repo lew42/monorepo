@@ -40,6 +40,17 @@ The [F1 study](/framework/core/Session/tasks/data-shapes/build/backbone/f1-live-
 
 `LogLine.writer` is set by whichever process holds the live roots.
 
+## Measured (2026-10-28)
+
+The next `item()` call after a hook's write, on copies of real records (median of 5):
+
+| Record | Lines | After a raw append (today) | After a one-writer append |
+|---|---|---|---|
+| voice session `v-sq8y7db` | 8,383 | 164 ms (replays the whole file) | 16.5 ms |
+| `session-e00f55c9` | 1,099 | 69 ms | 25 ms |
+
+The script: [measure-real.mjs](/framework/core/Session/tasks/data-shapes/build/one-writer/proof/measure-real.mjs).
+
 ## Tests
 
 - `node Servex/agents/one-writer.test.mjs` (18 checks):
