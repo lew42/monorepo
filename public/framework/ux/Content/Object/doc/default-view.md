@@ -1,74 +1,38 @@
-# DefaultView — what the tree reads, and when
+# DefaultView — what it reads, how it stays live, and why it is the only one
 
-Unlike `ObjectCard` (`object()`, `shape.md`), which draws one small card and stops,
-`DefaultView` (`view()`) draws a **tree**: a header row, then one row per own
-property, and a property that is itself an object can be opened to show ITS own
-properties, as deep as you keep clicking.
+## One view, not three (2026-10-28)
 
-## What each row shows
+There were three overlapping views here: `object()` (a small card), `view()` (a tree of rows) and `inspect()` (a card whose object properties opened as nested cards). They showed the same thing three ways, so they were merged into `view()` (law 6, one of everything). `object()` and `inspect()` still work: each calls `view(x, { open: 1 })` and is marked deprecated. What they lost: `object()`'s `doc`/`api` links from a name to its doc page (no caller outside this module used them) and `inspect()`'s `variant: "full"` (it was identical to `"card"`). `variant: "minimal"` is the closed row. The old code is in git history.
 
-- `Object.keys(subject)` → the property list, same source `ObjectCard` reads.
-- A function, or a value with `.el` (a `View`) or that is a DOM `Node` → skipped
-  entirely, same as `ObjectCard`. Nothing useful to draw for either.
-- A primitive (`string`, `number`, `boolean`, `null`, `undefined`) → shown inline,
-  right after the name, in the row's own `end` slot (`ui/item`'s).
-- An object, an array, a `Map` or a `Set` → an **expandable** row. It shows a
-  one-line summary only (`Array(3)`, `Map(12)`, `{…}`) — its own contents are not
-  read, or drawn, until the row is actually opened.
+`InstanceTree` stays: it is a tree of the site's pages, not a view of one object, and it opens each page with `view()`.
 
-## Why "until opened" matters
+## The row (closed)
 
-A `Page`'s `.children` is a `Map` of more `Page`s, and each of THOSE has a
-`.parent` pointing straight back up. Read the whole thing eagerly and you either
-loop forever or build a wall of rows nobody asked to see. `DefaultView` instead
-wires a plain `"toggle"` listener onto the row's own `<details>` element and only
-calls `entries()` the first time it actually opens — so a `Page`, an `App`, or
-anything else with a big graph behind it costs nothing to show until you go
-looking, and a value already open somewhere above the row you're opening (a
-cycle) shows "↺ already open above" instead of opening into itself.
+- the class's `static icon`, else `"data_object"`;
+- the id (a uuid is cut to 8 characters, the whole id on hover), then the title, muted, when it says something the id does not;
+- the class name as a small label (`class` for a class);
+- counts: one per List the object owns (`2 items · 1 tasks`), entries for an array, Map or Set, methods for a class.
 
-## The override: `Thing.View`
+## Open
 
-`view(thing)` is the one call most code should use:
+- **Rows:** an Item's `data` fields, then its other own properties. Skipped: `_private` names, functions, DOM and View nodes, `undefined`. `properties` replaces the list; `static shown` and `static hidden` reorder and drop.
+- **By type:** a primitive is written out (a path or url is a link); an empty List, array, Map or Set is a plain row with its count; an object the subject owns nests its own default view, built only when it is opened, one `open` level less.
+- **References:** something not the subject's to draw is one row saying where it points: its `parent`, a sibling, a `Store` (any class named `Store` up the chain), or an object already open above (a cycle, `↺`). A `parent` that is the row this one sits in is not shown at all. A click flashes every view of the target and scrolls the first into sight.
 
-```js
-import { view } from "/framework/ux/Content/Object/DefaultView.js";
+## Live
 
-view(somePage)          // DefaultView, unless Page (or something it extends) says otherwise
-```
+- Each view pushes itself into `subject.views` (`core/Item/Item.js`, a getter over `_views`; a WeakMap for other emitters).
+- Each object gets ONE `"delta"` listener, which walks its views (`DefaultView.walk`). Deltas bubble up through `parent`, so a view acts only when the change is its own:
+  - **origin is the subject, a `set` line:** each named row is rebuilt alone and swapped in place (`update(k)`), the others are untouched, and the new row flashes.
+  - **origin is the subject, a List verb** (add, remove, move, order, clear): `reconcile()` keeps each member's view, makes new ones, drops gone ones, and moves only what is out of place.
+  - **origin is one of the subject's own lists:** the count in the row changes; a list that went empty or stopped being empty changes its row's kind.
+- A view whose element has left the page (after it was once on it) is dropped from `views` on the next change.
 
-It checks `thing.constructor.View` — a plain JS static, so a class that never
-declared its own `View` still finds one declared by a class it extends, the same
-way any other inherited member works. When nothing declares one, `view()` falls
-back to `new DefaultView({ subject: thing })`.
+## Tested
 
-```js
-class Widget { … }
-Widget.View = class extends DefaultView {
-	render(){ /* draw whatever makes sense for a Widget */ }
-};
-```
+`DefaultView.test.js` (a browser test, `X.test.js` in core/Test's naming): 16 checks on one tree, each reading the real elements. It runs on the [watch page](/framework/core/Item/watch/), which shows the verdict.
 
-The demo page shows one class both ways, side by side, so the difference between
-"the automatic guess" and "a class's own view" is something you can see, not just
-read about.
+## Not built
 
-## `track()` — how a `Page` ends up trackable at all
-
-`DefaultView` only ever draws an instance it's HANDED — it has no idea which
-instances exist. `core/track/track.js`'s `track(Klass)` is the separate, opt-in
-piece that answers "which ones exist": call it once per class
-(`Page.class.js` does this for `Page`), then `Klass.track(instance)` — one line,
-in that class's own constructor — remembers every instance built from then on,
-and `Klass.instances()` reads them back. `Page`'s own constructor has that one
-line now; most classes have neither, and show up in `Klass.instances()` nowhere,
-which is the point — tracking is for the classes where "see every one of these"
-is actually useful, not a default every class pays for.
-
-## Files
-
-The class is [`DefaultView.js`](/framework/ux/Content/Object/DefaultView.js);
-the tracking piece is
-[`core/track/track.js`](/framework/core/track/track.js); the two live examples
-are [the Page object](/framework/ux/Content/Object/page/) and
-[the App object](/framework/ux/Content/Object/app/).
+- `List.render()` drawing each member through its own view (ask 32): `core/List/List.js` is owned by the data backbone build; asked for there. `view(list)` draws the same thing today.
+- Step-by-step rendering while a test runs (ask 26, phase two).

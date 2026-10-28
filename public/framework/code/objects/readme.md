@@ -8,27 +8,26 @@ knows, at three sizes.
 
 - The default view: `view(thing)`
 - The three sizes — chip, row, panel
-- The debug view: `inspect(thing)` — the fourth size, separate from `render()`
 - Objects the owner sees (`AIObject`, `Skill`, `Ask`, `Task`)
 
 ## The one default view
 
-`view(thing)` (`ux/Content/Object/DefaultView.js`) is the survivor: every class renders itself
-with it, and `Thing.View = class extends DefaultView` overrides it. The class chooses what matters:
+`view(thing)` (`ux/Content/Object/DefaultView.js`) is the one view: a row (icon, id, class, counts) that
+opens to the data by type, live through `item.views`. The class chooses what matters:
 `static shown = ["title","state"]` lists those first, in order; `static hidden = ["_timer"]` drops
-internal state. `ObjectCard` (`object()`, the small API card) and `inspect()` (the recursive
-debug card) are older siblings, kept until their callers move to `view()`.
+internal state. `object()` and `inspect()` were merged into it on 2026-10-28 and are deprecated names for it.
 
 ## Use
 
 ```js
-Thing.View = class extends DefaultView { … };   // overrides the default for every Thing
+view(myThing)                                   // one row; click to open
+view(myThing, { open: 2 })                      // two levels open
+static icon = "material-symbol-name";           // any class may carry one
+Thing.View = class extends DefaultView { … };   // a class's own look, picked by view()
 track(MyClass);          // once, in the module
 MyClass.track(this);     // once, in the constructor — makes instances findable at all
-static icon = "material-symbol-name";           // any class may carry one — inspect() reads it
-inspect(myThing)                                // the debug view — icon, name, properties, nested
 ```
-Live: [the Object demo](/framework/ux/Content/Object/).
+Live: [watch a tree being built](/framework/core/Item/watch/) · [the Object module](/framework/ux/Content/Object/).
 
 ## Watch out
 

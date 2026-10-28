@@ -23,7 +23,8 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
   id, data: {}                        // get(key), put(key, value) — seams over `data`; Page overrides both
   set(a, b)                           // ✅ one delta: a method key calls it, a nested .set() recurses, else data + emits "change"/"delta"
   store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays (each entry through `host.replay_line`, default `set`; `Item.replay(lines)` is the node twin) / appends / tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
-  view                                // getter/setter; lazy `new constructor.View({item})` once core grows one
+  view                                // getter/setter; lazy `new constructor.View({item})`: a class's OWN view, when it has one
+  views: []                           // ✅ every live default view drawing me (ux/Content/Object/DefaultView.js; ask 33)
   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
   toJSON(), static hydrate(json), static register(Class, name), static open(src)
 }
@@ -95,9 +96,9 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - Constructors do no I/O; `Item.open(saver)` is the one async entry: [doc/method/open.md](./doc/method/open.md).
 - Warnings fire once per message — clear `Item.warned` to re-hear them: [doc/decisions.md](./doc/decisions.md).
 - A child's `save()` delegates up and persists the whole document, never its subtree: [doc/method/save.md](./doc/method/save.md).
-- `item.view` is `undefined` until a `static View` is actually wired in (nobody has built the
-  generic one yet) — a reader of a content List with no view of its own falls back to its
-  own title/text; see `Page.render_content_list()`, core/Page.
+- `item.view` is `undefined` until a class wires its own `static View` — a reader of a content List with
+  no view of its own falls back to its own title/text; see `Page.render_content_list()`, core/Page. The
+  generic debug view is `view(item)` (ux/Content/Object), and every one drawing an item is in `item.views`.
 
 ## More
 
@@ -106,6 +107,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
+- [Watch a tree being built](/framework/core/Item/watch/) — step through it: every object in the default view as it is made and changed, every line it saves beside it, then a replay of those lines. Files: `watch/` (`Watch.js`, `Box.js`, `ScratchStore.js`).
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
 - `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
