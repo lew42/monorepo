@@ -256,6 +256,11 @@ export class Item extends Events(Object) {
 	}
 	set view(v){ this._view = v; }
 
+	// Every live view drawing me (ask 33): one item can show in two places at once, and a change reaches each.
+	// The default view (ux/Content/Object/DefaultView.js) adds itself here and drops out once off the page.
+	get views(){ return this._views ??= []; }
+	set views(v){ this._views = v; }
+
 	// A child asking to save persists its DOCUMENT — delegation up, never a partial write.
 	save(){ return this.saver ? this.saver.save(this) : this.parent ? this.parent.save() : Promise.resolve(false); }
 	delete(){ return this.saver ? this.saver.delete(this) : this.parent ? this.parent.delete() : Promise.resolve(false); }

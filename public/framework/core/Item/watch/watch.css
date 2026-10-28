@@ -1,0 +1,24 @@
+@layer base, theme, site, util;
+
+/* The watch demo (Watch.js): steps | objects | lines at full width, one column below 70em. */
+@layer site {
+	.core-item-watch { display: grid; gap: var(--gap); grid-template-columns: 1fr; align-items: start; }
+	@media (min-width: 70em) {
+		.core-item-watch { grid-template-columns: minmax(18em, 1fr) minmax(22em, 1.3fr) minmax(20em, 1.2fr); }
+	}
+	.core-item-watch > * { min-width: 0; }
+	/* Narrow: only the step in focus (the next one, or the last once done), so the objects stay near the top. */
+	@media (max-width: 69.99em) {
+		.core-item-watch-list > li:not(.is-focus) { display: none; }
+	}
+
+	.core-item-watch-note { min-height: 3em; margin: 0; }
+	.core-item-watch-list { margin: 0; padding-inline-start: 1.6em; display: flex; flex-direction: column; gap: .3em; }
+	.core-item-watch-list > li { color: var(--subtle); }
+	.core-item-watch-list > li.is-done { color: inherit; }
+	.core-item-watch-list > li.is-next { color: inherit; font-weight: 600; }
+	.core-item-watch-list code { white-space: normal; overflow-wrap: anywhere; }
+
+	.core-item-watch-lines .log-line { font-family: var(--mono, monospace); font-size: .85em; overflow-wrap: anywhere; }
+	.core-item-watch-same { font-weight: 600; }
+}
