@@ -1,0 +1,17 @@
+.....F.......F.......F................................................
+67 of 70 pass
+FAIL Servex/agents/PromptLines.test.mjs 1  
+    FAIL — add_question nests a Question under the Prompt, found by ChatV2Model.children
+    PASS — answer_question moves the Question's phase to answered
+    FAIL — roots() draws the Prompt once; the Question is reached only as its child
+    6 of 8 passed
+FAIL Servex/agents/context-alert.test.mjs 1  
+      diff: 'simple'
+    }
+    
+    Node.js v24.15.0
+FAIL Servex/agents/item_tool.test.mjs 1  
+      diff: 'simple'
+    }
+    
+    Node.js v24.15.0
