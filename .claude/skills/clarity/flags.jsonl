@@ -1910,3 +1910,16 @@
 {"at":"2026-10-28T22:53:30.415Z","target":"public/framework/core/Session/tasks/data-shapes/build/phone-preview","verdict":"queued","kind":"landing"}
 {"at":"2026-10-28T22:53:30.986Z","target":"public/framework/core/Session/tasks/data-shapes/build/phone-preview","verdict":"spawned","to":"clarity-phone-preview-2"}
 {"at":"2026-10-28T18:05:00-05:00","target":"public/framework/core/Session/tasks/data-shapes/build/phone-preview","verdict":"rewrote","what":"study.md cut to under 500 words, long paragraphs split, route diagram and ticked steps added","to":"study.md"}
+{"at":"2026-10-28T23:09:06.339Z","target":"public/framework/core/Session/tasks/data-shapes/build/integration","verdict":"queued","kind":"landing"}
+{"at":"2026-10-28T23:09:08.316Z","target":"public/framework/core/Session/tasks/data-shapes/build/integration","verdict":"spawned","to":"clarity-integration-2"}
+{"at":"2026-10-28T18:15:00-05:00","target":"public/framework/core/Session/tasks/data-shapes/build/integration","verdict":"clear","what":"text-check clean; outcome is six ticked asks with proof under 120 words; landing.md long but detail one click down; AI page screenshot not taken this pass","to":"clarity.md"}
+{"at":"2026-10-28T23:21:20.167Z","target":"public/framework/core/Session/tasks/data-shapes/build/one-writer/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-28T23:21:21.182Z","target":"public/framework/core/Session/tasks/data-shapes/build/browser-refs/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-28T23:21:22.270Z","target":"public/framework/core/Session/tasks/data-shapes/build/worktree-preview/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-28T23:22:21.154Z","target":"public/framework/core/Session/tasks/data-shapes/build/one-writer/requirements.md","verdict":"spawned","to":"clarity-one-writer"}
+{"at":"2026-10-28T23:22:22.286Z","target":"public/framework/core/Session/tasks/data-shapes/build/browser-refs/requirements.md","verdict":"spawned","to":"clarity-browser-refs"}
+{"at":"2026-10-28T23:22:23.396Z","target":"public/framework/core/Session/tasks/data-shapes/build/worktree-preview/requirements.md","verdict":"spawned","to":"clarity-worktree-preview"}
+{"at":"2026-10-28T23:22:32.000Z","target":"public/framework/core/Session/tasks/data-shapes/build/one-writer/requirements.md","verdict":"clear","what":"text-check clean; title, three-writers list, scope and fences read in ten seconds","to":"clarity-one-writer"}
+{"at":"2026-10-28T23:22:34Z","target":"public/framework/core/Session/tasks/data-shapes/build/worktree-preview/requirements.md","verdict":"clear","what":"text-check clean; title states the outcome, ask quoted, scope numbered, study linked, no owner-facing report yet","to":"clarity-worktree-preview"}
+{"at":"2026-10-28T23:22:32.000Z","target":"public/framework/core/Session/tasks/data-shapes/build/one-writer/requirements.md","verdict":"clear","what":"text-check clean; title, three-writers list, scope and fences read in ten seconds","to":"clarity-one-writer"}
+{"at":"2026-10-28T23:22:45Z","target":"public/framework/core/Session/tasks/data-shapes/build/browser-refs/requirements.md","verdict":"rewrote","what":"plain title and Why, defined reference/backlink/forward","to":"requirements.md"}
