@@ -1,11 +1,18 @@
 verdict: fix
 1. [fix] Server/doc/worktrees.md:71: the new "**Hold until merge (2026-10-28):**" paragraph sits between two rows of the "Worktrees close with their task" table. The table now ends there, and the next row ("a crashed `git worktree add`") shows as loose pipe text. Move the paragraph below the table.
 2. [fix] public/framework/ai/merge/readme.md doesn't mention the row's new `preview` field or the "Try it on your phone" link that ReadyToMerge.js now draws. That readme describes every field of a row (`agent`, `stale`, `latest`, …), so it is now stale. Add one sentence that links Servex/doc/worktree-preview.md.
-3. [note] WorktreePreview.mjs:78 says `merged()` runs "the same three tests the clean-up uses", but it doesn't. It checks ancestor, empty `base...HEAD` diff and `.merge-landed.json`, while Server/Worktrees.mjs uses `Pool.landed()` (which includes a file-content test) and Servex/Worktrees.js has its own `merged()`. That makes three "is it merged?" checks (law 6). A branch whose content landed without its commits is kept until the 48-hour backstop. Reusing `Pool.landed()` would remove this and make the comment true.
+3. [note] `merged()` doesn't run "the same three tests the clean-up uses", as WorktreePreview.mjs:78 says.
+   - It checks ancestor, empty `base...HEAD` diff and `.merge-landed.json`.
+   - Server/Worktrees.mjs uses `Pool.landed()`, which adds a file-content test; Servex/Worktrees.js has its own `merged()`. That is three "is it merged?" checks (law 6).
+   - Effect: a branch whose content landed without its commits is kept until the 48-hour backstop.
+   - Reusing `Pool.landed()` would remove this and make the comment true.
 4. [note] Servex/Worktrees.js `serve_previews()`: `this.lan` lives only in memory. After a Servex restart, a server adopted on 0.0.0.0 whose branch merged while Servex was down is in neither `before` nor `want`, so it stays on the LAN until its folder is removed. This is small, because removal follows soon after.
 5. [note] Requirement 4 says "the landing line carries the link". What was built is a separate computed `preview:` line that on-landing.mjs appends after the landing, plus the card link. That fits the "computed, not typed" rule, but the link is not inside the landing outcome itself.
 6. [note] The reviewed diff.patch stops at 1dfc25c09. The branch has one more commit, e9e9a6be3 (`serve_previews` skips a worktree about to be removed), which is two lines and looks correct. I re-ran `node Server/WorktreePreview.test.mjs` on the branch head: 38 checks pass.
-7. [note] The task isn't landed yet. session.jsonl has no landing line, no review phrase and no restart note, which the brief's fences require. A fresh agent could continue from session.jsonl, because the commits, the decision line and the test command are all logged there. What remains is to answer this review, land, and write the exact restart note (a Servex restart after the merge).
+7. [note] The task isn't landed yet.
+   - session.jsonl has no landing line, review phrase or restart note, which the brief requires.
+   - A fresh agent could still continue: the commits, the decision line and the test command are all in session.jsonl.
+   - Left to do: answer this review, land, and write the restart note (a Servex restart after the merge).
 
 ## Requirements
 - 1 "Hold until merge" (judge, Server/Worktrees.mjs, on-landing skips --archive --now, 48-hour backstop kept, pool slots still recycle) — yes. `judge()` returns `open` with `waiting`; `archivable()` uses `close_hours`; `Worktrees.on_landing()` returns keep, close or pool; the test covers qf-1 at every step. on-landing also fixes the old `/^qf-d+$/` typo.
