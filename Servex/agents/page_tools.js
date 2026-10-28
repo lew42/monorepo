@@ -6,6 +6,8 @@ import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
 import Task from "../../public/framework/core/Task/Task.js";
+import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+import LogLine from "../../Server/LogLine.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -1030,6 +1032,51 @@ export const hooks = {
 	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
 };
 
+/* THE ONE ENTRY POINT for a raw line (data-shapes plan step 1d; core/Item/RecordWriter.js is the caller's side). Every line bound for a
+ * record file that is not an item-tool verb ends here: a hook's, LogLine's (append.mjs, the `log` tool, dir_log), a browser tab's
+ * page.jsonl line. Each line is applied to the file's live root first, when one is warm, then appended, and the root's signature is
+ * moved past it, so the next item() call does not replay the whole file. A cold file is only appended: its first read replays it.
+ * Skipped: a line already in the tail under its `by` and `ts` (the caller's fallback won the race). Refused, nothing written: a
+ * line that would not replay (it would make the log unreadable), and a page line its schema refuses (what Append.js refused).
+ * Answers {ok, written, skipped, refused: [{i, why}]}. F1 moves this function, unchanged, to the project's dev server. */
+export function record_lines(file, lines){
+	const out = { ok: true, written: 0, skipped: 0, refused: [] };
+	const list = RecordWriter.fresh(RecordWriter.tail_sync(fs, file), lines);
+	out.skipped = lines.length - list.length;
+	const store = Task.Store.instances?.get("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));   // live_root's own map: warm only if an item() call read it
+	for (const [i, line] of list.entries()){
+		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
+		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
+		const warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
+		if (warm) try { try_line(warm, line); } catch (e) { out.refused.push({ i, why: e.message }); continue; }
+		write_line(file, line, true);
+		if (warm) warm.store.sig = sig(file);
+		out.written++;
+	}
+	if (out.refused.length) out.ok = out.written > 0 || out.skipped > 0 ? "partly" : false;
+	return out;
+}
+
+// In Servex every LogLine write to a record file goes through record_lines (the `log` tool, dir_log), synchronously, as before.
+LogLine.writer ??= (file, lines) => record_lines(file, lines);
+
+/* THE DOOR, POST /api/item (Servex.js), and the shape F1 keeps: {path, delta, target?, ts?} is one item-tool verb (a tab's button);
+ * {path, lines} is raw lines for record_lines. `root` (node callers send theirs) must be this checkout's: another checkout's post is
+ * answered {stubbed}, so its caller appends to its own file and nothing lands in this tree. */
+export async function serve_item(body = {}, ctx = {}){
+	const { path: url, target, delta, lines, ts, root } = body;
+	if (root && path.resolve(root, "public").toLowerCase() !== PUBLIC.toLowerCase()) return { ok: true, stubbed: true, via: "another checkout" };
+	if (typeof url !== "string") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
+	if (Array.isArray(lines)){
+		const at = await resolve(url, [], true);
+		if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a file under public/` };
+		if (!RecordWriter.is_record(at.file)) return { ok: false, why: `${path.basename(at.file)} is not a record file` };
+		return record_lines(at.file, lines);
+	}
+	if (!delta || typeof delta !== "object") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
+	return run_item({ path: url, target, delta }, { caller: "owner", ...ctx, ...(typeof ts === "string" ? { ts } : {}) });
+}
+
 export async function run_item(args = {}, ctx = {}, alias = false){
 	// A breadcrumb before each call and after a slow one (crumbs.log, only when Servex installed Crumbs): an agent's tool call never passes an
 	// HTTP route, so this is what names an item call that held the event loop.
@@ -1106,6 +1153,12 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		if (why) return { ok: false, why };
 	}
 
+	// ONE WRITER, NO TWIN (RecordWriter.js): a post that brought its own `ts` is written once. If the caller's fallback already
+	// appended it (this answer came too late), the line is in the file's tail under that `by` and `ts`: nothing more is written.
+	const stamp = () => ctx.ts ?? now();
+	if (ctx.ts && await RecordWriter.tail(at.file).then(tail => !RecordWriter.fresh(tail, [{ by: ctx.caller ?? "agent", ts: ctx.ts }]).length))
+		return { ok: true, ids: [], line: null, already: true };
+
 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
 	const { pages, folder, ...rest } = flat;
 	const made = pages === undefined ? null : apply_pages(at, pages, url);
@@ -1147,7 +1200,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
 				homes.push(h); ids.push(h.id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id: h.id, title: a.title ?? h.id, path: h.path, own_folder: true });
-				put({ task: h.path, by, ts: now() });
+				put({ task: h.path, by, ts: stamp() });
 				await record_new_folder(path.dirname(home.dir), home.slug);
 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
 				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
@@ -1156,7 +1209,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const { type: _t, data, ...fields } = a;
 				ids.push(id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
-				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
+				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: stamp() });
 			}
 		}
 		const { tasks: _t, ...more } = body;
@@ -1177,7 +1230,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
 		const was = verb ? steady(print(root())) : null;
-		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
+		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!Class?.replay);
 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
@@ -1190,7 +1243,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
 	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;
-		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
+		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: stamp() }); line = keep; }
 	} catch {}
 	// A write to a task or session answers with what was written, never the whole picture (session-is-a-task item 12): a session's picture
 	// walks every task's cost and every child agent, which made each write 20 s on a 140 KB record, past the browser Store's 5 s timeout

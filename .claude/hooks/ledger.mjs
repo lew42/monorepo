@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
+import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 
 // A review (2026-10-02) caught this: a STATIC `import { check } from "./jsonl-schema.mjs"`
 // means that if jsonl-schema.mjs ever fails to load (a syntax slip, a bad merge), ledger.mjs
@@ -38,10 +39,17 @@ const lines = file => fs.readFileSync(file, "utf8").split("\n").flatMap(l => {
 //     so a reader can see the line never passed and why, instead of losing it.
 //   - check() itself throws (its own bug) → write the line unchanged, exactly as before this
 //     existed — a broken checker must never make the ledger go silent.
+//
+// ONE WRITER (data-shapes 1d): a record file under public/ (task/session/page/improvements.jsonl) is posted to the entry point
+// (core/Item/RecordWriter.js), which applies the line to the file's live root and appends it, so the next item() call does not
+// replay the whole file. It is queued here and awaited before the hook exits (`pending`); when Servex is down, RecordWriter
+// appends it once itself. Any other file is appended right here, as before.
+export const pending = [];
 export const append_checked = (file, entry) => {
 	let bad = null;
 	try { bad = check(file, entry); } catch { bad = null; }
 	const out = bad ? { ...entry, unchecked: bad } : entry;
+	if (/[\\/]public[\\/]/.test(file) && RecordWriter.is_record(file)) return void pending.push(RecordWriter.write(file, out, { by: "ledger" }).catch(() => {}));
 	let lead = "";
 	try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
 	fs.appendFileSync(file, lead + JSON.stringify(out) + "\n");
@@ -295,5 +303,6 @@ const run = async () => {
 const is_main = () => /ledger\.mjs$/i.test(process.argv[1] ?? "");
 if (is_main()) {
 	try { await run(); } catch {}
+	await Promise.allSettled(pending);
 	process.exit(0);
 }

@@ -14,7 +14,7 @@ import Processes from "./Processes.js";
 import Games from "./Games.js";
 import Worktrees from "./Worktrees.js";
 import TaskLoop from "./TaskLoop.js";
-import { hooks as page_tool_hooks, run_item } from "./agents/page_tools.js";
+import { hooks as page_tool_hooks, serve_item } from "./agents/page_tools.js";
 import ProcessRunner from "./ProcessRunner.js";
 import Respawn from "./agents/Respawn.js";
 import Wakeups from "./agents/Wakeups.js";
@@ -678,9 +678,10 @@ export default class Servex extends Events {
             if (ip !== "127.0.0.1" && ip !== "::1" && ip !== "::ffff:127.0.0.1") return res.status(403).json({ ok: false, why: "loopback only" });
             const via = this.via(req);
             if (via) return res.json({ ok: true, stubbed: true, via });
-            const { path: url, target, delta } = req.body ?? {};
-            if (typeof url !== "string" || !delta || typeof delta !== "object") return res.status(400).json({ ok: false, why: "body must be {path, target?, delta}" });
-            res.json(await run_item({ path: url, target, delta }, { caller: "owner" }));
+            // ONE WRITER (data-shapes 1d): {path, delta} is a verb, {path, lines} raw lines from a hook, LogLine or a page; both end in
+            // record_lines' apply-then-append (page_tools.js serve_item). The caller's side is core/Item/RecordWriter.js.
+            const answer = await serve_item(req.body ?? {});
+            res.status(answer.ok === false && /^body must/.test(answer.why ?? "") ? 400 : 200).json(answer);
         });
 
         /* THE MERGE BUTTON (merge-approvals, 2026-10-23) — the branches agents marked `ready:` and the
