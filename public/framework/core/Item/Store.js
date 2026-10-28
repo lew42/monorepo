@@ -301,6 +301,9 @@ function hops(node, host){
 	}
 
 	if (node._slot != null && parent.get?.(node._slot) === node) return [...hops(parent, host), node._slot];
+	// A child given its parent by hand and held in a plain property (`parent.kid = child`): that property's name, when the
+	// parent's get() finds it there (seat g, B4: it was written flat, as the parent's own field).
+	for (const key of Object.keys(parent)) if (key !== "parent" && !key.startsWith("_") && parent[key] === node && parent.get?.(key) === node) return [...hops(parent, host), key];
 
 	return hops(parent, host);
 }
