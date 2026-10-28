@@ -52,6 +52,7 @@ export default class Watch extends View {
 			});
 			this.$note = p.c("core-item-watch-note");
 			this.$list = ol.c("core-item-watch-list");
+			this.$test = p.c("muted", "Running the default view's own test…");
 		});
 		div.c("core-item-watch-objects flex v gap", () => {
 			h3("The objects, live");
@@ -64,6 +65,13 @@ export default class Watch extends View {
 			this.$log = div();
 		});
 		this.go(0);
+		this.test();
+	}
+
+	// The default view's one core test (ux/Content/Object/DefaultView.test.js), run here and its verdict shown.
+	async test(){
+		const r = await import("../../../ux/Content/Object/DefaultView.test.js").then(m => m.default()).catch(e => ({ failed: 1, failures: [e.message] }));
+		this.$test.text(r.failed ? `✗ The default view's test failed: ${r.failures.join("; ")}` : `✓ The default view's own test: ${r.passed} checks pass.`);
 	}
 
 	// A fresh start, then steps 1 to n. A newer go() stops an older one between steps.

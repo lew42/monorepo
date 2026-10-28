@@ -5,7 +5,8 @@ View.stylesheet(import.meta, "DefaultView.css");
 const is_list = x => !!x && Array.isArray(x.items) && typeof x.find === "function";
 const is_object = x => x !== null && typeof x === "object";
 const is_item = x => typeof x?.lists === "function" && is_object(x.data);   // an Item: its fields live in `data`
-const plural = (n, word) => `${n} ${n === 1 ? word.replace(/s$/, "") : word}`;
+const ONE = { entries: "entry", items: "item", methods: "method" };
+const plural = (n, word) => `${n} ${n === 1 ? ONE[word] ?? word.replace(/s$/, "") : word}`;
 
 // Every live view of an object (ask 33: one object can show in two places at once). An Item keeps its own
 // `item.views` (core/Item/Item.js); any other object with on()/emit() gets a list here instead.
@@ -105,7 +106,7 @@ export default class DefaultView extends View {
 		if (Array.isArray(s)) return plural(s.length, "entries");
 		if (s instanceof Map || s instanceof Set) return plural(s.size, "entries");
 		const lists = Object.entries(s.lists?.() ?? {});
-		if (lists.length) return lists.map(([name, list]) => plural(list.length, name)).join(" · ");
+		if (lists.length) return lists.map(([name, list]) => plural(list.length, list.name ?? name)).join(" · ");
 		return "";
 	}
 
@@ -130,9 +131,12 @@ export default class DefaultView extends View {
 		if (s instanceof Map) return s.forEach((v, k) => this.row(String(k), v));
 		if (s instanceof Set) return [...s].forEach((v, i) => this.row(String(i), v));
 
+		// The lists by their own name (`pages`, not the `_pages` field Page keeps it in), which is also what a
+		// change from one of them reports. With `properties` given, only the lists it names.
+		this.lists = new Map(Object.values(s.lists?.() ?? {}).map(list => [list.name, list]));
 		this.$rows = div.c("ux-content-defaultview-rows", () => {
-			this.keys().forEach(k => this.row(k, this.value(k)));
-			for (const [name, list] of Object.entries(s.lists?.() ?? {})) if (!this.rows.has(name)) this.row(name, list);
+			this.keys().forEach(k => this.row(k, this.lists.get(k) ?? this.value(k)));
+			if (!this.properties) for (const [name, list] of this.lists) if (!this.rows.has(name)) this.row(name, list);
 		});
 	}
 
@@ -144,7 +148,7 @@ export default class DefaultView extends View {
 		const asked = typeof this.properties === "string" ? this.properties.split(/\s+/).filter(Boolean) : this.properties;
 		if (asked) return asked;
 
-		const lists = new Set(Object.keys(s.lists?.() ?? {}));
+		const lists = new Set(Object.entries(s.lists?.() ?? {}).flatMap(([key, list]) => [key, list.name]));
 		const item = is_item(s);
 		const own = Object.keys(s).filter(k => !(item && (k === "data" || k === "id")) && !lists.has(k));
 		const data = item ? Object.keys(s.data) : [];
@@ -197,7 +201,7 @@ export default class DefaultView extends View {
 	is_reference(value){
 		const s = this.subject;
 		if (this.path.has(value) || value === s) return true;
-		if (value.constructor?.name === "Store" || "host" in value && "entries" in value) return true;
+		for (let K = value.constructor; K && K !== Object; K = Object.getPrototypeOf(K)) if (K.name === "Store") return true;   // Item.Store and its subclasses
 		if (is_list(value)) return value.owner !== s && value.owner !== undefined;
 		if ("parent" in value || value.data) return value.parent !== s && !(is_list(s) && s.items.includes(value));
 		return false;
@@ -279,11 +283,11 @@ export default class DefaultView extends View {
 		if (!this.$rows) return;
 		const old = this.rows.get(k);
 		const holder = new View({ capture: false });
-		holder.append(() => this.row(k, this.value(k)));
+		holder.append(() => this.row(k, this.lists?.get(k) ?? this.value(k)));
 		const made = holder.el.firstElementChild;
 		if (!made){ old?.remove(); this.rows.delete(k); return; }
 		old ? old.replaceWith(made) : this.$rows.el.append(made);
-		DefaultView.flash(made);
+		DefaultView.flash(made.querySelector(":scope > summary") ?? made);   // a nested view flashes its row, not its insides
 	}
 
 	// A List's members, after any verb (add, remove, move, order, clear): keep each member's view, make the new
