@@ -51,8 +51,10 @@ export class RecordWriter {
 				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
 				answer = await res.json().catch(() => null);
 			} catch { return { rest: list.slice(i), ts: list.map(l => l.ts), refused, down: true }; }   // down, or slower than `timeout`
-			// Not refused for its content but for where it came from (a phone: 403; a worktree's page or another checkout: stubbed).
-			if (res.status === 403 || answer?.stubbed || !answer) return { rest: list.slice(i), ts: list.map(l => l.ts), refused, down: true };
+			// Not refused for its content but for where it came from (a phone: 403; a worktree's page or another checkout: stubbed), or
+			// an entry point that cannot take this shape (an older Servex answers raw lines with 400): the caller's own append, once.
+			// A refusal of the line itself is a 200 with ok: false.
+			if (!res.ok || answer?.stubbed || !answer) return { rest: list.slice(i), ts: list.map(l => l.ts), refused, down: true };
 			if (answer.ok === false) refused.push({ line: list[i], why: answer.why });
 		}
 		return { rest: [], ts: list.map(l => l.ts), refused };
