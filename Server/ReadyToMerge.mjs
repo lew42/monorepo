@@ -5,13 +5,15 @@
  * Row: {branch, sha, at, task_dir, task_url, title, what, review, worktree, stale}. `stale` = the
  * branch head moved past the sha the agent named. A stale row also carries `latest` = {sha, ok, why?}:
  * the review gate's answer for the branch's CURRENT head (merge.mjs --gate-only), so the card can offer
- * "Merge latest" when ok, or say what is missing when not. `agent` = who marked it ready. */
+ * "Merge latest" when ok, or say what is missing when not. `agent` = who marked it ready. `preview` = the phone link
+ * (http://<LAN IP>:<port>/<page>) when the task asked for one (`{"assign":{"preview":true}}`), else null (WorktreePreview.mjs). */
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { status as reviewStatus } from "./review.mjs";
+import WorktreePreview from "./WorktreePreview.mjs";
 
 const READY = /^ready: (\S+) (?:at )?([0-9a-f]{7,40})\b[;,.:]?\s*(.*)$/s;
 
@@ -117,7 +119,7 @@ export async function readyRows(opts = {}) {
 		const stale = !head.startsWith(r.sha), worktree = wts.get(r.branch) || null;
 		const latest = stale && worktree ? { sha: head.slice(0, 9), gate: (opts.gate || gateOf)(repo, worktree) } : null;   // the gates run in parallel, awaited below
 		rows.push({ ...r, record: path.basename(_file), task_url: "/" + path.relative(path.join(root, "public"), r.task_dir).split(path.sep).join("/") + "/",
-			review: reviewStatus(r.task_dir), worktree, stale, latest, head });
+			review: reviewStatus(r.task_dir), worktree, stale, latest, head, preview: WorktreePreview.link(r.task_dir, worktree, opts.preview) });
 	}
 	await Promise.all(rows.filter(r => r.latest).map(async r => { const { gate, ...l } = r.latest; r.latest = { ...l, ...(await gate) }; }));
 	return rows.sort((a, b) => (b.at > a.at ? 1 : -1));

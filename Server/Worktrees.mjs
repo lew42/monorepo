@@ -1,5 +1,5 @@
 /* node Server/Worktrees.mjs --plan | --apply [--archive [--now] [--path <worktree>]] — one verdict per non-pool worktree; --apply removes the REMOVE ones.
- * --archive also closes a quiet one (no live agent, nothing touched for 2 hours): its leftovers are committed to its own branch, then the folder goes; unmerged commits get a line in ready-to-merge.jsonl.
+ * --archive also closes a quiet one (no live agent, nothing touched for 2 hours; an UNMERGED branch for 48 hours, since it waits for review): its leftovers are committed to its own branch, then the folder goes; unmerged commits get a line in ready-to-merge.jsonl.
  * REMOVE = its work is on michael/dev (or it has none) and nothing REAL is uncommitted. KEEP = anything else, with its branch.
  * Branches are never deleted; each removal is one line in ai/sessions/worktree-removals.jsonl. Doc: doc/worktrees.md "Clear out landed worktrees". */
 import fs from "node:fs";
@@ -25,9 +25,11 @@ export default class Worktrees {
         return slash(path.resolve(from, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: from, encoding: "utf8", windowsHide: true }).trim(), ".."));
     }
 
-    /* options: main (repo root), base, agents (cwd list of live agents; null = ask Servex), pool_names (regexp) */
-    constructor({ main = Worktrees.main_repo(), base = Worktrees.BASE, agents = null, here = process.cwd(), pool_names = /^qf-\d+$/, archive = false, quiet_hours = 2, only = null } = {}){
-        Object.assign(this, { main: slash(main), base, agents, archive, quiet_hours, only: only ? lower(only) : null, here: lower(this.top(here)), pool_names });
+    /* options: main (repo root), base, agents (cwd list of live agents; null = ask Servex), pool_names (regexp),
+     * close_hours (an unmerged branch is archived only after this long quiet; the same backstop as Servex/Worktrees.js) */
+    constructor({ main = Worktrees.main_repo(), base = Worktrees.BASE, agents = null, here = process.cwd(), pool_names = /^qf-\d+$/, archive = false, quiet_hours = 2,
+        close_hours = Number(process.env.SERVEX_WORKTREE_CLOSE_HOURS) || 48, only = null } = {}){
+        Object.assign(this, { main: slash(main), base, agents, archive, quiet_hours, close_hours, only: only ? lower(only) : null, here: lower(this.top(here)), pool_names });
         // Pool.landed() is the one "is this on the base" test (by commits, by merge.mjs record, by file content)
         this.pool = new Pool({ servex: { agents: { registry_list: () => [] } }, main: this.main, base, file: path.join(os.tmpdir(), "worktrees-unused-pool.json") });
     }
@@ -69,11 +71,14 @@ export default class Worktrees {
         return last ? Math.round((Date.now() - last) / 60000) : null;
     }
 
-    /* A KEEP that only waits on leftovers or a merge becomes ARCHIVE when --archive is on and the worktree is quiet. */
+    /* A KEEP that only waits on leftovers or a merge becomes ARCHIVE when --archive is on and the worktree is quiet.
+     * HOLD UNTIL MERGE (build F, 2026-10-28): an unmerged branch waits for review, so it needs close_hours quiet
+     * (the 48-hour backstop), never just quiet_hours; `--now` shortens only quiet_hours. */
     archivable(w, row){
         if (!this.archive || row.verdict !== "KEEP" || !w.branch || !/uncommitted|unmerged/.test(row.why)) return row;
-        const quiet = this.quiet_min(w);
-        if (quiet === null || quiet < this.quiet_hours * 60) return { ...row, why: row.why + ` (touched ${quiet ?? "?"} min ago, so it stays)` };
+        const quiet = this.quiet_min(w), hours = row.landed ? this.quiet_hours : this.close_hours;
+        if (quiet === null || quiet < hours * 60) return { ...row, why: row.why + (row.landed ? ` (touched ${quiet ?? "?"} min ago, so it stays)`
+            : ` (held until it merges, or ${this.close_hours} quiet hours; touched ${quiet ?? "?"} min ago)`) };
         return { ...row, verdict: "ARCHIVE", why: `quiet ${quiet} min; ${row.why}` };
     }
 

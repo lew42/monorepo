@@ -57,6 +57,8 @@ export default class ReadyToMerge extends View {
 				span.c("rm-review", r.review);
 				span.c("rm-branch", `${r.branch} @ ${r.sha.slice(0, 9)}`);
 			});
+			// the worktree's own server, open on the phone over the home Wi-Fi until the merge (Servex/doc/worktree-preview.md)
+			if (r.preview) div.c("rm-preview", () => { span("Try it on your phone: "); a(r.preview).href(r.preview).attr("target", "_blank"); });
 			const out = div.c("rm-out");
 			const latest = r.stale && r.latest, head = r.head.slice(0, 9);
 			let note = "", can = !!r.worktree;

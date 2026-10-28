@@ -19,6 +19,7 @@ import TaskDirs from "./TaskDirs.mjs";
 import ModuleInbox from "../Servex/agents/ModuleInbox.js";
 import Cards from "../Servex/cards/Cards.js";
 import SessionRecord from "./SessionRecord.mjs";
+import WorktreePreview from "./WorktreePreview.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 // What the AI system mastermind should see goes to its inbox, module_inbox "ai" (2026-10-23; it was servex-mastermind's daily task log,
@@ -152,7 +153,11 @@ try {
 			// Close the loop (worktree-closure, 2026-10-22): a landed task leaves no folder behind. Leftovers are committed to its
 			// branch and the folder goes; unmerged commits become a ready-to-merge line. A live agent still in it keeps it
 			// until Servex's Worktrees.js tick (task landed, agent stopped) closes it.
-			if (!/^qf-d+$/.test(entry.name)) {
+			// HOLD UNTIL MERGE (build F, 2026-10-28): an unmerged branch waits for review, so its folder stays; Servex's
+			// Worktrees.js closes it once the branch merges, or after its 48-hour backstop.
+			if (/^qf-\d+$/.test(entry.name)) {}   // a pool slot: Pool.js recycles it
+			else if (fs.existsSync(entry.path) && !WorktreePreview.merged(entry.path)) append(task, `worktree-close: kept ${entry.name} - ${entry.branch || "its branch"} is not merged yet; it stays until the merge (48-hour backstop)`);
+			else {
 				const r = spawnSync(process.execPath, [path.join(root, "Server/Worktrees.mjs"), "--apply", "--archive", "--now", "--path", entry.path], { encoding: "utf8", windowsHide: true });
 				const out = (r.stdout || r.stderr || "").trim().split("\n").filter(Boolean);
 				append(task, `worktree-close: ${entry.name} - ${out.at(-2) || out.at(-1) || "no answer"}`);
@@ -161,6 +166,21 @@ try {
 	} catch (e) {
 		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
 	}
+	// THE PHONE LINK (build F, 2026-10-28): a task that asked for a preview (`{"assign":{"preview":true}}`) and is not merged
+	// gets one computed `preview:` line, and Servex runs its clean-up pass now, which binds the worktree's server to the LAN.
+	try {
+		const pv = WorktreePreview.of_task(dir);
+		if (pv && pv.merged !== true) {
+			let pass = "";
+			try {
+				const r = await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/api/worktrees/tick`, { method: "POST", signal: AbortSignal.timeout(60000) });
+				const j = await r.json();
+				pass = j.lan?.includes(pv.name) ? "; its server is on the LAN" : `; not on the LAN yet (${j.why || "Servex's next pass"})`;
+			} catch (e) { pass = "; Servex did not answer, its next pass (within 10 min) binds it"; }
+			append(task, pv.url ? `preview: ${pv.url} - open it on your phone over the home Wi-Fi until its branch merges${pass}`
+				: `preview: no link - ${pv.why || (pv.port ? "this PC has no private LAN address" : "Servex has not given " + pv.name + " a port yet")}`);
+		}
+	} catch (e) { try { append(task, "preview: not computed - " + String(e && e.message || e).slice(0, 150)); } catch {} }
 	// THE REAPER (lifecycle, 2026-09-29): everything else this task still owns — a server started
 	// by hand, its health watcher, headless browsers, idle reviewers and minions — is closed now,
 	// in node, instead of trusting an agent to remember. Each close is an end line in Servex's
