@@ -1041,10 +1041,10 @@ export const hooks = {
  * Answers {ok, written, skipped, refused: [{i, why}]}. F1 moves this function, unchanged, to the project's dev server. */
 export function record_lines(file, lines){
 	const out = { ok: true, written: 0, skipped: 0, refused: [] };
-	const list = RecordWriter.fresh(RecordWriter.tail_sync(fs, file), lines);
-	out.skipped = lines.length - list.length;
+	const fresh = new Set(RecordWriter.fresh(RecordWriter.tail_sync(fs, file), lines, { strict: true }));
 	const store = Task.Store.instances?.get("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));   // live_root's own map: warm only if an item() call read it
-	for (const [i, line] of list.entries()){
+	for (const [i, line] of lines.entries()){   // `i` names the caller's own line in a refusal
+		if (!fresh.has(line)){ out.skipped++; continue; }
 		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
 		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
 		const warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;

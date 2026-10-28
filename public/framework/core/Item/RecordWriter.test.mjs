@@ -16,6 +16,9 @@ try {
 	const line = { log: { msg: "hi" }, by: "t", ts: a };
 	t.eq(RecordWriter.fresh([line], [line, { ...line, ts: b }, { log: { msg: "no ts" } }]).length, 2, "fresh: a line whose by|ts is in the tail is dropped; a new ts and a line with no ts stay");
 	t.eq(RecordWriter.fresh([{ ...line, by: "other" }], [line]).length, 1, "fresh: same ts from another writer is a different line");
+	const coarse = { title: "x", by: "append.mjs", ts: "2026-10-28T18:31:27-05:00" };   // LogLine stamps a page line to the second
+	t.eq(RecordWriter.fresh([coarse], [{ ...coarse, title: "y" }]).length, 1, "fresh: a seconds-only ts never makes a twin");
+	t.eq(RecordWriter.fresh([line], [{ ...line, log: { msg: "other" } }], { strict: true }).length, 1, "fresh strict: same by|ts but a different line is written");
 
 	t.eq(await RecordWriter.append_once(file, [line]), 1, "append_once writes a new line (and makes the folder)");
 	t.eq(await RecordWriter.append_once(file, [line]), 0, "append_once again: already in the tail, nothing written");

@@ -43,28 +43,34 @@ export class RecordWriter {
 	static async post(path, { lines, deltas, by = "owner", root, timeout = this.SLOW } = {}){
 		const raw = !!lines, list = (lines ?? deltas ?? []).map(l => ({ ...l, by: l.by ?? by, ts: l.ts ?? this.stamp() }));
 		const url = await this.entry(), refused = [];
-		for (let i = 0; i < list.length; i++){
-			const { by: b, ts, ...bare } = list[i];
-			const body = raw ? { path, lines: [list[i]], ...(root ? { root } : {}) } : { path, delta: bare, by: b, ts, ...(root ? { root } : {}) };
+		// Raw lines go in one request (record_lines takes the batch and names each refusal by index); a verb goes one per request.
+		const batches = raw ? (list.length ? [list.map((l, i) => i)] : []) : list.map((l, i) => [i]);
+		for (const idx of batches){
+			const { by: b, ts, ...bare } = list[idx[0]];
+			const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, by: b, ts, ...(root ? { root } : {}) };
 			let res, answer;
 			try {
 				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
 				answer = await res.json().catch(() => null);
-			} catch { return { rest: list.slice(i), ts: list.map(l => l.ts), refused, down: true }; }   // down, or slower than `timeout`
+			} catch { return { rest: list.slice(idx[0]), ts: list.map(l => l.ts), refused, down: true }; }   // down, or slower than `timeout`
 			// Not refused for its content but for where it came from (a phone: 403; a worktree's page or another checkout: stubbed), or
 			// an entry point that cannot take this shape (an older Servex answers raw lines with 400): the caller's own append, once.
 			// A refusal of the line itself is a 200 with ok: false.
-			if (!res.ok || answer?.stubbed || !answer) return { rest: list.slice(i), ts: list.map(l => l.ts), refused, down: !answer?.stubbed, stubbed: !!answer?.stubbed };
-			if (answer.ok === false) refused.push({ line: list[i], why: answer.why });
+			if (!res.ok || answer?.stubbed || !answer) return { rest: list.slice(idx[0]), ts: list.map(l => l.ts), refused, down: !answer?.stubbed, stubbed: !!answer?.stubbed };
+			if (raw) for (const r of answer.refused ?? []) refused.push({ line: list[idx[r.i]], why: r.why });
+			else if (answer.ok === false) refused.push({ line: list[idx[0]], why: answer.why });
 		}
 		return { rest: [], ts: list.map(l => l.ts), refused };
 	}
 
-	/* The lines of `want` not already in `tail` (parsed lines of the file's end). A line is there when a tail line has its `ts` and
-	   `by`: the entry point stamps exactly what it was given, so that pair names one post. A line with no `ts` is always written. */
-	static fresh(tail, want){
-		const seen = new Set(tail.filter(l => l?.ts).map(l => `${l.by}|${l.ts}`));
-		return want.filter(l => !l?.ts || !seen.has(`${l.by}|${l.ts}`));
+	/* The lines of `want` not already in `tail` (parsed lines of the file's end). A line is there when a tail line has its `by` and
+	   its `ts`, a millisecond stamp (stamp() or the item tool's), so that pair names one post; `strict` (raw lines, written as given)
+	   also needs the whole line to match. A line with no such `ts` (LogLine stamps a page line to the second) is always written. */
+	static MS = /\.\d{3}Z$/;
+	static fresh(tail, want, { strict = false } = {}){
+		const key = l => strict ? JSON.stringify(l) : `${l.by}|${l.ts}`;
+		const seen = new Set(tail.filter(l => this.MS.test(l?.ts ?? "")).map(key));
+		return want.filter(l => !this.MS.test(l?.ts ?? "") || !seen.has(key(l)));
 	}
 
 	// The parsed lines in the last TAIL bytes of `file` (node). A torn first line is skipped. `tail_sync` takes node's fs.
@@ -82,7 +88,7 @@ export class RecordWriter {
 	// The fallback, node only: append the lines the file does not already hold, newline-safe. Answers how many were written.
 	static async append_once(file, lines){
 		const fs = await import("node:fs"), path = await import("node:path");
-		const out = this.fresh(await this.tail(file), lines);
+		const out = this.fresh(await this.tail(file), lines, { strict: true });
 		if (!out.length) return 0;
 		fs.mkdirSync(path.dirname(file), { recursive: true });
 		let lead = "";
