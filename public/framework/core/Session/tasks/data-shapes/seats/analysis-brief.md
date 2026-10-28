@@ -27,6 +27,28 @@ Your seat is named in your first message. Do only its section below.
 - **requirements.md essence:** list which session-folder requirements files hold design knowledge that belongs in a module readme or `doc/` (sample the e00f55c9 session folder; don't move anything).
 - The output is a **consolidation map**: for each piece, keep / fold into X / mark legacy, with the reason. Moves come later, scripted.
 
+## (d) `pages`: Page vs Item, page CRUD, and what pages must carry later
+
+Asks 11–14 and 20 of [../requirements.md](../requirements.md).
+
+- **Page vs Item today:** `core/Page/` (find its main class), how many lines and methods Page adds over Item, and what a subclass inherits. Should a session **have** a page or **be** one (the owner leans "has")? Weigh both with the namespace-bloat cost counted.
+- **Page CRUD audit:** find the earlier create/update/move-pages work (try `node Server/PastWork.mjs page crud`, `ext/Make`, `ext/files`, the Router). Say whether it works, by running its tests or a headless check, not by reading alone. How child pages are stored today (declared `children:`? a list? the file system?), and what they should be.
+- **Route vs item:** a page has a route; an item may own a file but has no route. Should views draw a file-owning item differently from an inline child item?
+- **What must fit later** (shape only, no build): user pages and profiles, teams and groups, topic pages with their own chat, channels inside topics. Sketch each as classes on Item/List/Page and name what the current base lacks.
+- **A web editor (Webflow/Figma-like):** a tree of layers, each change streaming to the right node. Sketch the shape and where it breaks today.
+
+## (e) `streaming`: how JSONL streams, its limits, and other stores
+
+Asks 14–18 of [../requirements.md](../requirements.md).
+
+- **The real flow, end to end:** who appends a line (agents raw, the item tool, the browser store), which process watches the file (the dev server? Servex?), how the change reaches an open tab (socket or SSE, which code), and how `live()` applies it. A diagram in `shape.md`, with file:line for each hop.
+- **Limits, measured:** time to replay a session file of today's biggest size and of 10× (generate a synthetic one in your scratchpad), and the file sizes of the largest real `.jsonl` files. When does one file per root stop working (an editor with 50 pages × hundreds of layers; mouse-rate changes)?
+- **Splitting scopes:** e.g. prompts and replies in a session log file, the core in `session.jsonl`, so a server-side instance loads only the core. What breaks (cost totals, ordering across files)?
+- **Agents writing raw lines vs instantiating server-side:** the trade-off, with the replay cost measured above.
+- **Compaction, safely:** how to get snapshot speed without ever deleting history (append-only snapshot lines, archive-not-rewrite). The owner is nervous here; safety beats speed.
+- **Other stores:** is the Item/Store API a clean interface that SQLite, Cloudflare (Durable Objects, D1, R2) or another log could sit behind? List the methods a backend must provide.
+- **Persistence test matrix (ask 17):** every class that persists (Item, List, Task, Prompt, Question, Session, Page, and any others), tested standalone in its own file AND nested in another file, for add, set, move, remove and replay. Mark which cells have a test today (cite it) and which are missing. Don't write the tests.
+
 ## What you write (all seats)
 
 In your own folder (`seats/<your-name>/`, your task dir):

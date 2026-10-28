@@ -37,6 +37,27 @@
     - token accounting, and resume or fork that never loses context or tasks;
     - per-sentence sending re-reads the whole context, so batch it or auto-compact (later).
 
+## The owner's add-on (2026-10-28, ~00:35, same tab; the prompt starting "Just something else real quick")
+
+Still design only: nothing built. "We're going to have to work interactively and refine the shape before we pull the trigger."
+
+11. **Page vs Item.** Pages are the essence of the framework. A page is something with a route (dynamic routes included); an item is more like a subpage: it may be saved to a file but has no page of its own. Maybe render file-owning items differently from child items.
+    - Should a session **have** a page rather than **be** one? The owner leans to "has". Page adds many methods to Item; stacking APIs in one namespace bloats every subclass.
+12. **Page CRUD:** an earlier ask for creating, updating and moving pages may exist somewhere, but it was never tested with confidence. Find it and say whether it works. How are child pages stored (`page.pages`? `children`, which was a pseudo-map, since retired)? Automatic from the file system, or from creating a page inside a page?
+13. **What else the item/page system must carry later** (ideas, not builds): user pages and profiles, teams and groups, topic pages with their own chat, channels inside topics (mini Discord communities).
+14. **A web editor (Webflow / Figma / hybrid)**: a tree of items and layers, each change streaming to the right spot. Can several pages share one JSONL file? With 50 pages and hundreds of designs each, one file reaches megabytes or more: JSONL's size is a real limit. Mouse-move-rate changes would bloat it fast.
+15. **Other stores:** is the Item API compatible with other streaming systems or databases (SQLite, Cloudflare products)? An analysis of the Item API as a store interface.
+16. **Items hold items:** each item has, or can get on demand, its own `items` (so it acts as a list). Check whether that is still how it works. How do lists save and re-apply deltas efficiently, and is it tested?
+17. **Persistence tests in every known mode:** every class tested standalone in its own file AND nested inside another file. Add to the plan.
+18. **How JSONL streaming really flows:** today an agent appends a raw line, a file watcher (the dev server or Servex) notices and pushes it over a socket. The owner doesn't like agents writing log files directly; the alternative is to instantiate the object server-side, but replaying thousands of deltas or megabytes may take seconds.
+    - The owner likes JSONL tailing: simple, logged, replayable; every change is history, and an editor could replay one layer's history alone.
+    - Compaction makes the owner nervous (done wrong, it destroys data). Performance matters less than safety.
+    - Ideas: split scopes into files, e.g. prompts and replies in a session log file and only the core in `session.jsonl`, so server-side instantiation loads the core only (cost may still need the whole).
+19. **Priorities named in passing:** streaming working properly; dictation working on the website itself, so the phone app isn't needed.
+20. **If there is budget left and nothing else to do:** look into what other data structures the page system could carry.
+
+Seats (d) `pages` and (e) `streaming` (below) take 11–18.
+
 ## Plan
 
 - **The tab studies the code** enough to judge the seats' answers.
@@ -70,6 +91,10 @@ Briefs: [seats/design-brief.md](seats/design-brief.md) (blind) and [seats/analys
 | (a) Item/List/Store/JSONL | mastermind-shapes-items | Opus | [seats/items/](seats/items/) |
 | (b) Task path | mastermind-shapes-task-path | Sonnet | [seats/task-path/](seats/task-path/) |
 | (c) Consolidation map | mastermind-shapes-consolidation | Sonnet | [seats/consolidation/](seats/consolidation/) |
+| (d) Pages (asks 11–14, 20) | mastermind-shapes-pages | Opus | [seats/pages/](seats/pages/) |
+| (e) Streaming and stores (asks 14–18) | mastermind-shapes-streaming | Opus | [seats/streaming/](seats/streaming/) |
+
+Ask 16 (items hold items; list delta re-apply) was sent to seat (a) as an addition.
 
 Synthesis: `synthesis.md` (written by the tab once the seats land).
 
