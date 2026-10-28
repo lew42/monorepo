@@ -11,7 +11,7 @@ export default {
 	],
 	path: [
 		{ icon: "north", name: "Climbs parent", code: `emit("delta")`, says: "from the item that changed, up to the root", src: "core/Events/Events.js" },
-		{ icon: "data_object", name: "One line", code: `{"milk":{"set":{"count":2}}}`, says: "the root's Store nests it, one hop per level", src: "core/Item/Store.js" },
+		{ icon: "data_object", name: "One line", code: `{"items":{"milk":{"set":{"count":2}}}}`, says: "the root's Store nests it, one hop per level, each naming its list", src: "core/Item/Store.js" },
 		{ icon: "description", name: "The file", code: `session.jsonl · page.jsonl`, says: "appended by Servex or the dev socket", src: "Server/plugins/SocketServer/Append.js" },
 		{ icon: "podcasts", name: "Tailed", code: `jsonl frame`, says: "the dev server sends the new bytes to every tab", src: "Server/plugins/SocketServer/Tail.js" },
 		{ icon: "devices", name: "Every other tab", code: `root.set(line)`, says: "the same set(), walking the same hops down", src: "core/Item/Store.js" },
