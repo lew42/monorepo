@@ -12,7 +12,7 @@ The owner's questions (2026-10-28), following [flow-and-ids.md](flow-and-ids.md)
 
 This replaces the `/` proposal in §4, §6 and §8 below.
 
-1. **A path uses dots, never slashes:** `{"tasks.ui.tasks.c3":{"complete":{}}}`. A slash looks like a file-system path. A dot reads as what it is, an in-memory JavaScript object path. Slashes stay for things that really are on disk.
+1. **A path uses dots, never slashes:** `{"tasks.ui.tasks.c3":{"complete":{}}}`. That form is read everywhere and typed by people and tools; the store itself keeps writing nested lines (§4). A slash looks like a file-system path. A dot reads as what it is, an in-memory JavaScript object path. Slashes stay for things that really are on disk.
 2. **`set` walks the path through `get`, one level at a time, and each level decides how to look up the next part.**
    - The root's `get` takes the first part (`tasks`). If what it finds has its own `get`, the root hands it **the rest of the path** and lets it carry on.
    - **A List** fails the plain property lookup, then falls back to its own members.
@@ -83,7 +83,7 @@ A deep item needs one level of braces per hop. A **path key** says the same thin
 - **Same walk, same meaning:** each level's `get` takes the first part and hands the rest down (the DECIDED section above). Today's `Item.locate(path)` (`core/Item/Item.js:190-206`, kept since 10-03 to read old `/` lines) is the nearest existing code. But it walks the whole path from the top itself, where the decided rule hands control down level by level.
 - **Dots, not slashes** (the owner's call): a slash looks like a file-system path.
 - **What was dropped on 10-03** was a separate `at` key beside the delta (`{"at":"a/b","set":…}`), so there would be one grammar. A path *key* keeps that one grammar: it's only a shorter way to write the nesting.
-- **Recommendation:** read both forms. Write the path form whenever it's two or more hops deep.
+- **Read both forms, but WRITE nested lines, never dotted ones** (corrected by the plan review, 2026-10-28). About 20 scripts and views read lines by their shape (`Server/PromptRecords.mjs`, `Server/ChildLinks.mjs`, `ext/Chat/v2/ChatV2Model.js`), and a data key with a dot in it (a file name) must not be mistaken for a path. In 129,723 real lines there are 0 dotted keys today, so reading them is safe. Dotted paths are for people and tools to type (the item tool, docs); the store writes nested.
 
 ## 5. Ids: the options compared
 
@@ -175,7 +175,7 @@ Small changes, each with a test:
 
 1. `Store.hops` names the list at every hop.
 2. The default List keeps an id → member `Map`; a subclass may choose another lookup.
-3. `set()` accepts a dotted path key and hands the rest of the path to each level's own `get`. The writer uses it whenever a line is two or more hops deep.
+3. `set()` accepts a dotted path key and hands the rest of the path to each level's own `get`. The store keeps writing nested lines.
 4. `Item.get` stops searching lists (old lines only, with a warning).
 5. `new_id()` makes 8 random characters; the item tool's `tasks.add` stops slugging titles.
 6. Refs store the path; a miss falls back to an id index built on the first miss.

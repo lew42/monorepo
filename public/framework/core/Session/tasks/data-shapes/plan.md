@@ -20,7 +20,7 @@ Written 2026-10-28, ~16:30, after the owner's third add-on (asks 32–45 in the 
 
 | # | Fork | Options | Lean |
 |---|---|---|---|
-| F1 | Where the server-side live instance runs | **Servex** (today it's the item tool's live root, `Servex/agents/page_tools.js`), or **each project's dev server** (it already watches and tails the files: `Server/plugins/SocketServer/Tail.js`) | the dev server, per project: the owner doubts one Servex for many projects. Needs a study (step 1c) |
+| F1 | Where the server-side live instance runs (**build A's study and the plan review both lean: each project's dev server**, one per tree, worktrees included; Servex keeps the agents and forwards writes; the study is on branch `worktree/backbone` at `core/Session/tasks/data-shapes/build/backbone/f1-live-instance.md`) | **Servex** (today it's the item tool's live root, `Servex/agents/page_tools.js`), or **each project's dev server** (it already watches and tails the files: `Server/plugins/SocketServer/Tail.js`) | the dev server, per project: the owner doubts one Servex for many projects. Needs a study (step 1c) |
 | F2 | A task handed to a child session: its subtasks move into the child, or stay in the parent | move (the owner's new lean, ask 35), with contextual refs in the parent (ask 36) / stay, with a link | move; the parent keeps a contextual ref |
 | F3 | Prompts and Questions: still Tasks, or messages | synthesis decision 2 | messages |
 | F4 | Sentences in their own list, or inside the chat | synthesis [A] | their own list |
@@ -51,6 +51,9 @@ Its goal: a change made anywhere, at any depth, reaches the file and every open 
 
   Then it waits for the owner's merge.
 
+- **1d. One writer** (from the plan review, finding 5): the hooks and the browser's direct `page.jsonl` append go through the live instance too. Until then, "exactly once" holds per writer, not across all writers.
+- **1e. The item tool, generic over every class** (review finding 4): one live root per file of any class, not only Task, Session and Process. The ~10 special cases in `Servex/agents/page_tools.js` (slugged ids, folder moves, `pages` on disk, verdict strings) move into class verbs ([placement.md](placement.md) §1).
+
 ### Step 2: see it (build now, in parallel, worktree B)
 
 Its goal: the owner can watch objects being made and changed, without reading a wall of text.
@@ -67,6 +70,12 @@ Its goal: the owner can watch objects being made and changed, without reading a 
 ### Step 3: the owner decides F2–F4 and the synthesis's decisions
 
 Done interactively, with step 2's views as the picture. Nothing in steps 1–2 depends on these.
+
+### Before step 4 (plan review, findings 8 and 6)
+
+- **References across files must resolve in the browser.** Today only node does it (`core/Task/Task.js:454-461`), and the browser shows a "loading" stub. F2 (moving subtasks into the child session) needs this, plus an id fallback, because the child renames and moves its tasks inside its own file.
+- **A View is never stored:** its constructor makes a DOM element, and it isn't an Item. `content` holds **data parts**, each drawn by its class's static `View` (`core/Page/PageContent.js`), and the page tool's part types (`core/Page/parts/kinds.js`) are already the AI's generic add. The owner's `{type, tag, content}` becomes one more generic part, but not one named `View` (that would collide with the View class in `Item.types`).
+- **With step 4:** ids made from titles stop (the item tool slugs titles today), and agent-made ids become 8 random characters.
 
 ### Step 4: the new session shape, beside the old one
 
@@ -92,11 +101,12 @@ The chat is drawn over the stored list. The fast seat folds into the smart agent
 
 | Work | Agent | Brief | Branch |
 |---|---|---|---|
-| Build A: the backbone (step 1) | mastermind-build-backbone (Opus, high) | [build/backbone/](build/backbone/requirements.md) | `worktree/backbone` |
-| Build B: the default view (step 2) | mastermind-build-default-view (Opus, high) | [build/default-view/](build/default-view/requirements.md) | `worktree/default-view` |
-| Plan review | mastermind-plan-review (Opus, high) | [build/plan-review/](build/plan-review/requirements.md) | none (writes `review.md`) |
-| Seat (g): delta flow | mastermind-shapes-delta-flow (Opus) | [seats/analysis-brief.md](seats/analysis-brief.md) (g) | none |
-| Seat (h): legacy census | mastermind-shapes-legacy (Sonnet) | [seats/analysis-brief.md](seats/analysis-brief.md) (h) | none |
+| Build A: the backbone (step 1) | mastermind-build-backbone (Opus, high) | [build/backbone/](build/backbone/requirements.md) | `worktree/backbone`: 9 commits by 17:15, working; the plan review's findings 1, 2, 3, 9 sent to it |
+| Build B: the default view (step 2) | mastermind-build-default-view (Opus, high) | [build/default-view/](build/default-view/requirements.md) | `worktree/default-view`: **landed, not merged**, reviewed (7 fixed, 3 noted). Its worktree folder was later closed by Servex, which saved ~159 regenerated `files.jsonl` into the branch as its last commit (`f6d535acc`): leave that commit out when merging. It adds 5 lines to `core/Item/Item.js`, so expect a small conflict with A |
+| Plan review | mastermind-plan-review (Opus, high) | [build/plan-review/](build/plan-review/requirements.md) | **landed**: [review.md](build/plan-review/review.md), 10 findings, folded in above |
+| Seat (g): delta flow | mastermind-shapes-delta-flow (Opus) | [seats/analysis-brief.md](seats/analysis-brief.md) (g) | **landed**: [delta-flow.md](seats/delta-flow/delta-flow.md), demo PASS; build A turned it into a test |
+| Seat (h): legacy census | mastermind-shapes-legacy (Sonnet) | [seats/analysis-brief.md](seats/analysis-brief.md) (h) | **landed**: [shape.md](seats/legacy/shape.md), [the page.children guide](seats/legacy/migration-children-to-pages.md) (233 live callers) |
+| Build C: class docs that show, Item and List (step 6, first slice; spawned 17:22) | mastermind-build-class-docs (Opus, high) | [build/class-docs/](build/class-docs/requirements.md) | `worktree/class-docs`, branched from build B |
 
 ## How the work runs
 
