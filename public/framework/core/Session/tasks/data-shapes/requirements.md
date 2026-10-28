@@ -1,5 +1,7 @@
 # Data shapes: sessions, tasks, prompts, chat, on Item / List / JSONL
 
+**In one line:** design how sessions, tasks, prompts, replies and chat are stored as Items and Lists in JSONL, so the tasks actually get finished. Design only, nothing merged. Status: eleven seats reported; the answer is [synthesis.md](synthesis.md), the build plan is [plan.md](plan.md).
+
 **The owner's ask (2026-10-28, VS Code tab e00f55c9).** Design work only: **no major surgery, nothing that breaks.** The owner's words are in this tab's prompt log (the prompt starting "Okay, so I think there was a V3 built at some point"). The tab (vscode-mastermind) runs this project itself, as the owner offered.
 
 ## What the owner wants
@@ -99,6 +101,48 @@ The decisions on ids and paths are recorded in [ids-and-paths.md](ids-and-paths.
     - The on-demand `items` footgun: code that sets `items` without knowing about it.
 
     Seat (g) takes this, with ask 21.
+
+## The owner's third add-on (2026-10-28, ~16:15): from design to a built, unmerged try
+
+The plan that answers these is [plan.md](plan.md).
+
+32. **`items` and `content` stay separate.**
+    - `content` is a template slot: a list of renderable things (views, paragraphs, demos, references), mostly View instances.
+    - How well View serializes and deserializes is part of the picture.
+    - `List.render()` draws each item that has a `render()`, and does its best for the rest.
+33. **An object can be rendered twice.** So it keeps `views` (an array), not one `this.view`, and an update walks every view.
+34. **Tasks are the handoff.** Before an agent is spawned, the task is made and itemized: its requirements become subtasks, a checklist, not necessarily a sequence. A fixed sequence (plan, build, review, merge) is a **process**: `core/Task/Process.js` with `core/Task/processes/` exists.
+35. **The owner now leans to moving a task's subtasks into the child session doing them.**
+    - The reason: a parent holds a handful of tasks, not 200.
+    - The child session's name must keep describing what's inside it, and it may need renaming.
+    - Renames and moves need references to update, by tracking dependents. Not phase one.
+36. **Contextual references:** a parent referencing a child session's task shows it in context, as session › task (the path names both), not as a bare task.
+37. **What shows where is a delicate balance** (parent, grandparent), and may need to be configurable.
+38. **Names:**
+    - Use class names for instances: a Question is a `question`, never renamed to "ask".
+    - `item.move_to(destination)` reads better than `destination.move_here(item)`.
+    - There's no special `SessionRef` unless a need shows; use the generic `Ref`.
+    - Keep the stored reference object apart from the live object it points at.
+39. **Schema:** suggestions the AI follows first; enforcement maybe later.
+    - A generic `add` with `{type, …fields}` is how an AI adds most things: `content.add({type: "View", tag: "h2", content: "…"})`.
+    - Purpose-built verbs where the flow matters.
+    - The View system must join storage, deltas and lists.
+40. **Move `core/Session` and `core/Task` into `ai/`.** They're AI-specific for now; a generic task system can come later. That's a move, so later, scripted, and ask-first: it has many callers.
+41. **One data path for every change, AI or UI: a live instance on the server.**
+    - It replays to the current state, applies each new delta, saves it, and sends it to every client. "That needs to be our data backbone."
+    - **Where it runs:** Servex vs the dev server. One Servex process serving many projects in parallel may be a mistake. Look into the split.
+42. **The item tool:** one tool that can set any property or call any method on any item. Together with each class's readme, that's the whole API. Check that it still works that way.
+43. **Class docs that show, not tell.**
+    - The live instance view (the debug view) shows the full life cycle: who creates the object, where, what happens to it, and over which channel (socket, POST).
+    - Method sub-pages come from a dynamic route, with notes in a `methods/<name>.md` (or `.jsonl`) instead of long code comments.
+    - No walls of text: refine the essence, with simple code where it helps.
+44. **One core test per class covering ~80%,** run through every creation pathway (a UI click, a replay from JSONL), each giving the same outcome, drawn on screen.
+45. **How to work:**
+    - Build in a **worktree, not merged** until it's proven: tests pass, other pages still work, and a fresh reviewer agrees.
+    - **Each worktree has its own dev server the owner can open,** ideally from the phone.
+    - A **fresh Opus mastermind, high effort,** builds. It writes everything down in the worktree, and is reset now and then to keep its context small. A **fresh** reviewer, who didn't build it, reviews.
+    - No design councils: they arrive at the same answers. Name the forks in the road instead.
+    - **Usage:** push toward ~95% (never over ~98%) by the reset (about 21:40), without leaving much in flight across it.
 
 ## Plan
 

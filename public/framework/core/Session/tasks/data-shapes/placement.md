@@ -16,9 +16,9 @@ A proposal to react to. Nothing is built.
 
 | The intent | The verb (on the class that owns the structure) | What the code does, so nobody has to remember it |
 |---|---|---|
-| start an agent for a task | `session.spawn({for: <task path>, role, model})` | adds a `SessionRef` to `session.sessions`; the child's line 1 records its parent and task; the task shows a live link |
-| turn an ask into work | `session.file({ask, under})` | adds the task under its core task; marks the ask's outcome |
-| put a page here | `page.create(…)` · `page.place(ref)` · `page.move_here(ref)` | owned in `pages`, a `Ref` in `content`, or a move with a forward (the drop rule) |
+| start an agent for a task | `session.spawn({for: <task path>, role, model})` | adds a `Ref` to `session.sessions`; the child's line 1 records its parent and task; the task shows a live link |
+| turn something the owner asked for into work | `session.file({from, under})` | adds the task under its core task, with `from` pointing at the words that asked |
+| put a page here | `page.create(…)` · `page.place(item)` · `item.move_to(page)` | owned in `pages`, a `Ref` in `content`, or a move with a forward (the drop rule) |
 
 - **The item tool offers these verbs to agents.** An agent says *what* it wants ("spawn for this task"). It never writes `{"sessions":{"add":…}}` by hand.
 - **The readme of each class lists its verbs.** That's the "documented in the readmes" part. The verb is also the code, so the two can't disagree.
@@ -34,7 +34,7 @@ class Session extends Item {
     sentences: { of: Sentence },
     chat:      { of: [Message, Ref] },
     tasks:     { of: Task,       via: "file"  },   // add only through session.file()
-    sessions:  { of: SessionRef, via: "spawn" },   // add only through session.spawn()
+    sessions:  { of: Ref,        via: "spawn" },   // add only through session.spawn()
   }
 }
 class Page extends Item {
@@ -45,7 +45,7 @@ class Page extends Item {
 }
 ```
 
-- **The one writer checks every add** against the list's rule, and refuses with a reason the agent can act on: "`sessions` takes a `SessionRef`; use `session.spawn()`".
+- **The one writer checks every add** against the list's rule, and refuses with a reason the agent can act on: "`sessions` takes a `Ref` to a session; use `session.spawn()`".
 - **`of: Item`** means anything goes. Most containers stay open, so the schema only guards the few lists where a wrong placement hurts.
 - **A subclass can widen or narrow its own lists.** That's the same "each level decides" rule as `get`.
 
@@ -77,7 +77,7 @@ The `url` in `{url, path}` is **the address of a Store**. The Store decides what
 
 Promote keeps both trees whole and links them. That fits "sessions on a different level than tasks" without losing the task.
 
-**This changes decision [D] in the synthesis:** the task keeps no copy of the child, only a reference (`worked_by: Ref`). The child's `SessionRef` records `for: <task path>`.
+**This changes decision [D] in the synthesis:** the task keeps no copy of the child, only a reference (`worked_by: Ref`). The child's `Ref` in `sessions` records `for: <task path>`. *The owner now leans the other way (ask 35): the subtasks move into the child session, and the parent keeps a contextual ref, session › task. That is fork F2 in [plan.md](plan.md).*
 
 ## 6. A finding that contradicts this shape today
 

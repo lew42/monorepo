@@ -24,7 +24,7 @@ The three blind seats never saw each other's work or the proposals. Where all th
 | 3 | **Tasks are nested:** stored as a tree, but every id is unique in the whole file, and a computed `index` finds any task by its bare id ("nested storage, flat lookup"). | 1, 2, 3 | items (today's ids misroute; see §4) |
 | 4 | **A few core tasks per session.** The top level of `session.tasks` is the plan, about 3–7 tasks. New asks go *under* a core task by default. Past 7 there is a soft warning, never a refusal. | 1, 2, 3 | task-path |
 | 5 | **The chat shows a task through a reference, never a copy.** A `Ref {to: id}` draws the live task. A reference holds an id only, never a title or state. | 1, 2, 3 | pages (same rule for child pages) |
-| 6 | **A child session has its own file.** The parent keeps a small `SessionRef` holding the facts that never change (id, role, model, which task it serves); the rest is read live from the child. | 1, 2, 3 | pages, streaming |
+| 6 | **A child session has its own file.** The parent keeps a small `Ref` to it, plus the facts that never change (role, model, which task it serves); the rest is read live from the child. | 1, 2, 3 | pages, streaming |
 | 7 | **One act is one line on disk.** A sentence arriving, or a task being filed, writes ONE line that does all its list work, even when two lists change. This fixes today's half-written pairs. | 1, 2, 3 | items (today's two POSTs are not atomic) |
 | 8 | **One writer.** Servex's item tool stamps `by` and `ts`, checks each line against the live state, and refuses bad ones. | 1, 2, 3 | streaming: there are 5 writer paths today; hooks bypass the tool |
 | 9 | **The log is the truth, and a snapshot is only a cache.** The snapshot is a file *beside* the log, deletable at any time and rebuilt from the log. It is never a rewrite of the log. | 1, 2, 3 | streaming (zero-risk plan, §8 of its notes) |
@@ -49,7 +49,7 @@ class Session extends Item {       // CHANGE: no longer extends Task
   sentences: List<Sentence>        // [A] the raw words, append-only, never moved
   chat: Chat                       // [B] the conversation, in order
   tasks: List<Task>                // the few core tasks; subtasks nest inside
-  sessions: List<SessionRef>       // one per child session
+  sessions: List<Ref>              // one per child session (the generic Ref; no special class, the owner 2026-10-28)
   index: Map<id, Item>             // COMPUTED: every item in the file, any depth
   // verbs, one line each:
   hear(sentence)                   // → sentences, and into the current draft Prompt (made if none)
@@ -79,7 +79,7 @@ class Task extends Item {
   start() wait() complete({outcome, evidence}) stop({why}) reopen()
 }
 
-class SessionRef extends Item { id, path, role, model, for: <task id> }   // fixed facts only
+// (no SessionRef class: a child session is a generic Ref {url} plus fixed facts: role, model, for)
 
 type Anchor = { to: <id>, words?: [from, to] }
 
@@ -268,7 +268,7 @@ Each one has a recommendation, so a "yes" is enough.
 - If the order follows cost instead: the channel, then the table, then the editor.
 - Comments live in a `comments.jsonl` beside the item they discuss. A channel rolls monthly. Board and timeline are views over a list, not lists of their own.
 
-## 8. Strategy (the tab's recommendation, 2026-10-28)
+## 8. Strategy (the tab's recommendation, 2026-10-28; replaced the same day by [plan.md](plan.md))
 
 Each step lands on its own and breaks nothing before the next one starts.
 

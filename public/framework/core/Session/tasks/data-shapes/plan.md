@@ -1,0 +1,97 @@
+# The plan: from shapes to a built, unmerged try
+
+Written 2026-10-28, ~16:30, after the owner's third add-on (asks 32–45 in the [brief](requirements.md)). It replaces the strategy in [synthesis.md](synthesis.md) §8. Paths are from `public/framework/`.
+
+## What's settled, and what's still a fork
+
+**Settled by the owner** (each links to where it's written):
+
+- Dotted paths; each level's `get` decides how to look up the rest ([ids-and-paths.md](ids-and-paths.md)).
+- Ids: short, either readable or random, with the merge risk noted. Any Item or List may override `get`.
+- References are absolute (`{path}`, or `{url, path}` across files), with dependents tracked when things move ([ids-and-paths.md](ids-and-paths.md) §6).
+- `pages` over `children`. `page.children` is deprecated, with a migration guide. Lingering legacy is marked ([doc/rules.md](/framework/doc/rules.md)).
+- `items` and `content` stay separate. `content` is a slot of renderable things.
+- Sessions are their own tree (`session.sessions`). There's no special `SessionRef`; use the generic `Ref`.
+- Use class names for instances (a Question is a `question`), and `item.move_to(destination)`.
+- One data path for every change: a live instance on the server.
+- Build in a worktree, with a fresh builder and a fresh reviewer, and don't merge until it's proven.
+
+**Forks still open:** decide each before the step that needs it, not now.
+
+| # | Fork | Options | Lean |
+|---|---|---|---|
+| F1 | Where the server-side live instance runs | **Servex** (today it's the item tool's live root, `Servex/agents/page_tools.js`), or **each project's dev server** (it already watches and tails the files: `Server/plugins/SocketServer/Tail.js`) | the dev server, per project: the owner doubts one Servex for many projects. Needs a study (step 1c) |
+| F2 | A task handed to a child session: its subtasks move into the child, or stay in the parent | move (the owner's new lean, ask 35), with contextual refs in the parent (ask 36) / stay, with a link | move; the parent keeps a contextual ref |
+| F3 | Prompts and Questions: still Tasks, or messages | synthesis decision 2 | messages |
+| F4 | Sentences in their own list, or inside the chat | synthesis [A] | their own list |
+| F5 | One default view: `object()`, `view()` and `inspect()` all exist in `ux/Content/Object/` | merge into one, or keep three | one (law 6: one of everything) |
+
+## The steps, in order
+
+### Step 1: the data backbone (build now, worktree A)
+
+Its goal: a change made anywhere, at any depth, reaches the file and every open tab exactly once, and a fresh replay rebuilds the same object.
+
+- **1a. Fix the path without changing the shape:**
+  - every hop names its list (`core/Item/Store.js`, `hops`);
+  - dotted path keys are read, and each level's `get` takes the rest of the path;
+  - `List` keeps an id-to-member `Map` (`core/List/List.js`);
+  - `Item.get` stops searching every list (old lines still replay, with a warning);
+  - `by`/`ts` are stripped into a clock for every Item;
+  - `set(prop, item)` adopts the item, so its changes are saved;
+  - one offset per socket in `Server/plugins/SocketServer/Tail.js` (the lost update);
+  - replay becomes linear (`lists()` cached; `core/Session/SessionTasks.js` applies new lines instead of replaying everything).
+- **1b. Tests, through a real Store and a real file:** the persistence matrix ([streaming seat](seats/streaming/notes.md) §10). Every persisting class, standalone and nested, for add, set, move, remove and replay. Plus seat (g)'s `demo-delta-flow.mjs`, turned into a test.
+- **1c. A study, not a build:** F1. What would it take for every change, UI or AI, to go through one live instance per root? What does each server own?
+- **Done means:**
+  - every test passes;
+  - the site's own pages still load clean (smoke test);
+  - the voice session replays in under 200 ms;
+  - a fresh reviewer signs off.
+
+  Then it waits for the owner's merge.
+
+### Step 2: see it (build now, in parallel, worktree B)
+
+Its goal: the owner can watch objects being made and changed, without reading a wall of text.
+
+- **One default view for every Item (F5), built from what exists:**
+  - `ux/Content/Object/DefaultView.js`, `Inspect.js` and `InstanceTree.js`;
+  - the object log, `core/Page/card/log/Logger.js` and `LogView.js`.
+
+  Collapsed, it's a row: icon, id, class name as a small label, and counts. Open, it shows its data by type: a string or number is written out; an object or list is iterated.
+- **Objects keep `views`,** an array, so one object can show in two places (ask 33). `List.render()` draws each member's own view.
+- **A live demo page under `core/Item/`:** a small tree is built, changed, saved and replayed, and every object shows in the default view, updating as each change lands. Step 1's tests can then draw the same way.
+- **Done means:** one view in place of three overlapping ones (or a stated reason to keep two), the demo page at 1920 and at phone width, and a fresh reviewer's sign-off.
+
+### Step 3: the owner decides F2–F4 and the synthesis's decisions
+
+Done interactively, with step 2's views as the picture. Nothing in steps 1–2 depends on these.
+
+### Step 4: the new session shape, beside the old one
+
+New classes, a one-time migration of old sessions into a snapshot, and prompts no longer counted as tasks. It builds on the step 1 backbone and the step 3 answers.
+
+### Step 5: one chat view, and dictation on the website
+
+The chat is drawn over the stored list. The fast seat folds into the smart agent, placing in batches. The other chat views are marked legacy.
+
+### Step 6: class docs that show
+
+- Each class page has the live default view (step 2), its one core test (ask 44) drawn on screen, and method sub-pages from a dynamic route with notes in `methods/<name>.md`.
+- Start with `Item`, `List`, `Page`, `Task`, `Session`.
+
+### Later, scripted, ask first
+
+- **Move `core/Session` and `core/Task` into `ai/`** (ask 40). It's a big move with many callers.
+- The `page.children` migration ([seat h](seats/legacy/)).
+- Moving sessions' records out of task folders ([placement.md](placement.md) §6).
+- The worktree dev server reachable from the phone.
+
+## How the work runs
+
+- **Builders:** a fresh Opus mastermind at high effort per worktree, spawned now. Each writes its plan and decisions into its worktree's task folder as it goes, and is reset when its context grows large.
+- **Reviewers:** fresh agents run through `node Server/review.mjs`, never the builder itself.
+- **Plan review:** one fresh Opus reads this plan and the shape docs, and names what's wrong or missing before the builders get far.
+- **Nothing merges** until the owner says so.
+- **Usage:** the tab checks pace every half hour and pushes toward ~95% by the reset (about 21:40). It stops launching around 20:45, so little is in flight across the reset.
