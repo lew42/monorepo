@@ -84,7 +84,9 @@ class SessionRef extends Item { id, path, role, model, for: <task id> }   // fix
 type Anchor = { to: <id>, words?: [from, to] }
 
 class Page extends Item            // KEEP: routing and layout (~2,250 lines)
-class RecordPage extends Page { record }   // thin: TaskPage today; SessionPage the same way
+// A record's page: a thin Page subclass that loads the record and draws it. Two exist today:
+class TaskPage extends Page { task }          // core/Task/TaskPage.js: opens a task folder's task.jsonl
+class AISessionDetail extends Page            // ai/AISession/AISessionDetail.js: the session detail page
 ```
 
 **A session being built, on disk.** These are design-1's lines, which the other two blind seats match in substance:
@@ -202,7 +204,7 @@ Each one has a recommendation, so a "yes" is enough.
 6. **[D] A child's task stays in the parent;** the child writes its completion there. Recommended: yes.
 7. **One writer:** hooks and agents go through the item tool, with a raw append only when Servex is down. Recommended: yes.
 8. **[E] Snapshots** are a sidecar cache file first; rolling the log comes later and only by rename. Recommended: yes.
-9. **A record has a page** (SessionPage like TaskPage), never is one. Recommended: yes.
+9. **A record has a page, never is one,** as `TaskPage` (for tasks) and `AISessionDetail` (the session detail page) already do. Recommended: yes.
 10. **What to build first, once building is allowed.** Recommended: the safe fixes from §4, before any reshaping, because they are bugs in today's system:
     - the lost-update fix;
     - linear replay;
