@@ -20,6 +20,7 @@ import ModuleInbox from "../Servex/agents/ModuleInbox.js";
 import Cards from "../Servex/cards/Cards.js";
 import SessionRecord from "./SessionRecord.mjs";
 import WorktreePreview from "./WorktreePreview.mjs";
+import Worktrees from "./Worktrees.mjs";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 // What the AI system mastermind should see goes to its inbox, module_inbox "ai" (2026-10-23; it was servex-mastermind's daily task log,
@@ -155,9 +156,9 @@ try {
 			// until Servex's Worktrees.js tick (task landed, agent stopped) closes it.
 			// HOLD UNTIL MERGE (build F, 2026-10-28): an unmerged branch waits for review, so its folder stays; Servex's
 			// Worktrees.js closes it once the branch merges, or after its 48-hour backstop.
-			if (/^qf-\d+$/.test(entry.name)) {}   // a pool slot: Pool.js recycles it
-			else if (fs.existsSync(entry.path) && !WorktreePreview.merged(entry.path)) append(task, `worktree-close: kept ${entry.name} - ${entry.branch || "its branch"} is not merged yet; it stays until the merge (48-hour backstop)`);
-			else {
+			const close = Worktrees.on_landing(entry);
+			if (close.act === "keep") append(task, `worktree-close: kept ${entry.name} - ${close.why}`);
+			else if (close.act === "close") {
 				const r = spawnSync(process.execPath, [path.join(root, "Server/Worktrees.mjs"), "--apply", "--archive", "--now", "--path", entry.path], { encoding: "utf8", windowsHide: true });
 				const out = (r.stdout || r.stderr || "").trim().split("\n").filter(Boolean);
 				append(task, `worktree-close: ${entry.name} - ${out.at(-2) || out.at(-1) || "no answer"}`);

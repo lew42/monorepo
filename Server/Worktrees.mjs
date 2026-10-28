@@ -9,6 +9,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import Pool from "../Servex/Pool.js";
 import { refuse_links_into_main } from "./junction-guard.mjs";
+import WorktreePreview from "./WorktreePreview.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const slash = s => String(s || "").replace(/\\/g, "/");
@@ -20,6 +21,15 @@ export default class Worktrees {
     static READY = "public/framework/ai/sessions/ready-to-merge.jsonl";   // one line per branch whose worktree went but whose commits are not on the base
     // files a worktree's own dev server or a screenshot run rewrites: losing them loses nothing
     static REGENERATED = /(^|\/)(files\.jsonl|index\.json|cache\.jsonl)$|\.png$|(^|\/)(shots|layout-check)\//;
+
+    /* What on-landing.mjs does with a landed task's worktree (`entry`: {name, path, branch}): "pool" (Pool.js recycles
+     * it), "keep" (HOLD UNTIL MERGE, build F: an unmerged branch waits for review; Servex's Worktrees.js closes it at the
+     * merge or the 48-hour backstop), or "close" (run `--apply --archive --now --path` on it). */
+    static on_landing(entry){
+        if (/^qf-\d+$/.test(entry.name)) return { act: "pool", why: "a pool slot: Pool.js recycles it" };
+        if (fs.existsSync(entry.path) && !WorktreePreview.merged(entry.path)) return { act: "keep", why: `${entry.branch || "its branch"} is not merged yet; it stays until the merge (48-hour backstop)` };
+        return { act: "close", why: "its branch is merged, or its folder is gone" };
+    }
 
     static main_repo(from = HERE){
         return slash(path.resolve(from, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: from, encoding: "utf8", windowsHide: true }).trim(), ".."));
