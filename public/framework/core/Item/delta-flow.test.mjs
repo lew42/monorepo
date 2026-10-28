@@ -19,6 +19,6 @@ t.ok(out.includes("PASS — the delta path, both ways (0 failed checks)"), "ever
 t.ok(/PASS — the delta path round-trips/.test(out), "the demo ends in PASS");
 // Fixed by the backbone (each line of the demo prints STALE once its break no longer happens).
 for (const [b, what] of [["B2", "a member's line names its list"], ["B3", "set(prop, item) adopts"], ["B4", "a property-held child writes under the property"],
-	["B5", "by/ts are not data"], ["B6", "page.set(x, v) works"], ["B9", "a page's act() writes its verb once"], ["B10", "a Panel's per-cell word lands on the panel"]])
+	["B5", "by/ts are not data"], ["B6", "page.set(x, v) works"], ["B7", "a page.pages line replays into page.pages"], ["B9", "a page's act() writes its verb once"], ["B10", "a Panel's per-cell word lands on the panel"]])
 	t.ok(new RegExp(`^STALE\\s+${b}\\b`, "m").test(out), `${b} fixed: ${what}`);
 t.done();
