@@ -9,7 +9,7 @@
 
 **Nothing is built.** The owner wants to refine the shape together before anything is built.
 
-**Start here if the shape is unclear:** [flow-and-ids.md](flow-and-ids.md) walks a sentence from the mic to a finished task, line by line. It explains how a line finds its item (a recursive set, plus an in-memory index), why a move is one line, and why ids are short and random rather than UUIDs.
+**Start here if the shape is unclear:** [flow-and-ids.md](flow-and-ids.md) walks a sentence from the mic to a finished task, line by line. Then [ids-and-paths.md](ids-and-paths.md) (dotted paths, ids, references) and [pages-children-content.md](pages-children-content.md) (child pages vs content, and what a drop does). It explains how a line finds its item (a recursive set, plus an in-memory index), why a move is one line, and why ids are short and random rather than UUIDs.
 
 Seat folders: [design-1](seats/design-1/shape.md) · [design-2](seats/design-2/shape.md) · [design-3](seats/design-3/shape.md) · [items](seats/items/shape.md) · [task-path](seats/task-path/shape.md) · [consolidation](seats/consolidation/shape.md) · [pages](seats/pages/shape.md) · [streaming](seats/streaming/shape.md) · [structures](seats/structures/shape.md) (added after, §7). Each has a `shape.md` (one page) and a `notes.md` (the evidence).
 
