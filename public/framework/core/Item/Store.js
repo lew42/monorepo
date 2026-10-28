@@ -6,7 +6,7 @@
 // Item's class body does, so List.js would hit the TDZ instead.
 import RecordWriter from "./RecordWriter.js";
 
-const is_list = node =>!!node && Array.isArray(node.items) && typeof node.find === "function";
+const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
 /* ONE .jsonl file = one object's history. `item.store` loads it, replays each line
    through `host.set(line)`, appends new ones as they happen, and — on localhost —
@@ -193,14 +193,14 @@ export class Store {
 		// live root and appends it. A page's lines go raw; a task's or session's are item-tool verbs (validated, stamped, hooks fire).
 		// Only lines it could not be asked (Servex down, a phone, a worktree page) are appended here, and the dev server's Append
 		// skips any it already holds under their by/ts, so a slow answer and the fallback never make a twin.
-		const { rest, refused } = await RecordWriter.post(path, /(^|\/)page\.jsonl$/.test(path) ? { lines } : { deltas: lines });
+		const { rest, refused, down } = await RecordWriter.post(path, /(^|\/)page\.jsonl$/.test(path) ? { lines } : { deltas: lines });
 		for (const { line, why } of refused){
 			const { by, ts, ...bare } = line, j = (this.sent ?? []).indexOf(JSON.stringify(bare));
 			if (j !== -1) this.sent.splice(j, 1);
 			console.warn(`Item.Store — the entry point refused ${JSON.stringify(bare)}: ${why}`);
 		}
 		if (!rest.length) return;
-		if (!Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — the entry point (Servex /api/item) did not take the lines: appending them through the dev server, once."); }
+		if (down && !Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — the entry point (Servex /api/item) did not take the lines: appending them through the dev server, once."); }
 		await send(rest);
 	}
 
