@@ -15,8 +15,13 @@ class List extends Events(Object) {   // ✅ core/List/List.js — Events built 
   insert(x, {after}), replace(old, x), release(id)   // the QUIET primitives — loading is not a change
   append(x), insert_before(x, ref), forEach(fn), map(fn), at(i), length
   set(delta)                          // routes a nested {"add": {...}} etc. — Item.set_one()'s recursion target
+  get(key)                            // a property, else a member by id: the next hop of a line or a dotted path
+  index()                             // ✅ 2026-10-28: the id-to-member Map find() reads; kept in step by every verb
+  render()                            // draws through List.View, wired from the browser (the default view); else nothing
 }
 ```
+
+**Lookup is one Map read** (2026-10-28, [data-shapes plan](/framework/core/Session/tasks/data-shapes/plan.md) step 1): `find(id)` reads an id-to-member `Map` kept in step by every verb; the first member with an id wins, as `Array.find` did. A member whose id was empty when it arrived, or whose id changed in place, makes `find()` rebuild the Map once. A subclass may look up its members another way (override `find` or `get`). Every List change bumps `Item.generation`, which tells a deep `Item.find()` to rebuild its own index.
 
 **No `Content` class, no `LiveList` class.** An earlier pass split the plain array
 (`List`) from the announcing one (`LiveList = Events(List)`); the owner merged them
