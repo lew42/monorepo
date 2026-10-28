@@ -71,3 +71,8 @@
 {"log":{"at":"2026-10-26T20:27:59-05:00","msg":"task-loop status ask 1: asked mastermind-system-map","ask":1}}
 {"log":{"at":"2026-10-26T20:28:04-05:00","msg":"session resumed"}}
 {"log":{"msg":"Completion recorded (data.state complete). Node still shows running because child task mastermind-roles-auditor is open; checking whether that helper is alive."},"by":"mastermind-system-map","ts":"2026-10-27T01:28:41.082Z"}
+{"log":{"at":"2026-10-27T23:24:22-05:00","msg":"session resumed"}}
+{"log":{"at":"2026-10-27T23:24:55-05:00","msg":"skill: check-claude-usage"}}
+{"log":{"at":"2026-10-27T23:49:05-05:00","msg":"session resumed"}}
+{"action":{"at":"2026-10-27T23:51:11-05:00","did":"edit","files":["public/framework/ai/design-decisions-2026-10-27.md"]}}
+{"commit":"c9e93003cb67"}

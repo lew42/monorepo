@@ -1,3 +1,16 @@
 {"session":{"id":"cloud-voice-app-20261027","kind":"cloud-voice-agent","caller":"voice-app","at":1793161114742}}
 {"tool_call":{"at":"2026-10-28T04:18:34.744Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-28T04:20:07.768Z","tool":"read_file","args_hash":"180b2ced604c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:24:17.189Z","tool":"send_to_agent","args_hash":"854f510de47c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:24:22.454Z","tool":"wait_for_agent","args_hash":"235a8ffec968","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:25:13.826Z","tool":"wait_for_agent","args_hash":"fdaade249cfa","caller":"voice-app"}}
+{"log":{"at":"2026-10-27T23:33:04-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-27T23:38:05-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-10-28T04:43:57.963Z","tool":"glob","args_hash":"6938e811d996","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:44:03.970Z","tool":"glob","args_hash":"15a1e13526e5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:44:17.350Z","tool":"glob","args_hash":"8cf969b9fc6c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:44:28.642Z","tool":"read_file","args_hash":"8b3f4ef4216d","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:44:41.948Z","tool":"read_file","args_hash":"3dc97db8ffc0","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:49:02.200Z","tool":"send_to_agent","args_hash":"d61cf11756dc","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:49:05.683Z","tool":"wait_for_agent","args_hash":"97117d37426b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:51:10.576Z","tool":"wait_for_agent","args_hash":"97117d37426b","caller":"voice-app"}}
