@@ -88,6 +88,16 @@ The chat is drawn over the stored list. The fast seat folds into the smart agent
 - Moving sessions' records out of task folders ([placement.md](placement.md) §6).
 - The worktree dev server reachable from the phone.
 
+## Running now (spawned 2026-10-28 16:42)
+
+| Work | Agent | Brief | Branch |
+|---|---|---|---|
+| Build A: the backbone (step 1) | mastermind-build-backbone (Opus, high) | [build/backbone/](build/backbone/requirements.md) | `worktree/backbone` |
+| Build B: the default view (step 2) | mastermind-build-default-view (Opus, high) | [build/default-view/](build/default-view/requirements.md) | `worktree/default-view` |
+| Plan review | mastermind-plan-review (Opus, high) | [build/plan-review/](build/plan-review/requirements.md) | none (writes `review.md`) |
+| Seat (g): delta flow | mastermind-shapes-delta-flow (Opus) | [seats/analysis-brief.md](seats/analysis-brief.md) (g) | none |
+| Seat (h): legacy census | mastermind-shapes-legacy (Sonnet) | [seats/analysis-brief.md](seats/analysis-brief.md) (h) | none |
+
 ## How the work runs
 
 - **Builders:** a fresh Opus mastermind at high effort per worktree, spawned now. Each writes its plan and decisions into its worktree's task folder as it goes, and is reset when its context grows large.
