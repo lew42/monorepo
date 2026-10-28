@@ -1,5 +1,7 @@
 # The core/Page classes
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 ## The class architecture: Item, List, Page
 
 The full skeleton, every member with a one-line comment and what each Page owns: [class-block.md](class-block.md).

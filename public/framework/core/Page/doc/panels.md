@@ -1,5 +1,7 @@
 # Panels — splitting the height
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 The ask (2026-08-27): *"multi-panel — split the viewport's height into 2 vertical
 areas — and figure out how to get different areas to communicate, cross-page.js."*
 

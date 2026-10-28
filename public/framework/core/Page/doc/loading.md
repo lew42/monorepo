@@ -1,5 +1,7 @@
 # How a url becomes a page
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 Every url is resolved one folder name at a time — never all at once. A url like
 `/framework/core/Page/doc/` asks for `framework`, then `core`, then `Page`, then `doc`, each
 as its own step, each one handed to the page found in the step before it.

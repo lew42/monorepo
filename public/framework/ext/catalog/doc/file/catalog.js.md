@@ -1,3 +1,5 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 The whole module's behavior: one method (`Page.prototype.catalog`), patched
 on by importing this file, plus the two private functions it needs —
 `screen()` (what a catalog page renders) and `reveal()` (scroll the active

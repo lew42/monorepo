@@ -1,5 +1,7 @@
 # How a page renders
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 **Short answer:** a page is a class instance. Most pages are still written as code with the little helper functions (`h1()`, `p()`, `div()`). A page can instead (or also) be a `page.jsonl` log, which the page replays into content blocks. Both end up in the same list, `page.content`, and the same View draws it.
 
 ## 1. The basics, in plain sentences

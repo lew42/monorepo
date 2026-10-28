@@ -128,6 +128,7 @@ export default class Session extends Task {
 			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
 		}
+		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
 		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);
 		return this;
 	}

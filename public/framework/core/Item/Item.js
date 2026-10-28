@@ -136,6 +136,7 @@ export class Item extends Events(Object) {
 		// ⚠ compat only, one release (2026-10-03 fold-away) — never WRITE this form
 		// again, only read it: an old line routed the rest of its delta to whatever
 		// `at` named (a `/`-separated path from `locate()` below).
+		// DEPRECATED (2026-10-28): use a nested delta (`get()` per level). Guide: /framework/core/Item/doc/item-notes.md. Remove when: the ~1,810 history `{"at":…}` lines are migrated by script, then delete this branch and `locate()`.
 		if ("at" in delta){
 			const { at, ...rest } = delta;
 			const target = this.locate(at);
@@ -248,6 +249,7 @@ export class Item extends Events(Object) {
 		return undefined;
 	}
 
+	// DEPRECATED (2026-10-28): use a nested delta (`get()` per level). Guide: /framework/core/Item/doc/item-notes.md. Remove when: the ~1,810 history `{"at":…}` lines are migrated by script, then delete `locate()` and its List.move caller.
 	/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated multi-hop path `at` used
 	   to name, read for one release so an old jsonl line still replays. Walks
 	   `/`-separated segments of `path`, starting from ME: a segment matches a
@@ -340,6 +342,7 @@ export class Item extends Events(Object) {
 	set views(v){ this._views = v; }
 
 	// A child asking to save persists its DOCUMENT — delegation up, never a partial write.
+	// DEPRECATED (2026-10-28): use `item.store` (`Item.Store.for(url)`) for a delta log; whole-document storage is undecided, so `save()` stays the Saver-only door until then. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files of ext/Saver are moved to `item.store` or the Saver is renamed as the whole-document store.
 	save(){ return this.saver ? this.saver.save(this) : this.parent ? this.parent.save() : Promise.resolve(false); }
 	delete(){ return this.saver ? this.saver.delete(this) : this.parent ? this.parent.delete() : Promise.resolve(false); }
 
@@ -468,6 +471,7 @@ export class Item extends Events(Object) {
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.
 	static async open(src){
+		// DEPRECATED (2026-10-28): use `Item.open(url)` (a .jsonl url, one Store per file); an object Saver is the whole-JSON path. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files of ext/Saver are moved to `item.store` or the Saver is renamed as the whole-document store.
 		if (typeof src !== "string"){
 			const json = await src.load();
 			return Item.hydrate(json ?? {}).assign({ saver: src });

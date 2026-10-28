@@ -1,5 +1,7 @@
 # Item, List, Page: the class block
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 This is one code block of the three classes, read from the source on 2026-10-15 (`core/Item/Item.js`, `core/List/List.js`, `core/Page/Page.class.js`). It shows the members with no bodies. The 23 files are listed in [classes.md](classes.md).
 
 ```js

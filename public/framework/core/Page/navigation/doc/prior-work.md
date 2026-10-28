@@ -1,5 +1,7 @@
 # Prior work on navigation — every row the inventory found
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 Three read-only inventory passes fed this page: [A — imagine/layouts](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/inventory/A-imagine-layouts.md),
 [B — framework](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/inventory/B-framework.md),
 [C — task logs](/framework/ai/sessions/2026/09/29/f5150091-9c1e-4500-90b0-7313b19a36a9/page-system/inventory/C-task-logs.md). Every row either

@@ -1,5 +1,7 @@
 # Doc architecture — a module is a page with four fixed tabs
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 `Doc` turns a module into a browsable page: Overview, API, Docs, Files, plus any declared children. It is a class, [`Doc.js`](../Doc.js), that extends `Page` and is set up by the module's own `page.js` (the call site lists members and notes, never tabs). Its main seams are `sections()`, `section()`, `api()`, `docs()`, `bar()`, `wall()` and `render()`.
 
 ## Four section names, fixed

@@ -23,6 +23,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
 
 - `node Server/ModuleLog.mjs <path>` — one folder's work log, graded against git; beside `PastWork.mjs`.
+- `node Server/Deprecated.mjs` — the deprecation census: every `DEPRECATED (` mark in live code with its live caller count (dry run by default; `--json`, `--write <file>`); test `Deprecated.test.mjs`. The rule: [framework/doc/rules.md](/framework/doc/rules.md).
 - `node Server/health.mjs` — optional watcher that headless-checks a page after a file that could break it changes ([health readme](/framework/ai/health/)).
 - `node Server/layout-check.mjs <url...>` — shoots pages at four widths, flags wasted space; `on-landing.mjs` runs it on every landing.
 - `node Server/merge.mjs <worktree>` — finds changed pages, smoke-tests them and their links, merges; `--quick` is the fast path for a one-line voice fix ([`doc/review.md`](./doc/review.md#which-widths)).

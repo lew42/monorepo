@@ -1,5 +1,7 @@
 # InstanceTree — spec for the live instance hierarchy (built 2026-10-13)
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 **Built:** [`InstanceTree.js`](/framework/ux/Content/Object/InstanceTree.js), page [/framework/ux/Content/Object/instance-tree/](/framework/ux/Content/Object/instance-tree/), doc [ux/Content/Object/doc/instance-tree.md](../../ux/Content/Object/doc/instance-tree.md); toggle in the dev bar `page` tab. Below is the original spec.
 
 The ask (dictation 3, 2026-10-13): while we build an object-oriented system, show on screen its live instance hierarchy, beside the demo.

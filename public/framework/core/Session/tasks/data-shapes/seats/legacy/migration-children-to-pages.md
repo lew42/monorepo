@@ -1,5 +1,8 @@
 # Migration guide: `page.children` to `page.pages`
 
+> **Moved (2026-10-28):** the maintained copy of this guide lives beside the module it is about: [core/Page/doc/migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md). This copy is the seat record.
+
+
 The owner's asks 29 and 30 ([requirements.md](../../requirements.md)): `pages` says what is inside; `children` could be anything. `page.children` is a legacy wrapper, so deprecate it, write this guide, then remove it. The rule is in [doc/rules.md](/framework/doc/rules.md) ("An old way that lingers is marked, or it gets copied").
 
 Every number below comes from a script that walks the repo (census scripts live in the seat's scratchpad; the per-line output is saved beside this file in [census/page-children-calls.tsv](census/page-children-calls.tsv)). The walk skips dated session folders, `legacy/` and `old/`/`archive/` folders, `node_modules`, worktrees and `data-shapes/seats`.

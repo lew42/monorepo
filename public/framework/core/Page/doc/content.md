@@ -1,5 +1,7 @@
 # Page content: three things, one way each
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 A page has three kinds of stuff. Each one should have exactly one name and one way to write it.
 
 ```js

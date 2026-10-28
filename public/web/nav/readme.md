@@ -1,5 +1,7 @@
 # /web/nav/ — design record
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 Eleven pattern pages in a `catalog()`, eight of them `demo.tree()` and three —
 `tabs`, `jumps`, `drill` — hand-shaped because they compare *two or three* sites at once.
 The reader-facing verdicts live on the pages; this is what it cost to build them.

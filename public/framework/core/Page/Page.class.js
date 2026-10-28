@@ -131,6 +131,7 @@ export class Page extends Item {
 
 	get pages(){ return this._pages ??= new List({ owner: this, name: "pages", of: null }); }
 
+	// DEPRECATED (2026-10-28): use `page.pages` (a List). Guide: /framework/core/Page/doc/migration-children-to-pages.md. Remove when: the census (node Server/Deprecated.mjs) shows 0 live `page.children` callers and the docs teach `page.pages`; the config key `children:` is a separate, undecided word.
 	get children(){ return this._children ??= new PageChildren(this); }
 
 	// ⚠ A config `children: […]` is only STAGED here; declare() reads it. A `new Map()` means "forget everything". (doc/watch-out.md)
