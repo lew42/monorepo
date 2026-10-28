@@ -1,0 +1,3 @@
+{"session":{"id":"cloud-voice-app-20261027","kind":"cloud-voice-agent","caller":"voice-app","at":1793161114742}}
+{"tool_call":{"at":"2026-10-28T04:18:34.744Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-28T04:20:07.768Z","tool":"read_file","args_hash":"180b2ced604c","caller":"voice-app"}}
