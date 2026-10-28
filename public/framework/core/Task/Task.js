@@ -122,7 +122,7 @@ export class Task extends Item {
 	ms(){ const at = this._at ?? Task.clock; return at ? Date.parse(at) : Date.now(); }
 	// The time of the line a PARENT is replaying (Session.replay_line sets it), so a nested task's verbs stamp the line's time,
 	// not the time the log is read (2026-10-23: twelve tasks of session-e00f55c9 all read completed at the moment of the read).
-	static clock = null;
+	// `Task.clock` is `Item.clock` (Item.js): one clock for every Item, set while a line replays.
 
 	// The view is wired in by TaskView.js (browser only), like Item.view; a subclass overrides render() to draw itself.
 	render(){
@@ -531,6 +531,7 @@ export class Task extends Item {
 
 	// Time comes from the lines (`at`, else the item tool's `ts`, `assign.at|landed_at|requested_at`), never the wall clock. Server/doc/state.md
 	replay_line(line){
+		line = Item.dots(line);
 		const rp = this._rp ??= { at: null, explicit: false };
 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;

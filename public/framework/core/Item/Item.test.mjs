@@ -80,15 +80,38 @@ n++;
 	kid.set({ title: "hello" });
 	t(kid.parent === parent, "adding to a List makes the owner the child's parent");
 	t(lines.length === 2, "the add and the child's later set both reached the parent's store");
-	t(JSON.stringify(lines[1]) === '{"k":{"set":{"title":"hello"}}}', "the child's delta is nested under the child's id");
+	t(JSON.stringify(lines[1]) === '{"kids":{"k":{"set":{"title":"hello"}}}}', "the child's delta names its list, then its id (every hop names its list)");
 
 	const reloaded = new Foo({ id: "p" });
 	reloaded.kids = new List({ owner: reloaded, name: "kids" });
 	for (const line of lines) reloaded.replay_line(line);
 	t(reloaded.kids.find("k")?.get("title") === "hello", "replaying the parent's lines rebuilds the child and its data");
+
+	reloaded.replay_line({ k: { set: { title: "old line" } } });
+	t(reloaded.kids.find("k").get("title") === "old line", "an old line that names the member by its id alone still replays");
+	reloaded.replay_line({ "kids.k": { set: { title: "dotted" } } });
+	t(reloaded.kids.find("k").get("title") === "dotted" && reloaded.get("kids.k") === reloaded.kids.find("k"), "a dotted path key walks the same hops, and get() reads the same path");
 }
 
-// NOT built: item.set("prop", anotherItem) only stores a snapshot. The child is not adopted, so its later changes are not logged.
+// Two lists on one owner, each with a member "s1" (seat a, E2): the edit lands on the right one, written and replayed.
+{
+	const { default: List } = await import("../List/List.js");
+	const lines = [];
+	const store = new Item.Store({ url: "/x/two.jsonl" });
+	store.append = line => lines.push(line);
+	const make = () => { const o = new Foo({ id: "o" }); o.a = new List({ owner: o, name: "a" }); o.b = new List({ owner: o, name: "b" }); return o; };
+	const live = make();
+	store.attach(live);
+	live.a.add({ id: "s1", title: "sentence" });
+	live.b.add({ id: "s1", title: "card" });
+	live.b.find("s1").set({ title: "card edited" });
+	const again = make();
+	for (const line of JSON.parse(JSON.stringify(lines))) again.replay_line(line);
+	t(again.a.find("s1").get("title") === "sentence" && again.b.find("s1").get("title") === "card edited", "a member of list b is edited in b on replay, never in a");
+}
+
+// item.set("prop", anotherItem) ADOPTS it (seat a, E7/E9): one line saves its shape, its later changes are written under the
+// property's name, and a replay makes it an Item again that the next line walks into.
 {
 	const lines = [];
 	const store = new Item.Store({ url: "/x/p2.jsonl" });
@@ -97,10 +120,13 @@ n++;
 	store.attach(parent);
 	const child = new Foo({ id: "c" });
 	parent.set("child", child);
-	child.set({ title: "lost" });
-	t(lines.length === 1 && lines[0].set?.child?.id === "c", "set(prop, item) logs one snapshot line of the item");
-	t(child.parent === undefined, "set(prop, item) does not adopt the child (known gap, core/Item/readme.md)");
-	t(lines.length === 1, "so the child's later delta is NOT logged to the parent's store (known gap)");
+	child.set({ title: "kept" });
+	t(lines.length === 2 && lines[0].set?.child?.id === "c", "set(prop, item) logs one line of the item, then its own change");
+	t(child.parent === parent && child._slot === "child", "set(prop, item) adopts the child under the property's name");
+	t(JSON.stringify(lines[1]) === '{"child":{"set":{"title":"kept"}}}', "the child's change is written under the property, not flat on the parent");
+	const reloaded = new Foo({ id: "p2" });
+	for (const line of JSON.parse(JSON.stringify(lines))) reloaded.replay_line(line);
+	t(reloaded.get("child") instanceof Foo && reloaded.get("child").get("title") === "kept" && reloaded.get("title") === undefined, "replay makes it a Foo again, with its title, and leaves the parent's title alone");
 }
 
 // A field passed to the constructor lands in data, so a later set() of it is read back (it used to become a shadowing own property).

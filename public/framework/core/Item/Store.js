@@ -250,7 +250,7 @@ function address(node, host){
 	if (!parent) return undefined;   // detached from host — best effort, should not happen
 
 	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
-		if ([...list].includes(node)){
+		if (list.key(node) != null && list.find(list.key(node)) === node){
 			const base = address(parent, host);
 			const seg = `${name}/${list.key(node)}`;
 			return base ? `${base}/${seg}` : seg;
@@ -266,10 +266,13 @@ function owned_below(node, host){
 	return false;
 }
 
-/* The chain of NAMES from `host` down to `node`, each one a child's id — never a
-   list's own property name, because `get()` (Item.js) never needs it either: a
-   member's id is looked up by scanning every list the current node owns, so the
-   wire line skips straight to the id. `[]` means `node` IS `host`. */
+/* The chain of NAMES from `host` down to `node`, one per level, and EVERY hop names
+   its list (2026-10-28, ids-and-paths.md §3): a member is its list's name, then its
+   id (`{"tasks":{"c3":{…}}}`), so a reader walks one `get()` per name and never
+   searches. An Item held in a property (Item.adopt_slot) is that property's name.
+   Before, a member's hop was its id alone and the reader searched every list for it
+   (`{"c3":{…}}`; two lists with one id misrouted, seat a E2); old lines still replay
+   (Item.set_one). `[]` means `node` IS `host`. */
 function hops(node, host){
 	if (!node || node === host) return [];
 
@@ -286,10 +289,23 @@ function hops(node, host){
 	const parent = node.parent;
 	if (!parent) return [];   // detached from host — best effort, should not happen
 
-	for (const list of Object.values(parent.lists?.() ?? {}))
-		if ([...list].includes(node)) return [...hops(parent, host), list.key(node)];
+	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
+		const key = list.key(node);
+		if (key == null || list.find(key) !== node) continue;
+		const named = list_name(parent, name, list);
+		return named ? [...hops(parent, host), named, key] : [...hops(parent, host), key];
+	}
+
+	if (node._slot != null && parent.get?.(node._slot) === node) return [...hops(parent, host), node._slot];
 
 	return hops(parent, host);
+}
+
+// The name a reader's `get()` finds `list` under on `owner`: the list's own name, else the key `lists()` gave it.
+// None (a list only reachable by scanning, like an old Page's `_pages`): the id-only hop, which old readers search for.
+function list_name(owner, key, list){
+	for (const name of [list.name, key]) if (name && !name.startsWith("_") && owner.get?.(name) === list) return name;
+	return null;
 }
 
 // Nests `payload` one level per step in `path`, innermost (the payload itself)

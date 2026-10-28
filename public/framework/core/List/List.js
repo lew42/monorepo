@@ -57,6 +57,47 @@ export class List extends Item {
 		this.items ??= [];
 	}
 
+	// The member array. Assigning a new one (order(), or a caller swapping it whole) drops the id index below.
+	get items(){ return this._items; }
+	set items(array){ this._items = array; this._by_key = null; Item.generation++; }
+
+	// The owner: setting it tells the owner its lists changed (Item.lists() caches them).
+	get owner(){ return this._owner; }
+	set owner(item){ this._owner = item; if (item) item._lists = null; }
+
+	/* ID -> MEMBER, kept in step by every verb below, so a hop is one Map lookup, never a scan (ids-and-paths.md §3).
+	   The first member with a key wins, as Array.find did. A member whose key was empty when it arrived (`_unkeyed`)
+	   and a stale hit (its key changed in place) make find() rebuild the index once and look again. */
+	index(){
+		if (this._by_key) return this._by_key;
+		const map = new Map(), unkeyed = new Set();
+		let dups = false;
+		for (const x of this._items){
+			const k = this.key(x);
+			if (k == null) unkeyed.add(x);
+			else if (map.has(k)) dups = true;
+			else map.set(k, x);
+		}
+		this._unkeyed = unkeyed;
+		this._dups = dups;
+		return this._by_key = map;
+	}
+	indexed(x){   // a member just arrived (anywhere in the array)
+		Item.generation++;
+		if (!this._by_key) return;
+		const k = this.key(x);
+		if (k == null) this._unkeyed.add(x);
+		else if (this._by_key.has(k)) this._by_key = null;   // a second member with that key: its place in the array decides, so rebuild
+		else this._by_key.set(k, x);
+	}
+	unindexed(x){   // a member just left
+		Item.generation++;
+		if (!this._by_key) return;
+		const k = this.key(x);
+		this._unkeyed.delete(x);
+		if (this._by_key.get(k) === x){ this._by_key.delete(k); if (this._dups) this._by_key = null; }
+	}
+
 	get length(){ return this.items.length; }
 	[Symbol.iterator](){ return this.items[Symbol.iterator](); }
 
@@ -82,6 +123,7 @@ export class List extends Item {
 	append(child){
 		this.adopt(child);
 		this.items.push(child);
+		this.indexed(child);
 		return this;
 	}
 
@@ -90,6 +132,7 @@ export class List extends Item {
 		this.adopt(child);
 		const i = ref ? this.items.indexOf(ref) : -1;
 		i === -1 ? this.items.push(child) : this.items.splice(i, 0, child);
+		this.indexed(child);
 		return this;
 	}
 
@@ -98,6 +141,7 @@ export class List extends Item {
 		const i = this.items.indexOf(child);
 		if (i === -1) return this;
 		this.items.splice(i, 1);
+		this.unindexed(child);
 		if (child.parent === (this.owner ?? this)) delete child.parent;
 		return this;
 	}
@@ -108,8 +152,15 @@ export class List extends Item {
 	// name instead — set as an instance option (`new List({ key: x => x.name })`).
 	key(x){ return x?.id; }
 
-	// By ID, never an index.
-	find(id){ return this.items.find(x => this.key(x) === id); }
+	// By ID, never an index: one Map lookup (index() above).
+	find(id){
+		if (id == null) return this.items.find(x => this.key(x) === id);
+		const map = this.index(), hit = map.get(id);
+		if (hit !== undefined && this.key(hit) === id) return hit;
+		if (hit === undefined && !this._unkeyed.size) return undefined;
+		this._by_key = null;   // stale, or a member that had no key when it arrived: rebuild once
+		return this.index().get(id);
+	}
 
 	// A member's id is a name too: `list.set({"<id>": {"start": {}}})` walks into that member (Item's set_one asks get()).
 	// Without this the delta was stored as plain data on the list and the member never moved (2026-10-22).
@@ -178,6 +229,8 @@ export class List extends Item {
 		if (i === -1) return this.insert(made);
 
 		this.items[i] = made;
+		this._by_key = null;
+		Item.generation++;
 		this.adopt(made);
 		this.released(old);
 		this.adopted(made);
