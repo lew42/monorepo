@@ -1,0 +1,751 @@
+diff --git a/Server/ReadyToMerge.mjs b/Server/ReadyToMerge.mjs
+index 29e166fd8..1089eba4c 100644
+--- a/Server/ReadyToMerge.mjs
++++ b/Server/ReadyToMerge.mjs
+@@ -5,13 +5,15 @@
+  * Row: {branch, sha, at, task_dir, task_url, title, what, review, worktree, stale}. `stale` = the
+  * branch head moved past the sha the agent named. A stale row also carries `latest` = {sha, ok, why?}:
+  * the review gate's answer for the branch's CURRENT head (merge.mjs --gate-only), so the card can offer
+- * "Merge latest" when ok, or say what is missing when not. `agent` = who marked it ready. */
++ * "Merge latest" when ok, or say what is missing when not. `agent` = who marked it ready. `preview` = the phone link
++ * (http://<LAN IP>:<port>/<page>) when the task asked for one (`{"assign":{"preview":true}}`), else null (WorktreePreview.mjs). */
+ import { spawn, spawnSync } from "node:child_process";
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import { status as reviewStatus } from "./review.mjs";
++import WorktreePreview from "./WorktreePreview.mjs";
+ 
+ const READY = /^ready: (\S+) (?:at )?([0-9a-f]{7,40})\b[;,.:]?\s*(.*)$/s;
+ 
+@@ -117,7 +119,7 @@ export async function readyRows(opts = {}) {
+ 		const stale = !head.startsWith(r.sha), worktree = wts.get(r.branch) || null;
+ 		const latest = stale && worktree ? { sha: head.slice(0, 9), gate: (opts.gate || gateOf)(repo, worktree) } : null;   // the gates run in parallel, awaited below
+ 		rows.push({ ...r, record: path.basename(_file), task_url: "/" + path.relative(path.join(root, "public"), r.task_dir).split(path.sep).join("/") + "/",
+-			review: reviewStatus(r.task_dir), worktree, stale, latest, head });
++			review: reviewStatus(r.task_dir), worktree, stale, latest, head, preview: WorktreePreview.link(r.task_dir, worktree, opts.preview) });
+ 	}
+ 	await Promise.all(rows.filter(r => r.latest).map(async r => { const { gate, ...l } = r.latest; r.latest = { ...l, ...(await gate) }; }));
+ 	return rows.sort((a, b) => (b.at > a.at ? 1 : -1));
+diff --git a/Server/WorktreePreview.mjs b/Server/WorktreePreview.mjs
+new file mode 100644
+index 000000000..3103811e7
+--- /dev/null
++++ b/Server/WorktreePreview.mjs
+@@ -0,0 +1,90 @@
++/* `node Server/WorktreePreview.mjs <task dir | worktree>` — the link that opens a worktree waiting for review
++ * on the owner's phone, over the home Wi-Fi: `http://<this PC's LAN IP>:<the worktree's port>/<page>`.
++ *
++ * A task asks for it with `{"assign":{"preview":true}}` (or a page path, `"preview":"/framework/x/"`).
++ * Once that task has landed and its branch is not merged yet, Servex (Servex/Worktrees.js) keeps the
++ * worktree and binds its dev server to the LAN, on-landing logs the link, and the ready-to-merge card
++ * shows it. Everything here is computed on read; nothing is stored. Doc: Servex/doc/worktree-preview.md */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++import { pathToFileURL } from "node:url";
++import { task_state, entry_for_task_dir, task_for_worktree } from "./worktree-sweep.mjs";
++
++const PRIVATE = /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
++
++export default class WorktreePreview {
++	static BASE = "michael/dev";
++
++	/* The page a task's `preview` asks for: true -> "/", a "/path/" -> that path, anything else -> null. */
++	static page(state){
++		const p = state?.preview;
++		if (p === true) return "/";
++		return typeof p === "string" && p.startsWith("/") ? p : null;
++	}
++
++	/* This PC's address on the home Wi-Fi: the first private IPv4, or null (no network). */
++	static lan_ip(nets = os.networkInterfaces()){
++		const all = Object.values(nets).flat().filter(i => i && (i.family === "IPv4" || i.family === 4) && !i.internal).map(i => i.address);
++		return all.find(a => PRIVATE.test(a)) ?? null;
++	}
++
++	static url(port, page = "/", ip = WorktreePreview.lan_ip()){
++		return ip && port ? `http://${ip}:${port}${page}` : null;
++	}
++
++	/* The port Servex gave a project (its ports.json, kept forever), or null. The project name is the folder's name. */
++	static port(name, home = process.env.SERVEX_HOME || path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), ".local", "share"), "lew42", "servex")){
++		try { return JSON.parse(fs.readFileSync(path.join(home, "ports.json"), "utf8"))[name] ?? null; } catch { return null; }
++	}
++
++	/* Is this worktree's work on the base? Its HEAD is an ancestor of the base, its diff against the base is empty,
++	 * or merge.mjs applied that head (.merge-landed.json in the main checkout). The same three tests the clean-up uses. */
++	static merged(dir, { base = WorktreePreview.BASE, main = null } = {}){
++		const git = (...a) => spawnSync("git", ["--no-optional-locks", "-C", dir, ...a], { encoding: "utf8", windowsHide: true });
++		if (git("merge-base", "--is-ancestor", "HEAD", base).status === 0) return true;
++		if (git("diff", "--quiet", `${base}...HEAD`).status === 0) return true;
++		const head = git("rev-parse", "HEAD").stdout.trim();
++		try {
++			main ??= path.resolve(dir, git("rev-parse", "--git-common-dir").stdout.trim(), "..");
++			return !!head && JSON.parse(fs.readFileSync(path.join(main, ".merge-landed.json"), "utf8")).some(e => e.head === head);
++		} catch { return false; }
++	}
++
++	/* Why a process running inside a worktree must be kept for its preview, or null: its task asked for a preview and
++	 * the branch is not merged yet. The reaper (Servex/Lifecycle.js kept()) asks this, so landing does not stop the
++	 * server the phone link points at. The folder's removal (merge, or the 48-hour backstop) ends the hold. */
++	static held(p, main){
++		const wt = String(p ?? "").replace(/\\/g, "/").match(/^(.*\/worktrees\/[^/]+)/i)?.[1];
++		if (!wt || /\/qf-\d+$/i.test(wt) || !fs.existsSync(wt)) return null;
++		const task = task_for_worktree(wt, main);
++		if (!task || !WorktreePreview.page(task) || WorktreePreview.merged(wt, { main })) return null;
++		return `a preview of ${task.key} waits for its merge`;
++	}
++
++	/* The phone link for a ready-to-merge row (Server/ReadyToMerge.mjs): its task asked for a preview and a worktree
++	 * holds the branch. No git here: the row is already known to be unmerged. */
++	static link(task_dir, worktree, opts = {}){
++		const page = worktree ? WorktreePreview.page(task_state(task_dir)) : null;
++		return page ? WorktreePreview.url(WorktreePreview.port(path.basename(path.resolve(worktree)), opts.home), page, opts.ip) : null;
++	}
++
++	/* One task's preview: {worktree, name, port, page, url, merged}, or null when the task did not ask for one. */
++	static of_task(dir, opts = {}){
++		const state = task_state(dir), page = WorktreePreview.page(state);
++		if (!page) return null;
++		const worktree = state.worktree ?? entry_for_task_dir(dir)?.path ?? null;
++		if (!worktree || !fs.existsSync(worktree)) return { worktree, page, url: null, merged: null, why: "the task names no worktree that exists" };
++		const name = path.basename(path.resolve(worktree)), port = WorktreePreview.port(name, opts.home);
++		return { worktree, name, port, page, url: WorktreePreview.url(port, page, opts.ip), merged: WorktreePreview.merged(worktree, opts) };
++	}
++}
++
++if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href){
++	const arg = path.resolve(process.argv[2] || ".");
++	const p = fs.existsSync(path.join(arg, "package.json"))
++		? { worktree: arg, url: WorktreePreview.url(WorktreePreview.port(path.basename(arg)), "/"), merged: WorktreePreview.merged(arg) }
++		: WorktreePreview.of_task(arg);
++	console.log(p ? JSON.stringify(p, null, 1) : "no preview: the task's assign lines carry no `preview`");
++}
+diff --git a/Server/WorktreePreview.test.mjs b/Server/WorktreePreview.test.mjs
+new file mode 100644
+index 000000000..e004ad495
+--- /dev/null
++++ b/Server/WorktreePreview.test.mjs
+@@ -0,0 +1,136 @@
++/* node Server/WorktreePreview.test.mjs — a worktree waiting for review stays, and opens on the phone (build F, 2026-10-28).
++ * A scratch repo in the OS temp folder, never the real worktrees; SERVEX_HOME and SERVEX_PORT point at nothing real.
++ *   A  landed, unmerged, asked for a preview   -> held (Servex judge + the CLI clean-up + on-landing), on the LAN, not stopped idle
++ *   D  landed, unmerged, no preview            -> held, but stays loopback and its idle server may stop (the proxy restarts it)
++ *   B  landed, merged                          -> still cleaned
++ *   qf-1  a pool slot                          -> left to Pool.js everywhere, so it still recycles
++ * Plus the 48-hour backstop, the link the ready-to-merge card shows, and the reaper's keep rule. Doc: Servex/doc/worktree-preview.md */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { execFileSync } from "node:child_process";
++
++const root = fs.mkdtempSync(path.join(os.tmpdir(), "worktree-preview-"));
++process.env.SERVEX_HOME = path.join(root, "home");
++process.env.SERVEX_PORT = "9";   // nothing answers: no call can reach the real Servex
++fs.mkdirSync(process.env.SERVEX_HOME, { recursive: true });
++fs.writeFileSync(path.join(process.env.SERVEX_HOME, "ports.json"), JSON.stringify({ A: 3901, D: 3904 }));
++
++const { default: WorktreePreview } = await import("./WorktreePreview.mjs");
++const { default: CliWorktrees } = await import("./Worktrees.mjs");
++const { default: Worktrees } = await import("../Servex/Worktrees.js");
++const { default: Servex } = await import("../Servex/Servex.js");
++
++const git = (cwd, ...a) => execFileSync("git", ["-C", cwd, ...a], { encoding: "utf8", windowsHide: true }).trim();
++const write = (dir, file, text) => { fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); fs.writeFileSync(path.join(dir, file), text); };
++let checks = 0;
++const ok = (v, msg) => { assert.ok(v, msg); checks++; };
++const eq = (a, b, msg) => { assert.equal(a, b, msg); checks++; };
++
++// the scratch repo: main on michael/dev, four worktrees beside it
++const main = path.join(root, "main"); fs.mkdirSync(main);
++git(main, "init", "-q", "-b", "michael/dev"); git(main, "config", "user.email", "t@t"); git(main, "config", "user.name", "t");
++write(main, "a.txt", "a"); git(main, "add", "."); git(main, "commit", "-qm", "init");
++const wts = path.join(root, "worktrees"); fs.mkdirSync(wts);
++const wt = n => path.join(wts, n).split(path.sep).join("/");
++for (const n of ["A", "B", "D", "qf-1"]){
++	git(main, "worktree", "add", "-q", "-b", `worktree/${n}`, wt(n));
++	git(wt(n), "config", "user.email", "t@t"); git(wt(n), "config", "user.name", "t");
++	write(wt(n), "package.json", "{}\n");
++}
++for (const n of ["A", "D", "qf-1"]){ write(wt(n), `${n}.txt`, n); git(wt(n), "add", "."); git(wt(n), "commit", "-qm", `${n}: work not on the base`); }
++git(wt("B"), "add", "."); git(wt("B"), "commit", "-qm", "B: work"); git(main, "merge", "-q", "--ff-only", "worktree/B");   // B is merged
++
++// the task records, where the reaper's lookup reads them (public/framework/ai/ under main)
++const task = n => path.join(main, "public", "framework", "ai", "sessions", "2026", "10", "28", `task-${n}`);
++const record = (n, extra) => write(task(n), "task.jsonl", [
++	{ assign: { worktree: wt(n), agent: `mastermind-${n}`, ...extra } },
++	{ assign: { landed_at: "2026-10-28T18:00:00-05:00", outcome: "done" } }
++].map(l => JSON.stringify(l)).join("\n") + "\n");
++record("A", { preview: true }); record("B", { preview: true }); record("D", {}); record("qf-1", { preview: true });
++git(main, "add", "."); git(main, "commit", "-qm", "task records");
++
++// ── the link ──
++eq(WorktreePreview.page({ preview: true }), "/", "preview: true opens the root");
++eq(WorktreePreview.page({ preview: "/framework/x/" }), "/framework/x/", "a path opens that page");
++eq(WorktreePreview.page({}), null, "no preview asked, no page");
++eq(WorktreePreview.lan_ip({ lo: [{ family: "IPv4", internal: true, address: "127.0.0.1" }], wifi: [{ family: "IPv4", internal: false, address: "10.0.0.135" }] }), "10.0.0.135", "the LAN IP is the private one");
++eq(WorktreePreview.lan_ip({ x: [{ family: "IPv4", internal: false, address: "8.8.8.8" }] }), null, "a public address is never offered");
++eq(WorktreePreview.link(task("A"), wt("A"), { ip: "10.0.0.9" }), "http://10.0.0.9:3901/", "the ready-to-merge row's link is computed from ports.json");
++eq(WorktreePreview.link(task("D"), wt("D"), { ip: "10.0.0.9" }), null, "no preview asked, no link on the card");
++eq(WorktreePreview.merged(wt("A")), false, "A is not merged");
++eq(WorktreePreview.merged(wt("B")), true, "B is merged");
++const pv = WorktreePreview.of_task(task("A"), { ip: "10.0.0.9" });
++ok(pv.url === "http://10.0.0.9:3901/" && pv.merged === false, "on-landing's preview line: the link, and not merged");
++
++// ── on-landing: an unmerged branch skips --archive --now; a merged one is closed; a pool slot is left to Pool.js ──
++eq(CliWorktrees.on_landing({ name: "A", path: wt("A"), branch: "worktree/A" }).act, "keep", "on-landing keeps a landed, unmerged worktree");
++eq(CliWorktrees.on_landing({ name: "B", path: wt("B"), branch: "worktree/B" }).act, "close", "on-landing still closes a merged one");
++eq(CliWorktrees.on_landing({ name: "qf-1", path: wt("qf-1"), branch: "worktree/qf-1" }).act, "pool", "on-landing leaves a pool slot to Pool.js");
++
++// ── the CLI clean-up (Server/Worktrees.mjs --archive --now): unmerged waits for the 48-hour backstop ──
++const cli = new CliWorktrees({ main, agents: [], here: main, archive: true, quiet_hours: 0 });
++const rows = await cli.plan(), row = n => rows.find(r => path.basename(r.path) === n);
++eq(row("A").verdict, "KEEP", "--archive --now keeps an unmerged branch");
++ok(/held until it merges/.test(row("A").why), "and says why");
++eq(row("B").verdict, "REMOVE", "a merged one is still removed");
++eq(row("qf-1"), undefined, "a pool slot is never in the CLI's plan");
++const cli0 = new CliWorktrees({ main, agents: [], here: main, archive: true, quiet_hours: 0, close_hours: 0 });
++eq((await cli0.plan()).find(r => path.basename(r.path) === "A").verdict, "ARCHIVE", "past the backstop, an unmerged one is archived (branch kept)");
++
++// ── Servex's clean-up pass (Servex/Worktrees.js): judge, the LAN bind, stop_idle ──
++const runners = {}, stopped = [];
++const runner = name => runners[name] ??= { env: { HOST: "127.0.0.1" }, status: "stopped", starts: 0, restarts: 0,
++	async start(){ this.status = "running"; this.starts++; }, async restart(){ this.restarts++; }, async terminate(){ this.status = "stopped"; } };
++const servex = { agents: { live: new Map() }, log: { append: async () => {} }, processes: new Map(), runner,
++	async command(name, verb){ if (verb === "stop"){ stopped.push(name); runners[name].status = "stopped"; } } };
++const pass = new Worktrees({ servex, main, dir: wts, quiet_hours: 0 });
++pass.common = path.join(main, ".git");
++const key = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
++const tasks = new Map([["A", "/"], ["B", "/"], ["D", null], ["qf-1", "/"]].map(([n, preview]) => [key(wt(n)), { key: `task-${n}`, landed: true, agent: `mastermind-${n}`, preview }]));
++const list = await pass.list(), at = n => list.find(w => w.name === n);
++const jA = await pass.judge(at("A"), tasks);
++ok(jA.state === "open" && jA.waiting && jA.preview === "/", `judge holds A for review (${jA.state}: ${jA.why})`);
++const jD = await pass.judge(at("D"), tasks);
++ok(jD.state === "open" && jD.waiting && !jD.preview, "judge holds D too: every landed, unmerged branch waits for its merge");
++eq((await pass.judge(at("B"), tasks)).state, "finished", "judge still finishes a merged one");
++eq((await pass.judge(at("qf-1"), tasks)).state, "pool", "judge leaves a pool slot to Pool.js");
++pass.close_hours = 0;
++const jA0 = await pass.judge(at("A"), tasks);
++ok(jA0.state === "finished" && jA0.commit, "past the 48-hour backstop A is closed (leftovers committed, branch kept)");
++pass.close_hours = 48;
++
++// the whole pass: B removed, A and D kept, A on the LAN, D's idle server stopped, the pool slot untouched
++pass.tasks = () => tasks;
++pass.junctions = async () => ({ ok: true });
++for (const n of ["A", "D", "qf-1"]){ runner(n).status = "running"; servex.processes.set(n, runners[n]); }
++await pass.tick();
++ok(!fs.existsSync(wt("B")) && fs.existsSync(wt("A")) && fs.existsSync(wt("D")) && fs.existsSync(wt("qf-1")), "after a pass: merged B removed; A, D and the pool slot stay");
++ok(pass.lan.has("A") && !pass.lan.has("D"), "only the preview (A) is on the LAN list");
++ok(runners.A.env.HOST === "0.0.0.0" && runners.A.restarts === 1, "A's running server was restarted on 0.0.0.0");
++ok(!stopped.includes("A"), "stop_idle exempts the preview: the phone hits its port directly, the proxy cannot restart it");
++ok(stopped.includes("D"), "D's idle server still stops (loopback; the proxy restarts it on a visit)");
++ok(!stopped.includes("qf-1") && runners["qf-1"].env.HOST === "127.0.0.1", "the pool slot's server is never stopped or rebound here");
++eq(pass.summary().waiting, 2, "the summary counts both waiting worktrees");
++eq(Servex.prototype.host.call({ worktrees: pass }, "A"), "0.0.0.0", "Servex.host(): the preview binds the LAN");
++eq(Servex.prototype.host.call({ worktrees: pass }, "D"), "127.0.0.1", "Servex.host(): any other worktree stays loopback");
++eq(Servex.prototype.host.call({ worktrees: pass }, "monorepo"), "0.0.0.0", "Servex.host(): the main site is unchanged");
++
++// a server that was stopped gets started on the LAN; once merged, the server goes back to loopback
++runners.A.status = "stopped"; pass.lan = new Set(); runners.A.env.HOST = "127.0.0.1";
++await pass.tick();
++ok(runners.A.status === "running" && runners.A.starts === 1 && runners.A.env.HOST === "0.0.0.0", "a stopped preview server is started on the LAN");
++git(main, "merge", "-q", "--no-edit", "worktree/A");
++pass.quiet_hours = 9999;   // A is merged but was just touched: it stays a moment, and must leave the LAN
++await pass.tick();
++ok(!pass.lan.has("A") && runners.A.env.HOST === "127.0.0.1" && runners.A.restarts === 2, "merged: A leaves the LAN list and its server goes back to loopback");
++
++// ── the reaper's keep rule (Servex/Lifecycle.js kept()) ──
++git(main, "reset", "-q", "--hard", "HEAD~1");   // un-merge A again
++ok(/waits for its merge/.test(WorktreePreview.held(path.join(wt("A"), "Server"), main) ?? ""), "the reaper keeps A's server");
++eq(WorktreePreview.held(wt("D"), main), null, "no preview asked: the reaper's normal rules apply");
++eq(WorktreePreview.held(wt("qf-1"), main), null, "a pool slot: Pool.js's rule, not this one");
++
++fs.rmSync(root, { recursive: true, force: true });
++console.log(`WorktreePreview.test: ${checks} checks pass`);
+diff --git a/Server/Worktrees.mjs b/Server/Worktrees.mjs
+index 26cd402d5..337c4048b 100644
+--- a/Server/Worktrees.mjs
++++ b/Server/Worktrees.mjs
+@@ -1,5 +1,5 @@
+ /* node Server/Worktrees.mjs --plan | --apply [--archive [--now] [--path <worktree>]] — one verdict per non-pool worktree; --apply removes the REMOVE ones.
+- * --archive also closes a quiet one (no live agent, nothing touched for 2 hours): its leftovers are committed to its own branch, then the folder goes; unmerged commits get a line in ready-to-merge.jsonl.
++ * --archive also closes a quiet one (no live agent, nothing touched for 2 hours; an UNMERGED branch for 48 hours, since it waits for review): its leftovers are committed to its own branch, then the folder goes; unmerged commits get a line in ready-to-merge.jsonl.
+  * REMOVE = its work is on michael/dev (or it has none) and nothing REAL is uncommitted. KEEP = anything else, with its branch.
+  * Branches are never deleted; each removal is one line in ai/sessions/worktree-removals.jsonl. Doc: doc/worktrees.md "Clear out landed worktrees". */
+ import fs from "node:fs";
+@@ -9,6 +9,7 @@ import { execFileSync, spawnSync } from "node:child_process";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import Pool from "../Servex/Pool.js";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
++import WorktreePreview from "./WorktreePreview.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const slash = s => String(s || "").replace(/\\/g, "/");
+@@ -21,13 +22,24 @@ export default class Worktrees {
+     // files a worktree's own dev server or a screenshot run rewrites: losing them loses nothing
+     static REGENERATED = /(^|\/)(files\.jsonl|index\.json|cache\.jsonl)$|\.png$|(^|\/)(shots|layout-check)\//;
+ 
++    /* What on-landing.mjs does with a landed task's worktree (`entry`: {name, path, branch}): "pool" (Pool.js recycles
++     * it), "keep" (HOLD UNTIL MERGE, build F: an unmerged branch waits for review; Servex's Worktrees.js closes it at the
++     * merge or the 48-hour backstop), or "close" (run `--apply --archive --now --path` on it). */
++    static on_landing(entry){
++        if (/^qf-\d+$/.test(entry.name)) return { act: "pool", why: "a pool slot: Pool.js recycles it" };
++        if (fs.existsSync(entry.path) && !WorktreePreview.merged(entry.path)) return { act: "keep", why: `${entry.branch || "its branch"} is not merged yet; it stays until the merge (48-hour backstop)` };
++        return { act: "close", why: "its branch is merged, or its folder is gone" };
++    }
++
+     static main_repo(from = HERE){
+         return slash(path.resolve(from, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: from, encoding: "utf8", windowsHide: true }).trim(), ".."));
+     }
+ 
+-    /* options: main (repo root), base, agents (cwd list of live agents; null = ask Servex), pool_names (regexp) */
+-    constructor({ main = Worktrees.main_repo(), base = Worktrees.BASE, agents = null, here = process.cwd(), pool_names = /^qf-\d+$/, archive = false, quiet_hours = 2, only = null } = {}){
+-        Object.assign(this, { main: slash(main), base, agents, archive, quiet_hours, only: only ? lower(only) : null, here: lower(this.top(here)), pool_names });
++    /* options: main (repo root), base, agents (cwd list of live agents; null = ask Servex), pool_names (regexp),
++     * close_hours (an unmerged branch is archived only after this long quiet; the same backstop as Servex/Worktrees.js) */
++    constructor({ main = Worktrees.main_repo(), base = Worktrees.BASE, agents = null, here = process.cwd(), pool_names = /^qf-\d+$/, archive = false, quiet_hours = 2,
++        close_hours = Number(process.env.SERVEX_WORKTREE_CLOSE_HOURS) || 48, only = null } = {}){
++        Object.assign(this, { main: slash(main), base, agents, archive, quiet_hours, close_hours, only: only ? lower(only) : null, here: lower(this.top(here)), pool_names });
+         // Pool.landed() is the one "is this on the base" test (by commits, by merge.mjs record, by file content)
+         this.pool = new Pool({ servex: { agents: { registry_list: () => [] } }, main: this.main, base, file: path.join(os.tmpdir(), "worktrees-unused-pool.json") });
+     }
+@@ -69,11 +81,14 @@ export default class Worktrees {
+         return last ? Math.round((Date.now() - last) / 60000) : null;
+     }
+ 
+-    /* A KEEP that only waits on leftovers or a merge becomes ARCHIVE when --archive is on and the worktree is quiet. */
++    /* A KEEP that only waits on leftovers or a merge becomes ARCHIVE when --archive is on and the worktree is quiet.
++     * HOLD UNTIL MERGE (build F, 2026-10-28): an unmerged branch waits for review, so it needs close_hours quiet
++     * (the 48-hour backstop), never just quiet_hours; `--now` shortens only quiet_hours. */
+     archivable(w, row){
+         if (!this.archive || row.verdict !== "KEEP" || !w.branch || !/uncommitted|unmerged/.test(row.why)) return row;
+-        const quiet = this.quiet_min(w);
+-        if (quiet === null || quiet < this.quiet_hours * 60) return { ...row, why: row.why + ` (touched ${quiet ?? "?"} min ago, so it stays)` };
++        const quiet = this.quiet_min(w), hours = row.landed ? this.quiet_hours : this.close_hours;
++        if (quiet === null || quiet < hours * 60) return { ...row, why: row.why + (row.landed ? ` (touched ${quiet ?? "?"} min ago, so it stays)`
++            : ` (held until it merges, or ${this.close_hours} quiet hours; touched ${quiet ?? "?"} min ago)`) };
+         return { ...row, verdict: "ARCHIVE", why: `quiet ${quiet} min; ${row.why}` };
+     }
+ 
+diff --git a/Server/doc/worktrees.md b/Server/doc/worktrees.md
+index b25d841c3..f58d438f8 100644
+--- a/Server/doc/worktrees.md
++++ b/Server/doc/worktrees.md
+@@ -64,9 +64,11 @@ A worktree is never left to pile up (8.4 GB of 36 folders by 2026-10-22). Closin
+ 
+ | When | Who | What happens |
+ |---|---|---|
+-| a task lands | `Server/on-landing.mjs` (`worktree-close:` line in the task log) | `node Server/Worktrees.mjs --apply --archive --now --path <worktree>`. A live agent still inside keeps it for now. |
+-| every 10 min | `Servex/Worktrees.js` `tick()` | closes a worktree whose task landed and whose agent stopped, or that nothing touched for 48 hours (`SERVEX_WORKTREE_CLOSE_HOURS`) |
+-| by hand | `node Server/Worktrees.mjs --apply --archive` | same, for every worktree quiet for 2 hours |
++| a task lands | `Server/on-landing.mjs` (`worktree-close:` line in the task log) | an **unmerged** branch is kept for review (`Worktrees.on_landing()`); otherwise `node Server/Worktrees.mjs --apply --archive --now --path <worktree>`. A live agent still inside keeps it for now. |
++| every 10 min | `Servex/Worktrees.js` `tick()` | closes a worktree whose task landed, once its branch is merged; an unmerged one waits for the merge, or 48 quiet hours (`SERVEX_WORKTREE_CLOSE_HOURS`), the backstop for any worktree |
++| by hand | `node Server/Worktrees.mjs --apply --archive` | same, for every worktree quiet for 2 hours (48 for an unmerged branch) |
++
++**Hold until merge (2026-10-28):** a landed task's unmerged worktree stays so the owner can look before merging, and a task that asks for a preview gets its server on the home Wi-Fi with a phone link: [Servex/doc/worktree-preview.md](../../Servex/doc/worktree-preview.md).
+ | a crashed `git worktree add` | `Servex/Pool.js` `unlock_crashed()` | a pool slot stuck "locked initializing" for 15 minutes is unlocked, so the pool can recycle it (it blocked qf-1 and qf-5 for 10 days, so spawns failed "No pool worktree is ready") |
+ 
+ **Unmerged commits** (and the leftover commit itself) become one line in `public/framework/ai/sessions/ready-to-merge.jsonl` (`branch`, `sha`, `unmerged`, `leftover_files`), the list the owner merges from ([priority.md](/framework/ai/priority.md) 3b). Every close is also one line in `worktree-removals.jsonl` with `committed` and `unmerged`.
+diff --git a/Server/on-landing.mjs b/Server/on-landing.mjs
+index 64b282e99..3329e4ca5 100644
+--- a/Server/on-landing.mjs
++++ b/Server/on-landing.mjs
+@@ -19,6 +19,8 @@ import TaskDirs from "./TaskDirs.mjs";
+ import ModuleInbox from "../Servex/agents/ModuleInbox.js";
+ import Cards from "../Servex/cards/Cards.js";
+ import SessionRecord from "./SessionRecord.mjs";
++import WorktreePreview from "./WorktreePreview.mjs";
++import Worktrees from "./Worktrees.mjs";
+ 
+ const root = path.resolve(fileURLToPath(import.meta.url), "../..");
+ // What the AI system mastermind should see goes to its inbox, module_inbox "ai" (2026-10-23; it was servex-mastermind's daily task log,
+@@ -152,7 +154,11 @@ try {
+ 			// Close the loop (worktree-closure, 2026-10-22): a landed task leaves no folder behind. Leftovers are committed to its
+ 			// branch and the folder goes; unmerged commits become a ready-to-merge line. A live agent still in it keeps it
+ 			// until Servex's Worktrees.js tick (task landed, agent stopped) closes it.
+-			if (!/^qf-d+$/.test(entry.name)) {
++			// HOLD UNTIL MERGE (build F, 2026-10-28): an unmerged branch waits for review, so its folder stays; Servex's
++			// Worktrees.js closes it once the branch merges, or after its 48-hour backstop.
++			const close = Worktrees.on_landing(entry);
++			if (close.act === "keep") append(task, `worktree-close: kept ${entry.name} - ${close.why}`);
++			else if (close.act === "close") {
+ 				const r = spawnSync(process.execPath, [path.join(root, "Server/Worktrees.mjs"), "--apply", "--archive", "--now", "--path", entry.path], { encoding: "utf8", windowsHide: true });
+ 				const out = (r.stdout || r.stderr || "").trim().split("\n").filter(Boolean);
+ 				append(task, `worktree-close: ${entry.name} - ${out.at(-2) || out.at(-1) || "no answer"}`);
+@@ -161,6 +167,21 @@ try {
+ 	} catch (e) {
+ 		try { append(task, "worktree-down: not run - " + String(e && e.message || e).slice(0, 200)); } catch {}
+ 	}
++	// THE PHONE LINK (build F, 2026-10-28): a task that asked for a preview (`{"assign":{"preview":true}}`) and is not merged
++	// gets one computed `preview:` line, and Servex runs its clean-up pass now, which binds the worktree's server to the LAN.
++	try {
++		const pv = WorktreePreview.of_task(dir);
++		if (pv && pv.merged !== true) {
++			let pass = "";
++			try {
++				const r = await fetch(`http://127.0.0.1:${process.env.SERVEX_PORT || 8090}/api/worktrees/tick`, { method: "POST", signal: AbortSignal.timeout(60000) });
++				const j = await r.json();
++				pass = j.lan?.includes(pv.name) ? "; its server is on the LAN" : `; not on the LAN yet (${j.why || "Servex's next pass"})`;
++			} catch (e) { pass = "; Servex did not answer, its next pass (within 10 min) binds it"; }
++			append(task, pv.url ? `preview: ${pv.url} - open it on your phone over the home Wi-Fi until its branch merges${pass}`
++				: `preview: no link - ${pv.why || (pv.port ? "this PC has no private LAN address" : "Servex has not given " + pv.name + " a port yet")}`);
++		}
++	} catch (e) { try { append(task, "preview: not computed - " + String(e && e.message || e).slice(0, 150)); } catch {} }
+ 	// THE REAPER (lifecycle, 2026-09-29): everything else this task still owns — a server started
+ 	// by hand, its health watcher, headless browsers, idle reviewers and minions — is closed now,
+ 	// in node, instead of trusting an agent to remember. Each close is an end line in Servex's
+diff --git a/Servex/Lifecycle.js b/Servex/Lifecycle.js
+index a38a15421..6ae4ba03b 100644
+--- a/Servex/Lifecycle.js
++++ b/Servex/Lifecycle.js
+@@ -35,6 +35,7 @@ import { place, stamp } from "./home.js";
+ import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
+ import SessionRecord from "../Server/SessionRecord.mjs";
+ import Landed from "./Landed.js";
++import WorktreePreview from "../Server/WorktreePreview.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() : "";
+@@ -261,6 +262,8 @@ export default class Lifecycle {
+ 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
+ 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
+ 		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
++		// a dev server the owner's phone link points at, until its branch merges (build F, Servex/doc/worktree-preview.md)
++		if (r.path && r.kind === "server"){ const held = WorktreePreview.held(r.path, main_repo()); if (held) return held; }
+ 		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
+ 		// to judge by — it skips the "logged or under C:\Code\lew42" guard below entirely and goes
+ 		// straight to why()'s own orphan/30-minute rule instead.
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index 62238f56a..9ba22f7ac 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -425,18 +425,25 @@ export default class Servex extends Events {
+         const runner = new Process({
+             name, log: this.log, port: project.port, cwd: project.dir,
+             command: start.command, args: start.args, shell: start.shell,
+-            // The main site answers the home Wi-Fi too, so the desktop and the phone reach ONE
+-            // server (http://10.0.0.135:3104/); the owner approved this 2026-10-04. Worktree
+-            // servers stay loopback. Exec/write routes keep their own loopback guards.
+             // NO_PAGEFILES on worktree servers: a worktree's files.jsonl listings are the main
+             // tree's to keep; catching them up there made 74-101 tracked edits that blocked merge and removal.
+-            env: { NO_WHISPER: "1", HOST: name === "monorepo" ? "0.0.0.0" : "127.0.0.1", ...(name === "monorepo" ? {} : { NO_PAGEFILES: "1" }) },
++            env: { NO_WHISPER: "1", HOST: this.host(name), ...(name === "monorepo" ? {} : { NO_PAGEFILES: "1" }) },
+             detach: true                  // outlives Servex; the next Servex adopts it — Process.js
+         });
+         this.processes.set(name, runner);
+         return runner;
+     }
+ 
++    /* Which address a project's dev server binds. The main site answers the home Wi-Fi too, so the
++     * desktop and the phone reach ONE server (http://10.0.0.135:3104/); the owner approved this
++     * 2026-10-04. A worktree waiting for its merge whose task asked for a preview does too
++     * (Worktrees.serve_previews keeps the list and restarts the server; build F, 2026-10-28).
++     * Every other worktree stays loopback. Exec/write routes keep their own loopback guards, and a
++     * LAN socket is push-only (public/framework/dev/Socket/doc/lan.md). */
++    host(name){
++        return name === "monorepo" || this.worktrees?.lan?.has(name) ? "0.0.0.0" : "127.0.0.1";
++    }
++
+     async command(name, verb){
+         const runner = this.runner(name);
+         if (!runner) throw new Error(`No project called "${name}" that Servex knows how to start.`
+@@ -915,6 +922,15 @@ export default class Servex extends Events {
+         /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
+         router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
+ 
++        /* A clean-up pass now, not in up to 10 minutes: on-landing.mjs posts it when a task that asked for a
++         * preview lands, so its worktree's dev server is on the LAN before the owner taps the link. Answers the
++         * pass's summary (Worktrees.summary: `waiting`, `lan`). The router is loopback only. */
++        router.post("/api/worktrees/tick", async (req, res) => {
++            if (!this.worktrees) return res.json({ ok: false, why: "SERVEX_NO_WORKTREES is set" });
++            try { await this.worktrees.tick(); res.json({ ok: true, ...this.worktrees.summary() }); }
++            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
++        });
++
+         /* SERVER OBJECTS (Cards that show the thing, 2026-09-25) — walks Servex instance two levels deep.
+          * Returns names, counts, and states only, never sensitive values. */
+         router.get("/api/objects", cors, (req, res) => {
+diff --git a/Servex/Worktrees.js b/Servex/Worktrees.js
+index 64d0d6095..46441419d 100644
+--- a/Servex/Worktrees.js
++++ b/Servex/Worktrees.js
+@@ -7,6 +7,7 @@ import { stamp, place } from "./home.js";
+ import TaskDirs from "../Server/TaskDirs.mjs";
+ import SessionRecord from "../Server/SessionRecord.mjs";
+ import Landed from "./Landed.js";
++import WorktreePreview from "../Server/WorktreePreview.mjs";
+ 
+ /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
+  *
+@@ -27,12 +28,14 @@ import Landed from "./Landed.js";
+  *                card folders under public/framework/ai/. Before a worktree with only
+  *                noise is removed, the noise is copied to Servex's
+  *                `salvage/worktrees/<name>-<date>/` (a diff plus the new files).
+- *   (closing)    a worktree with leftovers or unmerged commits whose task has landed (and its agent stopped),
+- *                or that nothing touched for 2 days, is CLOSED: leftovers committed to its own branch, the folder
+- *                removed, the branch kept; unmerged commits become a line in ready-to-merge.jsonl.
+- *   open         its branch holds commits michael/dev does not, and no landed task owns it.
+- *   finished     its branch is merged into michael/dev (or applied by merge.mjs), or
+- *                the task that took it has landed and no agent of it is alive.
++ *   open         its branch holds commits michael/dev does not. `waiting: true` when its task has LANDED
++ *                but the branch is not merged: it is HELD until the merge, so the owner can still open it
++ *                (build F, 2026-10-28; Servex/doc/worktree-preview.md). A task that asked for a preview
++ *                (`{"assign":{"preview":true}}`) also has its dev server bound to the LAN while it waits.
++ *   (closing)    a worktree with leftovers whose task has landed (and its agent stopped), or that nothing
++ *                touched for 2 days (the backstop, merged or not), is CLOSED: leftovers committed to its own
++ *                branch, the folder removed, the branch kept; unmerged commits become a line in ready-to-merge.jsonl.
++ *   finished     its branch is merged into michael/dev (or applied by merge.mjs).
+  *
+  * A FINISHED worktree is removed: its dev server stopped, `git worktree remove`
+  * (--force only when every change is log noise already saved; otherwise git
+@@ -55,6 +58,7 @@ export default class Worktrees extends Events {
+ 		this.close_hours ??= Number(process.env.SERVEX_WORKTREE_CLOSE_HOURS) || 48;   // quiet this long: close it even if the task never landed
+ 		this.removed = [];       // { at, name, branch, why }
+ 		this.servers_stopped = 0;   // how many worktrees had their dev server and/or health watcher stopped, this Servex run
++		this.lan = new Set();       // worktree names whose dev server answers the LAN: a preview waiting for its merge
+ 		this.last = null;        // the latest pass: { at, items, junctions }
+ 	}
+ 
+@@ -90,6 +94,13 @@ export default class Worktrees extends Events {
+ 		if (/^qf-\d+$/.test(wt.name)) return { state: "pool", why: "the quick-fix pool recycles it" };
+ 		if (wt.locked) return { state: "locked", why: "locked with git worktree lock" };
+ 		if (wt.prunable || !fs.existsSync(wt.path)) return { state: "finished", why: "its folder is already gone", prune: true };
++		// HOLD UNTIL MERGE (build F): a landed task's unmerged branch keeps its folder for review, until the backstop
++		const task0 = tasks.get(norm(wt.path));
++		if (wt.branch && task0?.landed && !(await this.merged(wt))){
++			const q = this.quiet_min(wt);
++			if (q === null || q < this.close_hours * 60) return { state: "open", waiting: true, preview: task0.preview ?? null,
++				why: `its task ${task0.key} landed; ${wt.branch} waits for its merge (kept until it merges, or ${this.close_hours} quiet hours)` };
++		}
+ 		const agent = this.agent_in(wt.path);
+ 		if (agent) return { state: "in use", why: `${agent.id} (${agent.state}) works in it` };
+ 		if (!wt.branch) return { state: "no branch", why: "a detached HEAD; its commits would have no name" };
+@@ -99,7 +110,6 @@ export default class Worktrees extends Events {
+ 		if (quiet < this.quiet_hours * 60) return { state: "in use", why: `git was used in it ${quiet} min ago (waits for ${this.quiet_hours} quiet hours)` };
+ 		const changes = await this.changes(wt.path);
+ 		const real = changes.filter(c => !noise(c));
+-		const task0 = tasks.get(norm(wt.path));
+ 		const closing = task0?.landed && !this.alive(task0.agent) ? `its task ${task0.key} landed and ${task0.agent ?? "its owner"} has stopped`
+ 			: quiet >= this.close_hours * 60 ? `nothing touched it for ${Math.round(quiet / 60)} hours` : null;
+ 		if (closing && (real.length || !(await this.merged(wt)))) return { state: "finished", commit: true, noise: [], why: `${closing}; ${real.length ? real.length + " leftover file(s) and " : ""}${wt.branch} is saved first` };
+@@ -108,15 +118,38 @@ export default class Worktrees extends Events {
+ 			why: why + (changes.length ? ` (plus ${changes.length} log file(s) its own server wrote, kept in salvage)` : "") });
+ 		if ((await this.git(["merge-base", "--is-ancestor", wt.branch, this.base])).ok) return done(`${wt.branch} is merged into ${this.base}`);
+ 		if (this.applied(wt.head)) return done(`${wt.branch} was applied to ${this.base} by merge.mjs`);
+-		const task = tasks.get(norm(wt.path));
+-		if (task?.landed && !this.alive(task.agent)) return done(`its task ${task.key} landed and ${task.agent ?? "its owner"} has stopped`);
+-		return { state: "open", why: `${wt.branch} holds commits ${this.base} does not` + (task ? `, for ${task.key}${task.landed ? "" : " (not landed)"}` : "") };
++		return { state: "open", why: `${wt.branch} holds commits ${this.base} does not` + (task0 ? `, for ${task0.key}${task0.landed ? "" : " (not landed)"}` : "") };
+ 	}
+ 
+ 	async merged(wt){
+ 		return (await this.git(["merge-base", "--is-ancestor", wt.branch, this.base])).ok || this.applied(wt.head);
+ 	}
+ 
++	/* PREVIEW ON THE PHONE (build F, 2026-10-28): a worktree whose task asked for a preview and now waits for its
++	 * merge gets its dev server on the LAN (`HOST=0.0.0.0`, read by Servex.host()) and kept running, so the link on
++	 * the ready-to-merge card opens on the phone. `this.lan` is the one list Servex.host() reads. A server whose
++	 * worktree stops waiting (merged, closed) goes back to loopback. Never a pool slot or a locked worktree:
++	 * judge() never says `waiting` for those. The LAN socket stays push-only (dev/Socket/doc/lan.md). */
++	async serve_previews(items){
++		const want = new Set(items.filter(i => i.waiting && i.preview).map(i => i.name));
++		const before = this.lan;
++		this.lan = want;
++		for (const name of new Set([...before, ...want])){
++			const host = want.has(name) ? "0.0.0.0" : "127.0.0.1";
++			const runner = this.servex?.runner?.(name);
++			if (!runner) continue;
++			const was = runner.env?.HOST;
++			if (runner.env) runner.env.HOST = host;
++			const up = runner.status && runner.status !== "stopped" && runner.status !== "errored";
++			try {
++				if (was !== host && up) await runner.restart();
++				else if (want.has(name) && !up) await runner.start();
++				else continue;
++				this.log({ msg: `worktrees: ${name} dev server ${want.has(name) ? "on the LAN for its preview" : "back to loopback"} (${host})`, worktree: name });
++			} catch (e){ this.log({ msg: `worktrees: ${name} preview server on ${host} failed: ${e.message}` }); }
++		}
++	}
++
+ 	/* Leftovers go into the worktree's own branch, so nothing is lost when the folder goes. Returns the file count. */
+ 	async commit_leftovers(item){
+ 		const n = (await this.changes(item.path)).length;
+@@ -167,6 +200,7 @@ export default class Worktrees extends Events {
+ 		let count = 0;
+ 		for (const item of items){
+ 			if (/^qf-\d+$/.test(item.name) || item.state === "locked" || item.state === "no branch") continue;
++			if (this.lan.has(item.name)) continue;   // a preview the owner may open from the phone: the proxy cannot restart a direct LAN port
+ 			const reason = this.idle_enough({ name: item.name, path: item.path }, tasks.get(norm(item.path)));
+ 			if (!reason) continue;
+ 			let did = false;
+@@ -257,7 +291,7 @@ export default class Worktrees extends Events {
+ 				}
+ 				if (!state.worktree) continue;
+ 				const landed = Landed.of_dir(dir);
+-				out.set(norm(state.worktree), { key: `${day}/${slug}`, landed, paused: !!state.paused, agent: state.agent ?? null, worktree: state.worktree });
++				out.set(norm(state.worktree), { key: `${day}/${slug}`, landed, paused: !!state.paused, agent: state.agent ?? null, worktree: state.worktree, preview: WorktreePreview.page(state) });
+ 			}
+ 		}
+ 		return out;
+@@ -277,6 +311,7 @@ export default class Worktrees extends Events {
+ 			this.common ??= path.resolve(this.main, (await this.git(["rev-parse", "--git-common-dir"])).out || ".git");
+ 			const tasks = this.tasks(), items = [];
+ 			for (const wt of await this.list()) items.push({ name: wt.name, path: wt.path, branch: wt.branch, ...(await this.judge(wt, tasks)) });
++			await this.serve_previews(items).catch(e => this.log({ msg: `worktrees: serve_previews failed: ${e.message}` }));
+ 			if (this.stopping) await this.stop_idle(items, tasks).catch(e => this.log({ msg: `worktrees: stop_idle failed: ${e.message}` }));
+ 			const finished = items.filter(i => i.state === "finished");
+ 			let junctions = null;
+@@ -351,7 +386,8 @@ export default class Worktrees extends Events {
+ 			finished: count("finished"), removed_today: this.removed.filter(r => new Date(r.at).toDateString() === today).length,
+ 			servers_stopped: this.servers_stopped,
+ 			junctions_ok: this.last?.junctions ? this.last.junctions.ok : null,
+-			items: items.map(({ name, branch, state, why }) => ({ name, branch, state, why }))
++			waiting: items.filter(i => i.waiting).length, lan: [...this.lan],
++			items: items.map(({ name, branch, state, why, waiting }) => ({ name, branch, state, why, ...(waiting ? { waiting } : {}) }))
+ 		};
+ 	}
+ 
+diff --git a/Servex/doc/lifecycle.md b/Servex/doc/lifecycle.md
+index ad37f58d8..60c5904c3 100644
+--- a/Servex/doc/lifecycle.md
++++ b/Servex/doc/lifecycle.md
+@@ -33,7 +33,7 @@ Every close writes an `end` line whose `why` says the reason in plain words.
+ 
+ ## 3. What is never touched
+ 
+-The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone. A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
++The main site (port 3104), Servex itself, the gate, whisper, and every port listed in [`Servex/keep.json`](../keep.json) — today `[8137]`, the owner's phone. A worktree that someone is **working** in right now is left alone, and so is the dev server of a worktree whose task asked for a preview until its branch merges ([worktree-preview.md](worktree-preview.md)). A worktree's files are never deleted by the reaper; only its processes stop. Removing the folder stays with `Server/worktree-sweep.mjs`, which waits until the branch is merged.
+ 
+ **The main checkout is not a blanket keep.** Only port 3104 (and the other keep-list ports) is protected there — a hand-started `PORT=5000 node server.js` in the main checkout is reaped exactly like one anywhere else once it's old and has no owning task (review finding 8, 2026-09-29).
+ 
+diff --git a/Servex/doc/processes.md b/Servex/doc/processes.md
+index 6b648575a..d583a8564 100644
+--- a/Servex/doc/processes.md
++++ b/Servex/doc/processes.md
+@@ -99,8 +99,8 @@ Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own
+ - **locked** or **no branch** (a detached HEAD): never touched.
+ - **in use**: an agent works in it, or git touched it in the last 2 hours (`SERVEX_WORKTREE_QUIET_HOURS`): any change to its index, `HEAD` or the LAST LINE of `logs/HEAD` (read by its own timestamp, not the file's mtime — `git gc` or a reflog expiry can rewrite `logs/HEAD` without adding a line, which once made 36 worktrees at once look freshly used), so a status, an add, a commit or a checkout all count (a VS Code tab may be in it). Our own pass reads with `--no-optional-locks`, so it never counts.
+ - **uncommitted**: it has real changes. Never touched.
+-- **open**: its branch has commits michael/dev does not.
+-- **finished**: its branch is merged or applied by merge.mjs, or the task that took it has landed and its owner has stopped.
++- **open**: its branch has commits michael/dev does not. `waiting` when its task has landed: it is held until the merge (or 48 quiet hours), and a task that asked for a preview has its server on the home Wi-Fi and is never stopped as idle ([worktree-preview.md](worktree-preview.md)).
++- **finished**: its branch is merged or applied by merge.mjs.
+ 
+ A **finished** worktree is removed:
+ 1. `Server/junction-check.mjs` must pass first. If it fails, nothing is removed that pass; the failure goes to the `servex` log and shows as `worktrees.junctions_ok: false` in `/api/processes`, and the next pass (10 minutes on) tries again.
+@@ -126,6 +126,8 @@ and `Worktrees.js` checks it on every pass, independently of the `pool`/`locked`
+ - **nothing has used it for the same 2 quiet hours** as the `in use` check above, with no live
+   agent working there right now.
+ - **Never** a `qf-*` pool slot (`Pool.js` looks after those itself).
++- **Never** a preview waiting for its merge (on the `lan` list): the phone opens its port directly,
++  and nothing would start it again ([worktree-preview.md](worktree-preview.md)).
+ 
+ The dev server stops through Servex's own stop path — `command(name, "stop")`, the exact call
+ `stop_server` makes — so Servex's own record of it stays correct and the proxy's autostart still
+diff --git a/Servex/doc/worktree-preview.md b/Servex/doc/worktree-preview.md
+new file mode 100644
+index 000000000..6715f21cc
+--- /dev/null
++++ b/Servex/doc/worktree-preview.md
+@@ -0,0 +1,47 @@
++# A worktree waiting for review, open on your phone
++
++**What it is.** When a task lands but its branch is not merged yet, its worktree now **stays** until the merge (or 48 quiet hours). If the task asked for a **preview**, its dev server also answers the home Wi-Fi. A link like `http://10.0.0.135:64832/` then shows on the [ready-to-merge card](/framework/ai/merge/) and in the task's log, so you can click through the work from your phone before you merge it.
++
++Built 2026-10-28 (build F) from [the phone-preview study](/framework/core/Session/tasks/data-shapes/build/phone-preview/study.md), option A plus keep-alive. It goes live at the next Servex restart.
++
++## How a task asks for it
++
++One line in its task log, beside the `worktree` it already names:
++
++```json
++{"assign":{"worktree":"C:/Code/lew42/worktrees/my-task","preview":true}}
++```
++
++`"preview": "/framework/core/Session/"` opens that page instead of the root. Print the link at any time: `node Server/WorktreePreview.mjs <task dir or worktree>`.
++
++## What happens
++
++| When | Who | What |
++|---|---|---|
++| the task lands | `Server/on-landing.mjs` | does **not** close an unmerged worktree (`worktree-close: kept …`); writes one `preview: http://…` line, computed, never typed; asks Servex for a clean-up pass now (`POST /api/worktrees/tick`) |
++| that pass, then every 10 min | `Servex/Worktrees.js` | `judge()` marks it `open` with `waiting: true`; `serve_previews()` puts its name on the `lan` list and starts or restarts its server on `HOST=0.0.0.0` (`Servex.host()`); `stop_idle()` skips it, because the phone hits the port directly and the proxy cannot restart it |
++| the reaper | `Servex/Lifecycle.js` `kept()` | keeps that server (`WorktreePreview.held()`) |
++| you open the merge list | `Server/ReadyToMerge.mjs` | the row's `preview` is the link; the card draws "Try it on your phone" |
++| the branch merges | `Servex/Worktrees.js` | the server goes back to loopback, and the folder is removed once quiet (the usual merged rule) |
++| 48 quiet hours, unmerged | `Servex/Worktrees.js` | the backstop: leftovers committed to the branch, folder removed, branch kept, a `ready-to-merge.jsonl` line |
++
++Every landed, unmerged worktree is held, preview or not; only a preview goes on the LAN and stays running. A held worktree without a preview stays on loopback: its idle server may stop, and the proxy starts it again when you visit `<name>.localhost`.
++
++## Limits
++
++- **Home Wi-Fi only.** Off the Wi-Fi it needs the named tunnel plus Cloudflare Access (the study's option B, later).
++- **The code is unreviewed,** and the LAN can reach it. That is the same exposure as the main site: the LAN socket is push-only, so a phone can reload and tail but never run a command or write a file ([lan.md](/framework/dev/Socket/doc/lan.md)).
++- **Pool slots (`qf-*`) get no preview:** the slot is handed to the next task. A task that wants a preview takes its own worktree (`take_worktree` or `node Server/worktree-up.mjs`).
++- **A locked worktree is never touched,** so it is not put on the LAN either.
++- **The merge card is loopback only,** so it does not load on the phone. Open the link from the PC's card, or from the `preview:` line on the task's page, which the phone can open on the main site.
++
++## Decisions
++
++- **Hold every unmerged worktree, but serve only previews.** The alternative, keeping every waiting worktree's server running, costs memory for nothing: a loopback server is started again by the proxy when you visit it.
++- **The LAN address (option A), not `?tree=` on the main server (option D).** D is safer (static files only) but cannot preview a worktree's `Server/` changes or its `page.jsonl` writes. D is not built; it would be a new `Server/` plugin, worth it only if the LAN exposure is ever too much.
++
++## Code and test
++
++- `Server/WorktreePreview.mjs`: the link, the LAN IP, the port (Servex's `ports.json`), `merged()`, `held()`.
++- `Servex/Worktrees.js` (`judge`, `serve_previews`, `stop_idle`), `Servex/Servex.js` (`host()`, `POST /api/worktrees/tick`), `Server/Worktrees.mjs` (`on_landing()`, the 48-hour rule in `archivable()`), `Server/on-landing.mjs`, `Servex/Lifecycle.js` (`kept()`), `Server/ReadyToMerge.mjs` and `public/framework/ai/merge/ReadyToMerge.js` (the link on the card).
++- Test: `node Server/WorktreePreview.test.mjs`. A scratch repo in the temp folder: a landed, unmerged worktree survives `judge()`, the CLI clean-up and on-landing; a merged one is still cleaned; a pool slot is left to `Pool.js`; the preview goes on the LAN and is not stopped idle.
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 90eb8d08f..8e18fdee3 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -57,4 +57,4 @@ The local `servex` MCP and the remote door share one tool registry; the remote a
+ 
+ ## More
+ 
+-[doc/architecture.md](doc/architecture.md) · [doc/sdk.md](doc/sdk.md) (how an agent is started) · [doc/lifecycle.md](doc/lifecycle.md) · [doc/dormant.md](doc/dormant.md) · [doc/pool.md](doc/pool.md) · [doc/steps.md](doc/steps.md) · [doc/task-loop.md](doc/task-loop.md) · [doc/landing.md](doc/landing.md) · [doc/skills.md](doc/skills.md) · [doc/module-inbox.md](doc/module-inbox.md) · [doc/restart.md](doc/restart.md) (surviving a reboot) · [ext/remote/readme.md](ext/remote/readme.md) · [../Server/doc/scripts.md](../Server/doc/scripts.md) · the old readme with its dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md) and [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md).
++[doc/architecture.md](doc/architecture.md) · [doc/sdk.md](doc/sdk.md) (how an agent is started) · [doc/lifecycle.md](doc/lifecycle.md) · [doc/dormant.md](doc/dormant.md) · [doc/pool.md](doc/pool.md) · [doc/worktree-preview.md](doc/worktree-preview.md) (a worktree waiting for review, on your phone) · [doc/steps.md](doc/steps.md) · [doc/task-loop.md](doc/task-loop.md) · [doc/landing.md](doc/landing.md) · [doc/skills.md](doc/skills.md) · [doc/module-inbox.md](doc/module-inbox.md) · [doc/restart.md](doc/restart.md) (surviving a reboot) · [ext/remote/readme.md](ext/remote/readme.md) · [../Server/doc/scripts.md](../Server/doc/scripts.md) · the old readme with its dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md) and [doc/readme-full-2026-10-12.md](doc/readme-full-2026-10-12.md).
+diff --git a/public/framework/ai/merge/ReadyToMerge.css b/public/framework/ai/merge/ReadyToMerge.css
+index 260de3d3e..ec4b3af81 100644
+--- a/public/framework/ai/merge/ReadyToMerge.css
++++ b/public/framework/ai/merge/ReadyToMerge.css
+@@ -8,6 +8,7 @@
+ 	.rm-what { margin: 0; overflow-wrap: anywhere; }
+ 	.rm-meta { display: flex; flex-wrap: wrap; gap: 0.2em 1em; font-size: 0.82em; opacity: 0.75; }
+ 	.rm-branch { overflow-wrap: anywhere; }
++	.rm-preview { font-size: 0.9em; overflow-wrap: anywhere; }
+ 	.rm-merge { align-self: flex-start; padding: 0.4em 1.2em; font-weight: 600; cursor: pointer; }
+ 	.rm-merge[disabled] { cursor: default; opacity: 0.6; }
+ 	.rm-out { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.82em; }
+diff --git a/public/framework/ai/merge/ReadyToMerge.js b/public/framework/ai/merge/ReadyToMerge.js
+index 7cc830c53..0538b8689 100644
+--- a/public/framework/ai/merge/ReadyToMerge.js
++++ b/public/framework/ai/merge/ReadyToMerge.js
+@@ -57,6 +57,8 @@ export default class ReadyToMerge extends View {
+ 				span.c("rm-review", r.review);
+ 				span.c("rm-branch", `${r.branch} @ ${r.sha.slice(0, 9)}`);
+ 			});
++			// the worktree's own server, open on the phone over the home Wi-Fi until the merge (Servex/doc/worktree-preview.md)
++			if (r.preview) div.c("rm-preview", () => { span("Try it on your phone: "); a(r.preview).href(r.preview).attr("target", "_blank"); });
+ 			const out = div.c("rm-out");
+ 			const latest = r.stale && r.latest, head = r.head.slice(0, 9);
+ 			let note = "", can = !!r.worktree;
+diff --git a/public/framework/dev/mobile/mobile.md b/public/framework/dev/mobile/mobile.md
+index 6d0252e7f..f0b90772a 100644
+--- a/public/framework/dev/mobile/mobile.md
++++ b/public/framework/dev/mobile/mobile.md
+@@ -23,6 +23,10 @@ Find the site's own port — `node server.js` prints it when it starts, or ask S
+ `monorepo.localhost` will **not** work on the phone. Only this machine answers `.localhost`
+ names (next section).
+ 
++A worktree's server answers only this machine, except a worktree waiting for review whose task
++asked for a preview: its link is on the merge card and in the task's log
++([worktree-preview.md](/Servex/doc/worktree-preview.md)).
++
+ ## 3. Fix the microphone
+ A browser will not hand out `navigator.mediaDevices` on a plain `http://` LAN address — the
+ browser's own rule, not a bug in this app. Full detail and exact commands:
