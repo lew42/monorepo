@@ -2,8 +2,11 @@ import fs from "fs";
 import path from "path";
 
 const PUBLIC = path.resolve("public");
-const files = new Map();   // abs file -> { offset }
-const subs = new Map();    // abs file -> Set<socket>
+/* abs file -> Map<socket, offset | null>: ONE OFFSET PER SOCKET. A single offset per file, shared by every socket, lost
+ * lines: socket A subscribed, a line was appended, socket B subscribed from 0 before the watcher fired and moved the
+ * shared offset to the end, so the change event found nothing new and A never got the line (seat e, race.mjs;
+ * Tail.test.mjs). `null`: a reset went out to that socket, and it streams again only after it subscribes again. */
+const subs = new Map();
 
 /* ⚠ Browser input reaches fs.read here: a subscribed path must resolve under
  * public/ and name a .jsonl.
@@ -60,11 +63,19 @@ function read(file, from){
     }
 
     const end = buf.lastIndexOf(10) + 1;
-    return {
-        lines: buf.subarray(0, end).toString("utf8").split("\n").filter(Boolean),
-        offset: from + end
-    };
+    const lines = [], ends = [];
+    for (let at = 0; at < end;){
+        const nl = buf.indexOf(10, at);
+        if (nl > at){ lines.push(buf.subarray(at, nl).toString("utf8")); ends.push(from + nl + 1); }
+        at = nl + 1;
+    }
+    return { lines, ends, offset: from + end };
 }
+
+/* The frame: the lines, the offset after them, where they began, and where each one ends (a byte offset). A reader that
+ * is already past `from` (a second reader in the same tab asked for the file from 0) applies only the lines that end
+ * past its own offset (ext/JSONL/live.js); before, it applied the whole batch again. */
+const send = (socket, file, chunk, from) => socket.rpc("jsonl", url_path(file), chunk.lines, chunk.offset, from, chunk.ends);
 
 /* Streams appended `.jsonl` lines to the sockets that asked for them, so a log
  * grows in the browser without a reload. Dev server only; see
@@ -78,17 +89,17 @@ export default class Tail {
     static changed(file){
         const abs = path.resolve(file);
         const sockets = subs.get(abs);
-        if (!sockets?.size || !files.has(abs)) return;   // no offset — a reset already went out
+        if (!sockets?.size) return;
 
-        const chunk = read(abs, files.get(abs).offset);
-        if (!chunk){
-            files.delete(abs);
-            return sockets.forEach(socket => socket.rpc("jsonl_reset", url_path(abs)));
+        const chunks = new Map();   // offset -> chunk: sockets at the same offset share one read
+        for (const [socket, from] of sockets){
+            if (from === null) continue;   // a reset already went out to this socket
+            if (!chunks.has(from)) chunks.set(from, read(abs, from));
+            const chunk = chunks.get(from);
+            if (!chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
+            sockets.set(socket, chunk.offset);
+            if (chunk.lines.length) send(socket, abs, chunk, from);
         }
-
-        files.set(abs, { offset: chunk.offset });
-        if (chunk.lines.length)
-            sockets.forEach(socket => socket.rpc("jsonl", url_path(abs), chunk.lines, chunk.offset));
     }
 
     constructor(socket){
@@ -104,17 +115,18 @@ export default class Tail {
         if (!file) return console.warn("Tail: refusing subscribe", url);
 
         this.files.add(file);
-        if (!subs.has(file)) subs.set(file, new Set());
-        subs.get(file).add(this.socket);
+        if (!subs.has(file)) subs.set(file, new Map());
+        const sockets = subs.get(file);
 
         /* ⚠ A file that doesn't exist yet is an empty one — the subscription stands
          * and streams when it appears. Answering `jsonl_reset` here ping-pongs with
          * a client that re-subscribes on reset. */
-        const chunk = fs.existsSync(file) ? read(file, Number(from) || 0) : { lines: [], offset: 0 };
-        if (!chunk) return this.socket.rpc("jsonl_reset", url_path(file));
+        const start = Number(from) || 0;
+        const chunk = fs.existsSync(file) ? read(file, start) : { lines: [], ends: [], offset: 0 };
+        if (!chunk){ sockets.set(this.socket, null); return this.socket.rpc("jsonl_reset", url_path(file)); }
 
-        files.set(file, { offset: chunk.offset });
-        this.socket.rpc("jsonl", url_path(file), chunk.lines, chunk.offset);
+        sockets.set(this.socket, chunk.offset);
+        send(this.socket, file, chunk, start);
     }
 
     drop(file){
@@ -123,9 +135,6 @@ export default class Tail {
 
         this.files.delete(file);
         sockets.delete(this.socket);
-        if (sockets.size) return;
-
-        subs.delete(file);
-        files.delete(file);
+        if (!sockets.size) subs.delete(file);
     }
 }

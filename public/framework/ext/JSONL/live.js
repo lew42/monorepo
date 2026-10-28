@@ -32,14 +32,18 @@ const settle = s => { clearTimeout(s.timer); s.first?.(); s.first = null; };
 
 /* ⚠ Both called BY the dev server, through Socket.message()'s method lookup — a
    grep for callers in public/ finds none. Same live path as Socket.reload(). */
-Socket.prototype.jsonl = function(path, lines = [], offset){
+Socket.prototype.jsonl = function(path, lines = [], offset, from, ends){
 	each(path, s => {
 		// ⚠ A second reader's replay reaches the whole socket: anything already
-		// past this offset would apply the same lines twice.
-		if (lines.length && offset > (s.jsonl.offset ?? 0)){
+		// past this offset would apply the same lines twice. The server says where
+		// each line ends (Tail.js), so only the lines past this reader's own offset
+		// are read; an older server sends no `ends`, and the whole batch is read.
+		const at = s.jsonl.offset ?? 0;
+		if (lines.length && offset > at){
+			const fresh = Array.isArray(ends) && ends.length === lines.length && from < at ? lines.filter((_, i) => ends[i] > at) : lines;
 			s.jsonl.offset = offset;
 			s.jsonl.loaded = true;
-			s.jsonl.read(s.jsonl.parse(lines.join("\n")));
+			s.jsonl.read(s.jsonl.parse(fresh.join("\n")));
 			if (!s.first) s.changed?.(s.jsonl);
 		}
 		if (s.first) settle(s);
