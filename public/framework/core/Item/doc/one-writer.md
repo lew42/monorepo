@@ -57,4 +57,4 @@ The script: [measure-real.mjs](/framework/core/Session/tasks/data-shapes/build/o
   - two writers at once (a tab's 20 posts and an agent's 20 calls on one file): 40 lines, no twin, live root = fresh replay;
   - a hook write: 1 full replay before, 0 after, through `RecordWriter.write`, `ledger.append_checked` and `LogLine.append`;
   - the fallback writes once: down, slow, stubbed, late post in either order, and `Append.js`.
-- `node public/framework/core/Item/RecordWriter.test.mjs` (7 checks): stamps, the twin check, `append_once`.
+- `node public/framework/core/Item/RecordWriter.test.mjs` (9 checks): stamps, the twin check, `append_once`.
