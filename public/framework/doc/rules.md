@@ -65,6 +65,12 @@ Never copy log lines into markdown, and never put a conclusion only in a log: wh
 
 **Design the class architecture before you build** (the owner, 2026-10-08): wrong names and a wrong hierarchy are why built things "don't feel right". Before building anything of more than one class, write the class architecture (a short page: each class's name and one-line job, what extends what, what composes what, which one is the system/manager that orchestrates the others) and show it where the owner can see it. Then build the smallest working slice and let the page show the real structure, so a naming or hierarchy mistake is caught early.
 
+**An old way that lingers is marked, or it gets copied** (the owner, 2026-10-28). Agents learn from the code and docs they read, so a legacy API left unmarked turns into new code built the wrong way.
+- Mark each superseded API **deprecated** where it's defined: one comment line naming its replacement and linking its migration guide.
+- Its docs say plainly that it's the old way.
+- Give it a **migration guide**: what replaces it, the callers (a census script, never a count from memory), and the steps to move them, scripted.
+- Then remove it. Example: `page.children` (`core/Page/Children.js`, a Map-shaped wrapper) is replaced by `page.pages` (a List).
+
 ## Pages, cards, review
 
 - **Pages are live (the owner, 2026-10-02):** almost everything we build is a page that updates itself while you watch. An agent that creates or works on a page writes its `page.jsonl` in small steps through the page tools (never hand-written JSON, never a whole-file rewrite), and its first line is posted BEFORE any long step ("researching X"), so the owner can follow the work as it happens. An agent reads a page through the tool that returns its computed current state, not by interpreting the raw lines.

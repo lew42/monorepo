@@ -59,6 +59,41 @@ Read [../synthesis.md](../synthesis.md) first: it is the agreed shape so far. Th
 - **Permissions and identity, as a shape only:** who may write which list, once users exist.
 - Pick the 3 structures that would prove the base best, in order, and say why.
 
+## (g) `delta-flow`: the one path a change takes, both ways, verified (asks 21 and 31)
+
+Read [../synthesis.md](../synthesis.md), [../ids-and-paths.md](../ids-and-paths.md) and the items and streaming seats' notes first. This is the owner's top priority: "fully understood, rock solid, as simple as it can be."
+
+- **Write `delta-flow.md`:** the path a change takes, in plain words, one hop per step, each with file:line.
+  - **(1) A UI change:** a click calls `set` or a verb on an Item deep in a tree. The delta event bubbles up. The nearest root with a Store nests it into a line and sends it to the server. It's appended, and the other tabs receive it.
+  - **(2) An AI change:** the item tool, on Servex's live root, appends the line, and every open tab receives it and applies it.
+  - **(3) A raw append** by a hook.
+- **Adoption and storage linking:** how an Item added to a List, or set as a property, gets its parent, and how its changes reach its root's file. Compare the owner's old system, where adopting linked the child's `saver` and `save()` rewrote the snapshot.
+- **`page.pages` and `page.content` as they really persist:** a code-declared child, a created child (a `{"file":…}` line), and a content part added from the UI. Which ones write lines, which are quiet, and why.
+- **Would `page.set("pages", list)` or `page.set("x", item)` wire up persistence?** Seat (a) says `set` of an Item only snapshots. Confirm, and say what the clean rule is.
+- **The footgun:** if Item gains an on-demand `items` List, what happens to code that sets `items` as plain data today? Census the uses of an `items` key on Items and Pages.
+- **Prove it with a runnable node script** in your folder (`demo-delta-flow.mjs`). It builds a small tree (a root with a Store pointing at a temp file in your scratchpad, a List, a nested Item two levels down) and prints each hop: the delta event at each level, the nested line, the bytes on disk, and a fresh replay that rebuilds an equal tree. It must print PASS or FAIL. It's a demo, not a framework change.
+- **List every place the path is broken or surprising,** each with its fix in one line.
+
+## (h) `legacy`: what's superseded but still lingering, and the migration guides (ask 30)
+
+The owner's rule, now in `doc/rules.md`: an old way that lingers unmarked gets copied by agents; mark it deprecated, write a migration guide, then remove it.
+
+- **Census, by script (never estimated), across `core/Item`, `core/List`, `core/Page`, `core/Task`, `core/Session`, `ext/JSONL`, `ext/Saver`:** every API that is superseded, compat-only or legacy. Start with:
+  - `page.children` (the `PageChildren` Map wrapper, `core/Page/Children.js`) vs `page.pages`;
+  - `Item.locate` and the old `at` key;
+  - `item.saver` vs `item.store`;
+  - the pseudo-property lines (`chat`, `place`, `quiet` on sessions);
+  - `Task.replay_line`'s special keys;
+  - the `{"file":…}` subpage lines vs list deltas;
+  - `Session extends Task`.
+
+  For each: where it's defined, the live callers (excluding dated session folders and `legacy/`), whether it's marked deprecated today, and whether docs still teach it.
+- **For `page.children` in full:** a migration guide (`migration-children-to-pages.md` in your folder), with:
+  - the census of callers, classified (`get`, `set`, `has`, iteration, config `children:` strings, DOM `.children` false positives);
+  - the replacement for each kind of use;
+  - a dry-run script plan for the rewrite.
+- **The ranked list:** which legacy pieces mislead agents most (taught in docs, or copied in recent commits). Fix those first.
+
 ## What you write (all seats)
 
 In your own folder (`seats/<your-name>/`, your task dir):

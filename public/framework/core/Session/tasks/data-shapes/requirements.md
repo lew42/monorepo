@@ -89,6 +89,16 @@ The decisions on ids and paths are recorded in [ids-and-paths.md](ids-and-paths.
       - the 2026-10-15 brief `ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md`.
 27. **Placement by code, not by AI judgment;** maybe a schema per class (what may go where), without becoming a whitelist. Stale refs are a real risk. References may point at any endpoint, not only files. Drafted in [placement.md](placement.md).
 28. **Sessions are their own tree** (`session.sessions`, each child with its own). A task holds no sessions, only references; a task can become a session. Projects reference several sessions. Child sessions never hide inside a task.
+29. **`pages` over `children`.** The plural of the class name says what's inside; `children` could be anything. `page.children` is a legacy wrapper: deprecate it, with a migration guide.
+30. **Legacy that lingers must be marked deprecated**, or agents lean back into bad patterns. Write migration guides, then remove the old code. The rule is now in `doc/rules.md`. Seat (h) takes the census.
+31. **Persistence must flow by itself, both ways.**
+    - A UI change fires a delta that reaches the server.
+    - An AI change on the server reaches every browser.
+    - It must hold at any depth of nested Items and Lists, for `page.pages` and `page.content` too.
+    - Check how they persist today. Would `page.set` of a List or an Item wire up storage?
+    - The on-demand `items` footgun: code that sets `items` without knowing about it.
+
+    Seat (g) takes this, with ask 21.
 
 ## Plan
 
@@ -126,6 +136,8 @@ Briefs: [seats/design-brief.md](seats/design-brief.md) (blind) and [seats/analys
 | (d) Pages (asks 11–14, 20) | mastermind-shapes-pages | Opus | [seats/pages/](seats/pages/) |
 | (e) Streaming and stores (asks 14–18) | mastermind-shapes-streaming | Opus | [seats/streaming/](seats/streaming/) |
 | (f) Other structures (ask 20, with 13–14; spawned 01:58 after the synthesis, budget allowing) | mastermind-shapes-structures | Opus | [seats/structures/](seats/structures/) |
+| (g) Delta flow, both ways, with a runnable demo (asks 21, 31; spawned 16:09) | mastermind-shapes-delta-flow | Opus | [seats/delta-flow/](seats/delta-flow/) |
+| (h) Legacy census and the page.children migration guide (asks 29, 30; spawned 16:09) | mastermind-shapes-legacy | Sonnet | [seats/legacy/](seats/legacy/) |
 
 Ask 16 (items hold items; list delta re-apply) was sent to seat (a) as an addition.
 
