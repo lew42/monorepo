@@ -24,9 +24,9 @@ export default [
 	},
 	{
 		title: "Add",
-		code: `shop.items.add({ id: "milk" })`,
+		code: `shop.items.add({ id: "milk" })   // the Add milk button`,
 		note: "One line, under the list's name. The member's parent is the owner, never the list.",
-		run: t => { t.milk = t.shop.items.add({ id: "milk" }); },
+		run: t => t.click("Add milk", () => { t.milk = t.shop.items.add({ id: "milk" }); }),
 		check: t => t.milk.parent === t.shop && ids(t.shop.items) === "milk" && "items" in t.lines[0],
 		show: t => t.shop,
 	},
@@ -40,9 +40,9 @@ export default [
 	},
 	{
 		title: "Move",
-		code: `shop.items.move("milk", { after: null })`,
+		code: `shop.items.move("milk", { after: null })   // the Milk first button`,
 		note: "A move is one line too, naming the member and where it goes.",
-		run: t => { t.shop.items.move("milk", { after: null }); },
+		run: t => t.click("Milk first", () => t.shop.items.move("milk", { after: null })),
 		check: t => ids(t.shop.items) === "milk,bread" && t.lines.length === 1,
 		show: t => t.shop,
 	},
@@ -57,9 +57,9 @@ export default [
 	{
 		title: "Replay",
 		code: `const copy = new Box({ id: "shop" }); lines.forEach(line => copy.set(line))`,
-		note: "The lines alone rebuild the same list, in the same order.",
+		note: "The lines alone rebuild the same list, in the same order, and the same view.",
 		run: t => { t.copy = new Box({ id: "shop" }); t.store.lines.forEach(line => t.copy.set(line)); },
-		check: t => JSON.stringify(t.copy) === JSON.stringify(t.shop),
+		check: t => t.same(t.shop, t.copy),
 		show: t => t.copy,
 	},
 ];

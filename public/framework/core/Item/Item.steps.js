@@ -1,10 +1,11 @@
 import Box from "./watch/Box.js";
-import ScratchStore from "./watch/ScratchStore.js";
+import Steps from "../Test/Steps.js";
 
 /* Item's core test as steps: the class page draws each one (its code, a pass or fail, the object after it, the
    lines it wrote; ext/Doc/ClassDoc.js) and Item.steps.test.mjs runs the same array in node.
-   `t` is one shared bag: `t.store` keeps every line written (ScratchStore writes no file), `t.lines` are the ones
-   the step just wrote. `show(t)` is the object drawn after the step. */
+   `t` is one shared bag (core/Test/Steps.js): `t.store` keeps every line written (ScratchStore writes no file), `t.lines`
+   are the ones the step just wrote, `t.click(label, fn)` is a button press in the browser's test view
+   (/framework/core/Test/view/?test=Item) and a plain call in node. `show(t)` is the object drawn after the step. */
 export default [
 	{
 		title: "Create",
@@ -24,17 +25,17 @@ export default [
 	},
 	{
 		title: "Set",
-		code: `shop.set({ title: "Weekly shop" })`,
+		code: `shop.set({ title: "Weekly shop" })   // the Rename button`,
 		note: "A field on the root: one flat line.",
-		run: t => { t.shop.set({ title: "Weekly shop" }); },
+		run: t => t.click("Rename", () => t.shop.set({ title: "Weekly shop" })),
 		check: t => t.shop.get("title") === "Weekly shop" && t.lines.length === 1,
 		show: t => t.shop,
 	},
 	{
 		title: "Add a child",
-		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })`,
+		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })   // the Add milk button`,
 		note: "A list verb: one line, under the list's name. The child's parent is now shop.",
-		run: t => { t.milk = t.shop.items.add({ id: "milk", title: "Milk", count: 1 }); },
+		run: t => t.click("Add milk", () => { t.milk = t.shop.items.add({ id: "milk", title: "Milk", count: 1 }); }),
 		check: t => t.milk.parent === t.shop && t.lines.length === 1 && "items" in t.lines[0],
 		show: t => t.shop,
 	},
@@ -49,26 +50,13 @@ export default [
 	{
 		title: "Replay",
 		code: `const copy = new Box({ id: "shop" }); lines.forEach(line => copy.set(line))`,
-		note: "A fresh object, built from the lines alone, equals the original.",
+		note: "A fresh object, built from the lines alone, equals the original, and so does its view.",
 		run: t => { t.copy = new Box({ id: "shop" }); t.store.lines.forEach(line => t.copy.set(line)); },
-		check: t => JSON.stringify(t.copy) === JSON.stringify(t.shop),
+		check: t => t.same(t.shop, t.copy),
 		show: t => t.copy,
 	},
 ];
 
-// One run of every step, the same in node and the browser: each step's lines are the ones its store flushed.
-// `after(step, t, ok)` is called once per step (the page draws there).
-export async function run_steps(steps, after = () => {}){
-	const t = { store: new ScratchStore({ url: "scratch.jsonl" }), lines: [] };
-	t.store.on_lines = lines => t.lines.push(...lines);
-	const results = [];
-	for (const step of steps){
-		t.lines = [];
-		let ok, error;
-		try { await step.run(t); await null; ok = !!step.check(t); }
-		catch (e){ ok = false; error = e; }
-		results.push({ step, ok, error, lines: [...t.lines] });
-		after(step, t, ok, error);
-	}
-	return results;
-}
+// One run of every step, the same in node and the browser (core/Test/Steps.js). `after(step, t, ok)` is called
+// once per step (the page draws there). Kept here because ClassDoc and the List page import it from here.
+export function run_steps(steps, after = () => {}){ return new Steps(steps).all(after); }
