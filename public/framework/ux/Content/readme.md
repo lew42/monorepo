@@ -33,7 +33,7 @@ A page places one with a single line: `{"place": {"module": "/framework/ux/Conte
 - [Question](/framework/ux/Content/Question/) · [Decision](/framework/ux/Content/Decision/) · [Quotation](/framework/ux/Content/Quotation/) · [record shapes](/framework/ux/Content/doc/shapes.md)
 
 ## Also here (readme audit, 2026-10-13)
-- [Object](./Object/) — Object — show a real object instead of explaining it
+- [Object](./Object/) — one default view for any object: a row you can open, live (`view(x)`)
 - [structure](./structure/) — Structure: words drawn as a picture
 
 ## Notes from your asks
