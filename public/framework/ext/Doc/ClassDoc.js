@@ -19,7 +19,7 @@ View.stylesheet(import.meta, "ClassDoc.css");
  *     steps,                                     // Item.steps.js: [{title, code, note, run, check, show}]
  *     run_steps,                                 // the runner the node test uses too
  *     method_list: { set: {job, example}, … },   // Item.methods.js
- *     method_notes: "set get toJSON",            // methods/<name>.md, only these
+ *     method_notes: "set get toJSON",            // doc/method/<name>.md, only these
  *     method_setup: "// shop(): …",              // a comment shown above every example, for a helper they share
  *     content(){ … },                            // anything else, drawn after
  *   })
@@ -156,7 +156,7 @@ export class ClassDoc extends Doc {
 						div.c("doc-class-result", () => error ? span.c("doc-class-error", error.message) : view(result, { open: 2 }));
 					});
 				});
-				if (Doc.names(doc.method_notes).includes(name)) return md.file(doc.meta, `methods/${name}.md`, { h1: false });
+				if (Doc.names(doc.method_notes).includes(name)) return md.file(doc.meta, `doc/method/${name}.md`, { h1: false });
 			},
 		};
 	}

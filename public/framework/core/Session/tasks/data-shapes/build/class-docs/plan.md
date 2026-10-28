@@ -22,7 +22,7 @@ One page class for any class page. Config adds five things to a Doc's:
 | `members` | `{name: {job, example()}}`: the Methods tab, and `methods/<name>/` from `route(name)` |
 
 - **Steps are data that is also a test:** `core/Item/Item.steps.js` exports `[{title, code, note, run(t), check(t), show(t)}]`. The page runs them in the browser; `core/Item/Item.steps.test.mjs` runs the same array in node.
-- **Methods:** the Methods tab is a wall of cards (signature, one-line job). `methods/<name>/` is built by `route(name)` on that tab: signature, job, the example's code and its live result, then `methods/<name>.md` when the page lists it in `method_notes` (only `set`, `get`, `toJSON`). The old `api/<name>/` urls route to the same page, so old links keep working; the old API tab is replaced by Methods.
+- **Methods:** the Methods tab is a wall of cards (signature, one-line job). `methods/<name>/` is built by `route(name)` on that tab: signature, job, the example's code and its live result, then `doc/method/<name>.md` (the home a plain Doc already reads; one home, not two, after the review) when the page lists it in `method_notes` (only `set`, `get`, `toJSON`). The old `api/<name>/` urls route to the same page, so old links keep working; the old API tab is replaced by Methods.
 - **List** uses the same class with its own `List.steps.js`, `List.methods.js`, and the same life cycle with its own "who changes it" column.
 
 ## Decisions

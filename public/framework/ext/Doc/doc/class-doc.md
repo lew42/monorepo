@@ -2,7 +2,7 @@
 
 `class ClassDoc extends Doc` ([ClassDoc.js](../ClassDoc.js), styles in [ClassDoc.css](../ClassDoc.css)). The owner's ask (2026-10-28): "Every time we create a view for something, it's just vomit… I really just need to see things and then be able to click through." Brief and plan: [build C](/framework/core/Session/tasks/data-shapes/build/class-docs/).
 
-**See it:** [Item at 1920](class-doc/item-1920.png) · [Item on a phone](class-doc/item-400.png) · [List at 1920](class-doc/list-1920.png) (2026-10-28, headless).
+**See it:** [Item at 1920](class-doc/item-1920.png) · [Item on a phone](class-doc/item-400.png) · [List at 1920](class-doc/list-1920.png) · [a method page, `set`](class-doc/method-set-1920.png) (2026-10-28, headless).
 
 ## What the Overview draws, top to bottom
 
@@ -16,10 +16,10 @@
 ## Method pages
 
 - `method_list: {name: {job, example(), static?}}` (Item's: [Item.methods.js](/framework/core/Item/Item.methods.js)). The Methods tab replaces the API tab.
-- `methods/<name>/` is built by the Methods section's `route(name)`; there is no page.js per method. It shows the signature, the job, the example's body as code and its result drawn live, then `methods/<name>.md` when the name is in `method_notes` (Item: `set get toJSON`). `method_setup` is a comment shown above every example, for a helper they share (List's `shop()`).
+- `methods/<name>/` is built by the Methods section's `route(name)`; there is no page.js per method. It shows the signature, the job, the example's body as code and its result drawn live, then its note, `doc/method/<name>.md` (the same file a plain Doc's API tab reads), when the name is in `method_notes` (Item: `set get toJSON`). `method_setup` is a comment shown above every example, for a helper they share (List's `shop()`).
 - Old `api/<name>/` links (ClassCard rows on pages that inherit from Item, older docs) land on `methods/<name>/`, and the address bar is corrected with `replaceState`, the same shape as Doc's `docs/` → `doc/`.
 
 ## Watch out
 
 - `example()` and every method example run on each visit; keep them pure (no file, no network).
-- The older per-member notes in `doc/method/*.md` are no longer shown by a ClassDoc page (they were the API tab's). Most predate `set()` as a delta; move what still holds into `methods/<name>.md` and retire the rest.
+- A method page shows only the notes `method_notes` names; Item's other `doc/method/*.md` files stay where they are and are still linked from its readme. Many predate `set()` as a delta: rewrite one when it is next listed (an improvement is filed on core/Item). The brief said `methods/<name>.md`; one home was chosen over two (review finding 2, 2026-10-28).
