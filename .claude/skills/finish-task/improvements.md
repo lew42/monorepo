@@ -6,3 +6,4 @@ A recurring line is a rule waiting to be written; the owner promotes.
 skill-improvement: item tool path must be a site url; a repo path 'public/framework/...' wrote into public/public/ (2026-10-20, mastermind-whisper-demo)
 
 - 2026-10-20 (vscode mastermind): the `item` tool takes the SITE path (`/framework/ai/sessions/.../<task>/`). A repo path (`public/framework/...`) is accepted silently and writes a stray page log under `public/public/...` (removed by hand). Say the path form in step 3, or make the tool refuse a path starting with `public/`.
+- 2026-10-28 (mastermind-build-default-view): a builder's summary written as {"review":{"verdict":…,"answers":[…]}} became the latest review for `review.mjs --status` and shadowed the reviewer's findings ("1 unanswered, no findings parsed"). Worth saying in step 3: answer only with {"review":{"answer":{n,reply}}} lines, never a second verdict line.

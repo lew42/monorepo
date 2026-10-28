@@ -1,0 +1,1725 @@
+diff --git a/public/framework/audio/Part.js b/public/framework/audio/Part.js
+index 5223f58a3..207710991 100644
+--- a/public/framework/audio/Part.js
++++ b/public/framework/audio/Part.js
+@@ -118,7 +118,7 @@ export class PartView extends View {
+ 	label(){ return this.subject.constructor.name; }
+ 	stat(){ return ""; }
+ 	flags(){ return []; }
+-	details(){ return new DefaultView({ subject: this.subject }); }
++	details(){ return new DefaultView({ subject: this.subject, open: 1 }); }
+ }
+ 
+ export { Part };
+diff --git a/public/framework/code/objects/readme.md b/public/framework/code/objects/readme.md
+index f816b67b3..6492353ce 100644
+--- a/public/framework/code/objects/readme.md
++++ b/public/framework/code/objects/readme.md
+@@ -8,27 +8,26 @@ knows, at three sizes.
+ 
+ - The default view: `view(thing)`
+ - The three sizes — chip, row, panel
+-- The debug view: `inspect(thing)` — the fourth size, separate from `render()`
+ - Objects the owner sees (`AIObject`, `Skill`, `Ask`, `Task`)
+ 
+ ## The one default view
+ 
+-`view(thing)` (`ux/Content/Object/DefaultView.js`) is the survivor: every class renders itself
+-with it, and `Thing.View = class extends DefaultView` overrides it. The class chooses what matters:
++`view(thing)` (`ux/Content/Object/DefaultView.js`) is the one view: a row (icon, id, class, counts) that
++opens to the data by type, live through `item.views`. The class chooses what matters:
+ `static shown = ["title","state"]` lists those first, in order; `static hidden = ["_timer"]` drops
+-internal state. `ObjectCard` (`object()`, the small API card) and `inspect()` (the recursive
+-debug card) are older siblings, kept until their callers move to `view()`.
++internal state. `object()` and `inspect()` were merged into it on 2026-10-28 and are deprecated names for it.
+ 
+ ## Use
+ 
+ ```js
+-Thing.View = class extends DefaultView { … };   // overrides the default for every Thing
++view(myThing)                                   // one row; click to open
++view(myThing, { open: 2 })                      // two levels open
++static icon = "material-symbol-name";           // any class may carry one
++Thing.View = class extends DefaultView { … };   // a class's own look, picked by view()
+ track(MyClass);          // once, in the module
+ MyClass.track(this);     // once, in the constructor — makes instances findable at all
+-static icon = "material-symbol-name";           // any class may carry one — inspect() reads it
+-inspect(myThing)                                // the debug view — icon, name, properties, nested
+ ```
+-Live: [the Object demo](/framework/ux/Content/Object/).
++Live: [watch a tree being built](/framework/core/Item/watch/) · [the Object module](/framework/ux/Content/Object/).
+ 
+ ## Watch out
+ 
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index 6ffa3d655..53bf63746 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -256,6 +256,11 @@ export class Item extends Events(Object) {
+ 	}
+ 	set view(v){ this._view = v; }
+ 
++	// Every live view drawing me (ask 33): one item can show in two places at once, and a change reaches each.
++	// The default view (ux/Content/Object/DefaultView.js) adds itself here and drops out once off the page.
++	get views(){ return this._views ??= []; }
++	set views(v){ this._views = v; }
++
+ 	// A child asking to save persists its DOCUMENT — delegation up, never a partial write.
+ 	save(){ return this.saver ? this.saver.save(this) : this.parent ? this.parent.save() : Promise.resolve(false); }
+ 	delete(){ return this.saver ? this.saver.delete(this) : this.parent ? this.parent.delete() : Promise.resolve(false); }
+diff --git a/public/framework/core/Item/page.js b/public/framework/core/Item/page.js
+index 7727b8ae3..850f6ded7 100644
+--- a/public/framework/core/Item/page.js
++++ b/public/framework/core/Item/page.js
+@@ -150,7 +150,7 @@ export default new Doc({
+ 	//   2026-10-02, task-mastermind review.
+ 	initialize(){
+ 		Doc.prototype.initialize.call(this);
+-		this.declare("live"); this.declare("Dated");
++		this.declare("live"); this.declare("watch"); this.declare("Dated");
+ 	},
+ 
+ 	content(){
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index ebb7fe485..93ef0e84a 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -23,7 +23,8 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
+   id, data: {}                        // get(key), put(key, value) — seams over `data`; Page overrides both
+   set(a, b)                           // ✅ one delta: a method key calls it, a nested .set() recurses, else data + emits "change"/"delta"
+   store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays (each entry through `host.replay_line`, default `set`; `Item.replay(lines)` is the node twin) / appends / tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
+-  view                                // getter/setter; lazy `new constructor.View({item})` once core grows one
++  view                                // getter/setter; lazy `new constructor.View({item})`: a class's OWN view, when it has one
++  views: []                           // ✅ every live default view drawing me (ux/Content/Object/DefaultView.js; ask 33)
+   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
+   toJSON(), static hydrate(json), static register(Class, name), static open(src)
+ }
+@@ -95,9 +96,9 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+ - Constructors do no I/O; `Item.open(saver)` is the one async entry: [doc/method/open.md](./doc/method/open.md).
+ - Warnings fire once per message — clear `Item.warned` to re-hear them: [doc/decisions.md](./doc/decisions.md).
+ - A child's `save()` delegates up and persists the whole document, never its subtree: [doc/method/save.md](./doc/method/save.md).
+-- `item.view` is `undefined` until a `static View` is actually wired in (nobody has built the
+-  generic one yet) — a reader of a content List with no view of its own falls back to its
+-  own title/text; see `Page.render_content_list()`, core/Page.
++- `item.view` is `undefined` until a class wires its own `static View` — a reader of a content List with
++  no view of its own falls back to its own title/text; see `Page.render_content_list()`, core/Page. The
++  generic debug view is `view(item)` (ux/Content/Object), and every one drawing an item is in `item.views`.
+ 
+ ## More
+ 
+@@ -106,6 +107,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+ - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
+ - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
+ - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
++- [Watch a tree being built](/framework/core/Item/watch/) — step through it: every object in the default view as it is made and changed, every line it saves beside it, then a replay of those lines. Files: `watch/` (`Watch.js`, `Box.js`, `ScratchStore.js`).
+ - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
+ - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
+ - `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
+diff --git a/public/framework/core/Item/watch/Box.js b/public/framework/core/Item/watch/Box.js
+new file mode 100644
+index 000000000..fbfeb3a6e
+--- /dev/null
++++ b/public/framework/core/Item/watch/Box.js
+@@ -0,0 +1,14 @@
++import Item from "../Item.js";
++import List from "../../List/List.js";
++
++// The demo's object: an Item that gives itself a List, the way Page and Task do (core/Item/readme.md,
++// "Item itself has no list"). `fields` make `title` and `count` accessors over `data`.
++export default class Box extends Item {
++	static icon = "inventory_2";
++	static fields = ["title", "count"];
++	constructor(...args){
++		super(...args);
++		this.items = new List({ owner: this, name: "items", of: Box });
++	}
++}
++Item.register(Box, "Box");
+diff --git a/public/framework/core/Item/watch/ScratchStore.js b/public/framework/core/Item/watch/ScratchStore.js
+new file mode 100644
+index 000000000..d002a76e6
+--- /dev/null
++++ b/public/framework/core/Item/watch/ScratchStore.js
+@@ -0,0 +1,13 @@
++import Store from "../Store.js";
++
++// An Item.Store that writes nowhere: each tick's lines are kept in `lines` and handed to `on_lines`.
++// Everything else (attach, the nesting of each line, replay through read()) is the real Store.
++export default class ScratchStore extends Store {
++	lines = [];
++	flush(){
++		const lines = this._queue.splice(0);
++		this._flushing = false;
++		this.lines.push(...lines);
++		if (lines.length) this.on_lines?.(lines);
++	}
++}
+diff --git a/public/framework/core/Item/watch/Watch.js b/public/framework/core/Item/watch/Watch.js
+new file mode 100644
+index 000000000..fb2e9acd8
+--- /dev/null
++++ b/public/framework/core/Item/watch/Watch.js
+@@ -0,0 +1,138 @@
++import View, { div, h3, p, ol, li, code, button } from "../../View/View.js";
++import { view } from "../../../ux/Content/Object/DefaultView.js";
++import Logger from "../../Page/card/log/Logger.js";
++import LogView from "../../Page/card/log/LogView.js";
++import Box from "./Box.js";
++import ScratchStore from "./ScratchStore.js";
++
++View.stylesheet(import.meta, "watch.css");
++
++/**
++ * class Watch extends View — the "watch a tree being built" demo. Three columns: the steps (one line of code
++ * each), the default view of every object, live (ux/Content/Object/DefaultView.js), and every line the store
++ * wrote, one group per step (core/Page/card/log). Nothing touches a file: a ScratchStore keeps its lines.
++ *
++ *   new Watch()
++ *
++ * Next runs one more step on the live objects, so you see only what that step changed. Back and Start over
++ * rebuild from step 1, because a step cannot be undone.
++ */
++export default class Watch extends View {
++
++	// One line per step: the code it runs, and what to notice once it has.
++	static steps = [
++		{ code: `const root = new Box({ id: "root", title: "Shopping" })`, note: "Making an object writes no line. Only changes are lines.",
++			run: w => { w.root = new Box({ id: "root", title: "Shopping" }); w.store.attach(w.root); w.$root.empty(() => view(w.root, { open: 9 })); } },
++		{ code: `root.items.add({ id: "fruit", title: "Fruit" })`, note: "A List verb is one line, under the list's name. The root's count goes to 1.",
++			run: w => { w.fruit = w.root.items.add({ id: "fruit", title: "Fruit" }); } },
++		{ code: `fruit.items.add({ id: "apple", title: "Apple", count: 1 })`, note: "Two levels down: the line nests one hop per level, fruit then items.",
++			run: w => { w.apple = w.fruit.items.add({ id: "apple", title: "Apple", count: 1 }); } },
++		{ code: `view(apple)   // in a second place`, note: "One object, two views: apple.views.length is now 2. Drawing writes no line.",
++			run: w => w.$second.empty(() => { p.c("muted", "apple, drawn a second time:"); view(w.apple, { open: 1 }); }) },
++		{ code: `apple.set({ count: 3 })`, note: "Both views of apple change, and only the count row redraws.",
++			run: w => { w.apple.set({ count: 3 }); } },
++		{ code: `root.set({ title: "Weekly shop" })`, note: "A field on the root itself is a flat line, with no nesting.",
++			run: w => { w.root.set({ title: "Weekly shop" }); } },
++		{ code: `root.items.add({ id: "bread", title: "Bread" })`, note: "A second member: it lands after fruit.",
++			run: w => { w.root.items.add({ id: "bread", title: "Bread" }); } },
++		{ code: `root.items.move("bread", { after: null })`, note: "A move is a line too: bread goes first, and only its row moves.",
++			run: w => { w.root.items.move("bread", { after: null }); } },
++		{ code: `const copy = new Box({ id: "root" }); lines.forEach(line => copy.set(line))`, note: "A fresh object, built only from the lines, one at a time.",
++			run: w => w.replay() },
++	];
++
++	render(){
++		this.ac("core-item-watch");
++		div.c("core-item-watch-steps flex v gap", () => {
++			div.c("flex wrap gap", () => {
++				this.$next = button("Next step").on("click", () => this.next());
++				button("Back").on("click", () => this.go(Math.max(0, this.at - 1)));
++				button("Run all").on("click", () => this.go(Watch.steps.length));
++				button("Start over").on("click", () => this.go(0));
++			});
++			this.$note = p.c("core-item-watch-note");
++			this.$list = ol.c("core-item-watch-list");
++			this.$test = p.c("muted", "Running the default view's own test…");
++		});
++		div.c("core-item-watch-objects flex v gap", () => {
++			h3("The objects, live");
++			this.$root = div();
++			this.$second = div();
++			this.$copy = div();
++		});
++		div.c("core-item-watch-lines flex v gap", () => {
++			h3("Lines written");
++			this.$log = div();
++		});
++		this.go(0);
++		this.test();
++	}
++
++	// The default view's one core test (ux/Content/Object/DefaultView.test.js), run here and its verdict shown.
++	async test(){
++		const r = await import("../../../ux/Content/Object/DefaultView.test.js").then(m => m.default()).catch(e => ({ failed: 1, failures: [e.message] }));
++		this.$test.text(r.failed ? `✗ The default view's test failed: ${r.failures.join("; ")}` : `✓ The default view's own test: ${r.passed} checks pass.`);
++	}
++
++	// A fresh start, then steps 1 to n. A newer go() stops an older one between steps.
++	async go(n){
++		const run = this.run = (this.run ?? 0) + 1;
++		this.reset();
++		for (let i = 0; i < n && this.run === run; i++) await this.step(i);
++	}
++
++	async next(){
++		if (this.busy || this.at >= Watch.steps.length) return;
++		await this.step(this.at);
++	}
++
++	reset(){
++		this.at = 0;
++		this.root = this.fruit = this.apple = this.copy = null;
++		this.logger = new Logger();
++		this.store = new ScratchStore({ url: "scratch.jsonl" });
++		this.pending = [];
++		this.store.on_lines = lines => this.pending.push(...lines);
++		this.$root.empty(); this.$second.empty(); this.$copy.empty();
++		this.$log.empty(() => new LogView({ logger: this.logger }));
++		this.$note.text("Press Next step. Each step runs one line of code.");
++		this.draw_list();
++	}
++
++	// Run one step, wait the one microtask the store takes to flush, and log what it wrote as one group.
++	async step(i){
++		const one = Watch.steps[i];
++		this.busy = true;
++		try { await one.run(this); await null; } finally { this.busy = false; }
++		this.logger.group(`${i + 1}. ${one.code.split("//")[0].trim()}`);
++		if (this.pending.length) this.pending.splice(0).forEach(line => this.logger.log(line));
++		else this.logger.note("muted", "no line written");
++		this.logger.end();
++		this.at = i + 1;
++		this.$note.text(one.note);
++		this.draw_list();
++	}
++
++	// The copy replays the root's lines one by one, slowly enough to watch, then is compared with the root.
++	async replay(){
++		const copy = this.copy = new Box({ id: "root" });
++		const lines = [...this.store.lines];
++		let $same;
++		this.$copy.empty(() => {
++			p.c("muted", "The copy, replayed from the lines:");
++			view(copy, { open: 9 });
++			$same = p.c("core-item-watch-same", "…");
++		});
++		for (const line of lines){ copy.set(line); await new Promise(r => setTimeout(r, 250)); }
++		const same = JSON.stringify(copy) === JSON.stringify(this.root);
++		$same.text(same ? `✓ The same tree: ${lines.length} lines rebuilt it.` : "✗ Not the same tree: the lines lost something.");
++	}
++
++	draw_list(){
++		this.$list.empty(() => Watch.steps.forEach((one, i) => {
++			const focus = i === Math.min(this.at, Watch.steps.length - 1) ? " is-focus" : "";   // the one a phone shows
++			li.c((i < this.at ? "is-done" : i === this.at ? "is-next" : "") + focus, () => code(one.code)).attr("value", i + 1);
++		}));
++		this.$next.el.disabled = this.at >= Watch.steps.length;
++	}
++}
+diff --git a/public/framework/core/Item/watch/page.js b/public/framework/core/Item/watch/page.js
+new file mode 100644
+index 000000000..db8688904
+--- /dev/null
++++ b/public/framework/core/Item/watch/page.js
+@@ -0,0 +1,12 @@
++import { Page } from "/app.js";
++import Watch from "./Watch.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Watch a tree being built",
++	label: "Watch",
++	description: "Step through it: every object shows as it is made and changed, and every line it saves sits beside it.",
++	icon: "visibility",
++	width: "wide",
++	content(){ new Watch().ac("wide"); },
++});
+diff --git a/public/framework/core/Item/watch/watch.css b/public/framework/core/Item/watch/watch.css
+new file mode 100644
+index 000000000..be49d3e1b
+--- /dev/null
++++ b/public/framework/core/Item/watch/watch.css
+@@ -0,0 +1,24 @@
++@layer base, theme, site, util;
++
++/* The watch demo (Watch.js): steps | objects | lines at full width, one column below 70em. */
++@layer site {
++	.core-item-watch { display: grid; gap: var(--gap); grid-template-columns: 1fr; align-items: start; }
++	@media (min-width: 70em) {
++		.core-item-watch { grid-template-columns: minmax(18em, 1fr) minmax(22em, 1.3fr) minmax(20em, 1.2fr); }
++	}
++	.core-item-watch > * { min-width: 0; }
++	/* Narrow: only the step in focus (the next one, or the last once done), so the objects stay near the top. */
++	@media (max-width: 69.99em) {
++		.core-item-watch-list > li:not(.is-focus) { display: none; }
++	}
++
++	.core-item-watch-note { min-height: 3em; margin: 0; }
++	.core-item-watch-list { margin: 0; padding-inline-start: 1.6em; display: flex; flex-direction: column; gap: .3em; }
++	.core-item-watch-list > li { color: var(--subtle); }
++	.core-item-watch-list > li.is-done { color: inherit; }
++	.core-item-watch-list > li.is-next { color: inherit; font-weight: 600; }
++	.core-item-watch-list code { white-space: normal; overflow-wrap: anywhere; }
++
++	.core-item-watch-lines .log-line { font-family: var(--mono, monospace); font-size: .85em; overflow-wrap: anywhere; }
++	.core-item-watch-same { font-weight: 600; }
++}
+diff --git a/public/framework/core/Page/ai/agents/page.js b/public/framework/core/Page/ai/agents/page.js
+index 056cb7736..6144f936f 100644
+--- a/public/framework/core/Page/ai/agents/page.js
++++ b/public/framework/core/Page/ai/agents/page.js
+@@ -43,14 +43,14 @@ export default new Page({
+ 				// down inside it.
+ 				rows.forEach(row => details.c("ai-row", () => {
+ 					summary(`${row.id} · ${row.role} · ${row.state}`);
+-					div.c("ai-row-body", () => view(row));
++					div.c("ai-row-body", () => view(row, { open: 1 }));
+ 				}));
+ 			}));
+ 		});
+ 
+ 		h2("The host object's shape");
+ 		md("`Servex/agents/Agents.js` — one instance per Servex process (`export const agents = new Agents()`). Not importable here: it is server-only Node code (file system, the Claude SDK). Read from the source, not fetched.");
+-		div.c("card pad", () => view(HOST_SHAPE));
++		div.c("card pad", () => view(HOST_SHAPE, { open: 1 }));
+ 
+ 		md("Detail: [Sessions and the SDK](/framework/core/Page/ai/doc/sessions/).");
+ 	},
+diff --git a/public/framework/core/Page/ai/page.js b/public/framework/core/Page/ai/page.js
+index 8bc25ac62..aabec7cde 100644
+--- a/public/framework/core/Page/ai/page.js
++++ b/public/framework/core/Page/ai/page.js
+@@ -97,7 +97,7 @@ export default new Doc({
+ 					if (!shown.length) small.c("muted", "Nothing working or idle right now.");
+ 					shown.forEach(row => details.c("ai-row", () => {
+ 						summary(`${row.id} · ${row.role} · ${row.state}`);
+-						div.c("ai-row-body", () => view(row));
++						div.c("ai-row-body", () => view(row, { open: 1 }));
+ 					}));
+ 					a.c("page-link", "The full list →").href("agents/");
+ 				});
+diff --git a/public/framework/core/Page/object.js b/public/framework/core/Page/object.js
+index cdd8f3bb7..6ce17f713 100644
+--- a/public/framework/core/Page/object.js
++++ b/public/framework/core/Page/object.js
+@@ -16,6 +16,6 @@ import { view } from "../../ux/Content/Object/DefaultView.js";
+  * live, and `/framework/ux/Content/Object/doc/default-view.md` for how the tree
+  * itself works.
+  */
+-export function page_object(page){ return view(page); }
++export function page_object(page){ return view(page, { open: 1 }); }
+ 
+ export default page_object;
+diff --git a/public/framework/ext/Refine/RefineExplorer.js b/public/framework/ext/Refine/RefineExplorer.js
+index d75d45470..ded3532de 100644
+--- a/public/framework/ext/Refine/RefineExplorer.js
++++ b/public/framework/ext/Refine/RefineExplorer.js
+@@ -60,7 +60,7 @@ export default class RefineExplorer extends View {
+ 			});
+ 			div.c("refine-section refine-section-tree", () => {
+ 				h4.c("refine-prompt-h", "The live system (click to open; properties and logs)");
+-				new DefaultView({ subject: s });
++				new DefaultView({ subject: s, open: 1 });
+ 			});
+ 		});
+ 	}
+diff --git a/public/framework/styles/css-scopes.txt b/public/framework/styles/css-scopes.txt
+index aef6e321a..45f73271c 100644
+--- a/public/framework/styles/css-scopes.txt
++++ b/public/framework/styles/css-scopes.txt
+@@ -74,6 +74,7 @@ page-layout- core/Layout (the tree, a layout page, the fixture boxes — inside
+              namespace on purpose: `layout-` is ext/layout's, and `Layout extends Page`)
+ page-section- core/Section (the band, its overlay and slots — same namespace, same
+              reason: `section-` is /imagine/sections' and `.section` is a live rule)
++core-item-   core/Item (its demo pages: core-item-watch-*, the watch demo)
+ core-shell-  core/Shell (`shell-` was reserved for /imagine/shells already; the class is `CoreShell`,
+              `Shell` is only an export alias onto it — doc/decisions.md, 2026-09-30)
+ sidebar-     core/Sidebar
+diff --git a/public/framework/ux/Content/Object/DefaultView.css b/public/framework/ux/Content/Object/DefaultView.css
+new file mode 100644
+index 000000000..0f7eef048
+--- /dev/null
++++ b/public/framework/ux/Content/Object/DefaultView.css
+@@ -0,0 +1,33 @@
++@layer base, theme, site, util;
++
++/* The one default view (DefaultView.js). Rows are ui/item's own `.item` rows; this adds the small class
++   label, the property names, references and the flash a change leaves behind. */
++@layer theme {
++	.ux-content-defaultview { font-size: .9em; min-width: 0; }
++	.ux-content-defaultview .ux-content-defaultview { font-size: 1em; }   /* only the outermost shrinks, once */
++	.ux-content-defaultview > summary.item { gap: .4em; }
++	.ux-content-defaultview .item-name { display: flex; gap: .3em; align-items: baseline; }
++	.ux-content-defaultview-id { font-weight: 600; }
++	.ux-content-defaultview-key, .ux-content-defaultview-method { font-family: var(--mono, monospace); font-size: .95em; }
++	.ux-content-defaultview-row > .ux-content-defaultview-key { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
++	.ux-content-defaultview-row > .item-end { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; font-family: var(--mono, monospace); font-size: .95em; }
++
++	/* The class name, as a small label: quiet, never louder than the id. */
++	.ux-content-defaultview-class {
++		flex: 0 0 auto; font-size: .75em; line-height: 1.5; padding-inline: .45em;
++		border-radius: 999px; background: var(--fill-a08); color: var(--subtle);
++	}
++
++	/* A reference points somewhere else: it reads as a link, and a click flashes its target's views. */
++	.ux-content-defaultview-ref { cursor: pointer; }
++	.ux-content-defaultview-ref > .item-end { color: var(--prime); }
++
++	.ux-content-defaultview-leaf { font-family: var(--mono, monospace); }
++
++	/* What just changed: a short wash that fades, so a reader sees which row moved. */
++	.ux-content-defaultview-flash { animation: ux-content-defaultview-flash 1.2s ease-out; }
++	@keyframes ux-content-defaultview-flash {
++		from { background-color: color-mix(in srgb, var(--prime) 30%, transparent); }
++		to { background-color: transparent; }
++	}
++}
+diff --git a/public/framework/ux/Content/Object/DefaultView.js b/public/framework/ux/Content/Object/DefaultView.js
+index 462785dab..9fcfb9ff6 100644
+--- a/public/framework/ux/Content/Object/DefaultView.js
++++ b/public/framework/ux/Content/Object/DefaultView.js
+@@ -1,154 +1,351 @@
+-import View, { div, span, details, summary } from "../../../core/View/View.js";
+-import { item } from "../../../ui/item/item.js";
++import View, { div, span, a, summary, icon } from "../../../core/View/View.js";
++
++View.stylesheet(import.meta, "DefaultView.css");
++
++const is_list = x => !!x && Array.isArray(x.items) && typeof x.find === "function";
++const is_object = x => x !== null && typeof x === "object";
++const is_item = x => typeof x?.lists === "function" && is_object(x.data);   // an Item: its fields live in `data`
++const ONE = { entries: "entry", items: "item", methods: "method" };
++const plural = (n, word) => `${n} ${n === 1 ? ONE[word] ?? word.replace(/s$/, "") : word}`;
++
++// Every live view of an object (ask 33: one object can show in two places at once). An Item keeps its own
++// `item.views` (core/Item/Item.js); any other object with on()/emit() gets a list here instead.
++const others = new WeakMap();
++const hooked = new WeakSet();
++export const views_of = x => x.views ?? (others.has(x) ? others.get(x) : others.set(x, []).get(x));
+ 
+ /**
+- * class DefaultView extends View — give it any real object and it draws a tree of
+- * `.item` rows, the same shape as a file tree: a header row naming the class, then
+- * one row per own property, its name written with a leading dot (`.children`,
+- * `.title`). A property whose value is a plain value (a string, a number, a
+- * boolean) shows that value inline, right after the name. A property whose value
+- * is an object, an array or a Map becomes an EXPANDABLE row — its own properties /
+- * entries are not looked at, or drawn, until you actually click it open, so a huge
+- * object graph (a `Page`, whose `.children` holds a Map of more `Page`s, whose
+- * `.parent` points straight back) costs nothing until you go looking, and never
+- * loops forever: a value already on the path you're expanding shows "↺ already
+- * open above" instead of opening again.
++ * class DefaultView extends View — the one default view for any object: an Item, a List, a class, a plain
++ * object or an array. It is a `<details>`: closed, it is ONE row; open, it lists the object's data by type.
+  *
+- *   new DefaultView({ subject: somePage })      // this is the whole call
+- *   view(somePage)                              // the usual way in — see below
++ *   view(item)                       // the usual way in (bottom of this file)
++ *   view(item, { open: 3 })          // three levels open from the start
++ *   view(obj, { properties: "title state" })   // only these, in this order
+  *
+- * Functions, DOM/View nodes, and a property that is declared but never set
+- * (`undefined`) are skipped, same as `ObjectCard` (`Object.js`, beside this
+- * file) does — nothing to usefully show for any of the three.
++ * **The row:** the class's `static icon` (else "data_object"), the id, the title when it says more than the id,
++ * the class name as a small label, and counts ("3 items", one per List the object owns).
+  *
+- * **The override.** A class that wants its own look defines `static View`:
++ * **Open:** a string or number is written out; an Item or List the object owns nests its OWN default view,
++ * built only when it is opened; an object it does not own (`parent`, a `store`, anything already open above)
++ * is a reference: one row saying where it points, and a click flashes every view of that object.
+  *
+- *   class Widget { … }
+- *   Widget.View = class extends DefaultView { render(){ … } };
++ * **Live:** the view joins the object's `views`, and ONE "delta" listener per object walks them. A change
++ * rewrites only the row it touched (a `set` line), or adds, moves and removes member rows (a List verb), and
++ * flashes what changed. A view whose element has left the page is dropped from `views` on the next change.
+  *
+- * and `view(thing)` finds it automatically — `thing.constructor.View` reaches an
+- * inherited one too, because a JS static is on the constructor's own prototype
+- * chain, the same as any other inherited member.
++ * A class with its own look declares `static View` (a DefaultView subclass, or any View taking `subject`);
++ * `view()` picks it. Nested rows always use the default view, because a class's own `View` (PageText.View,
++ * Task.View) takes other options.
+  */
+ export default class DefaultView extends View {
+ 
++	// One class, never View's name-derived ones ("default" means something else on a page).
++	classify(){ this.ac("ux-content-defaultview item-node"); }
++
+ 	render(){
+-		const subject = this.subject;
+-		const klass = typeof subject === "function" ? subject : subject?.constructor;
+-		const label = subject && typeof subject !== "function" ? (subject.name ?? subject.title) : null;
+-		const article = /^[aeiou]/i.test(klass?.name ?? "Object") ? "an " : "a ";
+-
+-		item({
+-			// Any class may declare `static icon = "material-symbol-name"` (the same
+-			// convention `ObjectCard.icon_name()` and `Inspect.js` read) — absent, this
+-			// falls back to "data_object", same as it always has.
+-			icon: klass?.icon ?? "data_object",
+-			name: article + (klass?.name ?? "Object"),
+-			end: label ? () => span.c("item-end muted", String(label)) : undefined,
++		const s = this.subject;
++		this.path ??= new Set();
++		this.levels = this.open === true ? 1 : Number(this.open) || 0;
++		this.rows = new Map();   // property name -> its row's element
++		this.kids = new Map();   // member -> its view (a List subject)
++
++		if (!is_object(s) && typeof s !== "function") return this.leaf();
++
++		this.$head = summary.c("item", () => this.head());
++		this.$body = div.c("item-children");
++		if (this.levels > 0){ this.el.open = true; this.build(); }
++		this.el.addEventListener("toggle", () => this.el.open && this.build());
++		this.watch();
++	}
++
++	// A primitive handed straight to view(): no row to open, just the value.
++	leaf(){
++		const el = document.createElement("span");
++		el.className = "ux-content-defaultview-leaf";
++		el.textContent = this.describe(this.subject);
++		this.el.replaceWith(el);
++		this.el = el;
++	}
++
++	klass(){ const s = this.subject; return typeof s === "function" ? s : s?.constructor; }
++
++	// ---- the row ----
++
++	head(){
++		const s = this.subject, K = this.klass();
++		span.c("item-caret", "▸");
++		icon(K?.icon ?? "data_object").ac("item-icon");
++		if (this.key != null) span.c("ux-content-defaultview-key", "." + this.key);
++		this.$name = span.c("item-name", () => this.name_parts());
++		span.c("ux-content-defaultview-class", typeof s === "function" ? "class" : (K?.name ?? "Object"));
++		this.$counts = span.c("item-end muted", this.counts());
++	}
++
++	// The id (a uuid cut to 8), then the title when it says something the id does not.
++	name_parts(){
++		const s = this.subject;
++		const id = this.name_of(s);
++		const title = typeof s === "function" ? null : (s.data?.title ?? s.title ?? s.name);
++		if (id && !(this.key != null && id === this.key)) span.c("ux-content-defaultview-id", id).attr("title", String(s.id ?? id));
++		if (typeof title === "string" && title !== id) span.c("muted", ` ${this.cut(JSON.stringify(title), 40)}`);
++	}
++
++	name_of(s){
++		if (typeof s === "function") return s.name;
++		if (is_list(s)) return s.name ?? this.short(s.id);
++		if (s.id != null) return this.short(String(s.id));
++		return "";
++	}
++
++	short(id){ return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? id.slice(0, 8) + "…" : id; }
++
++	counts(){
++		const s = this.subject;
++		if (typeof s === "function") return plural(this.methods().length, "methods");
++		if (is_list(s)) return plural(s.length, "items");
++		if (Array.isArray(s)) return plural(s.length, "entries");
++		if (s instanceof Map || s instanceof Set) return plural(s.size, "entries");
++		const lists = Object.entries(s.lists?.() ?? {});
++		if (lists.length) return lists.map(([name, list]) => plural(list.length, list.name ?? name)).join(" · ");
++		return "";
++	}
++
++	refresh_head(){
++		this.$name?.empty(() => this.name_parts());
++		this.$counts?.text(this.counts());
++	}
++
++	// ---- open: the data, by type ----
++
++	build(){
++		if (this.built) return;
++		this.built = true;
++		this.$body.append(() => this.body());
++	}
++
++	body(){
++		const s = this.subject;
++		if (typeof s === "function") return this.class_body(s);
++		if (is_list(s)) return [...s].forEach(m => this.kids.set(m, this.child(m)));
++		if (Array.isArray(s)) return s.forEach((v, i) => this.row(String(i), v));
++		if (s instanceof Map) return s.forEach((v, k) => this.row(String(k), v));
++		if (s instanceof Set) return [...s].forEach((v, i) => this.row(String(i), v));
++
++		// The lists by their own name (`pages`, not the `_pages` field Page keeps it in), which is also what a
++		// change from one of them reports. With `properties` given, only the lists it names.
++		this.lists = new Map(Object.values(s.lists?.() ?? {}).map(list => [list.name, list]));
++		this.$rows = div.c("ux-content-defaultview-rows", () => {
++			this.keys().forEach(k => this.row(k, this.lists.get(k) ?? this.value(k)));
++			if (!this.properties) for (const [name, list] of this.lists) if (!this.rows.has(name)) this.row(name, list);
+ 		});
++	}
+ 
+-		div.c("ux-content-defaultview-rows", () => this.properties(subject, new Set()));
+-	}
+-
+-	/* Every own property worth a row, skipping the noise ObjectCard already skips:
+-	 * `undefined` (declared but never set — nothing there), functions (behaviour,
+-	 * not state), and DOM/View nodes (there's a live element to look at instead —
+-	 * showing its guts here is never what you wanted). */
+-	properties(subject, path){
+-		if (!subject || typeof subject !== "object") return;
+-
+-		// The class chooses what matters: `static shown = ["title", "state"]` lists
+-		// those properties first, in that order; `static hidden = ["_timer"]` drops
+-		// internal state (timers, handles). Everything else follows in its own order.
+-		const Klass = subject.constructor, hidden = Klass?.hidden ?? [], shown = Klass?.shown ?? [];
+-		const keys = Object.keys(subject).filter(k => !hidden.includes(k));
+-		const first = shown.filter(k => keys.includes(k));
+-
+-		[...first, ...keys.filter(k => !first.includes(k))].forEach(name => {
+-			const value = subject[name];
+-			if (value === undefined) return;   // declared but never set — nothing to show
+-			if (typeof value === "function") return;
+-			if (value?.el || value instanceof Node) return;
+-			this.row(name, value, path);
++	// Which properties show, in order: `properties` (a list or a space-separated string) when given; else the
++	// class's `static shown` first, then the rest, minus `static hidden`. An Item's `data` is read through: its
++	// fields are the rows. Never: `_private`, functions, DOM or View nodes, `undefined`, and the lists (they nest).
++	keys(){
++		const s = this.subject, K = s.constructor;
++		const asked = typeof this.properties === "string" ? this.properties.split(/\s+/).filter(Boolean) : this.properties;
++		if (asked) return asked;
++
++		const lists = new Set(Object.entries(s.lists?.() ?? {}).flatMap(([key, list]) => [key, list.name]));
++		const item = is_item(s);
++		const own = Object.keys(s).filter(k => !(item && (k === "data" || k === "id")) && !lists.has(k));
++		const data = item ? Object.keys(s.data) : [];
++		const all = [...new Set([...data, ...own])].filter(k => !k.startsWith("_") && !(K?.hidden ?? []).includes(k));
++		const first = (K?.shown ?? []).filter(k => all.includes(k));
++		return [...first, ...all.filter(k => !first.includes(k))];
++	}
++
++	value(k){
++		const s = this.subject;
++		return is_item(s) && k in s.data ? s.data[k] : s[k];
++	}
++
++	shown(value){
++		return value !== undefined && typeof value !== "function" && !value?.el && !(typeof Node !== "undefined" && value instanceof Node);
++	}
++
++	// One property's row, filed by name so a later `set` of that name rewrites only it.
++	row(k, value){
++		if (!this.shown(value)) return;
++		if (k === "parent" && this.path.has(value)) return;   // the row it sits in already says where it lives
++		let made;
++		if (!is_object(value) || this.empty(value)) made = this.plain(k, value);
++		else if (this.is_reference(value)) made = this.reference(k, value);
++		else made = this.child(value, k);
++		this.rows.set(k, made.el);
++		return made;
++	}
++
++	// Nothing inside to open: an empty List, array, Map or Set is a plain row with its count.
++	empty(value){
++		if (is_list(value)) return value.length === 0 && !this.is_reference(value);
++		if (Array.isArray(value)) return value.length === 0;
++		if (value instanceof Map || value instanceof Set) return value.size === 0;
++		return false;
++	}
++
++	plain(k, value){
++		return div.c("item ux-content-defaultview-row", () => {
++			span.c("item-caret", "");
++			span.c("ux-content-defaultview-key", "." + k);
++			const text = this.describe(value);
++			if (typeof value === "string" && /^(\/|https?:\/\/)\S+$/.test(value)) a.c("item-end", text).attr("href", value);
++			else span.c("item-end muted", text).attr("title", typeof value === "string" ? value : null);
++		});
++	}
++
++	// Not mine to draw: something already open above (a cycle), an object with its own parent elsewhere
++	// (my `parent`, a sibling), or a store. It says where it points, and a click flashes every view of it.
++	is_reference(value){
++		const s = this.subject;
++		if (this.path.has(value) || value === s) return true;
++		for (let K = value.constructor; K && K !== Object; K = Object.getPrototypeOf(K)) if (K.name === "Store") return true;   // Item.Store and its subclasses
++		if (is_list(value)) return value.owner !== s && value.owner !== undefined;
++		if ("parent" in value || value.data) return value.parent !== s && !(is_list(s) && s.items.includes(value));
++		return false;
++	}
++
++	reference(k, value){
++		const K = value.constructor;
++		const where = this.path.has(value) ? "↺ already open above" : `→ ${K?.name ?? "Object"} ${this.name_of(value) || value.url || ""}`.trim();
++		return div.c("item ux-content-defaultview-row ux-content-defaultview-ref", $row => {
++			span.c("item-caret", "");
++			span.c("ux-content-defaultview-key", "." + k);
++			span.c("item-end", where);
++			$row.attr("title", "Click: flash every view of it");
++			$row.el.addEventListener("click", () => DefaultView.point_at(value));
+ 		});
+ 	}
+ 
+-	row(name, value, path){
+-		if (value !== null && typeof value === "object") return this.expandable(name, value, path);
++	// A nested object: its own default view, one level less open, with this object added to the path.
++	child(value, key){
++		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject) });
++	}
++
++	// A class: its listed properties (names only, it has no values), then its own methods.
++	class_body(K){
++		const asked = typeof this.properties === "string" ? this.properties.split(/\s+/).filter(Boolean) : this.properties ?? K.fields ?? [];
++		asked.forEach(k => div.c("item ux-content-defaultview-row", () => { span.c("item-caret", ""); span.c("ux-content-defaultview-key", "." + k); }));
++		this.methods().forEach(m => div.c("item ux-content-defaultview-row", () => { span.c("item-caret", ""); span.c("ux-content-defaultview-method", m + "()"); }));
++	}
+ 
+-		return item({ name: "." + name, end: () => span.c("item-end muted", this.describe(value)) });
++	methods(){
++		const K = this.klass();
++		if (Array.isArray(this.method_names)) return this.method_names;
++		if (typeof this.method_names === "string") return this.method_names.split(/\s+/).filter(Boolean);
++		return Object.getOwnPropertyNames(K?.prototype ?? {}).filter(n => n !== "constructor" && !n.startsWith("_")
++			&& typeof Object.getOwnPropertyDescriptor(K.prototype, n).value === "function");
+ 	}
+ 
+-	/* An object/array/Map property: a row that looks exactly like item()'s own
+-	 * `children` form (same classes, so the CSS is the same), except the inside is
+-	 * built once, the first time it's actually opened — never before. `path` is
+-	 * every object already being drawn above this row on THIS branch; a value
+-	 * already in it is a cycle back to an ancestor, so it gets a plain note
+-	 * instead of opening into itself forever. */
+-	expandable(name, value, path){
+-		if (path.has(value)){
+-			item({ name: "." + name, end: () => span.c("item-end muted", "↺ already open above") });
+-			return;
++	// ---- live ----
++
++	watch(){
++		const s = this.subject;
++		if (typeof s?.on !== "function") return;
++		views_of(s).push(this);
++		if (hooked.has(s)) return;
++		hooked.add(s);
++		s.on("delta", (line, origin) => DefaultView.walk(s, line, origin));
++	}
++
++	// One listener per object, every view of it told. Deltas bubble up through `parent`, so an object hears
++	// its descendants' changes too; each view acts only on its own (see changed()).
++	static walk(s, line, origin){
++		const list = views_of(s);
++		for (const v of [...list]){
++			if (v.el.isConnected) v.seen = true;
++			else if (v.seen){ list.splice(list.indexOf(v), 1); continue; }
++			v.changed(line, origin);
+ 		}
++	}
+ 
+-		details.c("item-node", $node => {
+-			summary.c("item", () => {
+-				span.c("item-caret", "▸");
+-				span.c("item-name", "." + name);
+-				span.c("item-end muted", this.describe(value));
+-			});
+-
+-			const $kids = div.c("item-children");
+-			let opened = false;
+-
+-			$node.el.addEventListener("toggle", () => {
+-				if (opened || !$node.el.open) return;
+-				opened = true;
+-				$kids.append(() => this.entries(value, new Set(path).add(value)));
+-			});
+-		});
++	changed(line, origin){
++		const s = this.subject;
++		if (origin === s){
++			this.refresh_head();
++			if (!this.built) return;
++			if (is_list(s)) return this.reconcile();
++			const keys = line?.set ? Object.keys(line.set) : this.keys();
++			keys.forEach(k => this.update(k));
++		} else if (is_list(origin) && origin.owner === s){
++			this.refresh_head();   // one of my lists changed: its count
++			DefaultView.flash(this.$counts?.el);
++			// It went from empty to not (or back): its row changes kind, a plain count or a view that opens.
++			const el = this.rows.get(origin.name);
++			if (el && el.classList.contains("ux-content-defaultview-row") !== this.empty(origin)) this.update(origin.name);
++		}
++	}
++
++	// Rewrite one property's row in place; a new name adds a row, a gone one removes it.
++	update(k){
++		if (!this.$rows) return;
++		const old = this.rows.get(k);
++		const holder = new View({ capture: false });
++		holder.append(() => this.row(k, this.lists?.get(k) ?? this.value(k)));
++		const made = holder.el.firstElementChild;
++		if (!made){ old?.remove(); this.rows.delete(k); return; }
++		old ? old.replaceWith(made) : this.$rows.el.append(made);
++		DefaultView.flash(made.querySelector(":scope > summary") ?? made);   // a nested view flashes its row, not its insides
+ 	}
+ 
+-	entries(value, path){
+-		if (Array.isArray(value)) return value.forEach((v, i) => this.row(String(i), v, path));
+-		if (value instanceof Map) return value.forEach((v, k) => this.row(String(k), v, path));
+-		if (value instanceof Set) return [...value].forEach((v, i) => this.row(String(i), v, path));
+-		return this.properties(value, path);
++	// A List's members, after any verb (add, remove, move, order, clear): keep each member's view, make the new
++	// ones, drop the gone ones, and move only what is out of place, so nothing else redraws.
++	reconcile(){
++		const want = [...this.subject];
++		for (const [m, v] of this.kids) if (!want.includes(m)){ v.el.remove(); this.kids.delete(m); }
++		let prev = null;
++		for (const m of want){
++			let v = this.kids.get(m);
++			if (!v){ v = new this.constructor({ subject: m, capture: false, open: this.levels - 1, path: new Set(this.path).add(this.subject) }); this.kids.set(m, v); DefaultView.flash(v.$head?.el ?? v.el); }
++			const at = prev ? prev.nextSibling : this.$body.el.firstChild;
++			if (at !== v.el) this.$body.el.insertBefore(v.el, at);
++			prev = v.el;
++		}
+ 	}
+ 
+-	/* One line for a value that ISN'T being expanded: the value itself for a
+-	 * primitive, else how many things are inside, so an unopened row still says
+-	 * something ("Array(3)", "Map(12)") rather than nothing at all. */
++	static flash(el){
++		if (!el) return;
++		el.classList.remove("ux-content-defaultview-flash");
++		void el.offsetWidth;   // restart the animation
++		el.classList.add("ux-content-defaultview-flash");
++	}
++
++	// A reference row's click: flash every view of what it points at, and bring the first into sight.
++	static point_at(target){
++		const shown = (target.views ?? others.get(target) ?? []).filter(v => v.el.isConnected);
++		shown.forEach(v => DefaultView.flash(v.$head?.el ?? v.el));
++		shown[0]?.el.scrollIntoView({ block: "nearest", behavior: "smooth" });
++	}
++
++	// ---- one line for a value ----
++
+ 	describe(value){
+ 		if (value === undefined) return "undefined";
+ 		if (value === null) return "null";
+ 		if (typeof value === "string") return this.cut(JSON.stringify(value));
+ 		if (typeof value === "number" || typeof value === "boolean") return String(value);
++		if (is_list(value)) return plural(value.length, "items");
+ 		if (Array.isArray(value)) return `Array(${value.length})`;
+ 		if (value instanceof Map) return `Map(${value.size})`;
+ 		if (value instanceof Set) return `Set(${value.size})`;
+-		if (typeof value === "object")
+-			return value.constructor && value.constructor !== Object ? `${value.constructor.name} {…}` : "{…}";
++		if (typeof value === "object") return value.constructor && value.constructor !== Object ? `${value.constructor.name} {…}` : "{…}";
+ 		return this.cut(String(value));
+ 	}
+ 
+ 	cut(text, max = 64){ return text.length <= max ? text : text.slice(0, max - 1) + "…"; }
+ }
+ 
+-/* `view(thing)` — the one call most code should use instead of `new DefaultView(…)`
+- * directly: it picks `thing.constructor.View` when that class (or one it extends)
+- * declares one, else falls back to this plain, best-guess tree.
+- *
+- * ⚠ `Viewer.prototype instanceof View`, not just "is it truthy" — `View` (this
+- * codebase's own base class) is imported above already, so this costs nothing
+- * extra. A bare `Klass.View` check would also fire for some OTHER static
+- * someone names `View` for an unrelated job (this framework's own "parts are
+- * static subclasses" pattern makes that a real, if unlikely, future collision)
+- * and try to instantiate it as a `subject`-taking view, which it isn't. */
+-export function view(thing){
+-	const Klass = thing?.constructor;
+-	const Viewer = Klass?.View;
+-	return Viewer?.prototype instanceof View ? new Viewer({ subject: thing }) : new DefaultView({ subject: thing });
++DefaultView.prototype.tag = "details";
++
++/* `view(thing, opts)` — the one call. It picks `thing.constructor.View` when that class (or one it extends)
++ * declares a View, else the default view above. `opts` go to the view: `open`, `properties`.
++ * ⚠ `Viewer.prototype instanceof View`, not just truthy: some other static named `View` must not be
++ * instantiated as a subject-taking view. */
++export function view(thing, opts = {}){
++	const Viewer = thing?.constructor?.View;
++	return Viewer?.prototype instanceof View ? new Viewer({ subject: thing, ...opts }) : new DefaultView({ subject: thing, ...opts });
+ }
+ 
+ export { DefaultView };
+diff --git a/public/framework/ux/Content/Object/DefaultView.test.js b/public/framework/ux/Content/Object/DefaultView.test.js
+new file mode 100644
+index 000000000..49c84b88a
+--- /dev/null
++++ b/public/framework/ux/Content/Object/DefaultView.test.js
+@@ -0,0 +1,51 @@
++import Test from "../../../core/Test/Test.js";
++import { view } from "./DefaultView.js";
++import Box from "../../../core/Item/watch/Box.js";
++
++/* (Every view here passes `capture: false`: built outside a render, a View would land in whatever is capturing.)
++ * The default view's one core test, in a BROWSER (X.test.js; core/Test/readme.md): it needs a DOM. One tree,
++ * changed every way a List and an Item change, each check reading the real elements. Run it by opening
++ * /framework/core/Item/watch/ (the result shows under the steps), or `await (await import(this)).default()`. */
++export default async function run(){
++	const t = new Test("DefaultView");
++	const host = document.createElement("div");
++	host.style.cssText = "position:absolute;left:-9999px;top:0;width:40em";
++	document.body.append(host);
++	try {
++		const root = new Box({ id: "r", title: "R" });
++		const v1 = view(root, { open: 9, capture: false }); host.append(v1.el);
++		t.ok(!view(root, { capture: false }).el.open, "closed by default");
++		t.ok(v1.rows.get("items")?.classList.contains("ux-content-defaultview-row"), "an empty list is a plain row");
++
++		const a = root.items.add({ id: "a", title: "A", count: 1 });
++		t.eq(v1.$counts.el.textContent, "1 item", "the row's count follows the list");
++		t.ok(!v1.rows.get("items").classList.contains("ux-content-defaultview-row"), "a list with a member opens");
++
++		const v2 = view(a, { open: 1, capture: false }); host.append(v2.el);
++		t.eq(a.views.length, 2, "one object, two views");
++		const av = a.views[0], title = av.rows.get("title"), count = av.rows.get("count");
++		a.set({ count: 5 });
++		t.ok(av.rows.get("count") !== count && av.rows.get("count").textContent.includes("5"), "a set rewrites its row");
++		t.ok(av.rows.get("title") === title, "and leaves the others alone");
++		t.ok(v2.rows.get("count").textContent.includes("5"), "the second view changes too");
++
++		root.items.add({ id: "b", title: "B" });
++		const list = root.items.views[0];
++		const ids = () => [...list.$body.el.children].map(e => e.querySelector(".ux-content-defaultview-id")?.textContent).join();
++		t.eq(ids(), "a,b", "members in order");
++		const a_el = list.kids.get(a).el;
++		root.items.move("b", { after: null });
++		t.eq(ids(), "b,a", "a move reorders");
++		t.ok(list.kids.get(a).el === a_el, "without redrawing the others");
++		root.items.remove("b");
++		t.eq(ids(), "a", "a remove drops its row");
++		root.items.remove("a");
++		t.ok(v1.rows.get("items")?.classList.contains("ux-content-defaultview-row"), "an emptied list is plain again");
++
++		v2.el.remove(); a.set({ count: 6 });
++		t.ok(!a.views.includes(v2), "a view off the page leaves views");
++		t.eq(view(5, { capture: false }).el.textContent, "5", "a primitive is its value");
++		t.ok(view(Box, { open: 1, capture: false }).el.textContent.includes("class"), "a class says so");
++	} finally { host.remove(); }
++	return t.done();
++}
+diff --git a/public/framework/ux/Content/Object/Inspect.js b/public/framework/ux/Content/Object/Inspect.js
+index 4b3f84037..ec40d2711 100644
+--- a/public/framework/ux/Content/Object/Inspect.js
++++ b/public/framework/ux/Content/Object/Inspect.js
+@@ -1,201 +1,17 @@
+-import { div, span, li, details, summary, icon } from "../../../core/View/View.js";
+-import { item } from "../../../ui/item/item.js";
+-import ObjectCard from "./Object.js";
++import DefaultView, { view } from "./DefaultView.js";
+ 
+-/* Whether a property's object/array value is worth opening into its own nested
+- * `inspect()` card: an Array with at least one item, or a plain object with at
+- * least one own property worth showing (the same `undefined`/function/DOM-node
+- * filter `ObjectCard.own_properties()` already applies). A Map or a Set is left
+- * OUT on purpose — `own_properties()` reads `Object.keys()`, which sees none of
+- * either one's real entries (the same pre-existing gap `object()`'s own card
+- * has, not something new here), so opening one would show an empty card
+- * promising content that isn't there. An empty array/object is excluded for
+- * the same reason: nothing to open into. Either way, the plain `describe()`
+- * text ("Map(12)", "Array(0)") still shows right there in the row — the size
+- * is visible, just not a dead-end disclosure triangle. */
+-function nestable(value){
+-	if (value instanceof Map || value instanceof Set) return false;
+-	if (Array.isArray(value)) return value.length > 0;
+-	return Object.keys(value).some(key => {
+-		const v = value[key];
+-		return v !== undefined && typeof v !== "function" && !(v?.el || v instanceof Node);
+-	});
+-}
+-
+-/**
+- * class InspectCard extends ObjectCard — the "show me what you are" view the owner
+- * asked for, kept SEPARATE from a class's own `render()` on purpose: `render()` stays
+- * free for whatever real template a class already has (or none at all); `inspect()`
+- * always exists, on every object, whether or not that object has a `render()`. It is
+- * never the same method and it never touches `render()`.
+- *
+- *   inspect(somePage)                          // an instance card
+- *   inspect(Page)                              // a class card — same icon, heavier frame
+- *   inspect(somePage, { variant: "minimal" })  // icon + name only, an Inbox-style chip
+- *   inspect(somePage, { variant: "full" })     // same as "card" today — see the note
+- *                                               // on the `full` branch below
+- *   inspect(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS })
++/* ⚠ Deprecated (2026-10-28): `inspect()` is the default view now — one view, not three (law 6). Use
++ * `view(x, { open: 1 })` from DefaultView.js. This file keeps old imports working; the old card's code is in
++ * git history (`git log -- public/framework/ux/Content/Object/Inspect.js`).
+  *
+- * This reuses everything `ObjectCard` (`Object.js`, beside this file) already works
+- * out: which properties/methods to show (`own_properties()`/`own_methods()`, or an
+- * explicit `properties:`/`methods:` override — the SAME lists a module's own Doc
+- * already names, so "core API first" is just passing that list, not a second
+- * detector), each value's one-line description (`describe()`), and the class's own
+- * icon (`icon_name()`, `static icon` on the class, `"data_object"` when absent).
+- *
+- * **The one new idea beyond `object()`:** a property whose value is itself an object
+- * or array opens into its own NESTED `inspect()` card, not `Array(3)` on one line —
+- * and that nested card nests its own object properties again, as deep as the real
+- * data goes. It opens on CLICK, closed by default, exactly the way
+- * `DefaultView.expandable()` already opens a `view()` row — reusing that exact
+- * mechanism (the native `<details>`/`<summary>` toggle, the `item-node`/`item-caret`
+- * classes and their rotation CSS, all already built) rather than drawing a second
+- * one. This matters beyond style: a `Page`'s `.parent` points to another `Page`,
+- * whose `.parent` points to another, and auto-opening the whole chain at once (an
+- * earlier version of this file did exactly that) made a single property run
+- * thousands of pixels tall before a reader could even take in the card it was
+- * inside. A cycle (an ancestor object showing up again further down its own tree)
+- * is caught the exact way `DefaultView.expandable()` already catches one: `path`, a
+- * running Set of every object already open above this point on this branch — a
+- * value already in it shows "↺ already open above" instead of recursing forever.
+- */
+-export default class InspectCard extends ObjectCard {
+-
+-	render(){
+-		const variant = this.variant ?? "card";
+-		const is_class = typeof this.subject === "function";
+-
+-		// `path` starts empty at the top of a tree (`inspect(subject)` with no `path`
+-		// option) and grows by one ancestor each time `nested()` opens a property's
+-		// value — never shared backwards, so two unrelated branches never collide.
+-		this.path = this.path ?? new Set();
+-
+-		this.ac(`ux-content-inspect-${variant}`);
+-		if (is_class) this.ac("ux-content-inspect-classcard");
+-
+-		if (variant === "minimal") return this.minimal(is_class);
+-
+-		this.head(is_class);
+-
+-		// Arrays/Maps/Sets read better as "Items" than "Properties" — same list, a
+-		// truer label for what's actually inside.
+-		const props = this.own_properties();
+-		const label = Array.isArray(this.subject) ? "Items" : "Properties";
+-		if (props.length) this.group(label, "ux-content-inspect-properties", props, name => this.property_row(name));
+-
+-		// Methods only ever show on a CLASS card. An instance's own methods are
+-		// behaviour, not state — the same reasoning `ObjectCard`/`DefaultView` already
+-		// use to skip functions everywhere else; a class card is the one place the
+-		// owner asked to see them, "properties AND methods together."
+-		//
+-		// `variant === "full"` falls through to here too: it renders identically to
+-		// "card" for now. The owner raised "full" as a name he expects to want but
+-		// hadn't decided what more it should show beyond "card" — more properties
+-		// uncapped, inline doc text, something else — logged as a decision in this
+-		// task's log rather than guessed here. Branch on `variant === "full"` right
+-		// here once that's decided.
+-		if (is_class){
+-			const methods = this.own_methods();
+-			if (methods.length) this.group("Methods", "ux-content-inspect-methods", methods, name => this.method_row(name));
+-		}
+-	}
+-
+-	/* `minimal` — no card chrome at all, just icon + one name, the owner's own
+-	 * comparison point: "like an Inbox context card" (`ext/Mention`'s inline chip,
+-	 * `item({ icon, name }).ac("inline")`). Reusing `item()` directly, rather than
+-	 * drawing a second icon+name row by hand, is what makes this actually match that
+-	 * chip's size instead of a lookalike. */
+-	minimal(is_class){
+-		const klass = this.klass();
+-		const name = is_class ? (klass?.name ?? "Object") : (this.label_text() ?? klass?.name ?? "Object");
+-		item({ icon: this.icon_name(), name: String(name) }).ac("inline");
+-	}
+-
+-	/* The card/full header: the icon (bigger than `object()`'s — "enough to read as a
+-	 * definition," the owner's own phrase), the instance's own name above the class
+-	 * name when it has one, or just the class name when the subject IS the class. */
+-	head(is_class){
+-		div.c("ux-content-inspect-head", () => {
+-			icon(this.icon_name()).ac("ux-content-inspect-icon");
+-			div.c("ux-content-inspect-titles", () => {
+-				const label = is_class ? null : this.label_text();
+-				if (label) span.c("ux-content-inspect-label", String(label));
+-				span.c("ux-content-inspect-classname", this.klass()?.name ?? "Object");
+-			});
+-		});
+-	}
+-
+-	/* An instance's own name, the same three fields `object()`'s header already
+-	 * checks (`name`, else `path`, else `url` — whichever a class actually carries). */
+-	label_text(){
+-		return this.subject?.name ?? this.subject?.path ?? this.subject?.url;
+-	}
+-
+-	/* A property row: `name = value` for a plain value, same as `object()` — but a
+-	 * value worth opening into (`nestable()`, above) becomes a closed disclosure row
+-	 * instead (`expandable_property()`), and a value that IS an object/array but has
+-	 * nothing worth opening into (empty, or a Map/Set) still shows its `describe()`
+-	 * text, just not as a dead-end click target. */
+-	property_row(name){
+-		const value = this.value_for(name);
+-		if (value !== null && typeof value === "object" && nestable(value)) return this.expandable_property(name, value);
+-
+-		return li.c("ux-content-inspect-property", () => {
+-			this.name_span("ux-content-inspect-name", name, "property");
+-			if (value === undefined) return;
+-			span.c("ux-content-inspect-eq", "=");
+-			span.c("ux-content-inspect-value").attr("title", this.describe(value, true)).append(this.describe(value));
+-		});
+-	}
+-
+-	/* A method row — a name only, same look `object()` already uses for methods; a
+-	 * method has no state of its own to nest into. */
+-	method_row(name){
+-		return li.c("ux-content-inspect-method", () => this.name_span("ux-content-inspect-link", name, "method"));
+-	}
+-
+-	/* The recursive, lazy part: `value` is a real object/array worth opening into, so
+-	 * this row IS a disclosure — closed by default, its nested `inspect()` card built
+-	 * only the instant it's actually clicked open, never before. This is
+-	 * `DefaultView.expandable()`'s own mechanism, reused exactly: the same
+-	 * `item-node`/`item-caret` classes (so the same CSS already rotates the caret and
+-	 * already indents `.item-children`), the same "build once, on first toggle" guard,
+-	 * and the same cycle check — `this.path` is every ancestor already open above this
+-	 * row on this branch; `value` already in it shows "↺ already open above" instead
+-	 * of recursing forever. */
+-	expandable_property(name, value){
+-		if (this.path.has(value))
+-			return li.c("ux-content-inspect-property", () => {
+-				this.name_span("ux-content-inspect-name", name, "property");
+-				span.c("ux-content-inspect-eq", "=");
+-				span.c("ux-content-inspect-value muted", "↺ already open above");
+-			});
+-
+-		return li.c("ux-content-inspect-expandable", () => {
+-			details.c("item-node", $node => {
+-				summary.c("item", () => {
+-					span.c("item-caret", "▸");
+-					this.name_span("ux-content-inspect-name", name, "property");
+-					span.c("ux-content-inspect-eq", "=");
+-					span.c("ux-content-inspect-value muted", this.describe(value));
+-				});
+-
+-				const $body = div.c("item-children");
+-				let opened = false;
+-				$node.el.addEventListener("toggle", () => {
+-					if (opened || !$node.el.open) return;
+-					opened = true;
+-					$body.append(() => new InspectCard({ subject: value, variant: "card", path: new Set(this.path).add(value) }));
+-				});
+-			});
+-		});
+-	}
++ * The old options map onto the default view: `variant: "minimal"` is the closed row, any other variant is
++ * open one level; `properties` passes through; `methods` names a class's methods; `doc` and `api` are dropped
++ * (no caller passed them). */
++export function inspect(subject, { variant, methods, doc, api, ...opts } = {}){
++	return view(subject, { open: variant === "minimal" ? 0 : 1, ...(methods ? { method_names: methods } : {}), ...opts });
+ }
+ 
+-InspectCard.prototype.classes = "ux-content-inspect";
+-
+-/* The one call: `inspect(instance)` or `inspect(Class)` — the same one-call shape as
+- * `object()`/`view()` beside it, everything it needs arriving as one data object. */
+-export function inspect(subject, opts = {}){ return new InspectCard({ subject, ...opts }); }
++/** @deprecated The default view; `InspectCard` is kept as a name for old imports. */
++export class InspectCard extends DefaultView {}
+ 
+-export { InspectCard };
++export default InspectCard;
+diff --git a/public/framework/ux/Content/Object/InstanceTree.js b/public/framework/ux/Content/Object/InstanceTree.js
+index b9178fd94..636f966db 100644
+--- a/public/framework/ux/Content/Object/InstanceTree.js
++++ b/public/framework/ux/Content/Object/InstanceTree.js
+@@ -118,7 +118,7 @@ export default class InstanceTree extends View {
+ 				});
+ 			});
+ 
+-			if (this.shown.has(subject)) div.c("instance-props", () => view(subject));
++			if (this.shown.has(subject)) div.c("instance-props", () => view(subject, { open: 1 }));
+ 			if (open) div.c("instance-kids", () => kids.forEach(kid => this.node(kid, active, depth + 1)));
+ 		});
+ 	}
+diff --git a/public/framework/ux/Content/Object/Object.js b/public/framework/ux/Content/Object/Object.js
+index 0ca0e78fd..cd03d8c86 100644
+--- a/public/framework/ux/Content/Object/Object.js
++++ b/public/framework/ux/Content/Object/Object.js
+@@ -1,179 +1,17 @@
+-import View, { div, span, a, ul, li, details, summary, icon } from "../../../core/View/View.js";
++import DefaultView, { view } from "./DefaultView.js";
+ 
+-/**
+- * class ObjectCard extends View — a small card that shows what a real object IS instead
+- * of explaining it in words: its icon, its class name, its instance name when it has
+- * one, its properties as `name = value`, and its methods as names. The icon comes from
+- * `static icon = "material-symbol-name"` on the class — any class may declare one;
+- * absent, this card falls back to "data_object" (see `icon_name()` below). `Inspect.js`,
+- * beside this file, is the bigger, recursive version of this same card for a separate
+- * debug/inspector view (`inspect()`); this one stays the small, no-frills version.
++/* ⚠ Deprecated (2026-10-28): `object()`, the small card, is the default view now — one view, not three
++ * (law 6). Use `view(x, { open: 1 })` from DefaultView.js. This file keeps old imports working; the old card's
++ * code is in git history (`git log -- public/framework/ux/Content/Object/Object.js`). Nothing outside this
++ * module imported it.
+  *
+- *   object(page)                          // an instance — header shows its name too
+- *   object(Page)                          // a class itself — no instance name
+- *   object(Page, { doc: "/framework/core/Page/", properties: "title children url" })
+- *   object(Page, { api: "/framework/core/Page/api/" })   // link the rail's own pages
+- *   object(plain, { inline: true })       // the compact, inline-width look
+- *
+- * `doc` is the module's own Doc base url (the page that owns `doc/property/<name>.md`
+- * and `doc/method/<name>.md`) — with it, every name links to its doc page; without it
+- * the names still show, just as plain text, because this card cannot guess where
+- * another module's docs live.
+- *
+- * `api` is for a card drawn ON a module's own API tab, beside the tab's own left rail —
+- * pass the rail's own base url (`<module>/api/`) and every name links there instead, so
+- * a method has ONE address on that screen, not a second one at `doc/method/<name>/`.
+- * `api` wins over `doc` when both are given.
+- *
+- * `properties` and `methods` override which names to show — a space-separated string or
+- * an array — for the case a bare class has no own values to discover (its properties
+- * live per-instance): pass the same lists the module's own Doc `properties:`/`methods:`
+- * already name, so every name shown is one that actually HAS a doc page to link to.
+- * Left at the default, properties are every own enumerable value of the subject that
+- * isn't a function, a DOM/View node, or `undefined`; methods are read off the prototype.
+- *
+- * Either list is capped at 12 rows, with the rest behind a native "+N more" disclosure —
+- * a card is a few lines tall, not a wall.
+- */
+-export default class ObjectCard extends View {
+-
+-	/* The class behind the subject: itself, when the subject IS a class. */
+-	klass(){ return typeof this.subject === "function" ? this.subject : this.subject?.constructor; }
+-
+-	/* The class's own icon — any class may declare `static icon = "material-symbol-name"`
+-	 * (a convention, not a new mechanism: nothing enforces it, a class just carries the
+-	 * name of its own icon the same way it carries any other static). Read off the
+-	 * subject's class when the subject is an instance, or the subject itself when it
+-	 * IS the class. Falls back to "data_object", the same default `DefaultView` already
+-	 * draws when a class says nothing — one shared fallback, not two. */
+-	icon_name(){
+-		const owner = typeof this.subject === "function" ? this.subject : this.klass();
+-		return owner?.icon ?? "data_object";
+-	}
+-
+-	/* Explicit list wins (a class's own declared properties, named by the caller);
+-	 * otherwise every own enumerable value worth showing — skip functions, DOM/View
+-	 * nodes, and `undefined` (nothing to see there, just noise). */
+-	own_properties(){
+-		if (this.properties) return Array.isArray(this.properties) ? this.properties : String(this.properties).trim().split(/\s+/).filter(Boolean);
+-
+-		return Object.keys(this.subject ?? {}).filter(key => {
+-			const value = this.subject[key];
+-			return value !== undefined && typeof value !== "function" && !(value?.el || value instanceof Node);
+-		});
+-	}
+-
+-	/* A property's current value: on the subject itself first (an instance's own field,
+-	 * or a class's own static), else its prototype's default — assign-based OOP's own
+-	 * pattern (`Klass.prototype.field = default`) — else nothing to show. */
+-	value_for(name){
+-		if (this.subject && Object.prototype.hasOwnProperty.call(this.subject, name)) return this.subject[name];
+-		const proto = typeof this.subject === "function" ? this.subject.prototype : undefined;
+-		// A descriptor, never `proto[name]`: that runs accessors (Item's `title`, Page's `unknown`) on a prototype with no data.
+-		return proto ? Object.getOwnPropertyDescriptor(proto, name)?.value : undefined;
+-	}
+-
+-	/* Method names live up the WHOLE prototype chain — the instance's class, then
+-	 * every class it extends — stopping before Object.prototype so a plain `{}` shows
+-	 * no Methods at all instead of hasOwnProperty / __defineGetter__ and the rest of
+-	 * the furniture nobody asked for. Nearest class first, so a reader sees what the
+-	 * subject itself adds before what it inherited. */
+-	own_methods(){
+-		if (this.methods) return Array.isArray(this.methods) ? this.methods : String(this.methods).trim().split(/\s+/).filter(Boolean);
+-
+-		const start = typeof this.subject === "function" ? this.subject.prototype : Object.getPrototypeOf(this.subject ?? {});
+-		const names = new Set();
+-		for (let proto = start; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto))
+-			for (const name of Object.getOwnPropertyNames(proto))
+-				if (name !== "constructor" && typeof Object.getOwnPropertyDescriptor(proto, name).value === "function") names.add(name);   // a descriptor, never `proto[name]`: that would run getters (Page.prototype.unknown threw)
+-
+-		return [...names];
+-	}
+-
+-	render(){
+-		if (this.inline) this.ac("inline");
+-
+-		const klass = this.klass();
+-		const label = typeof this.subject === "function" ? null : (this.subject?.name ?? this.subject?.path ?? this.subject?.url);
+-
+-		div.c("ux-content-object-head", () => {
+-			icon(this.icon_name()).ac("ux-content-object-icon");
+-			span.c("ux-content-object-class", klass?.name ?? "Object");
+-			if (label) span.c("ux-content-object-label", String(label));
+-		});
+-
+-		// A names-only list (almost nothing on it has a value worth reading — a bare
+-		// class, mostly, maybe one stray own field like a function's own `.name`) reads
+-		// better as a wrapping row of chips than 13 tall single-word rows.
+-		const props = this.own_properties();
+-		const with_value = props.filter(name => this.value_for(name) !== undefined).length;
+-		const bare = props.length && with_value / props.length <= .25;
+-		if (props.length) this.group("Properties", `ux-content-object-properties${bare ? " chips" : ""}`, props, name => this.property_row(name));
+-
+-		const methods = this.own_methods();
+-		if (methods.length) this.group("Methods", "ux-content-object-methods", methods, name => this.method_row(name));
+-	}
+-
+-	/* One labelled group (a list of rows), capped so the card stays short. */
+-	group(title, list_class, names, row){
+-		div.c("ux-content-object-group", () => {
+-			span.c("ux-content-object-label-row", title);
+-			ul.c(list_class, () => this.rows(names, list_class, row));
+-		});
+-	}
+-
+-	rows(names, list_class, row, cap = 12){
+-		if (names.length <= cap) return names.forEach(row);
+-
+-		names.slice(0, cap).forEach(row);
+-		li.c("ux-content-object-more", () => details(() => {
+-			summary(`+${names.length - cap} more`);
+-			ul.c(list_class, () => names.slice(cap).forEach(row));
+-		}));
+-	}
+-
+-	property_row(name){
+-		const value = this.value_for(name);
+-		return li.c("ux-content-object-property", () => {
+-			this.name_span("ux-content-object-name", name, "property");
+-			if (value !== undefined){
+-				span.c("ux-content-object-eq", "=");
+-				span.c("ux-content-object-value").attr("title", this.describe(value, true)).append(this.describe(value));
+-			}
+-		});
+-	}
+-
+-	method_row(name){
+-		return li.c("ux-content-object-method", () => this.name_span("ux-content-object-link", name, "method"));
+-	}
+-
+-	/* A name, linked to wherever this card knows the member's real page lives: the
+-	 * rail's own address (`api`) when this card sits on that rail's own tab, else the
+-	 * module's Docs tab (`doc`), else nowhere — plain text. */
+-	name_span(cls, name, kind){
+-		const href = this.api ? `${this.api}${name}/` : this.doc ? `${this.doc}doc/${kind}/${name}/` : null;
+-		if (href) return a.c(cls).attr("href", href).append(name);
+-		return span.c(cls, name);
+-	}
+-
+-	/* One line, however long the real value is — `full` skips the cut, for the title attr. */
+-	describe(value, full = false){
+-		if (value === undefined) return "undefined";
+-		if (value === null) return "null";
+-		if (typeof value === "string") return this.cut(JSON.stringify(value), full);
+-		if (typeof value === "number" || typeof value === "boolean") return String(value);
+-		if (Array.isArray(value)) return `Array(${value.length})`;
+-		if (typeof value === "object") return value.constructor && value.constructor !== Object ? `${value.constructor.name} {…}` : "{…}";
+-		return this.cut(String(value), full);
+-	}
+-
+-	cut(text, full){ return full || text.length <= 40 ? text : text.slice(0, 37) + "…"; }
++ * `properties` passes through; `methods` names a class's methods; `doc` and `api` (links from names to doc
++ * pages) are dropped. */
++export function object(subject, { methods, doc, api, ...opts } = {}){
++	return view(subject, { open: 1, ...(methods ? { method_names: methods } : {}), ...opts });
+ }
+ 
+-ObjectCard.prototype.classes = "ux-content-object";
+-
+-/* The one call: `object(instance)` or `object(Class)`, matching how the other Content
+- * modules render — one function, everything from one data object. */
+-export function object(subject, opts = {}){ return new ObjectCard({ subject, ...opts }); }
++/** @deprecated The default view; `ObjectCard` is kept as a name for old imports. */
++export class ObjectCard extends DefaultView {}
+ 
+-export { ObjectCard };
++export default ObjectCard;
+diff --git a/public/framework/ux/Content/Object/doc/census.md b/public/framework/ux/Content/Object/doc/census.md
+index 97c371b35..0a465e8e6 100644
+--- a/public/framework/ux/Content/Object/doc/census.md
++++ b/public/framework/ux/Content/Object/doc/census.md
+@@ -1,5 +1,7 @@
+ # Census — which classes are worth a debug view?
+ 
++> Since 2026-10-28 every object has one: `view(x)` ([default-view.md](default-view.md)). This walk still says which classes are worth a view of their OWN.
++
+ This table walks every exported class in `core/`, `ext/` and `ux/` — anything matching
+ `export class` or `export default class` at the top level of a `.js` file, skipping
+ `ai/`, `core/legacy/`, `core/new/`, `dev/` and sandbox dirs (77 classes; `ui/` and `web/`
+diff --git a/public/framework/ux/Content/Object/doc/default-view.md b/public/framework/ux/Content/Object/doc/default-view.md
+index f898b314b..e4e1a4756 100644
+--- a/public/framework/ux/Content/Object/doc/default-view.md
++++ b/public/framework/ux/Content/Object/doc/default-view.md
+@@ -1,74 +1,38 @@
+-# DefaultView — what the tree reads, and when
++# DefaultView — what it reads, how it stays live, and why it is the only one
+ 
+-Unlike `ObjectCard` (`object()`, `shape.md`), which draws one small card and stops,
+-`DefaultView` (`view()`) draws a **tree**: a header row, then one row per own
+-property, and a property that is itself an object can be opened to show ITS own
+-properties, as deep as you keep clicking.
++## One view, not three (2026-10-28)
+ 
+-## What each row shows
++There were three overlapping views here: `object()` (a small card), `view()` (a tree of rows) and `inspect()` (a card whose object properties opened as nested cards). They showed the same thing three ways, so they were merged into `view()` (law 6, one of everything). `object()` and `inspect()` still work: each calls `view(x, { open: 1 })` and is marked deprecated. What they lost: `object()`'s `doc`/`api` links from a name to its doc page (no caller outside this module used them) and `inspect()`'s `variant: "full"` (it was identical to `"card"`). `variant: "minimal"` is the closed row. The old code is in git history.
+ 
+-- `Object.keys(subject)` → the property list, same source `ObjectCard` reads.
+-- A function, or a value with `.el` (a `View`) or that is a DOM `Node` → skipped
+-  entirely, same as `ObjectCard`. Nothing useful to draw for either.
+-- A primitive (`string`, `number`, `boolean`, `null`, `undefined`) → shown inline,
+-  right after the name, in the row's own `end` slot (`ui/item`'s).
+-- An object, an array, a `Map` or a `Set` → an **expandable** row. It shows a
+-  one-line summary only (`Array(3)`, `Map(12)`, `{…}`) — its own contents are not
+-  read, or drawn, until the row is actually opened.
++`InstanceTree` stays: it is a tree of the site's pages, not a view of one object, and it opens each page with `view()`.
+ 
+-## Why "until opened" matters
++## The row (closed)
+ 
+-A `Page`'s `.children` is a `Map` of more `Page`s, and each of THOSE has a
+-`.parent` pointing straight back up. Read the whole thing eagerly and you either
+-loop forever or build a wall of rows nobody asked to see. `DefaultView` instead
+-wires a plain `"toggle"` listener onto the row's own `<details>` element and only
+-calls `entries()` the first time it actually opens — so a `Page`, an `App`, or
+-anything else with a big graph behind it costs nothing to show until you go
+-looking, and a value already open somewhere above the row you're opening (a
+-cycle) shows "↺ already open above" instead of opening into itself.
++- the class's `static icon`, else `"data_object"`;
++- the id (a uuid is cut to 8 characters, the whole id on hover), then the title, muted, when it says something the id does not;
++- the class name as a small label (`class` for a class);
++- counts: one per List the object owns (`2 items · 1 tasks`), entries for an array, Map or Set, methods for a class.
+ 
+-## The override: `Thing.View`
++## Open
+ 
+-`view(thing)` is the one call most code should use:
++- **Rows:** an Item's `data` fields, then its other own properties. Skipped: `_private` names, functions, DOM and View nodes, `undefined`. `properties` replaces the list; `static shown` and `static hidden` reorder and drop.
++- **By type:** a primitive is written out (a path or url is a link); an empty List, array, Map or Set is a plain row with its count; an object the subject owns nests its own default view, built only when it is opened, one `open` level less.
++- **References:** something not the subject's to draw is one row saying where it points: its `parent`, a sibling, a `Store` (any class named `Store` up the chain), or an object already open above (a cycle, `↺`). A `parent` that is the row this one sits in is not shown at all. A click flashes every view of the target and scrolls the first into sight.
+ 
+-```js
+-import { view } from "/framework/ux/Content/Object/DefaultView.js";
++## Live
+ 
+-view(somePage)          // DefaultView, unless Page (or something it extends) says otherwise
+-```
++- Each view pushes itself into `subject.views` (`core/Item/Item.js`, a getter over `_views`; a WeakMap for other emitters).
++- Each object gets ONE `"delta"` listener, which walks its views (`DefaultView.walk`). Deltas bubble up through `parent`, so a view acts only when the change is its own:
++  - **origin is the subject, a `set` line:** each named row is rebuilt alone and swapped in place (`update(k)`), the others are untouched, and the new row flashes.
++  - **origin is the subject, a List verb** (add, remove, move, order, clear): `reconcile()` keeps each member's view, makes new ones, drops gone ones, and moves only what is out of place.
++  - **origin is one of the subject's own lists:** the count in the row changes; a list that went empty or stopped being empty changes its row's kind.
++- A view whose element has left the page (after it was once on it) is dropped from `views` on the next change.
+ 
+-It checks `thing.constructor.View` — a plain JS static, so a class that never
+-declared its own `View` still finds one declared by a class it extends, the same
+-way any other inherited member works. When nothing declares one, `view()` falls
+-back to `new DefaultView({ subject: thing })`.
++## Tested
+ 
+-```js
+-class Widget { … }
+-Widget.View = class extends DefaultView {
+-	render(){ /* draw whatever makes sense for a Widget */ }
+-};
+-```
++`DefaultView.test.js` (a browser test, `X.test.js` in core/Test's naming): 16 checks on one tree, each reading the real elements. It runs on the [watch page](/framework/core/Item/watch/), which shows the verdict.
+ 
+-The demo page shows one class both ways, side by side, so the difference between
+-"the automatic guess" and "a class's own view" is something you can see, not just
+-read about.
++## Not built
+ 
+-## `track()` — how a `Page` ends up trackable at all
+-
+-`DefaultView` only ever draws an instance it's HANDED — it has no idea which
+-instances exist. `core/track/track.js`'s `track(Klass)` is the separate, opt-in
+-piece that answers "which ones exist": call it once per class
+-(`Page.class.js` does this for `Page`), then `Klass.track(instance)` — one line,
+-in that class's own constructor — remembers every instance built from then on,
+-and `Klass.instances()` reads them back. `Page`'s own constructor has that one
+-line now; most classes have neither, and show up in `Klass.instances()` nowhere,
+-which is the point — tracking is for the classes where "see every one of these"
+-is actually useful, not a default every class pays for.
+-
+-## Files
+-
+-The class is [`DefaultView.js`](/framework/ux/Content/Object/DefaultView.js);
+-the tracking piece is
+-[`core/track/track.js`](/framework/core/track/track.js); the two live examples
+-are [the Page object](/framework/ux/Content/Object/page/) and
+-[the App object](/framework/ux/Content/Object/app/).
++- `List.render()` drawing each member through its own view (ask 32): `core/List/List.js` is owned by the data backbone build; asked for there. `view(list)` draws the same thing today.
++- Step-by-step rendering while a test runs (ask 26, phase two).
+diff --git a/public/framework/ux/Content/Object/page.js b/public/framework/ux/Content/Object/page.js
+index 8d937219f..a4eedfed6 100644
+--- a/public/framework/ux/Content/Object/page.js
++++ b/public/framework/ux/Content/Object/page.js
+@@ -1,11 +1,6 @@
+ import { Doc, md, div } from "/app.js";
+ import Page from "../../../core/Page/Page.class.js";
+-import PageOverview from "../../../core/Page/page.js";
+-import { page_object } from "../../../core/Page/object.js";
+-import { object } from "./Object.js";
+ import { view, DefaultView } from "./DefaultView.js";
+-import { inspect } from "./Inspect.js";
+-import { item } from "../../../ui/item/item.js";
+ 
+ // The same names core/Page/page.js's own Doc declares and links to real doc pages —
+ // duplicated here on purpose: this demo shows a real class, so it should show what
+@@ -29,77 +24,33 @@ Widget.View = class extends DefaultView {
+ export default new Doc({
+ 	meta: import.meta,
+ 	title: "Object",
+-	description: "A little card that shows what a real object IS — class, name, properties, methods — instead of explaining it in words.",
++	description: "One default view for any object: a row with its icon, id, class and counts; open it to see its data, live.",
+ 	icon: "data_object",
+ 
+-	files: "Object.js Inspect.js DefaultView.js InstanceTree.js page.js readme.md",
++	files: "DefaultView.js DefaultView.css DefaultView.test.js Object.js Inspect.js InstanceTree.js page.js readme.md",
+ 	notes: "shape default-view",
+ 	children: "page app instance-tree",
+ 
+ 	content(){
+ 
+-		md("**Two ways to look at a real object.** `object()` is one small card — class, `name = value`, method names. `view()` is a tree instead: a header row, then one `.item` row per property, opening deeper the same way a file tree does. Both take the same thing: a live instance, a class, or a plain object.");
+-
+-		md("### `view()` — three real, live ones, full width");
++		md("**One view for any object.** `view(x)` draws one row: the class's icon, the id, the class as a small label, and counts. Click it open: a string or number is written out, an object it owns opens the same way, a reference says where it points. It is live: a change redraws only its own row. **[Watch a tree being built →](/framework/core/Item/watch/)**");
+ 
+ 		div.c("ux-content-wall wide", () => {
+-			div.c("flex v gap", $box => {
+-				md("#### The Page object");
+-				// `.children` starts as declared-but-not-fetched (`null` for each name) on a
+-				// fresh import — the SAME cost a real visit to /framework/core/Page/ pays, paid
+-				// here instead, so `.children` opens onto real Page objects, not a wall of
+-				// "null". No DOM after the await: the box is captured now, filled once the
+-				// fetch settles.
+-				PageOverview.load_all_children(1).loading.then(() => $box.append(() => page_object(PageOverview)));
+-				md("[Open it on its own page →](page/)");
+-			});
++			div.c("flex v gap", () => { md("#### This page (a `Doc`, a `Page` subclass)"); view(this, { open: 1, properties: "title url icon parent" }); });
++			div.c("flex v gap", () => { md("#### The App"); view(this.app, { open: 1 }); });
++			div.c("flex v gap", () => { md("#### The `Page` class"); view(Page, { open: 1, properties: PAGE_PROPERTIES, method_names: PAGE_METHODS }); });
++			div.c("flex v gap", () => { md("#### A plain object"); view({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }, { open: 2 }); });
+ 			div.c("flex v gap", () => {
+-				md("#### The App object");
+-				md(`**Right now:** on \`${this.app.router?.active?.url ?? location.pathname}\` — **${this.app.loaders.length}** loader(s) tracked.`);
+-				view(this.app);
+-				md("[Open it on its own page →](app/)");
+-			});
+-			div.c("flex v gap", () => {
+-				md("#### A `Widget`, both ways — the override");
+-				md("`DefaultView`'s own best guess:"); new DefaultView({ subject: new Widget("demo") });
+-				md("Its own hand-written `Widget.View`:"); view(new Widget("demo"));
++				md("#### A class with its own look");
++				md("No `static View`: the default view."); new DefaultView({ subject: new Widget("demo"), open: 1 });
++				md("`Widget.View`, its own:"); view(new Widget("demo"));
+ 			});
+ 		});
+ 
+-		md("### `object()` — the small card (the first version, still here)");
+-
+-		div.c("ux-content-wall wide", () => {
+-			// `this` here is a `Doc` — a `Page` subclass — so the heading says that, and a
+-			// hand-picked property list keeps the takeaway obvious: "this is a Page with
+-			// title = X", not a wall of `Doc`-only internals like `column_floor`.
+-			div.c("flex v gap", () => { md("### This page, as an instance (`Doc`, a `Page` subclass)"); object(this, { properties: "title url children icon parent" }); });
+-			div.c("flex v gap", () => { md("### The `Page` class itself"); object(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS }); });
+-			div.c("flex v gap", () => { md("### A plain object"); object({ name: "sidebar", width: 320, sticky: true, items: ["overview", "api", "docs"] }); });
+-		});
+-
+-		md("### `inspect()` — the debug view, the fourth size");
+-
+-		md("A class's own doc page opens with THIS, not `object()` — the same icon, bigger, and a property whose value is itself an object opens as its own nested card instead of saying \"Array(3)\".");
+-
+-		div.c("ux-content-wall wide", () => {
+-			div.c("flex v gap", () => {
+-				md("#### The `Page` class itself — a class card");
+-				md("Same icon as the instance below, in a visibly heavier frame; properties AND methods together.");
+-				inspect(Page, { doc: "/framework/core/Page/", properties: PAGE_PROPERTIES, methods: PAGE_METHODS });
+-			});
+-			div.c("flex v gap", $box => {
+-				md("#### This page, as an instance — click a property open to see its own card");
+-				md("`parent` is a real `Page` underneath, not a one-line description — click it open (closed by default, same as `view()`) to see IT has its own `parent`, `children`, and so on.");
+-				PageOverview.load_all_children(1).loading.then(() => $box.append(() => inspect(PageOverview, { properties: "title url icon parent" })));
+-			});
+-			div.c("flex v gap", () => {
+-				md("#### `minimal` — an Inbox-style chip, icon + name only");
+-				inspect(PageOverview, { variant: "minimal" });
+-			});
+-		});
++		md("`object()` and `inspect()`, the two older views, still work and draw this one (deprecated; `Object.js`, `Inspect.js`).");
+ 
+ 		md.details(import.meta, "readme.md", "Readme");
+ 	},
+ 
+-	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => object({ name: "example", size: 12 }))); },
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => view({ name: "example", size: 12 }, { open: 1 }))); },
+ });
+diff --git a/public/framework/ux/Content/Object/readme.md b/public/framework/ux/Content/Object/readme.md
+index a57cb1ade..784b0d157 100644
+--- a/public/framework/ux/Content/Object/readme.md
++++ b/public/framework/ux/Content/Object/readme.md
+@@ -1,61 +1,38 @@
+-# Object — show a real object instead of explaining it
+-
+-Three ways in, all from one real object, a class, or a class instance:
+-
+-- **`object()`** (`Object.js`) — one small card: icon, class name, `name = value` for
+-  each property, method names. Reads nothing, writes nothing, draws once.
+-- **`view()`** (`DefaultView.js`) — a tree of [`ui/item`](/framework/ui/item/)
+-  rows instead: a header row, then one row per property, and a property that is
+-  itself an object opens (lazily — nothing under it is read until you click) to
+-  show its own properties the same way, as deep as you keep going. Best guess by
+-  default; a class overrides it with its own `Thing.View`.
+-- **`InstanceTree`** (`InstanceTree.js`, [page](/framework/ux/Content/Object/instance-tree/), [doc](doc/instance-tree.md)) — the whole running site as a live tree.
+-- **`inspect()`** (`Inspect.js`) — the debug/inspector view, separate from a class's
+-  own `render()` (it exists even when a class has no `render()` at all). Bigger than
+-  `object()`'s card, and a property whose value is itself an object nests its own
+-  `inspect()` card instead of a one-line `Array(3)`. A class gets the SAME icon in a
+-  heavier frame, listing properties and methods together.
+-
+-Any class may carry `static icon = "material-symbol-name"` — all three views read it
+-the same way, falling back to `"data_object"` when a class says nothing.
++# Object — one default view for any object: a row you can open, live
++
++`view(x)` draws any object (an Item, a List, a class, a plain object, an array) as one row: the class's icon, the id, the class name as a small label, and counts ("3 items"). Click it open and it shows the object's data by type: a string or number is written out, an object it owns opens the same way, and a reference (its `parent`, a store) says where it points; a click on a reference flashes every view of its target. It is live: a change redraws only the row it touched. **See it:** [watch a tree being built](/framework/core/Item/watch/).
++
++## Index
++
++- [DefaultView.js](./DefaultView.js) — `class DefaultView extends View`, and `view(thing, opts)`, the one call
++- [DefaultView.test.js](./DefaultView.test.js) — its one core test, in a browser (16 checks); the result shows on the [watch page](/framework/core/Item/watch/)
++- [InstanceTree.js](./InstanceTree.js) — the whole running site as a live tree of pages; each opens its `view()` ([doc](doc/instance-tree.md), [page](/framework/ux/Content/Object/instance-tree/))
++- [Object.js](./Object.js), [Inspect.js](./Inspect.js) — ⚠ deprecated (2026-10-28): `object()` and `inspect()` draw the default view, open one level
++- [doc/default-view.md](doc/default-view.md) — what the view reads, how it stays live, and why one view replaced three
+ 
+ ## Use
++
+ ```js
+-import { object } from "/framework/ux/Content/Object/Object.js";
+ import { view } from "/framework/ux/Content/Object/DefaultView.js";
+-import { inspect } from "/framework/ux/Content/Object/Inspect.js";
+ 
+-object(somePage)                                       // the small card
+-object(Page, { doc: "/framework/core/Page/" })         // a class, names link to its doc pages
+-view(somePage)                                          // the tree — Page has no Thing.View, so this is DefaultView
+-inspect(somePage)                                       // the debug view — icon, name, properties, nested
+-inspect(Page)                                           // the SAME debug view, as a class card
++view(item)                                   // closed: one row
++view(item, { open: 3 })                      // three levels open from the start
++view(obj, { properties: "title state" })     // only these rows, in this order
++view(Page, { open: 1 })                      // a class: its fields, then its own methods
+ ```
+-One call, like `new Question({...})` — everything it needs arrives as one data object.
+ 
+-**Opt a class's instances into being findable at all** with `core/track/track.js`:
+-call `track(MyClass)` once per class, then `MyClass.track(this)` — one line, in
+-that class's own constructor. `Page` already does this, which is what makes the
+-two live pages below possible.
++A class may carry `static icon = "material-symbol-name"` (else `"data_object"`), `static shown` (rows first) and `static hidden` (rows never shown). A class with its own look declares `static View`, a View that takes `subject`; `view()` picks it, nested rows always use the default.
+ 
+ ## Watch out
+-- `object()`'s `doc` and `api` are the two ways a name becomes a link — this card
+-  cannot guess where a class's docs live, so pass one whenever you know it. `api`
+-  wins when both are given (`shape.md`). `inspect()` takes the same two.
+-- All three skip functions and DOM/View nodes by default; `object()`/`inspect()`
+-  also take `properties: [...]` (and `methods: [...]`) to choose exactly which
+-  ones show, in order — the way to put "core API" members first.
+-- A long value is cut to one line; hover it for the full text (a `title` attribute).
+-- `inspect()`'s `variant: "full"` renders identically to `"card"` today — the owner
+-  hasn't decided yet what more it should add; see the comment in `Inspect.js`.
+-- Most classes should NOT call `track()` — it's for the handful where "see every
+-  one of these" is actually useful, not a default every class pays for.
++
++- **Live means an emitter.** The view listens to the object's `"delta"` event (an Item, a List, anything with `on()`); a plain object draws once.
++- **Every view of an object is in `item.views`** (core/Item/Item.js; a WeakMap for other emitters). A view whose element has left the page drops out on the next change, so a view built and never attached stays listed.
++- **Built outside a render, pass `capture: false`**, or the view lands in whatever is capturing at that moment (the page body).
++- `item.view` (singular, core/Item) is a class's own view (`PageText.View`, `Task.View`), not this one.
++- `List.render()` drawing each member through its own view is not built: `core/List/List.js` belongs to the data backbone build. `view(list)` already does it.
+ 
+ ## More
+-- [Live demo](/framework/ux/Content/Object/) · [shape](/framework/ux/Content/Object/doc/shape/)
+-  (the small card) · [how DefaultView reads a tree](/framework/ux/Content/Object/doc/default-view/)
+-- Two real, live trees: [the Page object](/framework/ux/Content/Object/page/) and
+-  [the App object](/framework/ux/Content/Object/app/).
+-- Used once already: the [`Page` API tab](/framework/core/Page/api/) opens with
+-  `object()`'s card, so "what does a `Page` have?" is answered by looking, not
+-  reading.
++
++- [Live demo of this module](/framework/ux/Content/Object/) · two live trees: [the Page object](/framework/ux/Content/Object/page/), [the App object](/framework/ux/Content/Object/app/)
++- [doc/census.md](doc/census.md) — which classes are worth a view (2026-10 walk)
++- [code/objects](/framework/code/objects/) — the rule: every class ships a view of its state
