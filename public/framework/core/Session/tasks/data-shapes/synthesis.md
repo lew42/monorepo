@@ -9,7 +9,7 @@
 
 **Nothing is built.** The owner wants to refine the shape together before anything is built.
 
-Seat folders: [design-1](seats/design-1/shape.md) · [design-2](seats/design-2/shape.md) · [design-3](seats/design-3/shape.md) · [items](seats/items/shape.md) · [task-path](seats/task-path/shape.md) · [consolidation](seats/consolidation/shape.md) · [pages](seats/pages/shape.md) · [streaming](seats/streaming/shape.md). Each has a `shape.md` (one page) and a `notes.md` (the evidence).
+Seat folders: [design-1](seats/design-1/shape.md) · [design-2](seats/design-2/shape.md) · [design-3](seats/design-3/shape.md) · [items](seats/items/shape.md) · [task-path](seats/task-path/shape.md) · [consolidation](seats/consolidation/shape.md) · [pages](seats/pages/shape.md) · [streaming](seats/streaming/shape.md) · [structures](seats/structures/shape.md) (added after, §7). Each has a `shape.md` (one page) and a `notes.md` (the evidence).
 
 ## 1. What the seats agree on
 
@@ -207,9 +207,33 @@ Each one has a recommendation, so a "yes" is enough.
     - stripping `by`/`ts` for every Item;
     - the hop naming its list.
 
+## 7. Beyond sessions: what else the base must carry (seat f, ask 20)
+
+[Seat (f)](seats/structures/shape.md) sketched every structure the site will want: the editor's layer tree, tables, boards, graphs, timelines, forms, users, teams, topics, channels, comments and documents.
+
+- **Each one is an Item with named Lists, and nothing more.** The session shape above is the same pattern; a topic's chat is the same `Chat` class.
+- **They all need the same ten base features, and today's base has none of them yet:**
+  1. ids unique per file, with a live index;
+  2. one `Ref` shape that also resolves in the browser;
+  3. `items` on demand;
+  4. the hop names its list;
+  5. a sidecar snapshot;
+  6. a file rolled by rename;
+  7. an **ephemeral channel** for things never saved (cursors, selection, a drag, "typing…");
+  8. bulk add in one line;
+  9. undo as inverse deltas, written forward;
+  10. a write check at the one writer.
+- Features 1, 3, 4 and 5 are already among this page's decisions or safe fixes. The new ones are 7 (ephemeral channel), 8 (bulk add), 9 (undo) and 10 (permissions).
+- **Three structures to prove the base, in order:**
+  1. **the editor's layer tree**, which tests the most features at once (`ext/editor` exists and still saves one whole JSON per change, so porting it also proves the store is swappable);
+  2. **a topic with channels and comments**, which rides on the session chat;
+  3. **a table**, which tests scale and bulk import.
+- If the order follows cost instead: the channel, then the table, then the editor.
+- Comments live in a `comments.jsonl` beside the item they discuss. A channel rolls monthly. Board and timeline are views over a list, not lists of their own.
+
 ## Not covered yet
 
-- Users, teams, topics, channels and the editor are sketched as shapes only ([pages §5–6](seats/pages/notes.md)); none has been designed in depth.
+- Users, teams, topics, channels and the editor are class sketches only (§7, [pages §5–6](seats/pages/notes.md)). None is designed in depth, and permissions are a shape with no design behind it.
 - Design-1's worry: two writers reshaping one prompt at once (fast appends while smart splits). The writer has to redirect a stale `hear`. This is the hardest piece of code in the design.
 - Verb lines tie old logs to method code. The answer is a `schema` number on the snapshot, and a new verb rather than a changed one.
 - Per-sentence context cost, auto-compaction and token accounting stay in view, as the brief asked. They are not designed here.
