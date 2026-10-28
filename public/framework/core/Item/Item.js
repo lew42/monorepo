@@ -17,7 +17,7 @@ const skipped = key => key === "constructor" || key === "__proto__" || key.start
 // Duck-typed list check: items array + find(): doc/item-notes.md
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
-const building = new WeakSet();
+const building = new WeakSet();   // Items inside their own constructor (see constructor())
 
 // Can a key's value take the rest of a delta? (an Item or List; a Map has a set() too, but it is data)
 const routes = node => !!node && typeof node.set === "function" && !(node instanceof Map);
@@ -25,7 +25,7 @@ const routes = node => !!node && typeof node.set === "function" && !(node instan
 const is_envelope = value => is_plain(value) && typeof value.type === "string" && "id" in value && is_data(value.data) && !!Item.types.get(value.type)
 	&& Object.keys(value).every(k => k === "type" || k === "id" || k === "data" || Array.isArray(value[k]));
 // A cache kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
-const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });   // Items inside their own constructor (see constructor())
+const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
 
 // Architecture: composition not inheritance; doc/item-notes.md
 export class Item extends Events(Object) {
@@ -165,10 +165,21 @@ export class Item extends Events(Object) {
 		if (routes(target)) return void target.set(value);
 
 		// An old line named a list member by its id alone (`{"c3":{…}}`, what Store.hops wrote before every hop named its
-		// list): still replayed, from the first list that has it, as get() used to; new lines name the list.
+		// list): still replayed, from the first list that has it, as get() used to; new lines name the list. It warns only
+		// when the list could have been named (a Page's `pages` cannot be yet, so the page tool's `{"<tab>":{…}}` is current).
 		if (target === undefined){
-			const kid = this.member(key);
-			if (routes(kid)){ warn(`a line named the member "${key}" by its id alone (an old line): it now names its list, e.g. {"tasks":{"${key}":…}}`, "member-hop"); return void kid.set(value); }
+			const [name, list] = Object.entries(this.lists()).find(([, l]) => l.find(key) !== undefined) ?? [];
+			const kid = list?.find(key);
+			if (routes(kid)){
+				const named = [list.name, name].find(n => n && !skipped(n) && this.get(n) === list);
+				// Counted always (Item.old_hops: "<list>.<id>" -> lines); warned in node only, where the item tool and the tests
+				// run. In a browser it would be noise on every page: the page tool still documents `{"<card id>":{…}}` today.
+				if (named && is_plain(value)){
+					Item.old_hops.set(`${named}.${key}`, (Item.old_hops.get(`${named}.${key}`) ?? 0) + 1);
+					if (typeof document === "undefined") warn(`a line named the member "${key}" by its id alone (an old line): it now names its list, {"${named}":{"${key}":…}}`, "member-hop");
+				}
+				return void kid.set(value);
+			}
 		}
 
 		const old = target;
@@ -472,6 +483,7 @@ const warn = (message, key = message) => {
 
 Item.types = new Map();
 Item._clock = null;
+Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them
 Item.generation = 0;   // bumped by every List change: find()'s index is rebuilt only after one
 Item.names = new Map();
 Item.warned = new Set();
