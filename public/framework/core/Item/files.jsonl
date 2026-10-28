@@ -17,3 +17,10 @@
 {"file":"improvements.jsonl"}
 {"file":"Store.test.mjs"}
 {"file":"Item.basic.test.mjs"}
+{"file":"watch/page.js"}
+{"file":"Item.steps.js"}
+{"file":"Item.steps.test.mjs"}
+{"file":"Item.methods.js"}
+{"file":"Item.life.js"}
+{"file":"methods/"}
+{"file":"methods/","gone":true}

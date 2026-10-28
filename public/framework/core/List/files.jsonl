@@ -16,3 +16,6 @@
 {"file":"LiveList.examples.js","gone":true}
 {"file":"tasks/"}
 {"file":"List.test.mjs"}
+{"file":"List.steps.js"}
+{"file":"List.steps.test.mjs"}
+{"file":"List.methods.js"}
