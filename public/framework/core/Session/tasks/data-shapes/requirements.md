@@ -1,4 +1,4 @@
-﻿# Data shapes: sessions, tasks, prompts, chat, on Item / List / JSONL
+# Data shapes: sessions, tasks, prompts, chat, on Item / List / JSONL
 
 **The owner's ask (2026-10-28, VS Code tab e00f55c9).** Design work only: **no major surgery, nothing that breaks.** The owner's words are in this tab's prompt log (the prompt starting "Okay, so I think there was a V3 built at some point"). The tab (vscode-mastermind) runs this project itself, as the owner offered.
 
@@ -21,7 +21,7 @@
    - items are live: a button on any item writes through the socket;
    - the item tool over the socket (security later);
    - messages may be **references** to items that live elsewhere (sentences, tasks) mixed with **owned** items (cards). Where data actually lives must be unambiguous: no duplicate copies drifting out of sync, no rendering the wrong thing, nothing made twice.
-5. **Tasks nested, flat with references, or a hybrid:** weigh each. The owner is **not in love** with the shape in `ai/design-decisions-2026-10-27.md`, so alternatives are wanted. Use fresh agents with little context: "design a session system that includes tasksâ€¦".
+5. **Tasks nested, flat with references, or a hybrid:** weigh each. The owner is **not in love** with the shape in `ai/design-decisions-2026-10-27.md`, so alternatives are wanted. Use fresh agents with little context: "design a session system that includes tasks…".
 6. **Chat views:** a bubble chat with inline replies (SMS or Claude-app style) vs a structured card view. That's the v1/v2/v3 difference: `ext/Chat/` (v1), `v2/`, `v3/` (the rough draft, 2026-10-26, a plain view over `session.tasks`).
 7. **Consolidate what exists. The map first, moves later:**
    - the chat code is spread over many places;
@@ -56,7 +56,7 @@ Still design only: nothing built. "We're going to have to work interactively and
 19. **Priorities named in passing:** streaming working properly; dictation working on the website itself, so the phone app isn't needed.
 20. **If there is budget left and nothing else to do:** look into what other data structures the page system could carry.
 
-Seats (d) `pages` and (e) `streaming` (below) take 11â€“18.
+Seats (d) `pages` and (e) `streaming` (below) take 11–18.
 
 ## Plan
 
@@ -91,8 +91,8 @@ Briefs: [seats/design-brief.md](seats/design-brief.md) (blind) and [seats/analys
 | (a) Item/List/Store/JSONL | mastermind-shapes-items | Opus | [seats/items/](seats/items/) |
 | (b) Task path | mastermind-shapes-task-path | Sonnet | [seats/task-path/](seats/task-path/) |
 | (c) Consolidation map | mastermind-shapes-consolidation | Sonnet | [seats/consolidation/](seats/consolidation/) |
-| (d) Pages (asks 11â€“14, 20) | mastermind-shapes-pages | Opus | [seats/pages/](seats/pages/) |
-| (e) Streaming and stores (asks 14â€“18) | mastermind-shapes-streaming | Opus | [seats/streaming/](seats/streaming/) |
+| (d) Pages (asks 11–14, 20) | mastermind-shapes-pages | Opus | [seats/pages/](seats/pages/) |
+| (e) Streaming and stores (asks 14–18) | mastermind-shapes-streaming | Opus | [seats/streaming/](seats/streaming/) |
 
 Ask 16 (items hold items; list delta re-apply) was sent to seat (a) as an addition.
 
