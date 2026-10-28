@@ -12,3 +12,5 @@
 {"log":{"at":"2026-10-28T16:28:39-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-28T16:34:36-05:00","heartbeat":"check","msg":"status check sent to mastermind-shapes-delta-flow"}}
 {"log":{"at":"2026-10-28T16:34:38-05:00","msg":"session resumed"}}
+{"commit":"0bc885c1e3cc"}
+{"complete":{"outcome":"Seat (g) landed: delta-flow.md walks a change hop by hop (UI, item tool, raw hook) with file:line; demo-delta-flow.mjs proves the path with the real classes (PASS, 13 checks) and re-proves 10 known breaks; notes.md lists 11 breaks with one-line fixes and the items census; shape.md is the one-page map.","evidence":["public/framework/core/Session/tasks/data-shapes/seats/delta-flow/delta-flow.md","public/framework/core/Session/tasks/data-shapes/seats/delta-flow/demo-delta-flow.mjs","public/framework/core/Session/tasks/data-shapes/seats/delta-flow/notes.md","public/framework/core/Session/tasks/data-shapes/seats/delta-flow/shape.md","97db902a8"]},"at":"2026-10-28T21:35:26.623Z"}
