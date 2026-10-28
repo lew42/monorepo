@@ -353,6 +353,11 @@ export class List extends Item {
 	// order. One rule, not two.
 
 	toJSON(){ return [...this.items]; }
+
+	// Drawn by the default view (ux/Content/Object/DefaultView.js, plan step 2), which draws each member through its own view.
+	// `List.View` is wired in from the browser, as Task.View is (TaskView.js), so this file stays node-safe; never the View a List
+	// would inherit from Item (the icon view), so `List.View` must be List's own. No View here: nothing is drawn (undefined).
+	render(){ return Object.hasOwn(List, "View") ? new List.View({ subject: this, open: 1 }) : undefined; }
 }
 
 const warn = (message, key = message) => {
