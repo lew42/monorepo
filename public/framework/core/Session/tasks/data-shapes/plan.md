@@ -101,12 +101,16 @@ The chat is drawn over the stored list. The fast seat folds into the smart agent
 
 | Work | Agent | Brief | Branch |
 |---|---|---|---|
-| Build A: the backbone (step 1) | mastermind-build-backbone (Opus, high) | [build/backbone/](build/backbone/requirements.md) | `worktree/backbone`: 9 commits by 17:15, working; the plan review's findings 1, 2, 3, 9 sent to it |
+| Build A: the backbone (step 1) | mastermind-build-backbone (Opus, high) | [build/backbone/](build/backbone/requirements.md) | `worktree/backbone`: **landed, not merged.** 9,615 of 9,616 real logs replay identically (the one change is a Session-id fix); the voice session loads in 120–147 ms (was 822–1,140); 163 of 165 tests pass (the 2 failures also fail on michael/dev); F1 study done; review: 15 findings, all answered ([review.md](build/backbone/review.md)) |
 | Build B: the default view (step 2) | mastermind-build-default-view (Opus, high) | [build/default-view/](build/default-view/requirements.md) | `worktree/default-view`: **landed, not merged**, reviewed (7 fixed, 3 noted). Its worktree folder was later closed by Servex, which saved ~159 regenerated `files.jsonl` into the branch as its last commit (`f6d535acc`): leave that commit out when merging. It adds 5 lines to `core/Item/Item.js`, so expect a small conflict with A |
 | Plan review | mastermind-plan-review (Opus, high) | [build/plan-review/](build/plan-review/requirements.md) | **landed**: [review.md](build/plan-review/review.md), 10 findings, folded in above |
 | Seat (g): delta flow | mastermind-shapes-delta-flow (Opus) | [seats/analysis-brief.md](seats/analysis-brief.md) (g) | **landed**: [delta-flow.md](seats/delta-flow/delta-flow.md), demo PASS; build A turned it into a test |
 | Seat (h): legacy census | mastermind-shapes-legacy (Sonnet) | [seats/analysis-brief.md](seats/analysis-brief.md) (h) | **landed**: [shape.md](seats/legacy/shape.md), [the page.children guide](seats/legacy/migration-children-to-pages.md) (233 live callers) |
-| Build C: class docs that show, Item and List (step 6, first slice; spawned 17:22) | mastermind-build-class-docs (Opus, high) | [build/class-docs/](build/class-docs/requirements.md) | `worktree/class-docs`, branched from build B |
+| Build C: class docs that show, Item and List (step 6, first slice) | mastermind-build-class-docs (Opus, high) | [build/class-docs/](build/class-docs/requirements.md) | `worktree/class-docs` (from B): **landed, not merged.** Item and List pages show a live instance, the core test step by step (Item 6/6, List 7/7) and method sub-pages from one route; review: 5 fixed, 4 declined |
+| Integration: A + B + C on one branch, tested together (spawned 17:51) | mastermind-build-integration (Opus, high) | [build/integration/](build/integration/requirements.md) | `integration/data-shapes`: drops each branch's trailing "worktree closed" commit, keeps its server up for the owner |
+| Study: a worktree's server on the owner's phone (spawned 17:51) | mastermind-phone-preview (Sonnet) | [build/phone-preview/](build/phone-preview/requirements.md) | none (writes `study.md`) |
+
+**Every build's worktree folder was closed by Servex after it landed,** and the leftover regenerated files were saved as a last "worktree closed" commit on each branch. The branches are intact, but their servers are gone. The integration build drops those commits and keeps its own server up.
 
 ## How the work runs
 
