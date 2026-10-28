@@ -56,7 +56,7 @@ export default class Watch extends View {
 		});
 		div.c("core-item-watch-objects flex v gap", () => {
 			h3("The objects, live");
-			this.$root = div();
+			this.$root = div(() => p.c("muted", "Nothing yet: step 1 makes the first object."));
 			this.$second = div();
 			this.$copy = div();
 		});
@@ -93,7 +93,7 @@ export default class Watch extends View {
 		this.store = new ScratchStore({ url: "scratch.jsonl" });
 		this.pending = [];
 		this.store.on_lines = lines => this.pending.push(...lines);
-		this.$root.empty(); this.$second.empty(); this.$copy.empty();
+		this.$root.empty(() => p.c("muted", "Nothing yet: step 1 makes the first object.")); this.$second.empty(); this.$copy.empty();
 		this.$log.empty(() => new LogView({ logger: this.logger }));
 		this.$note.text("Press Next step. Each step runs one line of code.");
 		this.draw_list();
@@ -104,9 +104,8 @@ export default class Watch extends View {
 		const one = Watch.steps[i];
 		this.busy = true;
 		try { await one.run(this); await null; } finally { this.busy = false; }
-		this.logger.group(`${i + 1}. ${one.code.split("//")[0].trim()}`);
-		if (this.pending.length) this.pending.splice(0).forEach(line => this.logger.log(line));
-		else this.logger.note("muted", "no line written");
+		this.logger.group(`${i + 1}. ${one.code.split("//")[0].trim()}`);   // "0 lines" when the step wrote none
+		this.pending.splice(0).forEach(line => this.logger.log(line));
 		this.logger.end();
 		this.at = i + 1;
 		this.$note.text(one.note);
@@ -130,7 +129,7 @@ export default class Watch extends View {
 
 	draw_list(){
 		this.$list.empty(() => Watch.steps.forEach((one, i) => {
-			const focus = i === Math.min(this.at, Watch.steps.length - 1) ? " is-focus" : "";   // the one a phone shows
+			const focus = i === Math.max(this.at - 1, 0) ? " is-focus" : "";   // the one a phone shows: the step that just ran, the note's step
 			li.c((i < this.at ? "is-done" : i === this.at ? "is-next" : "") + focus, () => code(one.code)).attr("value", i + 1);
 		}));
 		this.$next.el.disabled = this.at >= Watch.steps.length;

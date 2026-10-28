@@ -1,13 +1,19 @@
 @layer base, theme, site, util;
 
-/* The watch demo (Watch.js): steps | objects | lines at full width, one column below 70em. */
+/* The watch demo (Watch.js): one column on a phone, two from 70em, three from 100em. */
 @layer site {
 	.core-item-watch { display: grid; gap: var(--gap); grid-template-columns: 1fr; align-items: start; }
+	/* Middle widths: steps | objects, the lines under both. Wide: all three side by side. */
 	@media (min-width: 70em) {
+		.core-item-watch { grid-template-columns: minmax(18em, 1fr) minmax(22em, 1.4fr); }
+		.core-item-watch-lines { grid-column: 1 / -1; }
+	}
+	@media (min-width: 100em) {
 		.core-item-watch { grid-template-columns: minmax(18em, 1fr) minmax(22em, 1.3fr) minmax(20em, 1.2fr); }
+		.core-item-watch-lines { grid-column: auto; }
 	}
 	.core-item-watch > * { min-width: 0; }
-	/* Narrow: only the step in focus (the next one, or the last once done), so the objects stay near the top. */
+	/* Narrow: only the step that just ran (the one the note explains), so the objects stay near the top. */
 	@media (max-width: 69.99em) {
 		.core-item-watch-list > li:not(.is-focus) { display: none; }
 	}

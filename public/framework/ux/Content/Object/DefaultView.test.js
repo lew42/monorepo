@@ -1,6 +1,14 @@
 import Test from "../../../core/Test/Test.js";
 import { view } from "./DefaultView.js";
-import Box from "../../../core/Item/watch/Box.js";
+import Item from "../../../core/Item/Item.js";
+import List from "../../../core/List/List.js";
+
+// The smallest Item with a List of its own, here so the test depends on no demo.
+class Box extends Item {
+	static fields = ["title", "count"];
+	constructor(...args){ super(...args); this.items = new List({ owner: this, name: "items", of: Box }); }
+}
+Item.register(Box, "DefaultViewTestBox");
 
 /* (Every view here passes `capture: false`: built outside a render, a View would land in whatever is capturing.)
  * The default view's one core test, in a BROWSER (X.test.js; core/Test/readme.md): it needs a DOM. One tree,

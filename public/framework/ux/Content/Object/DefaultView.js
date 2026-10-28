@@ -94,7 +94,8 @@ export default class DefaultView extends View {
 		if (typeof s === "function") return s.name;
 		if (is_list(s)) return s.name ?? this.short(s.id);
 		if (s.id != null) return this.short(String(s.id));
-		return "";
+		const named = s.name ?? s.title ?? s.url;   // no id: whatever names it
+		return typeof named === "string" ? named : "";
 	}
 
 	short(id){ return /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id) ? id.slice(0, 8) + "…" : id; }
