@@ -1,6 +1,6 @@
 # Builds A, B and C on one branch: ready for you to look at
 
-![The Watch page after "Run all", on the integration branch](shots/item-watch-run-all-1920.png)
+![The Watch page after "Run all", on the integration branch](doc/item-watch-run-all-1920.png)
 
 The three data-shapes builds now sit on one branch, **`integration/data-shapes`**, and work together. It is **not merged into michael/dev**.
 
@@ -16,7 +16,7 @@ The three data-shapes builds now sit on one branch, **`integration/data-shapes`*
 | Old records replayed by A's script, by/ts left out | **5091 of 5092 identical**; the one is `v-9dvbbrn`, the known Session-id fix | | [compare-s.txt](proof/compare-s.txt) |
 | The same, by/ts kept | 825 differ: the root's `by`/`ts`, which A moved into `Item.clock` on purpose (its commit says so) | | [compare.txt](proof/compare.txt) |
 | Smoke | 43 pages: no page-load error, no 404 page; 36 FAIL, each the console budget or the two layout checks below | 46 pages: 23 FAIL, all the console budget | [smoke2.txt](proof/smoke2.txt), [smoke-dev.txt](proof/smoke-dev.txt) |
-| Screenshots, 5 pages at 1920 and 400 | all draw, no load error, no sideways scroll | | [shots/](shots/), [shots.json](proof/shots.json) |
+| Screenshots, 5 pages at 1920 and 400 | all draw, no load error, no sideways scroll | | [doc/](doc/), [shots.json](proof/shots.json) |
 
 The three tests that fail on both: `PromptLines`, `context-alert`, `item_tool` (Servex/agents). Test counts are files, run one by one with [run-tests.mjs](proof/run-tests.mjs); A's "163 of 165" counted a wider set, so the two numbers do not compare directly. The rule that holds: nothing that passes on michael/dev fails here.
 
