@@ -46,8 +46,9 @@ export class RecordWriter {
 		// Raw lines go in one request (record_lines takes the batch and names each refusal by index); a verb goes one per request.
 		const batches = raw ? (list.length ? [list.map((l, i) => i)] : []) : list.map((l, i) => [i]);
 		for (const idx of batches){
-			const { by: b, ts, ...bare } = list[idx[0]];
-			const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, by: b, ts, ...(root ? { root } : {}) };
+			const { by: _by, ts, ...bare } = list[idx[0]];
+			// A verb's `by` is not sent: the door stamps every verb "owner" (only a tab posts verbs); `by` here keys the caller's own twin check.
+				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, ...(root ? { root } : {}) };
 			let res, answer;
 			try {
 				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });

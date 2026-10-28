@@ -75,6 +75,8 @@ try {
 	LogLine.append(FILE, { log: { msg: "LogLine in-process (the log tool, dir_log)" } }, { by: "agent-t" });
 	t.eq((await write()).replays, 0, "2. LogLine.append in Servex (writer wired to record_lines): no full replay after it");
 	t.ok(lines().some(l => l.log?.msg === "ledger.mjs's own write path") && lines().some(l => l.log?.msg === "LogLine in-process (the log tool, dir_log)"), "2. both lines are in the file");
+	LogLine.raw(FILE, { log: { at: LogLine.now(), msg: "Servex's own line (a context alert, a worktree assign)" } });
+	t.eq((await write()).replays, 0, "2. LogLine.raw (Servex's own lines: Agents, Lifecycle, WorktreeWatch): no full replay after it");
 	console.log(`   measured: next item() after a raw append ${before.ms.toFixed(1)} ms (1 full replay of ${lines().length} lines); after a one-writer append ${after.ms.toFixed(1)} ms (0)`);
 
 	// 3. The fallback writes once.

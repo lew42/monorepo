@@ -9,7 +9,7 @@ import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 const [target, source] = process.argv.slice(2);
 if (!target || !source){ console.error("usage: node append.mjs <target.jsonl> <lines.json>"); process.exit(2); }
 const items = JSON.parse(readFileSync(source, "utf8").replace(/^﻿/, ""));
-let r;
+let r, refused = 0;
 try {
 	const p = LogLine.prepare(target, items, { source });
 	if (RecordWriter.is_record(p.target)){
@@ -22,4 +22,4 @@ catch (e){ for (const n of e.notes ?? []) console.error(n); console.error(e.mess
 for (const n of r.notes) console.error(n);
 console.log(`${r.file}: appended ${r.appended} at ${r.at}; ${r.total} lines total, ${r.bad} bad`);
 if (r.landing) console.log(LogLine.CHECKLIST);
-process.exit(r.bad ? 1 : 0);
+process.exit(r.bad ? 1 : refused ? 3 : 0);   // partly refused: the rest was written, and the exit still says a line was refused

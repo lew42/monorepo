@@ -48,7 +48,17 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 		const via = this.writer && this.RECORD.test(p.target) ? this.writer(p.target, p.filled) : null;
 		if (via?.ok === false) throw Object.assign(new Error(via.refused.map(r => `REFUSED line ${r.i + 1}: ${r.why}`).join("\n") + `\nNothing was written to ${p.target}.`), { code: 3, notes: p.notes });
 		if (!via) this.write(p);
-		return this.report(p);
+		for (const r of via?.refused ?? []) p.notes.push(`REFUSED line ${r.i + 1} (not written): ${r.why}`);
+		return this.report(p, via?.written);
+	}
+
+	/** Lines Servex itself writes, already whole (its own `log` and `assign` lines): a record file goes through the one writer, so
+	 *  the file's live root sees them; anything else, or a process with no writer, is appended here. No schema check, no stamping. */
+	static raw(target, lines){
+		const filled = [lines].flat();
+		if (this.writer && this.RECORD.test(target)) return this.writer(target, filled);
+		this.write({ target, filled });
+		return { ok: true, written: filled.length };
 	}
 
 	/** Everything before the write: the path followed, the lines filled and stamped, the schema checked (throws code 3, nothing written). */
@@ -108,11 +118,11 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 	}
 
 	/** What `append` answers, read back from the file: lines appended, the file's total, any unparsed line, a landing. */
-	static report({ target, list, filled, notes, t }){
+	static report({ target, list, filled, notes, t }, written = list.length){
 		const all = readFileSync(target, "utf8").split(/\r?\n/).filter(l => l.trim());
 		let bad = 0;
 		all.forEach((l, i) => { try { JSON.parse(l); } catch { bad++; notes.push(`BAD line ${i + 1}: ${l.slice(0, 100)}`); } });
 		const landing = !bad && filled.some(o => o?.assign?.landed_at || o?.landed_at);
-		return { file: target, appended: list.length, at: t, bad, total: all.length, notes, landing, lines: filled };
+		return { file: target, appended: written, at: t, bad, total: all.length, notes, landing, lines: filled };
 	}
 }

@@ -20,15 +20,16 @@ An **item** is a thing kept as one JSONL log: line 1 says what it is, later line
 | Piece | File | Job |
 |---|---|---|
 | **Item.Store** | `core/Item/Store.js` | replays, appends and tails one JSONL file; `Item.Store.for(file)` is the one cached root per file in node, re-read when the file changes |
-| **FsFile** | `ext/filesystem/FsFile.js` | the browser's one file API (`FsFile.send`) the store writes through |
-| **LogLine** | `Server/LogLine.mjs` | the one node writer of a JSONL line: validated against `.claude/hooks/jsonl-schema.mjs`, stamped, appended. Callers: `append.mjs` (CLI), the `log` tool, `dir_log` |
+| **RecordWriter** | `core/Item/RecordWriter.js` | the caller's side of the one writer: a line bound for a `session`, `task`, `page` or `improvements.jsonl` is posted to `POST /api/item` (`record_lines` or `run_item`), which applies it to the live root, then appends; when that is down, an append that skips a line already in the file. Used by `Store.flush`, the hooks and `append.mjs` ([one-writer.md](one-writer.md)) |
+| **FsFile** | `ext/filesystem/FsFile.js` | the browser's one file API (`FsFile.send`): the store's write for a file that is not a record, and its fallback for one that is |
+| **LogLine** | `Server/LogLine.mjs` | the one node writer of a JSONL line: validated against `.claude/hooks/jsonl-schema.mjs`, stamped, appended. Callers: `append.mjs` (CLI), the `log` tool, `dir_log`. In Servex a record file's line goes through `LogLine.writer` = `record_lines`; `LogLine.raw` is Servex's own whole lines (alerts, worktree assigns) by the same road |
 | **SessionRecord** | `Server/SessionRecord.mjs` | which file is a folder's record (`session.jsonl` or old `task.jsonl`), the tag verbs, the move script |
 | **TaskDirs** | `Server/TaskDirs.mjs` | where a task folder lives (inside its session, dated by the owner's local day) |
 | **TaskHomes** | `Server/TaskHomes.mjs` | the index of every module's `tasks/` folder (`/tasks/task.jsonl`) |
 | **DatedFiles** | `Server/DatedFiles.mjs` (extends Dated) | node half of Dated: creates, moves, queries and checks dated collections (projects, sessions) and keeps the day-index rows |
 | **ProjectMove** | `Server/ProjectMove.mjs`, tool `move_project` | `git mv` a project into its module, rows on both days, a manifest |
 | **Subpages**, **Promote** | `Servex/agents/Subpages.js`, `Promote.js` | page tools: make a subpage folder; promote a nested task to a folder |
-| **page_tools** | `Servex/agents/page_tools.js` | `run_item` (the `item` tool), `page_set/add/call/log/read`; `RULES` for task grouping; `link_refs` |
+| **page_tools** | `Servex/agents/page_tools.js` | `run_item` (the `item` tool), `record_lines` (raw lines), `serve_item` (`POST /api/item`), `page_set/add/call/log/read`; `RULES` for task grouping; `link_refs` |
 | **Local twin** | `Agents.js` `local_page_tools` | the same functions in-process as `mcp__local__*` |
 
 ## The tools that make or change items (agents call these)
@@ -44,17 +45,17 @@ An **item** is a thing kept as one JSONL log: line 1 says what it is, later line
 - `run_item` maps `task.jsonl`, `session.jsonl` and `page.jsonl` to Task, Session and Page (`FILE_CLASS`, `page_tools.js`), but `item-tool.md` said Session was "class not built yet" (stale; fixed there). A Session folder made by `AISession` keeps its words in `page.jsonl`, so which class wins is decided by the files present.
 - Cards, inbox, follows and claims are written by their own tools (`Cards.js`, `Follow.js`, `claims.js`, `ModuleInbox.js`) and are not Item classes; they are the groups the compacted-tools proposal would move behind `item` ([tools-map.md](/Servex/doc/tools-map.md)).
 
-## How a change is saved: the browser and the item tool (2026-10-22)
+## How a change is saved: the browser and the item tool
 
-Two writers save item changes today. They differ, and the task [ui-actions-as-deltas](../tasks/ui-actions-as-deltas/requirements.md) joins them.
+Both now reach one entry point in Servex, `POST /api/item` ([one-writer.md](one-writer.md)); the browser's old road (`FsFile.send` → `Append.js`) is only its fallback when Servex is down. The task [ui-actions-as-deltas](../tasks/ui-actions-as-deltas/requirements.md) made a click send the verb.
 
 | | Browser (a click on a page) | Item tool (an agent) |
 |---|---|---|
 | Who calls | `Item.set()` or a verb such as `task.start()`; the Store hears the `"delta"` event (`Store.attach`) | `item({path, delta})` → `run_item` (`Servex/agents/page_tools.js`) |
 | What the line says | the **result**: `{"state":"running","started_at":…}` (`Task.start` calls `set`) | the **verb**: `{"start":{}}`, replayed by the class |
-| Process and writer | dev server: `Store.flush` → `FsFile.send` → socket RPC `append` → `Server/plugins/SocketServer/Append.js` | Servex: `write_line` → `fs.appendFileSync` |
+| Process and writer | `Store.flush` → `RecordWriter.post` → Servex `serve_item` → `run_item` (a task or session verb) or `record_lines` (a page line); fallback `FsFile.send` → `Append.js`, which skips a line already in the file | Servex: `write_line` → `fs.appendFileSync` |
 | Validation | the file's JSONL schema only (`jsonl-schema.mjs` `check`) | the class: a key must be a method, a field or a child (`validate`) |
-| Stamping | none: no `by`, no `ts` | `by` = the caller (`owner` for the owner), `ts` = now |
+| Stamping | `by` = `owner`, `ts` = `RecordWriter.stamp()` (made in the tab, so a late fallback finds its own line) | `by` = the caller (`owner` for the owner), `ts` = now |
 | After the write | the tab's own echo is skipped; other tabs get the line through `Tail.js` | node's live instance advances; `hooks.approved` (starts a templated task's agent) and `hooks.changed` (steps a process) fire; Follow tells subscribed agents |
 
 So a click never starts the agent an approval should start, and a reader cannot tell who pressed it.
