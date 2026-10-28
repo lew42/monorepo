@@ -14,12 +14,24 @@ export default class SessionTasks extends JSONL {
 	lines = [];
 
 	// { url: the session.jsonl url, $box: the View to draw into, session_class }
-	read(entries){ this.lines.push(...entries); this.draw(); return this; }
-	reset(){ this.lines = []; return super.reset(); }
+	// A streamed batch is applied to the one live Session, line by line: the whole record is not replayed again, and a child
+	// already read is not fetched again (data-shapes plan step 1a). The first batch builds it with Class.replay, as before.
+	read(entries){
+		this.lines.push(...entries);
+		// Only a record that opens with its {"session":{…}} line (a tab, a voice call): its id and shape are fixed by line 1, so
+		// applying a new line gives what a full replay would. Any other record is replayed whole, as before.
+		if (this.session && this.session._shape === "record" && typeof this.lines[0]?.session === "object"){
+			for (const line of entries) if (line && typeof line === "object") this.session.replay_line(line);
+			this.session.replay_end?.();   // a record's replay_end only clears its own clock: safe after every batch
+		} else this.session = null;   // a spawned agent's record (task shape) infers its state once all lines are in: replayed whole
+		this.draw();
+		return this;
+	}
+	reset(){ this.lines = []; this.session = null; return super.reset(); }
 	live(){ super.live(() => {}); return this; }
 
 	draw(){
-		const Class = this.session_class ?? Session, s = Class.replay(this.lines), all = [...(s._tasks ?? [])];
+		const Class = this.session_class ?? Session, s = this.session ??= Class.replay(this.lines), all = [...(s._tasks ?? [])];
 		this.on_session?.(s, this.lines);   // the session page's Overview list and Timeline read the same replay and lines
 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");

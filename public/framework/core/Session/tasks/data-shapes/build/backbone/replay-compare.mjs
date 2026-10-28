@@ -37,7 +37,8 @@ if (process.argv.includes("--compare")){
 	process.exit(diff.length || missing.length ? 1 : 0);
 }
 
-const STRIP = process.argv.includes("--strip-stamps");
+const STRIP = process.argv.includes("--strip-stamps"), INCREMENTAL = process.argv.includes("--incremental");
+let incremental = 0;
 const CODE = path.resolve(arg("--code") ?? "."), DATA = path.resolve(arg("--data") ?? "."), OUT = arg("--out"), MATCH = arg("--match");
 if (!OUT) throw new Error("--out <file> is required");
 
@@ -119,9 +120,19 @@ for (const file of walk(path.join(DATA, "public"))){
 		const root = Class.replay(lines);
 		ms = performance.now() - t0;
 		digest = crypto.createHash("sha1").update(JSON.stringify(dump(root))).digest("hex");
+		// --incremental: what SessionTasks does live. The first third replayed whole, the rest applied in batches of 7 lines
+		// to that same Session (replay_line each, replay_end per batch). Must give the same digest as the whole replay.
+		if (INCREMENTAL && Class === Session && plain(lines[0]?.session) && lines.length > 3){
+			n = 0; Task.clock = null;
+			const cut = Math.ceil(lines.length / 3), live = Session.replay(lines.slice(0, cut));
+			for (let i = cut; i < lines.length; i += 7){ for (const l of lines.slice(i, i + 7)) live.replay_line(l); live.replay_end(); }
+			const step = crypto.createHash("sha1").update(JSON.stringify(dump(live))).digest("hex");
+			if (step !== digest) err = `incremental differs from whole (${digest.slice(0, 8)} vs ${step.slice(0, 8)})`;
+			incremental++;
+		}
 	} catch (e){ err = String(e?.message ?? e).slice(0, 200); }
 	fs.writeSync(out, JSON.stringify({ file: rel, text: crypto.createHash("sha1").update(text).digest("hex").slice(0, 12), cls: Class.name, lines: lines.length, ms: Math.round(ms * 10) / 10, digest, ...(err ? { err } : {}) }) + "\n");
 	count++;
 }
 fs.closeSync(out);
-console.log(`${count} files replayed with ${CODE}`);
+console.log(`${count} files replayed with ${CODE}` + (INCREMENTAL ? `; ${incremental} records also applied incrementally` : ""));

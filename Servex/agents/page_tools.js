@@ -961,7 +961,7 @@ function validate(Task, task, delta){
 	for (const key of Object.keys(delta)){
 		if (key === "help") continue;
 		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
-		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined) continue;
+		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined || task.member?.(key) !== undefined) continue;   // member: a child by id (get() no longer searches lists)
 		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
 	}
 	return null;
