@@ -131,7 +131,7 @@ The rule from the synthesis: **one owner per item, and everyone else holds a ref
    - **Another file:** open that file's Store, `Item.open(url)`, which replays it once and keeps one root per url (`Store.for`, `core/Item/Store.js`, already does this), then `get(path)` on that root.
 3. **A target that can't be found** draws a visible "gone" row naming the path. It's never silently empty.
 
-**Today's gap:** resolving a reference to another file works only in node (`Task.resolver`, `core/Task/Task.js:454`). The browser needs the same step, which is just `Item.open(url)` over the live tail it already has.
+**Built (build E, 2026-10-28, branch `worktree/browser-refs`):** `Ref` resolves in the browser too, through `Item.open(url)` over the live tail, with the id fallback, backlinks and forwards below: [core/Item/doc/ref.md](../../../Item/doc/ref.md). Before it, only node resolved one (`Task.resolver`).
 
 ### Moves: the options
 

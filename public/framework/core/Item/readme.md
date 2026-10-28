@@ -26,8 +26,9 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
   view                                // getter/setter; lazy `new constructor.View({item})`: a class's OWN view, when it has one
   views: []                           // ✅ every live default view drawing me (ux/Content/Object/DefaultView.js; ask 33)
   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
-  toJSON(), static hydrate(json), static register(Class, name), static open(src)
+  toJSON(), static hydrate(json), static register(Class, name), static open(src)   // open(url): ONE root per url, the same live object for every caller
 }
+ └─ Ref (Ref.js)                     // ✅ points at an item somewhere else: {path} or {url, path}; resolve() → the live target, or null (gone)
  └─ Page (core/Page)                  // ✅ Page extends Item directly (2026-10-03 — PageLog, a middle class, folded in)
      pages: List                      // its sub-pages
      content: List                    // its visible blocks, made lazily
@@ -64,6 +65,22 @@ doc.save();
 Wire format is `{ type, id, data, <listname>: [...] }` — each List property an Item gave
 itself, written under its own name, omitted when it never made one. All user state lives under
 `data`. Headless, runs in node.
+
+## References: `Ref` (2026-10-28)
+
+A `Ref` is a small Item that points at an item living somewhere else, so the same thing can show in two places without a copy. It stores only where the target is: `{"type":"Ref","path":"tasks.ui"}` in the same file, `{"type":"Ref","url":"<folder or .jsonl>","path":"tasks.ui"}` in another.
+
+```js
+const ref = new Ref({ url: "/framework/ai/sessions/…/child/", path: "tasks.t1" });
+await ref.resolve();          // Item.open(url) (one root per url, live), then root.get(path)
+ref.target;                   // the child's live task, or null when it is gone
+new RefView({ ref });         // a row: "child › task", redrawn when either changes; "gone: …" when missing
+```
+
+- A missed path falls back to its last part, the id, through the root's own index (`find`), built on that miss and never saved.
+- Within one file, `Ref.shown(item)` says where an item is shown, and `Ref.repath(item, old_path)` re-paths those Refs after a move (one line each).
+- Across files, a move leaves `{moved_to: {url, path}}` at the old place (`Ref.forward`); an old Ref follows it and takes the new address.
+- Where it is used: the session page lists each child session's open tasks through Refs (`core/Session/SessionTasks.js`). How it works and why: [doc/ref.md](./doc/ref.md). Test: `node Ref.test.mjs`.
 
 ## Where an item saves (the rule, 2026-10-20)
 
