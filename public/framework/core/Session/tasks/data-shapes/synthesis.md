@@ -9,7 +9,7 @@
 
 **Nothing is built.** The owner wants to refine the shape together before anything is built.
 
-**Start here if the shape is unclear:** [flow-and-ids.md](flow-and-ids.md) walks a sentence from the mic to a finished task, line by line. Then [ids-and-paths.md](ids-and-paths.md) (dotted paths, ids, references) and [pages-children-content.md](pages-children-content.md) (child pages vs content, and what a drop does). It explains how a line finds its item (a recursive set, plus an in-memory index), why a move is one line, and why ids are short and random rather than UUIDs.
+**Start here if the shape is unclear:** [flow-and-ids.md](flow-and-ids.md) walks a sentence from the mic to a finished task, line by line. Then [ids-and-paths.md](ids-and-paths.md) (dotted paths, ids, references) and [pages-children-content.md](pages-children-content.md) (child pages vs content, and what a drop does), then [placement.md](placement.md) (who puts things where; sessions vs tasks). It explains how a line finds its item (a recursive set, plus an in-memory index), why a move is one line, and why ids are short and random rather than UUIDs.
 
 Seat folders: [design-1](seats/design-1/shape.md) · [design-2](seats/design-2/shape.md) · [design-3](seats/design-3/shape.md) · [items](seats/items/shape.md) · [task-path](seats/task-path/shape.md) · [consolidation](seats/consolidation/shape.md) · [pages](seats/pages/shape.md) · [streaming](seats/streaming/shape.md) · [structures](seats/structures/shape.md) (added after, §7). Each has a `shape.md` (one page) and a `notes.md` (the evidence).
 
@@ -73,7 +73,7 @@ class Ref      extends Message { to: id | path }                   // render() d
 class Task extends Item {
   title, state: "open"|"working"|"waiting"|"complete"|"stopped"
   from?: Anchor                    // the words that asked for it
-  done_by?: <child session path>   // [D] who is doing it
+  worked_by?: Ref                  // [D] a reference to the session doing it; a Task has NO sessions list (placement.md)
   outcome?, evidence?, why?, waiting_on?
   tasks: List<Task>                // children, nested
   start() wait() complete({outcome, evidence}) stop({why}) reopen()
@@ -113,13 +113,7 @@ class AISessionDetail extends Page            // ai/AISession/AISessionDetail.js
 | `ChatV3` | `ext/Chat/v3/ChatV3.js` |
 | `Tail` (outside the framework) | `Server/plugins/SocketServer/Tail.js` |
 
-**The owner's naming preference (2026-10-28):** a class's folder should match its name, `<Class>/<Class>.js`, so nobody has to remember where it lives. The table shows where that doesn't hold today:
-- `TaskPage`, `Prompt` and `Question` sit in `core/Task/`;
-- `AISessionDetail` sits in `ai/AISession/`;
-- `Page` is `Page.class.js`;
-- `PageChildren` is `Children.js`.
-
-Noted only; any move comes later, by script.
+**The folder rule** (`doc/rules.md`, "Traps that never throw"): a module's main class matches its folder, and small subclasses sit beside it. Two files in the table don't follow it: `Page` is in `Page.class.js` (the rule wants `Page.js`), and `PageChildren` is in `Children.js`. Noted only; any rename comes later, by script.
 
 **A session being built, on disk.** These are design-1's lines, which the other two blind seats match in substance:
 
@@ -158,7 +152,7 @@ Design-1's trick settles the follow-up question of how an ungrouped sentence sho
 | **Asks inside the Prompt:** each ask has an `outcome` (`task`, `answered`, `noted`, `no-action`) (recommended) | design-3 | "Was every ask handled?" is a simple field check. Questions, ideas and rules settle without becoming tasks, which removes task-path's cause 2 (227 question parts, 187 ideas and 154 rules left blocking completion) | One more class |
 | No asks; a Task points back with `from`, and "what did this prompt make" is computed | design-1, design-2 | Fewer objects | An ask that became no task leaves no trace |
 
-**[D] When a child session does a parent's task, where does the task live?**
+**[D] When a child session does a parent's task, where does the task live?** *Refined by the owner, 2026-10-28 ([placement.md](placement.md) §5): sessions are their own tree in `session.sessions`; a task never holds sessions, only a reference; a task that needs an agent is promoted (the task stays and links to the new session).*
 
 | Option | Who | Pro | Con |
 |---|---|---|---|
@@ -240,7 +234,7 @@ Each one has a recommendation, so a "yes" is enough.
 3. **[A] Sentences** live in their own list, and a Prompt holds their ids. Recommended: yes.
 4. **[B] The chat** owns messages and cards, and holds `Ref`s to tasks and child sessions. Recommended: yes.
 5. **[C] Asks inside the Prompt**, each with an outcome, so questions, ideas and rules settle without becoming tasks. Recommended: yes.
-6. **[D] A child's task stays in the parent;** the child writes its completion there. Recommended: yes.
+6. **[D] A child's task stays in the parent;** the child writes its completion there, and the task holds only a reference to the session (`worked_by`). Sessions form their own tree ([placement.md](placement.md)). Recommended: yes.
 7. **One writer:** hooks and agents go through the item tool, with a raw append only when Servex is down. Recommended: yes.
 8. **[E] Snapshots** are a sidecar cache file first; rolling the log comes later and only by rename. Recommended: yes.
 9. **A record has a page, never is one,** as `TaskPage` (for tasks) and `AISessionDetail` (the session detail page) already do. Recommended: yes.

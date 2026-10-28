@@ -87,6 +87,8 @@ The decisions on ids and paths are recorded in [ids-and-paths.md](ids-and-paths.
       - `ux/Content/Object/` (a census of 77 classes worth a view: `ux/Content/Object/doc/census.md`);
       - `code/objects/readme.md` ("every class ships a view");
       - the 2026-10-15 brief `ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md`.
+27. **Placement by code, not by AI judgment;** maybe a schema per class (what may go where), without becoming a whitelist. Stale refs are a real risk. References may point at any endpoint, not only files. Drafted in [placement.md](placement.md).
+28. **Sessions are their own tree** (`session.sessions`, each child with its own). A task holds no sessions, only references; a task can become a session. Projects reference several sessions. Child sessions never hide inside a task.
 
 ## Plan
 
