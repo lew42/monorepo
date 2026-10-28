@@ -20,6 +20,7 @@ View.stylesheet(import.meta, "ClassDoc.css");
  *     run_steps,                                 // the runner the node test uses too
  *     method_list: { set: {job, example}, … },   // Item.methods.js
  *     method_notes: "set get toJSON",            // methods/<name>.md, only these
+ *     method_setup: "// shop(): …",              // a comment shown above every example, for a helper they share
  *     content(){ … },                            // anything else, drawn after
  *   })
  *
@@ -149,7 +150,7 @@ export class ClassDoc extends Doc {
 					code.c("doc-class-sig", doc.signature(name, one));
 					p.c("doc-class-job", one.job);
 					if (one.example) doc.class_box("Try it", "bolt", () => {
-						(code.js ?? code)(body(one.example));
+						(code.js ?? code)((doc.method_setup ? doc.method_setup + "\n" : "") + body(one.example));
 						let result, error;
 						try { result = one.example(); } catch (e){ error = e; }
 						div.c("doc-class-result", () => error ? span.c("doc-class-error", error.message) : view(result, { open: 2 }));
