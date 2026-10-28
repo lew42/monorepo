@@ -72,7 +72,7 @@ The id only has to be unique **inside one file**. Across files, the path does th
 
 ```
 t-k2p9x4mq                                    inside its own file
-/framework/ai/sessions/…/v-7k2q/#t-k2p9x4mq   from anywhere else (path + id)
+{url: "/framework/ai/sessions/…/v-7k2q/", path: "tasks.ui.k2p9x4mq"}   from anywhere else (no #; dotted paths: ids-and-paths.md)
 ```
 
 - **Short:** a type letter plus 8 random characters (10 characters, where a UUID has 36). With 100,000 items in one file, the chance of any clash is about 1 in 500. The writer refuses a clash anyway, and the maker draws again.

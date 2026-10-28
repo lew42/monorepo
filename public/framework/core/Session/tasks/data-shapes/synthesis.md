@@ -170,7 +170,8 @@ Design-1's trick settles the follow-up question of how an ungrouped sentence sho
 - **An appended `{"snapshot":…}` line** (design-decisions §5; the items seat says it works, and proved it): it keeps one file. But a reader still downloads everything and must scan for the last snapshot. Keep it for later, for when a file is rolled.
 
 **[F] Ids.** *Settled further in [ids-and-paths.md](ids-and-paths.md):*
-- every hop names its list, and each List looks members up in a Map;
+- every hop names its list, as a **dotted path** (`tasks.ui.tasks.c3`, DECIDED by the owner: dots, never slashes);
+- `set` walks it through `get` one level at a time, and each level decides how to look up the next part (a List falls back to its members, by a Map by default);
 - ids need to be unique only among siblings (the owner's 2026-10-03 rule);
 - ids are short and random, with fixed names for code-made structure;
 - references store a path and fall back to the id.

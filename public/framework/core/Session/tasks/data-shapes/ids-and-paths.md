@@ -8,6 +8,26 @@ The owner's questions (2026-10-28), following [flow-and-ids.md](flow-and-ids.md)
 - Ids vs UUIDs vs counters: which survives two agents, two devices, and merging?
 - "I'd rather figure this out once and for all", for every use, not only sessions.
 
+## DECIDED by the owner (2026-10-28): dots, and each level decides for itself
+
+This replaces the `/` proposal in §4, §6 and §8 below.
+
+1. **A path uses dots, never slashes:** `{"tasks.ui.tasks.c3":{"complete":{}}}`. A slash looks like a file-system path. A dot reads as what it is, an in-memory JavaScript object path. Slashes stay for things that really are on disk.
+2. **`set` walks the path through `get`, one level at a time, and each level decides how to look up the next part.**
+   - The root's `get` takes the first part (`tasks`). If what it finds has its own `get`, the root hands it **the rest of the path** and lets it carry on.
+   - **A List** fails the plain property lookup, then falls back to its own members.
+   - **How** a List finds a member is the List's own business: a scan, an id-to-member `Map`, or a flat index of all its descendants. A subclass can change the rule without touching anyone else.
+   - Control always passes down to the object that owns the next step, so an extension can re-engineer its own lookup easily. The owner: "that's kind of what I thought I'd asked for before".
+   - The nested form (`{"tasks":{"ui":{…}}}`) is the same walk, and stays readable.
+3. **No `#` in addresses.** The `#` in the examples below was an invention; the site doesn't use a hash router. A reference to an item in another file holds two fields: the file's url and the dotted path inside it.
+
+   ```js
+   {"ref": {"url": "/framework/ai/sessions/…/v-7k2q/", "path": "tasks.ui.tasks.c3"}}
+   ```
+
+   Inside one file, the url is left out: `{"ref": {"path": "tasks.ui.tasks.c3"}}`.
+4. **Ids must never contain a dot.** Short random ids (§5) are letters and digits only.
+
 ## 1. What `t-ui` and `t-c3` are
 
 **Examples, not real ids.** The design seats invented `t-`, `s-`, `p-` (task, sentence, prompt) to make their sample lines readable. Nothing in the code makes ids like that. Today's code makes ids three ways:
@@ -45,7 +65,7 @@ The owner's questions (2026-10-28), following [flow-and-ids.md](flow-and-ids.md)
 ```
 
 - **On a List, an unknown key means a member id.** `List.get(key)` already does this: its own property first, then a member (`List.js:116`). That is the owner's "the list falls back to its own items" idea. It exists; it just isn't the only route.
-- **Each List keeps a `Map` from id to member,** updated on add, remove and move. A hop is then one Map lookup. Ten levels deep is ten lookups, which costs nothing.
+- **The default List keeps a `Map` from id to member,** updated on add, remove and move. A hop is then one Map lookup, and ten levels deep is ten lookups, which costs nothing. It's the default, not a rule: a List subclass may keep a flat index of all its descendants, or anything else (the DECIDED section).
 - **`Item.get` stops searching lists.** It still answers an old line (one with no list name), but only as a fallback, and it logs a warning.
 - **Ids only need to be unique among siblings.** That was the 10-03 rule, and it's enough once every hop names its list. **No file-wide uniqueness, and no file-wide index.**
 
@@ -57,11 +77,11 @@ A deep item needs one level of braces per hop. A **path key** says the same thin
 
 ```js
 {"tasks":{"ui":{"tasks":{"c3":{"complete":{}}}}}}      // nested
-{"tasks/ui/tasks/c3":{"complete":{}}}                   // path key: expands to exactly the line above
+{"tasks.ui.tasks.c3":{"complete":{}}}                   // path key: expands to exactly the line above
 ```
 
-- **Same walk, same meaning:** `set()` splits the key on `/` and walks the hops. The code for this already exists, `Item.locate(path)` (`Item.js:190-206`), kept since 10-03 to read old lines.
-- **Why `/` and not `.`:** it's the same separator as a url. One address then runs from the site root to a field: `/framework/ai/sessions/…/v-7k2q/#tasks/ui/tasks/c3`. A dot works too, as long as ids never contain one.
+- **Same walk, same meaning:** each level's `get` takes the first part and hands the rest down (the DECIDED section above). Today's `Item.locate(path)` (`core/Item/Item.js:190-206`, kept since 10-03 to read old `/` lines) is the nearest existing code. But it walks the whole path from the top itself, where the decided rule hands control down level by level.
+- **Dots, not slashes** (the owner's call): a slash looks like a file-system path.
 - **What was dropped on 10-03** was a separate `at` key beside the delta (`{"at":"a/b","set":…}`), so there would be one grammar. A path *key* keeps that one grammar: it's only a shorter way to write the nesting.
 - **Recommendation:** read both forms. Write the path form whenever it's two or more hops deep.
 
@@ -88,11 +108,11 @@ A deep item needs one level of braces per hop. A **path key** says the same thin
 
 ## 6. References: path first, id as the fallback
 
-A reference (the chat showing a task) stores the **path** and the **id**: `{"ref":"tasks/ui/tasks/k2p9x4mq"}`.
+A reference (the chat showing a task) stores the **dotted path**, whose last part is the id: `{"ref":{"path":"tasks.ui.tasks.k2p9x4mq"}}`.
 
 - **Normal case:** follow the path, a few Map lookups.
 - **The target moved:** the path misses. The root then looks the id up in an index, which is built the first time a miss happens, and never saved. Because ids are random, the id alone finds it.
-- **Across files:** the url plus the path: `/…/v-7k2q/#tasks/ui/tasks/k2p9x4mq`.
+- **Across files:** two fields, the file's url and the path inside it: `{"ref":{"url":"/…/v-7k2q/","path":"tasks.ui.tasks.k2p9x4mq"}}`.
 
 ## 7. Does one Item class serve every use? Yes
 
@@ -112,8 +132,8 @@ Nothing here needs a second Item class. Flat or nested becomes a choice each str
 Small changes, each with a test:
 
 1. `Store.hops` names the list at every hop.
-2. Each List keeps an id → member `Map`.
-3. `set()` accepts a `/` path key, written whenever a line is two or more hops deep.
+2. The default List keeps an id → member `Map`; a subclass may choose another lookup.
+3. `set()` accepts a dotted path key and hands the rest of the path to each level's own `get`. The writer uses it whenever a line is two or more hops deep.
 4. `Item.get` stops searching lists (old lines only, with a warning).
 5. `new_id()` makes 8 random characters; the item tool's `tasks.add` stops slugging titles.
 6. Refs store the path; a miss falls back to an id index built on the first miss.
