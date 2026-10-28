@@ -89,6 +89,38 @@ class TaskPage extends Page { task }          // core/Task/TaskPage.js: opens a 
 class AISessionDetail extends Page            // ai/AISession/AISessionDetail.js: the session detail page
 ```
 
+**Where the classes that exist today live** (paths from `public/framework/`). Everything else in the map above is a proposal; there's no file for it yet.
+
+| Class | File |
+|---|---|
+| `Item` | `core/Item/Item.js` |
+| `Item.Store` | `core/Item/Store.js` |
+| `List` | `core/List/List.js` |
+| `Events` | `core/Events/Events.js` |
+| `Task` | `core/Task/Task.js` |
+| `Prompt` | `core/Task/Prompt.js` |
+| `Question` | `core/Task/Question.js` |
+| `TaskPage` | `core/Task/TaskPage.js` |
+| `Session` | `core/Session/Session.js` |
+| `SessionTasks` | `core/Session/SessionTasks.js` |
+| `Page` | `core/Page/Page.class.js` |
+| `PageContent` | `core/Page/PageContent.js` |
+| `PageChildren` | `core/Page/Children.js` |
+| `AISessionDetail` | `ai/AISession/AISessionDetail.js` |
+| `JSONL` | `ext/JSONL/JSONL.js` (live tail: `ext/JSONL/live.js`) |
+| `Saver` | `ext/Saver/Saver.js` (`FileSaver.js`, `LocalStorageSaver.js`, `MemorySaver.js` beside it) |
+| `ChatV2` | `ext/Chat/v2/ChatV2.js` |
+| `ChatV3` | `ext/Chat/v3/ChatV3.js` |
+| `Tail` (outside the framework) | `Server/plugins/SocketServer/Tail.js` |
+
+**The owner's naming preference (2026-10-28):** a class's folder should match its name, `<Class>/<Class>.js`, so nobody has to remember where it lives. The table shows where that doesn't hold today:
+- `TaskPage`, `Prompt` and `Question` sit in `core/Task/`;
+- `AISessionDetail` sits in `ai/AISession/`;
+- `Page` is `Page.class.js`;
+- `PageChildren` is `Children.js`.
+
+Noted only; any move comes later, by script.
+
 **A session being built, on disk.** These are design-1's lines, which the other two blind seats match in substance:
 
 ```jsonl
