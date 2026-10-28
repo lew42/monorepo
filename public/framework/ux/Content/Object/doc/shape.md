@@ -1,5 +1,7 @@
 # Object — what the card reads
 
+> ⚠ Superseded 2026-10-28: `object()` draws the default view now. What it reads: [default-view.md](default-view.md). Kept as the record of the old card.
+
 Unlike Question and Decision, this module reads and writes no log — it has no record
 shape of its own. It only reads what is already on the subject you hand it:
 

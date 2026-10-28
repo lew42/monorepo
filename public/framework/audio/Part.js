@@ -118,7 +118,7 @@ export class PartView extends View {
 	label(){ return this.subject.constructor.name; }
 	stat(){ return ""; }
 	flags(){ return []; }
-	details(){ return new DefaultView({ subject: this.subject }); }
+	details(){ return new DefaultView({ subject: this.subject, open: 1 }); }
 }
 
 export { Part };
