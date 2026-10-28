@@ -132,9 +132,11 @@ export default class Worktrees extends Events {
 	 * judge() never says `waiting` for those. The LAN socket stays push-only (dev/Socket/doc/lan.md). */
 	async serve_previews(items){
 		const want = new Set(items.filter(i => i.waiting && i.preview).map(i => i.name));
+		const going = new Set(items.filter(i => i.state === "finished").map(i => i.name));   // remove() stops these in a moment: no restart first
 		const before = this.lan;
 		this.lan = want;
 		for (const name of new Set([...before, ...want])){
+			if (going.has(name)) continue;
 			const host = want.has(name) ? "0.0.0.0" : "127.0.0.1";
 			const runner = this.servex?.runner?.(name);
 			if (!runner) continue;
