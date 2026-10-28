@@ -92,6 +92,55 @@ No warning. The cause: `hops` drops the list name for a member (`Store.js:289-29
 | "The same write" for sentence + chat entry | **Breaks today:** the item tool refuses an array delta (`page_tools.js:1073`). Either allow an array there, or make one line carry both (`{"sentences":{"add":…},"chat":{"add":…}}`: one object, two keys). The second needs no change to `Store` or `Item.apply`; whether the item tool's validator accepts both keys on a session is unchecked. |
 | §7 the browser can't create a session | **Holds** (`page_tools.js:103`). |
 
+## 8. Do items hold items? How do list deltas save and replay? (ask 16)
+
+**No item has an `items` list by default, and none gets one on demand except a Task's `tasks`.** Proved by `experiments/exp4.mjs`:
+
+- **A bare Item:** `item.set({items: {add: {id: "x"}}})` makes no list. It stores the whole delta as data: `{"items":{"add":{"id":"x"}}}`. The cause: `set_one` hands a value down only when `get(key)` finds something with its own `set()` (`Item.js:150-151`). There is nothing named `items`, so the value falls through to `put`.
+- **`hydrate`:** any array-valued key becomes a List (`Item.js:325-331`). So a list appears when the saved JSON already has one, never from a live delta.
+- **Task:** the only on-demand list. `get tasks()` makes the List on first use (`core/Task/Task.js:52-55`), and `get("tasks")` routes to it (`Task.js:71`). So `{tasks: {add: …}}` works on a fresh Task.
+- **List's own `items`** is a plain array of members (`List.js:57`), not a List. A List is not an item that "acts as a list"; it is a separate object an Item holds by name (`Item.lists()`, `Item.js:227-231`).
+
+**To make the owner's model true** (any item can hold items, made on demand), Task's pattern moves up into Item: `get items()` makes `new List({owner: this, name: "items"})` on first use, and `get("items")` returns it. One rule then serves Task, Session, chat and cards. Cost: the `items` name must not collide with a subclass field. `List` itself must not get one, since its `items` is the member array. Page keeps sub-pages in `pages` and content in `content`, so it is unaffected.
+
+**How a list delta is saved and replayed.**
+- Saved: each loud verb (`add`, `remove`, `move`, `order`, `clear`) emits one line, nested by `hops` (`Store.js:273-293`). `add` carries the member's data and its `after` neighbour (`List.js:196-211`).
+- Replayed: the line walks `set` → `get(list name)` → `List.set` → the verb method, which mutates the array (§1).
+- Replay is idempotent for `add`, because an existing id is a no-op (`List.js:159-161`). It is not idempotent for `move` or `order`, which simply run again.
+
+**Efficient? Fine at today's sizes, quadratic beyond.** Measured: replaying `n` adds plus one `set` per member, then one `order` of every id:
+
+| members | lines | replay | per line | `order` |
+|---|---|---|---|---|
+| 1,000 | 2,000 | 14 ms | 6.8 µs | 3 ms |
+| 2,000 | 4,000 | 37 ms | 9.3 µs | 11 ms |
+| 4,000 | 8,000 | 142 ms | 17.8 µs | 44 ms |
+| 8,000 | 16,000 | 427 ms | 26.7 µs | 154 ms |
+
+- The cost per line grows with the list, because:
+  - every hop is a linear `Array.find` (`List.js:112`, `Item.js:183-186`);
+  - `insert` does a `find`, then `indexOf` and `splice` (`List.js:155-172`);
+  - `order` is O(n²) (`List.js:283-290`).
+- Writing has the same shape: `hops` copies the whole list for each set (`[...list].includes`, `Store.js:290`). 1,000 sets on the last of 8,000 members took 120 ms.
+- e00f55c9's 509 top-level tasks are well inside the fast range.
+- The fix, when it matters: an id → member `Map` inside List, kept in step by the `adopted`/`released` hooks that Page already uses for its name index (`List.js:123-126`). Plus a `Map` from member to list for `hops`.
+
+**Which tests prove it.**
+
+| What | Test |
+|---|---|
+| `add`, `add` with `after`, `remove`, `move` (same list), `order`: each writes exactly one line, and replay rebuilds the same order and the same whole root | `core/List/List.test.mjs` (17 checks) |
+| A field set, an add, a member's set and a move: 4 lines; replay rebuilds an equal root; replay writes nothing back | `core/Item/Store.test.mjs` (10) |
+| A member's delta nests under its id, and replay rebuilds it | `core/Item/Item.test.mjs:68-88` |
+| `add([a, b])` adds two | `List.test.mjs` (last step) |
+| `tasks.add` with a string or an object | `core/Session/session-task.test.mjs` (14) |
+
+**Not tested anywhere:**
+- the replay of a **cross-list move**. The design doc cites `Store.test.mjs:36`, but that is a move inside one list; no `*.test.mjs` moves across lists;
+- the replay of `clear`;
+- two lists sharing an id (E2);
+- replay cost at size.
+
 ## Recommendation, in order
 
 1. **Make the hop name the list** (`{"b":{"s1":{…}}}`), reading both forms on replay. It ends the silent misroute (E2) and is what refs need.

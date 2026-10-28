@@ -4,3 +4,4 @@
 {"log":{"msg":"Landed shape.md + notes.md + experiments/. Strongest: (1) sibling-unique ids silently misroute on replay (E2: an edit to list b's s1 lands on list a's s1); (2) the item tool refuses array deltas (page_tools.js:1073), so the doc's atomic-write fix fails, but one object with two keys works; (3) by/ts become data on a plain Item's replay; (4) snapshot mode exists (ext/Saver) and hangs off the same delta event, but set(wholeObject) is no snapshot, so it needs a {snapshot} verb = hydrate-replace; (5) code-made items without fixed ids duplicate every load, and code run after replay resurrects UI removals. PageContent's transient items are the rule to generalize."},"by":"mastermind-shapes-items","ts":"2026-10-28T05:35:49.327Z"}
 {"sessions":[{"id":"mastermind-shapes-items","task":"/framework/core/Session/tasks/data-shapes/seats/items/"}],"by":"mastermind-shapes-items","ts":"2026-10-28T05:35:49.329Z"}
 {"commit":"903f02e2c502"}
+{"commit":"45becce3c6a6"}
