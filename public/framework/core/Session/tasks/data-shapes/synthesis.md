@@ -231,6 +231,29 @@ Each one has a recommendation, so a "yes" is enough.
 - If the order follows cost instead: the channel, then the table, then the editor.
 - Comments live in a `comments.jsonl` beside the item they discuss. A channel rolls monthly. Board and timeline are views over a list, not lists of their own.
 
+## 8. Strategy (the tab's recommendation, 2026-10-28)
+
+Each step lands on its own and breaks nothing before the next one starts.
+
+1. **Decide the shape together:** the ten decisions in §6, done interactively, before any build. This is the only step that needs the owner.
+2. **Fix today's bugs, with no change of shape.** This is what "get streaming working properly" needs:
+   - one offset per socket in `Tail.js` (the lost update);
+   - linear replay: pseudo-property lines become verbs, a live id index, `lists()` cached, and `SessionTasks` applying new lines instead of replaying everything. The target: the voice session under 200 ms;
+   - `by`/`ts` stripped for every Item;
+   - the hop names its list.
+
+   Each fix gets the missing test from the persistence matrix.
+3. **One writer:** hooks and `LogLine` go through the item tool. Then add the sidecar snapshot, with its equality gate.
+4. **The new session shape,** built beside the old one:
+   - new classes, so the old ones keep reading old files;
+   - old sessions are migrated once, by replaying them into a schema-numbered snapshot.
+
+   Prompts stop counting as tasks here, which removes most of the open-task noise.
+5. **One chat view over the stored list.** The fast seat folds into the smart agent, placing in batches, and dictation works on the website itself. The other chat views and refinement systems are then marked legacy, by a scripted move.
+6. **Prove the base:** the editor's layer tree, then a topic with channels, then a table (§7).
+
+Meanwhile: don't re-prompt the 223 open tasks. Under the new shape, most of them are prompts and settle by themselves; the rest go on one close-out list for the owner, not into mass completion.
+
 ## Not covered yet
 
 - Users, teams, topics, channels and the editor are class sketches only (§7, [pages §5–6](seats/pages/notes.md)). None is designed in depth, and permissions are a shape with no design behind it.
