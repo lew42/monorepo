@@ -106,6 +106,7 @@ The chat is drawn over the stored list. The fast seat folds into the smart agent
 | Plan review | mastermind-plan-review (Opus, high) | [build/plan-review/](build/plan-review/requirements.md) | **landed**: [review.md](build/plan-review/review.md), 10 findings, folded in above |
 | Seat (g): delta flow | mastermind-shapes-delta-flow (Opus) | [seats/analysis-brief.md](seats/analysis-brief.md) (g) | **landed**: [delta-flow.md](seats/delta-flow/delta-flow.md), demo PASS; build A turned it into a test |
 | Seat (h): legacy census | mastermind-shapes-legacy (Sonnet) | [seats/analysis-brief.md](seats/analysis-brief.md) (h) | **landed**: [shape.md](seats/legacy/shape.md), [the page.children guide](seats/legacy/migration-children-to-pages.md) (233 live callers) |
+| Build C: class docs that show, Item and List (step 6, first slice; spawned 17:22) | mastermind-build-class-docs (Opus, high) | [build/class-docs/](build/class-docs/requirements.md) | `worktree/class-docs`, branched from build B |
 
 ## How the work runs
 
