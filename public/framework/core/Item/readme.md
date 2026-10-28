@@ -82,7 +82,7 @@ Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-sa
 
 The target model (the owner, 2026-10-21): any item holds items on demand, adding is a reference and moving is explicit, every added item gets persistence recursively, storage targets vary and are visible: [doc/owner-2026-10-21-items-hold-items.md](./doc/owner-2026-10-21-items-hold-items.md).
 
-A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`).
+A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`). The core test the [Item page](/framework/core/Item/) draws step by step is `Item.steps.js`; `node Item.steps.test.mjs` runs the same steps. The page's life-cycle picture is `Item.life.js` and its method pages are `Item.methods.js` plus `methods/<name>.md` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
 
 ## Watch out
 

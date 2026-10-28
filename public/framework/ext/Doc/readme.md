@@ -21,6 +21,8 @@ export default new Doc({
 ```
 Empty section, no tab. Nothing at the call site says "tab" — a different shape overrides `sections()`.
 
+**A class page that shows before it tells:** `new ClassDoc({…})` ([ClassDoc.js](./ClassDoc.js)) adds a live instance, the life cycle, the core test step by step and a Methods tab routed at `methods/<name>/`. Used by [Item](/framework/core/Item/) and [List](/framework/core/List/): [doc/class-doc.md](./doc/class-doc.md).
+
 ## Watch out
 - A class's API tab opens on a **ClassCard**: title card, Core API (the Doc's `core: "name:weight …"`), own members, then inherited groups read off the prototype chain: [doc/class-card.md](./doc/class-card.md)
 - A note name may nest (`"guide/setup"`) — each interior segment becomes its own real, bookmarkable page, and the Docs tab draws a folder tree instead of its usual vertical tab bar the moment any note does: [doc/tree/nesting.md](./doc/tree/nesting.md)

@@ -40,7 +40,7 @@ list.toJSON()       //  a bare array
 - `adopt()` sets `parent` to the `owner` (the Item), never the list — walking up never steps over a collection: [doc/adoption.md](./doc/adoption.md)
 - `insert_before` takes a node, not an index; a `ref` that is null or absent appends: [doc/decisions.md](./doc/decisions.md)
 - The four verbs (`add`/`remove`/`move`/`order`) are **by id, never an index** — a line survives the list changing shape around it. `insert`/`replace`/`release` are the quiet counterparts: loading or replacing a stub is not a change worth a line.
-- **The examples are the tests.** [`List.examples.js`](./List.examples.js) holds six `{title, run}` examples: the [List page](/framework/core/List/) shows each with a live pass or fail, and `ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/test.mjs` runs the same array in node. Add a behaviour, add an example.
+- **The examples are the tests.** [`List.examples.js`](./List.examples.js) holds six `{title, run}` examples: the [List page](/framework/core/List/) shows each with a live pass or fail, and `ai/sessions/2026/10/02/page-extends-item/page-extends-item/item-core/test.mjs` runs the same array in node. Add a behaviour, add an example. The [List page](/framework/core/List/) also draws `List.steps.js` step by step (`node List.steps.test.mjs` runs them) and its method pages from `List.methods.js` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
 - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
 - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
 
