@@ -198,3 +198,5 @@
 {"log":{"at":"2026-10-25T19:00:46-05:00","msg":"dropped: queue-top: five session-detail fixes: owner task-mastermind-queue-top is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-top/","reason":"owner-stopped"}}
 {"log":{"at":"2026-10-25T19:00:46-05:00","msg":"dropped: queue-triage: owner task-mastermind-queue-triage is dormant and the task is untouched","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/queue-triage/","reason":"owner-dormant"}}
 {"action":{"at":"2026-10-25T19:21:03-05:00","did":"edit","files":["public/framework/ai/handover.md"]}}
+{"action":{"at":"2026-10-28T00:26:32-05:00","did":"edit","files":["public/framework/core/Session/tasks/data-shapes/seats/design-brief.md"]}}
+{"action":{"at":"2026-10-28T00:26:55-05:00","did":"edit","files":["public/framework/core/Session/tasks/data-shapes/seats/analysis-brief.md"]}}
