@@ -93,6 +93,7 @@ Briefs: [seats/design-brief.md](seats/design-brief.md) (blind) and [seats/analys
 | (c) Consolidation map | mastermind-shapes-consolidation | Sonnet | [seats/consolidation/](seats/consolidation/) |
 | (d) Pages (asks 11–14, 20) | mastermind-shapes-pages | Opus | [seats/pages/](seats/pages/) |
 | (e) Streaming and stores (asks 14–18) | mastermind-shapes-streaming | Opus | [seats/streaming/](seats/streaming/) |
+| (f) Other structures (ask 20, with 13–14; spawned 01:58 after the synthesis, budget allowing) | mastermind-shapes-structures | Opus | [seats/structures/](seats/structures/) |
 
 Ask 16 (items hold items; list delta re-apply) was sent to seat (a) as an addition.
 

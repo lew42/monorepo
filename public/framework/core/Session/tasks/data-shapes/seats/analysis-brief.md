@@ -49,6 +49,16 @@ Asks 14–18 of [../requirements.md](../requirements.md).
 - **Other stores:** is the Item/Store API a clean interface that SQLite, Cloudflare (Durable Objects, D1, R2) or another log could sit behind? List the methods a backend must provide.
 - **Persistence test matrix (ask 17):** every class that persists (Item, List, Task, Prompt, Question, Session, Page, and any others), tested standalone in its own file AND nested in another file, for add, set, move, remove and replay. Mark which cells have a test today (cite it) and which are missing. Don't write the tests.
 
+## (f) `structures`: what else the Item/Page system should carry (ask 20, with 13 and 14)
+
+Read [../synthesis.md](../synthesis.md) first: it is the agreed shape so far. Then the pages and streaming seats' notes.
+
+- **The catalogue:** the data structures a web framework's pages will want: the editor's layer tree (Webflow/Figma-like), tables, boards, graphs, timelines, forms, a user/profile, a team, a topic with a chat, channels, comments on any item, a document with sections. For each: a class sketch on Item/List (what each property holds), whether it owns a file or lives inline, its id and size profile (lines per hour, lines in a year), and which line shapes it needs.
+- **What they share:** the smallest set of base features that serves all of them (the id index, refs, on-demand `items`, the snapshot sidecar, per-file vs per-month rolling). Name what's missing from today's base, citing the seats' findings.
+- **The editor in depth:** a page with 300 layers, 50 such pages; one file per page vs one per document; selection, drag and undo as local state vs lines; how one layer's history is read back.
+- **Permissions and identity, as a shape only:** who may write which list, once users exist.
+- Pick the 3 structures that would prove the base best, in order, and say why.
+
 ## What you write (all seats)
 
 In your own folder (`seats/<your-name>/`, your task dir):
