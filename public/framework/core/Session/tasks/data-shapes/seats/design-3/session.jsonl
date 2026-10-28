@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-28T00:35:59-05:00","msg":"Read past-work.md as the spawn prompt asked (a link list only); opened none of its proposal docs, per the brief's fence."},"by":"mastermind-shapes-design-3"}
 {"log":{"at":"2026-10-28T00:35:59-05:00","msg":"Wrote shape.md (class map, 7 sample lines) and notes.md (the 7 answers, alternatives, what current code gets right and wrong, risks)."},"by":"mastermind-shapes-design-3"}
 {"finish":{"at":"2026-10-28T00:35:59-05:00","outcome":"Design seat 3: a session is one file with three homes (chat, tasks, sessions). Tasks are nested but addressed by bare id through a session index. Deltas are the truth; snapshot.json is a cache. Sentences move into prompts. Prompt and Question are Messages, not Tasks. [shape.md](shape.md) · [notes.md](notes.md)"},"by":"mastermind-shapes-design-3"}
+{"commit":"404fb307ef31"}
