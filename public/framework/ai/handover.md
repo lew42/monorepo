@@ -5,29 +5,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-27 03:52 UTC, last 24 h)
+## NOW (computed 2026-10-28 00:03 UTC, last 24 h)
 
-**Pace:** Week: 27% used · 72% gone · 38% of pace (room to spend, 1 day 23 hours left)
+**Pace:** Week: 72% used · 84% gone · 86% of pace (steady, 1 day 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (2):**
-- [Budget: $6. You are a helper doing ONE read-only investigation plus ONE doc; do the work yourself, spawn nobod](/framework/ai/sessions/2026/10/26/session-264f7d21/mastermind-roles-auditor/) (mastermind-roles-auditor)
-- [System map and proposal: dictation, sheet, chat, session, task, prompt](/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map/) (mastermind-system-map)
+**Landed (0):**
+- none
 
 **Open, touched in the window (0):**
 - none
 
 **Latest commits on this branch:**
 ```
-9a9472068 servex: log sweep (31 files)
-ea942df93 servex: log sweep (31 files)
-7bcf11ab2 servex: log sweep (32 files)
-4921dc5ac servex: log sweep (31 files)
-8603873b1 servex: log sweep (33 files)
-fb8c67d1a servex: log sweep (32 files)
-c8b02d000 servex: log sweep (35 files)
-8fbaafa6c ai: chat-architectures.md, four alternative data shapes for the voice session chat, with a recommendation
+fad5e1081 servex: log sweep (31 files)
+1b461e813 servex: log sweep (31 files)
+173008dfc servex: log sweep (31 files)
+7074748f4 servex: log sweep (31 files)
+e2264b37d servex: log sweep (31 files)
+0cf842be9 servex: log sweep (31 files)
+fe8ab8b5e servex: log sweep (31 files)
+6b78d094a servex: log sweep (31 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
