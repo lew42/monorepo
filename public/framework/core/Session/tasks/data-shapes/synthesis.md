@@ -137,7 +137,13 @@ Design-1's trick settles the follow-up question of how an ungrouped sentence sho
 - **Sidecar** (`session.snap.json` beside the log, recommended): all three blind seats and streaming. It has zero risk, because the log is never touched. Gate it with a test that the snapshot plus the tail equals a full replay, run on every real session before the feature turns on.
 - **An appended `{"snapshot":…}` line** (design-decisions §5; the items seat says it works, and proved it): it keeps one file. But a reader still downloads everything and must scan for the last snapshot. Keep it for later, for when a file is rolled.
 
-**[F] Ids.** The two answers are not rivals; do both.
+**[F] Ids.** *Settled further in [ids-and-paths.md](ids-and-paths.md):*
+- every hop names its list, and each List looks members up in a Map;
+- ids need to be unique only among siblings (the owner's 2026-10-03 rule);
+- ids are short and random, with fixed names for code-made structure;
+- references store a path and fall back to the id.
+
+The original two answers follow; do both.
 - Ids are unique per file (designs), with the computed index.
 - The hop names its list, `{"b":{"s1":…}}` (items). Today a member line drops the list name, so two lists with the same id silently misroute on replay (proved, E2).
 

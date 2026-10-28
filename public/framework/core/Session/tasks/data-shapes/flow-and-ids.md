@@ -8,6 +8,8 @@ The owner asked this on 2026-10-28, after reading the [synthesis](synthesis.md):
 
 This page answers them, for any Item tree, not only sessions.
 
+> **Refined the same night: [ids-and-paths.md](ids-and-paths.md).** Every line names its list, and each List looks members up in a Map, so ids need to be unique only among siblings, and no file-wide index is needed (only a fallback for references). Ids are short and random, with no type letter. Where §3–§5 below say "unique per file, plus an index", that page wins.
+
 ## 1. Three questions that are usually mixed up
 
 1. **What shape is the object in memory?** A tree. A Session holds Lists; a List holds Items; an Item can hold Lists. This is today's Item/List, and it stays.
