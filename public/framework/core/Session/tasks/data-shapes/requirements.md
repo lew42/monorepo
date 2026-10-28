@@ -58,6 +58,21 @@
 - **Fences:** seats write only in their own `seats/<name>/`. No code edits, no moves.
 - **Budget:** the week is reset Wednesday 2026-10-28 ~21:40; staying near 100% of pace is allowed. Opus for design judgment; Haiku or Sonnet for bulk reading.
 
+## Seats (spawned 2026-10-28 00:28)
+
+Briefs: [seats/design-brief.md](seats/design-brief.md) (blind) and [seats/analysis-brief.md](seats/analysis-brief.md). All six run in the main tree as single workers (the pool had no free worktree; a first `minion-shapes-design-1` got one and was stopped at zero turns so all seats work the same way).
+
+| Seat | Agent | Model | Folder |
+|---|---|---|---|
+| Blind design 1 | mastermind-shapes-design-1 | Opus | [seats/design-1/](seats/design-1/) |
+| Blind design 2 | mastermind-shapes-design-2 | Opus | [seats/design-2/](seats/design-2/) |
+| Blind design 3 | mastermind-shapes-design-3 | Opus | [seats/design-3/](seats/design-3/) |
+| (a) Item/List/Store/JSONL | mastermind-shapes-items | Opus | [seats/items/](seats/items/) |
+| (b) Task path | mastermind-shapes-task-path | Sonnet | [seats/task-path/](seats/task-path/) |
+| (c) Consolidation map | mastermind-shapes-consolidation | Sonnet | [seats/consolidation/](seats/consolidation/) |
+
+Synthesis: `synthesis.md` (written by the tab once the seats land).
+
 ## Read first (for analysis seats; NOT for independent design seats)
 
 - `public/framework/ai/readme.md` line 9, then: `design-decisions-2026-10-27.md`, `system-map.md`, `system-proposal.md`, `chat-architectures.md`, `roles-proposal.md`.
