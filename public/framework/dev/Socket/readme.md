@@ -38,6 +38,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - [doc/localhost.md](./doc/localhost.md) — the gate is inside the socket, and why
 - [doc/backoff.md](./doc/backoff.md) — reconnecting without a storm
 - [doc/wire.md](./doc/wire.md) — the whole protocol, both directions: Claude → `POST /mcp` → frame → tab
+- Tests: `node Server/plugins/SocketServer/Tail.test.mjs` (one offset per socket: no lost update, no double apply)
 - Files: `Socket.js` (the class), `/app.js` (the one caller), `Server/plugins/SocketServer/` (the other end)
 
 - Notes: [doc/Socket-notes.md](doc/Socket-notes.md) — history and lessons moved out of the code comments.

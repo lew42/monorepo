@@ -1,6 +1,6 @@
-# Next: `item.set("prop", anotherItem)` should wire the child
+# Next
 
-Today `set_one` ([Item.js:146](../Item.js), `set_one`) stores the item in `data` as a snapshot; the child is never adopted, so its later deltas are lost and replay gives a plain object. Wanted: when the value is an `Item` with no parent, set `child.parent = this`, remember the property name, make `Store.hops()` ([Store.js:273](../Store.js)) emit that name when the node sits in a property instead of a List, and make `get()` find it (it already does for own properties). Then `{"prop":{"set":{...}}}` replays into the child. Risk: `toJSON` and `lists()` must not loop on the new parent link; keep `Item.test.mjs`'s "known gap" assertions and flip them when built.
+Done (2026-10-28, the data backbone): `item.set("prop", anotherItem)` adopts the child (`Item.adopt_slot`; [architecture.md](architecture.md#items-save-through-their-parent)); the known-gap assertions in `Item.test.mjs` are flipped.
 
 - The owner (2026-10-20 18:50): the JSONL store, the dated indexes and the query should be one system, probably in core/Item, with JSONL as one swappable store. Essence: [ai/doc/owner-2026-10-20-who-makes-tasks.md](/framework/ai/doc/owner-2026-10-20-who-makes-tasks.md) section 15. The plan, checked against the prompt before any code: [store-index-query-plan.md](store-index-query-plan.md) (classes `Dated` + `DatedFiles`, six slices).
 - Not planned yet (the owner: "not really that important"): subscribing to a parent item so its children update with it, versus subscribing to one child alone.

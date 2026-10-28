@@ -442,6 +442,7 @@ export class Item extends Events(Object) {
 	// The time of the line being replayed (null outside a replay). One clock for every Item: `Task.clock` reads and
 	// writes this same value.
 	static get clock(){ return Item._clock; }
+	static set clock(at){ Item._clock = at; }
 
 	// A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set()
 	// opens the next). For a replay_line that reads its top-level keys itself (Task, Session) before any set() runs.
@@ -458,7 +459,6 @@ export class Item extends Events(Object) {
 		}
 		return out ?? line;
 	}
-	static set clock(at){ Item._clock = at; }
 
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.

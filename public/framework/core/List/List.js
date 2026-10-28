@@ -59,6 +59,7 @@ export class List extends Item {
 	}
 
 	// The member array. Assigning a new one (order(), or a caller swapping it whole) drops the id index below.
+	// ⚠ Never push, splice or sort it in place: find() trusts its Map, so a member added that way is not found. Use a List verb.
 	get items(){ return this._items; }
 	set items(array){ this._items = array; this._by_key = null; Item.generation++; }
 

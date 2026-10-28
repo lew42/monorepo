@@ -985,7 +985,8 @@ async function page_refusal(at, delta){
 	const Page = await page_class();
 	if (!Page) return null;   // a broken Page degrades the check, never the tool
 	let why = bad_page_delta(Page, delta);
-	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, delta)]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
+	// A copy: the replay adopts what it adds (a `pages.add` spec gets a parent), and the caller still writes this delta.
+	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, structuredClone(delta))]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
