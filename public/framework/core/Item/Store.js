@@ -233,31 +233,13 @@ export class Store {
 	reset(){ this.count = 0; return this; }
 }
 
-/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated path, kept ONLY to spell a
-   cross-list move's live `from` reference as a string (that value rides inside
-   the `move` verb's own payload, never as top-level routing, so dropping the
-   `at` key never touched it). Property names and member ids, alternating
-   (`"content"`, `"content/abc"`). `undefined` means `node` IS `host`. */
+/* A cross-list move's `from`: the list the member left, as a DOTTED path from the host,
+   the same hops a line walks (`"cards.c1.notes"`). It rides inside the `move` verb's own
+   payload. Before 2026-10-28 it was a `/` path (`"cards/c1/notes"`); List.move reads both.
+   `undefined` means `node` IS `host`. */
 function address(node, host){
-	if (!node || node === host) return undefined;
-
-	if (is_list(node)){
-		const base = address(node.owner, host);
-		return base ? `${base}/${node.name}` : node.name;
-	}
-
-	const parent = node.parent;
-	if (!parent) return undefined;   // detached from host — best effort, should not happen
-
-	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
-		if (list.key(node) != null && list.find(list.key(node)) === node){
-			const base = address(parent, host);
-			const seg = `${name}/${list.key(node)}`;
-			return base ? `${base}/${seg}` : seg;
-		}
-	}
-
-	return address(parent, host);
+	const path = hops(node, host);
+	return path.length ? path.join(".") : undefined;
 }
 
 // A change whose origin sits inside a descendant that has its OWN store belongs to that store (a Task.open_ref stub replaying its own file), or that is marked `_own_file` (a referenced child, even a snapshot copy).

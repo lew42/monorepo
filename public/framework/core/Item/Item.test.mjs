@@ -136,4 +136,45 @@ n++;
 	t(g.title === "second" && g.get_one("title") === "second", "new Foo({title}) then set({title}) reads back the new title");
 }
 
+// The plan review (2026-10-28): (1) a member id that spells a method; (2) a List kept behind a getter; (9) a move's `from` is dotted.
+{
+	const { default: List } = await import("../List/List.js");
+	const lines = [];
+	const store = new Item.Store({ url: "/x/review.jsonl" });
+	store.append = line => lines.push(line);
+	class Holder extends Item {   // its lists live behind getters, like Page's `pages` and Task's `tasks`
+		get kids(){ return this._kids ??= new List({ owner: this, name: "kids" }); }
+		get done(){ return this._done ??= new List({ owner: this, name: "done" }); }
+		constructor(...a){ super(...a); void this.kids; void this.done; }
+	}
+	Item.register(Holder, "Holder-test");
+	const live = new Holder({ id: "h" });
+	store.attach(live);
+	for (const id of ["save", "root", "at"]) live.kids.add({ id, title: id });
+	live.kids.find("save").set({ title: "saved" });
+	live.done.move("root", { after: null, from: live.kids });
+	t(JSON.stringify(lines.at(-2)) === '{"kids":{"save":{"set":{"title":"saved"}}}}', "(1) a member named \"save\" is written under its list like any other");
+	t(lines.at(-1).done?.move?.from === "kids", "(9) a cross-list move writes its `from` as a dotted path (here one name)");
+
+	const again = new Holder({ id: "h" });
+	for (const line of JSON.parse(JSON.stringify(lines))) again.replay_line(line);
+	t(again.kids.find("save")?.get("title") === "saved", "(1) replay walks into the member \"save\" instead of calling the method save()");
+	t(again.done.find("root") && !again.kids.find("root"), "(9) the dotted `from` replays: root moved from kids to done");
+	t(again.get("kids") === again.kids && again.data.kids === undefined, "(2) get(\"kids\") finds a List kept behind a getter, so its lines never land as data");
+	again.replay_line({ kids: { remove: "at" } });
+	t(!again.kids.find("at"), "(1) a list verb is still a verb: {\"kids\":{\"remove\":\"at\"}}");
+	again.replay_line({ done: { move: { id: "save", after: null, from: "kids" } } });
+	again.replay_line({ kids: { move: { id: "save", after: null, from: "done" } } });
+	t(again.kids.find("save"), "(9) a one-name `from` reads the same either way");
+}
+
+// (2) with the real Page: a {"pages":{"add":…}} line reaches page.pages on replay (seat g, B7), not page data.
+{
+	const { register } = await import("node:module");
+	register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
+	const { default: Page } = await import("../Page/Page.class.js");
+	const page = Page.replay([{ title: "P" }, { pages: { add: { id: "kid", name: "kid", stub: true } } }]);
+	t(page.pages.find("kid") && page.data.pages === undefined, "(2) a page's {\"pages\":{\"add\":…}} line adds a sub-page on replay");
+}
+
 console.log(`ok — ${n} assertions passed`);

@@ -224,6 +224,10 @@ export class Item extends Events(Object) {
 		const value = this.get_one(key);
 		if (value !== undefined) return value;
 
+		// A List made with me as its owner and `key` as its name, even one I keep behind a getter (List.named()).
+		const list = this._named?.get(key);
+		if (list && list.owner === this) return list;
+
 		// A dotted path: my get takes the first name, and what it finds takes the rest with its OWN get (a List looks
 		// up its member; a subclass may look up its own way). ids-and-paths.md, DECIDED.
 		const dot = typeof key === "string" ? key.indexOf(".") : -1;

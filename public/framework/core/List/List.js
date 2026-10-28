@@ -55,6 +55,7 @@ export class List extends Item {
 	constructor(...args){
 		super(...args);
 		this.items ??= [];
+		this.named();
 	}
 
 	// The member array. Assigning a new one (order(), or a caller swapping it whole) drops the id index below.
@@ -63,7 +64,28 @@ export class List extends Item {
 
 	// The owner: setting it tells the owner its lists changed (Item.lists() caches them).
 	get owner(){ return this._owner; }
-	set owner(item){ this._owner = item; if (item) item._lists = null; }
+	set owner(item){ this._owner = item; if (item){ hide(item, "_lists", null); this.named(); } }
+
+	/* A List made with an owner and a name registers itself on the owner, so `owner.get(name)` finds it even when the owner
+	   keeps it behind a getter (Page's `get pages()` holds `_pages`): before, a `{"pages":{"add":…}}` line replayed as data
+	   (seat g, B7; the plan review). Item.get reads the registry; a later list of the same name replaces the earlier. */
+	named(){
+		const owner = this._owner;
+		if (!owner || typeof this.name !== "string" || !this.name || owner === this) return;
+		if (!Object.hasOwn(owner, "_named")) hide(owner, "_named", new Map());
+		owner._named.set(this.name, this);
+	}
+
+	/* A member wins over a method it spells (an id "save", "root" or "at" was unreachable: set_one called the method). Only
+	   the list's own verbs stay verbs: add, remove, move, order, clear, set, and any method a List subclass defines
+	   (Paragraphs' append and replace). The plan review, 2026-10-28. */
+	set_one(key, value){
+		if (typeof this[key] === "function" && !LIST_VERBS.has(key) && !subclass_verb(this, key)){
+			const kid = this.find(key);
+			if (kid && typeof kid.set === "function") return void kid.set(value);
+		}
+		return super.set_one(key, value);
+	}
 
 	/* ID -> MEMBER, kept in step by every verb below, so a hop is one Map lookup, never a scan (ids-and-paths.md §3).
 	   The first member with a key wins, as Array.find did. A member whose key was empty when it arrived (`_unkeyed`)
@@ -302,7 +324,7 @@ export class List extends Item {
 			if (typeof idOrX.from === "string"){
 				let host = this.owner;
 				while (host && !host.store && host.parent) host = host.parent;
-				from = idOrX.from === "" ? host : host?.locate?.(idOrX.from);
+				from = idOrX.from === "" ? host : idOrX.from.includes("/") ? host?.locate?.(idOrX.from) : host?.get?.(idOrX.from);   // a dotted path (new) or a "/" path (old lines)
 			}
 			idOrX = idOrX.id;
 		}
@@ -359,6 +381,16 @@ export class List extends Item {
 	// would inherit from Item (the icon view), so `List.View` must be List's own. No View here: nothing is drawn (undefined).
 	render(){ return Object.hasOwn(List, "View") ? new List.View({ subject: this, open: 1 }) : undefined; }
 }
+
+const LIST_VERBS = new Set(["add", "remove", "move", "order", "clear", "set"]);
+// Is `key` a method a List subclass defines (below List.prototype), so a verb of that list?
+function subclass_verb(list, key){
+	for (let proto = Object.getPrototypeOf(list); proto && proto !== List.prototype; proto = Object.getPrototypeOf(proto))
+		if (Object.hasOwn(proto, key)) return true;
+	return false;
+}
+// A cache or registry kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
+const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
 
 const warn = (message, key = message) => {
 	if (List.warned.has(key)) return;
