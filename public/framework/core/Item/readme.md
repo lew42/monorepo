@@ -116,7 +116,8 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
 - `doc/method/*.md`, `doc/property/*.md` — one note per verb and field, each with its trap. The [Methods tab](/framework/core/Item/methods/) shows three of them (`set`, `get`, `toJSON`); the rest are read here, and many predate `set()` as a delta.
-- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
+- [doc/one-writer.md](./doc/one-writer.md) — every line to a `session`, `task`, `page` or `improvements.jsonl` goes through one entry point (`record_lines` / `run_item` behind `POST /api/item`), which applies it to the live root and then appends it; `RecordWriter.js` is the caller's side, and its fallback never writes a twin.
+- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `RecordWriter.js` (posts a record's lines to the one entry point; the fallback append), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
 - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
 - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — adopt-or-ref ownership, first delta at adopt time, snapshots as compaction (decided or leaning; not built; also what works today and the gap).
