@@ -97,3 +97,5 @@ ever appeared — no error, no clue why.
 - [`doc/architecture.md`](./doc/architecture.md) — the decisions that hold today, and why (no longer in the drawer's Docs tab: [why](doc/docs-tab.md))
 
 **The owner's direction, 2026-10-20: dictation on the website first** (one assistant, hands-free; a global named voice session with a session manager; the widget cleanup asks that never landed; the font flicker): [doc/owner-2026-10-20-dictation-first.md](doc/owner-2026-10-20-dictation-first.md).
+
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — sentences are written instantly by code; the fast seat is paused as a placer (leaning), the chat is one stored list.

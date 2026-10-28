@@ -2,7 +2,9 @@
 
 Proposal only (2026-10-26, from the owner's direction through the cloud voice agent). Nothing here is built, and chat V1 and V2 must keep working at every step. [system-map.md](system-map.md) is what IS; this file is what SHOULD be. The reasons for each move are the "boundaries" list in the map, section 4.
 
-> Four alternative data architectures for the chat, with a recommendation: [chat-architectures.md](chat-architectures.md).
+> **Superseded in part by [design-decisions-2026-10-27.md](design-decisions-2026-10-27.md)** (read it first). It supersedes: (1) every place below that says the chat is derived, computed or time-merged from the sentence, card and task lists (the "Lists and the chat" and data-first sections, and change 28's chat wording): the chat is now ONE stored list, "the spine", whose entries reference the others; (2) the fast seat as the placer (paused, leaning); (3) adds the adopt-or-ref ownership rule, first-delta-at-adopt, and snapshots as compaction, none of which are described below. The names (`Sentence`, `Card`, `AISession`, `AITask`) and the class list stand.
+>
+> Four alternative data architectures for the chat: [chat-architectures.md](chat-architectures.md) (its Option A recommendation is reversed to Option B by the file above).
 
 ## Class architecture (final, 2026-10-27)
 

@@ -49,3 +49,4 @@ drawer.showing();     // boolean
 
 ## Also here (readme audit, 2026-10-13)
 - [walkthrough](./walkthrough/)
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — the sheet shows the chat spine (one stored list of entries that reference sentences, cards, tasks); decided or leaning, not built.

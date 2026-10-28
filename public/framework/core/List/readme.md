@@ -50,3 +50,4 @@ list.toJSON()       //  a bare array
 - [Overview](/framework/core/List/) · [`doc/adoption.md`](./doc/adoption.md) (why `owner` exists) · [`doc/decisions.md`](./doc/decisions.md) (the Array dissent, what was cut, who calls it)
 - [Live list](/framework/core/Item/live/) — a List, live, on a real page, saved to a real file.
 - Files that matter: `List.js` (the class — the array plus Events plus the four verbs), `List.examples.js` (the examples that are also the tests), `page.js` (live demo), `../Item/` (the default caller), `../Page/` (`pages`/`content`, named for what they hold).
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — `add` adopts an unowned item, writes a ref for an owned one; the chat is one stored list (decided or leaning; not built).

@@ -1,5 +1,7 @@
 # Chat architectures: four ways to hold a voice session's data
 
+> **Decided 2026-10-27: Option B ("the chat is the spine"), not the Option A recommended below.** See [design-decisions-2026-10-27.md](design-decisions-2026-10-27.md). The options stay as the record of the alternatives.
+
 Design only; nothing here is built. It sits beside [system-proposal.md](system-proposal.md) (the agreed shape, "Class architecture (final)") and [system-map.md](system-map.md) (what runs today). Where a claim is checked against the code it says so; guesses say "estimate".
 
 **The two rules every option must keep:**

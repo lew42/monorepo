@@ -136,3 +136,4 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 - **Completion, 2026-10-25:** an open task whose owner is not working is flagged as dropped by code, and a deferral is a `wait` with a home and a `decide_by`: [doc/completion.md](doc/completion.md).
 - **Owner notes, 2026-10-20:** `complete()` the verb, `completion` the number; a module keeps projects (`projects/YYYY/MM/DD/`), a session keeps tasks; the dated breakout as one shared system: [doc/owner-2026-10-20-projects-and-completion.md](doc/owner-2026-10-20-projects-and-completion.md).
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — tasks live in their own list and reach the chat by reference; adopt and own-file rules (decided or leaning; not built).

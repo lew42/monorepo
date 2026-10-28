@@ -60,3 +60,4 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 ## More
 
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — the chat is ONE stored list ("the spine"), Servex appends the chat entry in the same write as the sentence; reverses the Option A recommendation.

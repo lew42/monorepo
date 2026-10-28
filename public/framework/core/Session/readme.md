@@ -144,3 +144,4 @@ Test: `node Servex/agents/session-state.test.mjs`.
 - [doc/menu.md](doc/menu.md): the session menu, a template (`Session.MENU`, settings first) drawn at the right end of the session's name line; settings saved as lines in `session.jsonl`
 - [doc/architecture.md](doc/architecture.md): decisions and why
 - [Dated folders shared by sessions and projects](/framework/core/Task/doc/owner-2026-10-20-projects-and-completion.md)
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — the chat as one stored list on the session, and how a `session.jsonl` is created today (node only) and what would change.

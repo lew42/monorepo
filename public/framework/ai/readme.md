@@ -54,3 +54,4 @@
 ## Notes from your asks
 
 - Rules, preferences and ideas you said about this module: [doc/notes-from-asks.md](doc/notes-from-asks.md)
+- Chat as one stored list, ownership and adopt, first and deep deltas, snapshots as compaction, how a session file is created (decided or leaning, 2026-10-27): [design-decisions-2026-10-27.md](design-decisions-2026-10-27.md)
