@@ -1,0 +1,65 @@
+@layer base, theme, site, util;
+
+/* ClassDoc (ClassDoc.js): a class page that shows before it tells. Prefix doc-class- (ext/Doc owns doc-). */
+@layer theme {
+
+	.doc-class { display: flex; flex-direction: column; gap: var(--gap, 1.5em); min-width: 0; }
+
+	/* The class line: Item extends Events · holds … */
+	.doc-class-line { font-size: 1.25em; margin: 0; line-height: 1.5; }
+	.doc-class-line code { font-size: 0.95em; }
+	.doc-class-sep { color: var(--subtle); }
+
+	/* Live instance beside the life cycle; stacked below 60em of room. */
+	.doc-class-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--gap, 1.5em); }
+	@media (min-width: 1100px) { .doc-class-top { grid-template-columns: minmax(16em, 1fr) minmax(0, 2fr); } }
+
+	.doc-class-box { display: flex; flex-direction: column; gap: 0.75em; min-width: 0; }
+	.doc-class-head { display: flex; align-items: center; gap: 0.4em; margin: 0; font-size: 1.1em; }
+	.doc-class-head .icon { color: var(--subtle); }
+
+	/* The life cycle: who → the path, top to bottom. */
+	.doc-class-life { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6em; align-items: start; }
+	@media (min-width: 700px) { .doc-class-life { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.3fr); } }
+	.doc-class-arrow { align-self: center; justify-self: center; color: var(--subtle); }
+	@media (max-width: 699px) { .doc-class-arrow { transform: rotate(90deg); } }
+	.doc-class-who, .doc-class-path { display: flex; flex-direction: column; gap: 0.5em; min-width: 0; }
+	.doc-class-hop { display: flex; gap: 0.6em; align-items: flex-start; padding: 0.6em 0.75em; border-radius: 0.5em; background: var(--surface, rgba(127,127,127,0.08)); min-width: 0; }
+	.doc-class-hop > .icon { color: var(--prime); flex: none; }
+	.doc-class-hop > div { min-width: 0; display: flex; flex-direction: column; gap: 0.15em; }
+	.doc-class-hop code { font-size: 0.85em; overflow-wrap: anywhere; }
+	.doc-class-hop-name { font-weight: 600; }
+	.doc-class-hop-says { color: var(--subtle); font-size: 0.9em; }
+	.doc-class-path { position: relative; }
+	.doc-class-path > .doc-class-hop + .doc-class-hop { position: relative; }
+	.doc-class-path > .doc-class-hop + .doc-class-hop::before { content: "↓"; position: absolute; top: -0.85em; left: 1.15em; color: var(--subtle); font-size: 0.9em; line-height: 1; }
+
+	/* The steps: one card each, as many across as fit. */
+	.doc-class-tally { margin: 0; color: var(--subtle); }
+	.doc-class-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20em), 1fr)); gap: 1em; }
+	.doc-class-step { display: flex; flex-direction: column; gap: 0.5em; padding: 0.8em; border-radius: 0.6em; background: var(--surface, rgba(127,127,127,0.08)); border-top: 3px solid transparent; min-width: 0; }
+	.doc-class-step.is-pass { border-top-color: var(--ok); }
+	.doc-class-step.is-fail { border-top-color: var(--error); }
+	.doc-class-step-head { display: flex; align-items: center; gap: 0.5em; font-weight: 600; }
+	.doc-class-step-n { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--prime); color: var(--prime-ink); font-size: 0.85em; flex: none; }
+	.doc-class-step > code, .doc-class-step-lines code { font-size: 0.85em; overflow-wrap: anywhere; white-space: pre-wrap; }
+	.doc-class-step-verdict { display: flex; gap: 0.4em; align-items: flex-start; font-size: 0.9em; }
+	.doc-class-step.is-pass .doc-class-step-verdict .icon { color: var(--ok); }
+	.doc-class-step.is-fail .doc-class-step-verdict .icon { color: var(--error); }
+	.doc-class-step-object { min-width: 0; }
+	.doc-class-step-lines { display: flex; flex-direction: column; gap: 0.25em; font-size: 0.9em; }
+
+	/* Methods: a wall of cards, each a link to its page. */
+	.doc-class-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16em), 1fr)); gap: 0.6em; }
+	.doc-class-method { display: flex; flex-direction: column; gap: 0.25em; padding: 0.7em 0.8em; border-radius: 0.5em; background: var(--surface, rgba(127,127,127,0.08)); color: inherit; text-decoration: none; min-width: 0; }
+	.doc-class-method:hover { outline: 2px solid var(--prime); }
+	.doc-class-method code { font-weight: 600; overflow-wrap: anywhere; }
+	.doc-class-method span { color: var(--subtle); font-size: 0.9em; }
+
+	/* One method's page. */
+	.doc-class-method-page { display: flex; flex-direction: column; gap: 1em; margin-block: 1em; }
+	.doc-class-sig { font-size: 1.3em; font-weight: 600; }
+	.doc-class-job { font-size: 1.15em; margin: 0; }
+	.doc-class-result { min-width: 0; }
+	.doc-class-error { color: var(--error); }
+}

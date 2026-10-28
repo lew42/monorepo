@@ -1,4 +1,9 @@
-import { Doc, md, h2, code, div, span, icon } from "/app.js";
+import { div, span, code, icon, details, summary } from "/app.js";
+import ClassDoc from "../../ext/Doc/ClassDoc.js";
+import Box from "./watch/Box.js";
+import life from "./Item.life.js";
+import steps, { run_steps } from "./Item.steps.js";
+import method_list from "./Item.methods.js";
 import Item from "./Item.js";
 import List from "../List/List.js";
 
@@ -127,86 +132,43 @@ function row([label, fn]){
 	);
 }
 
-export default new Doc({
+export default new ClassDoc({
 	meta: import.meta,
 	title: "Item",
-	description: "A persistent node: an id, a `data` bag, one saver per document — no children of its own.",
+	description: "A persistent node: an id, a `data` bag, a parent; any list it gives itself.",
 	icon: "data_object",
 
 	subject: Item,
+	extends: "Events",
+	holds: "an id, a data bag of fields, a parent, and any List it gives itself",
+	example(){ const shop = new Box({ id: "shop", title: "Shopping" }); shop.items.add({ id: "milk", title: "Milk", count: 2 }); return shop; },
+	life,
+	steps, run_steps,
+	steps_test: "Item.steps.test.mjs",
+	method_list,
+	method_notes: "set get toJSON",
+
 	properties: "id data parent store view",
 	methods: "assign get put set locate remove root lists walk find contains save delete toJSON wire hydrate register open",
-	core: "data:10 id:9 set:9 get:8 find:7 walk:6 hydrate:6",   // the Core API block: name:weight (ext/Doc/doc/class-card.md)
+	core: "data:10 id:9 set:9 get:8 find:7 walk:6 hydrate:6",   // ClassCard order on pages that inherit from Item (ext/Doc/doc/class-card.md)
 	notes: "architecture envelope decisions",
-	files: "Item.js readme.md page.js",
+	files: "Item.js Item.steps.js Item.methods.js Item.life.js readme.md page.js",
 
-	// ⚠ NOT a plain `children: "live"` — that runs through `declare()` inside the
-	//   Page CONSTRUCTOR, before `Doc`'s own `initialize()` has added its Overview/
-	//   API/Docs/Files sections, so "live" landed in `page.pages` (and so the
-	//   SIDEBAR RAIL, which reads raw insertion order) BEFORE "Overview" — even
-	//   though the TAB STRIP looked right (`Doc.bar()` hard-codes Overview first,
-	//   regardless). Chaining `Doc`'s own `initialize()` first, then declaring
-	//   "live", puts it after Overview everywhere a reader sees it. Fixed
-	//   2026-10-02, task-mastermind review.
+	// ⚠ Declared after the sections, so "live" never lands before Overview in the rail (2026-10-02).
 	initialize(){
-		Doc.prototype.initialize.call(this);
+		ClassDoc.prototype.initialize.call(this);
 		this.declare("live"); this.declare("watch"); this.declare("Dated");
 	},
 
+	// Below the drawing: the older checks, folded to one line.
 	content(){
-
-		code.js(`const card = new DemoCard({ data: { title: "Doc" } });   // DemoCard made itself a list, below
-card.items.add(new Item({ data: { text: "Hello" } }));
-card.save();`);
-
-		md("An **Item** is one node of a document: a `data` bag, an id, `set(delta)`, and a place to save. It has **no children of its own** — nothing on Item holds a list. It has no view, no transport and no required imports — you can run this class in node.");
-
-		h2("Composing a list");
-
-		code.js(`class DemoCard extends Item {
-	constructor(...args){
-		super(...args);
-		this.items = new List({ owner: this, name: "items" });   // a NAMED property, not inherited
-	}
-}`);
-
-		md("Something that needs children gives **itself** a [List](/framework/core/List/) property, in its own constructor, named for what it holds (`items` here; `page.pages` and `page.content` will be [Page](/framework/core/Page/)'s own, next). The list's own verbs — `add`, `remove`, `move`, `order` — live on THAT property: `card.items.add(kid)`, never `card.add(kid)`. This is composition on purpose: a class with its own `add`/`move` already in use (Page has about 70 methods) would collide if Item inherited the list API instead of merely offering it.");
-
-		h2("The envelope");
-
-		code.json(`{ "type": "Item", "id": "…", "data": { }, "items": [ ] }`);
-
-		md("Those are the whole wire format for a plain Item: `type`/`id`/`data`, plus any List property it gave itself, each written as a plain array under its own name (`items` here) — omitted entirely when that Item never made one. **All user state lives under `data`**, so a key of your own never collides with a list name. `parent`, `store` and `view` are instance properties, never serialized — which makes a backref impossible by construction; hydrate restores `parent` by adoption. More on the envelope, unknown types, and what's deliberately excluded: [doc/envelope](/framework/core/Item/doc/envelope/).");
-
-		h2("The verbs Item DOES have");
-
-		code.js(`item.get(k)  item.put(k, v)        // seams over \`data\` — Page overrides both
-item.set(k, v)  item.set({k: v})   // one delta, in key order — see the readme
-item.remove()                      // me, out of whichever of my parent's lists holds me
-item.on(ev, fn)  item.emit(ev, …)  // (core/Events) — emit bubbles up the parent chain
-item.save()  item.delete()         // delegate up to the document's saver`);
-
-		md("**There is no `item.add`, `item.move` or `item.order`.** Those three verbs are the LIST's (`item.items.add(kid)`, `item.items.move(kid, {before, from})`), never the Item's — see *Composing a list* above. Guard a drop with `!this.contains(target)`; ten minutes of nesting otherwise produce a cycle. Every verb has its own page in **API**, above, with the trap it carries.");
-
-		md("⚠ **No I/O in any constructor.** Construction is pure and synchronous. `await Item.open(saver)` is the one async entry — it loads, hydrates synchronously, attaches the saver and hands back the root.");
-
-		h2("The page is the test");
-
-		md("Every claim above, asserted here on load. Red is a broken framework, not a broken page.");
-
 		const done = [];
-		div.c("flex v gap pad surface", () => checks.forEach(c => done.push(row(c))))
-			.style({ "--gap": "0.35em", "--pad": "1em" });
-
-		const $tally = div.c("h4 muted", "running…");
-		Promise.all(done).then(oks => $tally.text(`${oks.filter(Boolean).length} / ${oks.length} passing`));
-
-		h2("See it saved");
-
-		md("[**Live list**](/framework/core/Item/live/) — the same `List`, but on a real page, saved to a real file: drag a row, add one, sort them, then reload. The list comes back.");
-
-		md("Next: [List](/framework/core/List/) — the ordered collection itself, and why a bare `Item` never has one of its own.");
-
-		md.details(import.meta, "readme.md", "Readme");
+		let $sum;
+		details.c("doc-class-more", () => {
+			$sum = summary("More checks, run on load: running…");
+			div.c("flex v gap pad surface", () => checks.forEach(c => done.push(row(c))))
+				.style({ "--gap": "0.35em", "--pad": "1em" });
+		});
+		Promise.all(done).then(oks => $sum.text(`More checks, run on load: ${oks.filter(Boolean).length} of ${oks.length} pass`));
 	}
 });
