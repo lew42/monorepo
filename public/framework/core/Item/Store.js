@@ -289,6 +289,10 @@ function hops(node, host){
 	const parent = node.parent;
 	if (!parent) return [];   // detached from host — best effort, should not happen
 
+	// A member of a list with no owner: its parent IS the list (List.adopt), so the hop is its id alone. Before, it found no
+	// list here and was written flat, so a member's change replayed onto the list itself (the persistence matrix found it).
+	if (is_list(parent)){ const key = parent.key(node); if (key != null && parent.find(key) === node) return [...hops(parent, host), key]; }
+
 	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
 		const key = list.key(node);
 		if (key == null || list.find(key) !== node) continue;
