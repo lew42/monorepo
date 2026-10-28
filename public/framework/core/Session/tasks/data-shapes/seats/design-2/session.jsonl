@@ -5,3 +5,4 @@
 {"action":{"at":"2026-10-28T00:32:38-05:00","did":"edit","files":["public/framework/core/Session/tasks/data-shapes/seats/design-2/shape.md"]}}
 {"action":{"at":"2026-10-28T00:33:37-05:00","did":"edit","files":["public/framework/core/Session/tasks/data-shapes/seats/design-2/notes.md"]}}
 {"outcome":"Design seat 2: [shape.md](shape.md) (class map + 7 sample lines) and [notes.md](notes.md) (the 7 answers, alternatives, what today's code gets right and wrong). One home list per kind on Session; chat = List<Entry>, an entry is only {ref} and keyed by it; tasks nested with a session-wide id index; append-only verb lines as truth with an optional schema-versioned snapshot cache; child sessions in their own files.","now":"done; committing","by":"mastermind-shapes-design-2","ts":"2026-10-28T05:33:42.155Z"}
+{"commit":"7088ed3c98c2"}
