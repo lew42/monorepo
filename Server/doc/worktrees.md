@@ -64,9 +64,11 @@ A worktree is never left to pile up (8.4 GB of 36 folders by 2026-10-22). Closin
 
 | When | Who | What happens |
 |---|---|---|
-| a task lands | `Server/on-landing.mjs` (`worktree-close:` line in the task log) | `node Server/Worktrees.mjs --apply --archive --now --path <worktree>`. A live agent still inside keeps it for now. |
-| every 10 min | `Servex/Worktrees.js` `tick()` | closes a worktree whose task landed and whose agent stopped, or that nothing touched for 48 hours (`SERVEX_WORKTREE_CLOSE_HOURS`) |
-| by hand | `node Server/Worktrees.mjs --apply --archive` | same, for every worktree quiet for 2 hours |
+| a task lands | `Server/on-landing.mjs` (`worktree-close:` line in the task log) | an **unmerged** branch is kept for review (`Worktrees.on_landing()`); otherwise `node Server/Worktrees.mjs --apply --archive --now --path <worktree>`. A live agent still inside keeps it for now. |
+| every 10 min | `Servex/Worktrees.js` `tick()` | closes a worktree whose task landed, once its branch is merged; an unmerged one waits for the merge, or 48 quiet hours (`SERVEX_WORKTREE_CLOSE_HOURS`), the backstop for any worktree |
+| by hand | `node Server/Worktrees.mjs --apply --archive` | same, for every worktree quiet for 2 hours (48 for an unmerged branch) |
+
+**Hold until merge (2026-10-28):** a landed task's unmerged worktree stays so the owner can look before merging, and a task that asks for a preview gets its server on the home Wi-Fi with a phone link: [Servex/doc/worktree-preview.md](../../Servex/doc/worktree-preview.md).
 | a crashed `git worktree add` | `Servex/Pool.js` `unlock_crashed()` | a pool slot stuck "locked initializing" for 15 minutes is unlocked, so the pool can recycle it (it blocked qf-1 and qf-5 for 10 days, so spawns failed "No pool worktree is ready") |
 
 **Unmerged commits** (and the leftover commit itself) become one line in `public/framework/ai/sessions/ready-to-merge.jsonl` (`branch`, `sha`, `unmerged`, `leftover_files`), the list the owner merges from ([priority.md](/framework/ai/priority.md) 3b). Every close is also one line in `worktree-removals.jsonl` with `committed` and `unmerged`.
