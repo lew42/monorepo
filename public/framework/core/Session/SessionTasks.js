@@ -7,11 +7,15 @@ import JSONL from "/framework/ext/JSONL/JSONL.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import TaskView from "../Task/TaskView.js";
 import Session from "./Session.js";
+import Ref from "../Item/Ref.js";
+import RefView from "../Item/RefView.js";
 View.stylesheet(import.meta, "SessionMenu.css");
 
 export default class SessionTasks extends JSONL {
 
+	static REFS = 8;   // child-session rows shown before "+ N more"
 	lines = [];
+	refs = new Map();   // "<child folder>#<task id>" -> its Ref, kept across redraws so each resolves once
 
 	// { url: the session.jsonl url, $box: the View to draw into, session_class }
 	// A streamed batch is applied to the one live Session, line by line: the whole record is not replayed again, and a child
@@ -33,6 +37,7 @@ export default class SessionTasks extends JSONL {
 	draw(){
 		const Class = this.session_class ?? Session, s = this.session ??= Class.replay(this.lines), all = [...(s._tasks ?? [])];
 		this.on_session?.(s, this.lines);   // the session page's Overview list and Timeline read the same replay and lines
+		this.follow(s);
 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
 		this.$box?.empty(() => {
@@ -40,11 +45,42 @@ export default class SessionTasks extends JSONL {
 			const waiting = tasks.filter(t => t.state === "waiting").length, { done, total } = s.progress();
 			h3.c("session-tasks-title", `Tasks · ${done} of ${total} done` + (waiting ? ` · ${waiting} waiting on you` : ""));
 			for (const t of tasks) this.row(t);
+			this.child_refs(s);
 			if (stopped.length) details.c("session-tasks-stopped", () => {
 				summary.c("muted", `${stopped.length} stopped, not counted`);
 				for (const t of stopped) div.c("session-task flex gap-50", () => TaskView.row(t));
 			});
 		});
+	}
+
+	// A child session reads its own file after the first draw (Task.open_ref) and tails it: redraw once it has, and on each line it
+	// reads later ("read" bubbles up from the child's Store, core/Item/Store.js), at most once per 200 ms.
+	follow(s){
+		const soon = this.soon ??= () => { clearTimeout(this.soon_timer); this.soon_timer = setTimeout(() => this.draw(), 200); };
+		if (this.followed !== s){ this.followed?.off("read", soon); this.followed = s; s.on("read", soon); }
+		s.walk(t => { if (t.ready && !t._ready_followed){ t._ready_followed = true; t.ready.then(soon, soon); } });
+	}
+
+	/* Each child session's open tasks, drawn in this session as "child › task" through a Ref ({url: the child's folder, path:
+	   "tasks.<id>"}, core/Item/Ref.js): the parent holds where the task is, never a copy, so the row is the child's live task.
+	   This is how a task handed to a child shows in its parent (data-shapes plan, fork F2). Only in memory: nothing is written. */
+	child_refs(s){
+		const rows = s.sessions_below().flatMap(c => {
+			const url = c.get_one("path");
+			if (typeof url !== "string") return [];
+			return [...(c._tasks ?? [])].filter(k => k.state !== "stopped" && k.state !== "complete").map(k => {
+				const key = url + "#" + k.id;
+				if (!this.refs.has(key)) this.refs.set(key, new Ref({ url, path: "tasks." + k.id }));
+				return this.refs.get(key);
+			});
+		});
+		if (!rows.length) return;
+		const shown = this.all_refs ? rows : rows.slice(0, SessionTasks.REFS);
+		details.c("session-task-refs", () => {
+			summary.c("muted", `In child sessions · ${rows.length} open`);
+			for (const r of shown) div.c("session-task", () => new RefView({ ref: r }));
+			if (shown.length < rows.length) button.c("session-task-more", `+ ${rows.length - shown.length} more`).attr("type", "button").click(() => { this.all_refs = true; this.draw(); });
+		}).el.open = true;
 	}
 
 	// One live task: its row, and Approve / Reject / Make it a project while it waits on the owner.

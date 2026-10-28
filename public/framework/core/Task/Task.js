@@ -207,7 +207,7 @@ export class Task extends Item {
 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
 	static session_resolver = null;
 	get is_session(){ return false; }
-	static is_child_session(t){ return !!t && (t.is_session || !!Task.session_resolver?.(t.get_one("path"))); }
+	static is_child_session(t){ return !!t && (t.is_session || !!t._session_file || !!Task.session_resolver?.(t.get_one("path"))); }   // _session_file: the browser read the folder's session.jsonl (open_ref), what session_resolver tells node
 	/* The child sessions in my task tree, at any depth: a Session entry nests under the task that caused it, so it is found below that
 	   task, not only in my own list. A child session's own children are its `children`, never mine. Computed on read, never stored. */
 	sessions_below(){
@@ -506,6 +506,7 @@ export class Task extends Item {
 			const s = this.Store.for(dir + b);
 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
 		}
+		if (store.url.endsWith("/session.jsonl") && (store.host || store.count)) kid._session_file = true;   // a session's record: a child session, as node's session_resolver says
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
 			const res = await fetch(store.url).catch(() => null);
 			const entries = res?.ok ? store.parse(await res.text()) : [];
