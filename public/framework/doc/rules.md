@@ -79,6 +79,10 @@ The owner works on the running site while agents write to it. Before a batch of 
 ## Traps that never throw
 
 - A class's folder, file and name match, capitalised: `ext/JSONL/JSONL.js` exports `class JSONL`. A lowercase file never holds a class someone will look for. `code/patterns` has the rule and a census script.
+  - **The match is for a module's main class:** a capitalised folder `Task/` holds `Task.js`.
+  - Small subclasses and helper classes can sit beside it, each in its own file named for its class: `core/Task/Prompt.js`, `Question.js`, `TaskPage.js`. A longer name that starts with the module's name fits the same folder (`ai/AISession/AISessionDetail.js`).
+  - A subclass gets its own subfolder only when it needs one: its own tests, a page, docs.
+  - This is guidance, not a hard rule: the aim is that anyone can guess where a class lives (the owner, 2026-10-28).
 - No DOM after an `await`: capture the box synchronously, fill it in a callback.
 - Every CSS rule inside a layer — `base theme site util`; the order lives once, in `framework.css`, which `app.js` loads first.
 - Resolve URLs against `import.meta`, never the document.

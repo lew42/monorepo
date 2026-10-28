@@ -106,13 +106,55 @@ A deep item needs one level of braces per hop. A **path key** says the same thin
 - **Code-made structure gets a fixed, readable name** (`ui`, `review`). Code reruns safely: an `add` of a name that exists does nothing.
 - **Anything a click or an agent makes gets a short random id,** minted once, at that moment.
 
-## 6. References: path first, id as the fallback
+## 6. References (the owner's ask 24): when, how, and moves
 
-A reference (the chat showing a task) stores the **dotted path**, whose last part is the id: `{"ref":{"path":"tasks.ui.tasks.k2p9x4mq"}}`.
+### What a reference is, and when to use one
 
-- **Normal case:** follow the path, a few Map lookups.
-- **The target moved:** the path misses. The root then looks the id up in an index, which is built the first time a miss happens, and never saved. Because ids are random, the id alone finds it.
-- **Across files:** two fields, the file's url and the path inside it: `{"ref":{"url":"/…/v-7k2q/","path":"tasks.ui.tasks.k2p9x4mq"}}`.
+A reference is a small Item that **points at an item living somewhere else**, instead of holding a copy of it. Use one whenever the same thing shows in two places:
+- a task shown in the chat;
+- a child session listed under a task;
+- a page linked from another page;
+- an editor instance pointing at its component.
+
+The rule from the synthesis: **one owner per item, and everyone else holds a reference.** A reference stores where the target is, never its title or state, so it can't drift.
+
+### How it is written, and how it comes back on load
+
+```js
+{"chat":{"add":{"type":"Ref","path":"tasks.ui.tasks.c3"}}}                              // same file
+{"chat":{"add":{"type":"Ref","url":"/framework/ai/sessions/…/v-7k2q/","path":"tasks.ui"}}}   // another file
+```
+
+1. **Replay makes the Ref and nothing more.** It holds the `path` (and the `url`, if the target is in another file). Nothing is looked up yet, so the order of lines can't break it.
+2. **It's resolved when first needed** (drawn, or read through `ref.target`):
+   - **Same file:** `root.get("tasks.ui.tasks.c3")`, a few lookups (§3).
+   - **Another file:** open that file's Store, `Item.open(url)`, which replays it once and keeps one root per url (`Store.for`, `core/Item/Store.js`, already does this), then `get(path)` on that root.
+3. **A target that can't be found** draws a visible "gone" row naming the path. It's never silently empty.
+
+**Today's gap:** resolving a reference to another file works only in node (`Task.resolver`, `core/Task/Task.js:454`). The browser needs the same step, which is just `Item.open(url)` over the live tail it already has.
+
+### Moves: the options
+
+| Option | How a ref is written | After a move | Cost |
+|---|---|---|---|
+| **Relative** (`..` to climb up) | `"..tasks.c3"` | breaks when either end moves | **no**: two ways to break |
+| **Absolute path** | `{url, path}` from the file's root | breaks when anything on the path is restructured | simple; breaks on moves |
+| **Absolute + id fallback** | `{url, path}`; the path ends in a random id | a miss looks the id up in an index built on first miss | works within one file, if ids are random |
+| **Backlinks** (the owner's idea) | `{url, path}`, plus the target knows who points at it | the mover walks the backlinks and updates each ref | always fresh paths; the backlinks must stay true |
+| **A forward at the old place** (like a web redirect) | `{url, path}` | the old spot gets `{moved_to: <new>}`, and old refs follow it | needs no list of referrers; ideal across files |
+
+### Recommendation: absolute refs, backlinks in memory, forwards across files
+
+1. **Refs are absolute:** `{path}` inside a file, `{url, path}` across files. Never relative.
+2. **Backlinks, computed rather than stored, within one file.** On load, the root keeps a Map from each target to the refs pointing at it. It's built while the lines replay, so it's never out of date.
+   - It answers "where is this task shown?" for free.
+   - When something moves, the writer walks its backlinks and appends one line per ref, giving it the new path. The stored paths stay correct, and no index needs saving.
+   - This is the owner's idea, with one change: the backlinks are computed, not written to disk (compute, don't recall: CLAUDE.md law 7).
+3. **Across files: a forward, not stored backlinks.** Storing backlinks would mean writing into the target's file every time anyone references it: a two-file write that can drift. Instead, a move to another file leaves `{moved_to: {url, path}}` at the old place.
+   - An old ref follows the forward.
+   - When a ref resolves through a forward, the writer quietly appends the new address to it, so the next load goes straight there.
+   - This is the same fix the pages seat proposed for a renamed page (a redirect instead of a 404).
+4. **If a site-wide "what links here" is ever wanted,** node builds it as an index file by scanning the refs, the same way the search index is built. It's computed, never hand-kept.
 
 ## 7. Does one Item class serve every use? Yes
 

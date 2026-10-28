@@ -58,6 +58,36 @@ Still design only: nothing built. "We're going to have to work interactively and
 
 Seats (d) `pages` and (e) `streaming` (below) take 11–18.
 
+## The owner's second add-on (2026-10-28, after reading the synthesis)
+
+The decisions on ids and paths are recorded in [ids-and-paths.md](ids-and-paths.md) ("DECIDED"); the folder rule in `doc/rules.md` ("Traps that never throw"). The new asks:
+
+21. **How deltas flow is the top priority:** fully understood, rock solid, as simple as it can be.
+    - **Adopt:** when an item is adopted, its storage is linked to its parent's. In the owner's old system, adopting linked the child's `saver` to the parent's, and any change called `item.saver.save()`, which rewrote the whole snapshot.
+    - **The delta path:** how items and lists get added, how their storage is linked, and how a change flows from the item that changed to the file. Write it down, and show it working.
+22. **Paths may use dots all the way down,** verb included (`"tasks.ui.tasks.c3.complete": {…}`), or stop before the verb (`"tasks.ui.tasks.c3": {"complete": {…}}`). The owner is fine with either: let the builder pick whichever needs no extra branch in the code.
+23. **Ids: a short readable id (`c3`) or a short random one,** either way. Note the merge risk of short ones. Keep the base simple and robust: any Item or List can override `get` to find things its own way (from the file system, a database, …).
+24. **References, still unclear:** when to use one, and how to bring it back to life on load ("a whole nother beast").
+    - Relative refs (`..` to climb up) break when either end moves.
+    - Absolute, app-level refs survive some moves, but still break when any part of the path is restructured.
+    - The owner's idea: **track references.** Each ref also writes a **backlink** on its target, so a move can walk every referrer and update it.
+    - The answer is drafted in [ids-and-paths.md](ids-and-paths.md) §6.
+25. **Demos that make it click.**
+    - Nearly no example on the site has made the owner say "now I see how this works".
+    - Wanted: the high-level class and object hierarchy, plus simple code beside a live result.
+    - The existing demo stage, with responsive demos and highlighted code, has always looked broken.
+26. **A default view for every class instance (the "debug view"):**
+    - **The collapsed row:** the smallest useful summary: an icon, the id, the class name as a small label, and counts ("12 items").
+    - **Expanded on click:** its data properties, drawn by type. A string or number is written out; an object or list is iterated. This is the owner's old debug viewer.
+    - **Why:** `console.log` gets spammy fast, even with collapsed groups, so the framework wants its own log of objects as they're made and changed, shown on screen.
+    - **Later, maybe one view:** a polished default view could replace the debug view once it holds the same information better. The owner: "every view we create is vomit", so start from the plain debug view.
+    - **Tests render on screen:** each test shows its outcome in these views, ideally updating line by line, so stepping through it with breakpoints shows the object change. Test pages may need to call `app.inject` by hand, because the app injects only once its pages resolve.
+    - **Order:** the plain debug view first. The synchronous, step-by-step rendering is a second phase.
+    - **Past work to start from:**
+      - `ux/Content/Object/` (a census of 77 classes worth a view: `ux/Content/Object/doc/census.md`);
+      - `code/objects/readme.md` ("every class ships a view");
+      - the 2026-10-15 brief `ai/sessions/2026/10/15/voice-20261015/page-system/answers/debug-views/requirements.md`.
+
 ## Plan
 
 - **The tab studies the code** enough to judge the seats' answers.
