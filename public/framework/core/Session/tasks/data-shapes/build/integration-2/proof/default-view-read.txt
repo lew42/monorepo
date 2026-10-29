@@ -1,0 +1,27 @@
+{
+ "sub": "ktd5wded",
+ "with_before": {
+  "sub_keys": "title,parent",
+  "root_title": ".title\"View probe\""
+ },
+ "without_before": {
+  "sub_keys": "title,parent",
+  "root_title": ".title\"View probe\""
+ },
+ "item_tool": [
+  true,
+  true
+ ],
+ "with_after": {
+  "sub_state": ".state\"running\"",
+  "sub_keys": "title,parent,state,started_at",
+  "root_title": ".title\"View probe, renamed by an agent\""
+ },
+ "without_after": {
+  "sub_state": ".state\"running\"",
+  "sub_keys": "title,parent,state,started_at",
+  "root_title": ".title\"View probe\""
+ },
+ "name": "task.jsonl",
+ "file": 5
+}
