@@ -52,7 +52,7 @@ Its goal: a change made anywhere, at any depth, reaches the file and every open 
   Then it waits for the owner's merge.
 
 - **1d. One writer** (from the plan review, finding 5): the hooks and the browser's direct `page.jsonl` append go through the live instance too. Until then, "exactly once" holds per writer, not across all writers.
-- **1e. The item tool, generic over every class** (review finding 4): one live root per file of any class, not only Task, Session and Process. The ~10 special cases in `Servex/agents/page_tools.js` (slugged ids, folder moves, `pages` on disk, verdict strings) move into class verbs ([placement.md](placement.md) §1).
+- **1e. The item tool, generic over every class** (review finding 4): one live root per file of any class, not only Task, Session and Process. The ~10 special cases in `Servex/agents/page_tools.js` (slugged ids, folder moves, `pages` on disk, verdict strings) move into class verbs ([placement.md](placement.md) §1). *Built on `worktree/item-generic` (build I, 2026-10-28, not merged):* a live root for any registered class, page writes one line, dotted targets through each level's `get`, random ids, verdict strings and improvements reinforce in their classes; the special cases still in the tool, with where each goes: [Servex/doc/item-tool.md](/Servex/doc/item-tool.md#special-cases-still-in-the-tool-2026-10-28-build-i).
 
 ### Step 2: see it (build now, in parallel, worktree B)
 

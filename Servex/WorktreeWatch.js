@@ -4,6 +4,7 @@ import path from "path";
 import { spawn } from "child_process";
 import WebSocket from "ws";
 import SessionRecord from "../Server/SessionRecord.mjs";
+import LogLine from "../Server/LogLine.mjs";
 import { stamp } from "./home.js";
 
 const slash = p => String(p).split(path.sep).join("/");
@@ -286,8 +287,7 @@ export default class WorktreeWatch {
         try {
             const dir = path.resolve(this.main ?? ".", this.task_dir);
             const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
-            let lead = ""; try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
-            fs.appendFileSync(file, lead + JSON.stringify({ log: { at: stamp(), msg } }) + "\n");
+            LogLine.raw(file, { log: { at: stamp(), msg } });   // newline-safe, and through the one writer in Servex
         } catch {}
     }
 }

@@ -4,6 +4,8 @@
 // itself avoids (see List.js's own header comment): `class List extends Item`
 // needs Item fully defined, and Item.js's own import of Store.js runs before
 // Item's class body does, so List.js would hit the TDZ instead.
+import RecordWriter from "./RecordWriter.js";
+
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
 /* ONE .jsonl file = one object's history. `item.store` loads it, replays each line
@@ -190,45 +192,28 @@ export class Store {
 
 		lines.forEach(one => (this.sent ??= []).push(JSON.stringify(one)));
 
-		// A task's log goes through the item tool's own writer (Servex POST /api/item): validated, stamped by/ts, hooks fire.
-		// Only when Servex does not answer does it fall back to the plain file append (below). Other logs (pages) keep the plain append.
-		const rest = this.via_tool ? await this.post_to_tool(lines) : lines;
-		if (!rest.length) return;
-
 		// The ONE file API: the file itself sends the lines (ext/filesystem/FsFile.js).
 		// Imported here, not at the top — FsFile imports Item, which imports this file.
 		const path = new URL(this.url, "http://localhost").pathname;
-		const { default: FsFile } = await import("../../ext/filesystem/FsFile.js");
-		await new FsFile({ path }).send(rest);
-	}
+		const send = async rest => { const { default: FsFile } = await import("../../ext/filesystem/FsFile.js"); await new FsFile({ path }).send(rest); };
+		if (!this.via_tool) return send(lines);
 
-	get via_tool(){ return /(^|\/)(task|session|improvements)\.jsonl$/.test(this.url); }
-
-	// Posts each line, in order, as one delta. Returns the lines Servex could not be asked (it did not answer): those fall back.
-	// A line Servex answered but refused is dropped with a warning (that is the validation), and its echo entry forgotten.
-	async post_to_tool(lines){
-		const { servex_url } = await import("../../dev/servex_url.js");
-		const path = new URL(this.url, "http://localhost").pathname;
-		for (let i = 0; i < lines.length; i++){
-			let answer;
-			try {
-				const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path, delta: lines[i] }), signal: AbortSignal.timeout(5000) });
-				answer = await res.json();
-				// Not refused for its content but for where it came from (a phone on the LAN: 403; a worktree page: stubbed):
-				// the plain file append still saves it, so the click is never lost.
-				if (res.status === 403 || answer?.stubbed) return lines.slice(i);
-			} catch {
-				if (!Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — Servex did not answer /api/item: writing the file directly (no by/ts, no hooks)."); }
-				return lines.slice(i);
-			}
-			if (answer?.ok === false){
-				const j = (this.sent ?? []).indexOf(JSON.stringify(lines[i]));
-				if (j !== -1) this.sent.splice(j, 1);
-				console.warn(`Item.Store — the item tool refused ${JSON.stringify(lines[i])}: ${answer.why}`);
-			}
+		// ONE WRITER (data-shapes 1d): a record's lines go to the one entry point (RecordWriter.js), which applies each to the file's
+		// live root and appends it. A page's lines go raw; a task's or session's are item-tool verbs (validated, stamped, hooks fire).
+		// Only lines it could not be asked (Servex down, a phone, a worktree page) are appended here, and the dev server's Append
+		// skips any it already holds under their by/ts, so a slow answer and the fallback never make a twin.
+		const { rest, refused, down } = await RecordWriter.post(path, /(^|\/)page\.jsonl$/.test(path) ? { lines } : { deltas: lines });
+		for (const { line, why } of refused){
+			const { by, ts, ...bare } = line, j = (this.sent ?? []).indexOf(JSON.stringify(bare));
+			if (j !== -1) this.sent.splice(j, 1);
+			console.warn(`Item.Store — the entry point refused ${JSON.stringify(bare)}: ${why}`);
 		}
-		return [];
+		if (!rest.length) return;
+		if (down && !Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — the entry point (Servex /api/item) did not take the lines: appending them through the dev server, once."); }
+		await send(rest);
 	}
+
+	get via_tool(){ return RecordWriter.is_record(this.url); }
 
 	get writable(){
 		const host = globalThis.location?.hostname;

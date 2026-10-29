@@ -23,19 +23,20 @@ fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(FILE, JSON.stringify({ assign: { agent: "architect", title: "Process system" } }) + "\n");
 try {
 	await item({ tasks: { add: { title: "Answer a design question" } } }, "vscode-mastermind"); await tick();
-	ok(asked.length === 1 && asked[0].to === "architect" && asked[0].from === "vscode-mastermind" && asked[0].id === "answer-a-design-question", "a task another agent adds is a request: the receiver hears once");
+	ok(asked.length === 1 && asked[0].to === "architect" && asked[0].from === "vscode-mastermind" && /^[a-z][a-z0-9]{7}$/.test(asked[0].id), "a task another agent adds is a request: the receiver hears once (its id is 8 random characters)");
+	const QID = asked[0]?.id;
 	ok(read(FILE).find(l => l.tasks?.add)?.tasks.add.from === "vscode-mastermind", "node stamps `from` on the logged item");
 
 	await item({ tasks: { add: { title: "My own note" } } }, "architect"); await tick();
 	ok(asked.length === 1, "a task the owner of the log adds itself is not a request");
 
-	await item({ "answer-a-design-question": { complete: { outcome: "yes, instantiate on the server", evidence: ["test"] } } }, "architect"); await tick();
+	await item({ [QID]: { complete: { outcome: "yes, instantiate on the server", evidence: ["test"] } } }, "architect"); await tick();
 	ok(answered.length === 1 && answered[0].to === "vscode-mastermind" && answered[0].outcome === "yes, instantiate on the server", "completing it tells the asker the outcome");
 
 	await item({ "my-own-note": { complete: { outcome: "done", evidence: ["test"] } } }, "architect"); await tick();
 	ok(answered.length === 1, "completing a task nobody asked for tells nobody");
 
-	const t = Task.replay(read(FILE))._tasks.find("answer-a-design-question");
+	const t = Task.replay(read(FILE))._tasks.find(QID);
 	ok(t.state === "complete" && t.get_one("from") === "vscode-mastermind", "the record keeps who asked and the answer, for any view to query");
 } finally {
 	fs.rmSync(DIR, { recursive: true, force: true });

@@ -32,6 +32,7 @@ const FIELDS = ["title", "expected", "module", "mode", "now", "description", "wa
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
 // DEPRECATED (2026-10-28): use `complete` (the `finish` verb and `Task#finish`). Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated; no live code calls `Task#finish`.
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+const VERDICTS = new Set(["approve", "improve", "reject"]);
 
 export class Task extends Item {
 
@@ -51,7 +52,8 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new Task.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+		// A subclass may bring its own list (Improvements merges a repeated title); its members are plain Tasks.
+		if (!this._tasks){ this._tasks = new this.constructor.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
@@ -60,13 +62,15 @@ export class Task extends Item {
 	static List = class TaskList extends List {
 		make(x){
 			if (typeof x !== "string") return super.make(x);
-			let id = Task.slug(x);
-			for (let n = 2; this.find?.(id); n++) id = `${Task.slug(x)}-${n}`;   // the same title twice gets "-2", as the item tool suggests
+			let id = Item.short_id();
+			while (this.find?.(id)) id = Item.short_id();   // a clash among siblings is redrawn (ids-and-paths.md §5), as the item tool does
 			return super.make({ id, title: x });
 		}
 	};
-	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
+	// A folder name a title makes (a task with its own folder); ids are never made from titles (Item.short_id).
 	static settled(t){ return t.state === "complete" || t.state === "stopped"; }   // done, or dropped with its reason: neither blocks a parent
+	// One rule for "the same title": trimmed, spaces collapsed, any case (the item tool's refusal, Improvements' merge).
+	static same_title(a, b){ return typeof a === "string" && typeof b === "string" && a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase(); }
 	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
@@ -538,7 +542,8 @@ export class Task extends Item {
 		const rp = this._rp ??= { at: null, explicit: false };
 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
-		const verb = VERBS.find(v => line[v] && typeof line[v] === "object");
+		// A verdict may be a bare note ({"approve":"ok"}): the verb takes a string itself, so the line is written as given.
+		const verb = VERBS.find(v => line[v] && (typeof line[v] === "object" || (VERDICTS.has(v) && typeof line[v] === "string")));
 		rp.at = line.at ?? line.ts ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
 		if (a){
 			// put(), not set(): set() reads `at` as a path (and drops the line) and calls any key that names a method.
@@ -588,6 +593,7 @@ export class Task extends Item {
 			this._applying = true;
 			try {
 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
+				else if (typeof line[verb] === "string") this[verb](line[verb]);
 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
 			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
 		}

@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import RecordWriter from "../../../public/framework/core/Item/RecordWriter.js";
 
 // A dynamic import with a safe fallback, not a static one — a review (2026-10-02) pointed
 // out that a static import ties the WHOLE dev server's boot to jsonl-schema.mjs loading
@@ -79,8 +80,14 @@ export default class Append {
 			if (why) return this.answer(index, `append refused: ${why}`);
 		}
 
+		// THE FALLBACK OF THE ONE WRITER (core/Item/RecordWriter.js): a tab sends a record's lines here only when the entry point did
+		// not take them. A line whose `by` and `ts` are already in the file's tail was written by the entry point after all (it
+		// answered late), so it is not written twice.
+		const fresh = RecordWriter.fresh(RecordWriter.tail_sync(fs, full), lines);
+		if (!fresh.length) return this.answer(index, "append successful");
+
 		// JSON.stringify never emits a raw newline, so each object is exactly one line.
-		const text = lines.map(line => JSON.stringify(line) + "\n").join("");
+		const text = fresh.map(line => JSON.stringify(line) + "\n").join("");
 
 		try {
 			fs.mkdirSync(path.dirname(full), { recursive: true });

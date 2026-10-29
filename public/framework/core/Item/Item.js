@@ -358,6 +358,15 @@ export class Item extends Events(Object) {
 	wire(){ return this.type ?? Item.names.get(this.constructor) ?? this.constructor.name; }
 
 	static new_id(){ return crypto.randomUUID(); }
+	// The id a person or an agent makes (a click, an item-tool add): 8 random letters and digits, never a dot, and never
+	// all digits (a number-like key would jump to the front of its object). Code-made structure keeps a fixed name instead.
+	// core/Session/tasks/data-shapes/ids-and-paths.md §5.
+	static short_id(n = 8){
+		const abc = "abcdefghijklmnopqrstuvwxyz0123456789", bytes = crypto.getRandomValues(new Uint8Array(n));
+		let id = abc[bytes[0] % 26];
+		for (let i = 1; i < n; i++) id += abc[bytes[i] % 36];
+		return id;
+	}
 
 	// The methods and getters of this class that only READ. The item tool answers a delta whose keys are all queries (`{"cost":{}}`) and writes no line. A subclass lists its own.
 	static queries = [];

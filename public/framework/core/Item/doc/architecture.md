@@ -46,7 +46,7 @@
 
 ## Persistence is one `.jsonl` per file, or one JSON file per saver
 
-**Decided:** a `.jsonl` URL goes through `Store.for(url)`, which holds one Store per file, so a second `open()` reaches the same live object. On localhost the Store tails the file live and sends each new line via `FsFile.send` (the one file API). Off localhost it loads once and keeps changes in memory. A whole-file saver (`ext/Saver/FileSaver.js`) writes through `FsFile.write`.
+**Decided:** a `.jsonl` URL goes through `Store.for(url)`, which holds one Store per file, so a second `open()` reaches the same live object. On localhost the Store tails the file live and sends each new line: a record file's (`session`, `task`, `page`, `improvements.jsonl`) through `RecordWriter.post` to the one writer in Servex ([one-writer.md](one-writer.md)), with `FsFile.send` as the fallback; any other file via `FsFile.send` (the one file API). Off localhost it loads once and keeps changes in memory. A whole-file saver (`ext/Saver/FileSaver.js`) writes through `FsFile.write`.
 **Why:** one writer per file avoids two readers racing, and the live tail gives the reload-free update the site relies on.
 **Instead:** a database (rejected: a static site with no server at runtime).
 **Detail:** [`Store.js`](../Store.js) · ⚠ [`readme.md`](../readme.md) says the Store writes through `FsFile.append`; the code calls `FsFile.send`.

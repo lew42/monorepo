@@ -154,7 +154,7 @@ try {
 		await c("set", r => r.set({ title: "Task, renamed" }));
 		await c("set", r => r.act("start"));
 		await c("move", r => r.tasks.move("second", { after: null }));
-		await c("remove", r => r.tasks.remove("first"));
+		await c("remove", r => r.tasks.remove([...r.tasks].find(t => t.get_one("title") === "First").id));   // a string add gets a random id (Item.short_id)
 		await c("replay", r => r.tasks.find("second").act("pause"));   // started already: the root's start() starts its children
 	}
 	// ── Task, nested in a Session (a subtask two levels down, a move between two tasks' lists) ──
@@ -226,7 +226,7 @@ try {
 		await c("add", r => r.tasks.add({ id: "build", title: "Build it" }));
 		await c("set", r => r.set({ title: "A session" }));
 		await c("move", r => r.tasks.move("build", { after: null }));
-		await c("remove", r => r.tasks.remove("write-the-plan"));
+		await c("remove", r => r.tasks.remove([...r.tasks].find(t => t.get_one("title") === "Write the plan").id));   // a string add gets a random id
 		await c("replay", r => r.tasks.find("build").act("start"));
 	}
 	{

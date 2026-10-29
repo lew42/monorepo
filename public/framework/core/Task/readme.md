@@ -42,7 +42,7 @@ build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works onc
 build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
 build.duration();         // ms of RUNNING time — pausing stops the clock
 
-build.tasks.add("Write the readme");                  // a string: a Task with that title (id "write-the-readme", Task.slug)
+build.tasks.add("Write the readme");                  // a string: a Task with that title and a random 8-character id (Item.short_id)
 build.tasks.add({ title: "Shoot it", expected: "…" }); // an object with no type: a Task
 build.tasks.add({ type: "Project", title: "Next" });  // a typed object: that class (Project, Process, Session)
 ```
@@ -110,6 +110,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## More
 
+- **Improvements:** [`Improvements.js`](./Improvements.js), the class of a folder's `improvements.jsonl`: a Task whose list merges a repeated title into the first (more weight, no second task), on write and on replay; test `node Servex/agents/item-generic.test.mjs`.
 - **Prompt and Question:** [doc/prompt.md](doc/prompt.md) · the record shape, the grouping rule and the open defects: [doc/prompt-record.md](doc/prompt-record.md) · [`Prompt.js`](./Prompt.js) · [`sentences.js`](./sentences.js) (the one sentence splitter) · [`Question.js`](./Question.js) · `node Prompt.test.mjs`, `node Question.test.mjs`
 - **Templates** (`template: "code" | "doc" | "scan"` on line 1; an approved task with an `agent` spawns itself): [doc/templates.md](doc/templates.md) (proven live 2026-10-17: approve to spawn in about 1.5 s) · the owner's ask, and whether `task.jsonl` became `session.jsonl`: [doc/owner-2026-10-17-node-driven.md](doc/owner-2026-10-17-node-driven.md)
 - **The owner's words, 2026-10-16:** [task system](doc/owner-2026-10-16-task-system.md) · [composition](doc/owner-2026-10-16-composition.md) · [top-down](doc/owner-2026-10-16-top-down.md) · [UI](doc/owner-2026-10-16-ui.md) · [node side](doc/owner-2026-10-16-node-side.md) · [migration](doc/owner-2026-10-16-migration.md)

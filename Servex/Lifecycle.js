@@ -34,6 +34,7 @@ import { fileURLToPath } from "node:url";
 import { place, stamp } from "./home.js";
 import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
 import SessionRecord from "../Server/SessionRecord.mjs";
+import LogLine from "../Server/LogLine.mjs";
 import Landed from "./Landed.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -123,7 +124,7 @@ export default class Lifecycle {
 	/** take_worktree: the taker's task log learns its worktree, and the log a start line. */
 	took(slot, caller){
 		const t = task_of_agent(caller);
-		if (t) try { fs.appendFileSync((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl")), JSON.stringify({ assign: { worktree: slot.path, branch: slot.branch } }) + "\n"); } catch {}
+		if (t) try { LogLine.raw(SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"), { assign: { worktree: slot.path, branch: slot.branch } }); } catch {}
 		this.record({ kind: "worktree", id: slot.id, path: slot.path, port: slot.port, owner_task: t?.key ?? null, owner_agent: caller ?? null, event: "start" });
 	}
 

@@ -66,9 +66,9 @@ try {
 	fs.mkdirSync(SDIR, { recursive: true });
 	fs.writeFileSync(path.join(SDIR, "session.jsonl"), JSON.stringify({ session: "fixture-session" }) + "\n");
 	try {
-		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a" } } } });
+		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "a", id: "a" } } } });   // explicit ids: this check is about completion, not ids
 		await call("item", { path: SURL, delta: { a: { complete: { evidence: ["test"] } } } });   // a nested task: addressed by its id
-		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b" } } } });
+		r = await call("item", { path: SURL, delta: { tasks: { add: { type: "Task", title: "b", id: "b" } } } });
 		// A session folder's log is a Task now (SessionRecord.log_file), so its nested tasks are subtasks.
 		ok(r.ok && r.state.completion === 0.5 && r.state.tasks.length === 2, "session.jsonl: tasks.add, a child completed by its id, completion 1/2");
 		// Walking into the tasks list by a child's id calls the child's verb (List.get finds members; 2026-10-22 it stored the delta as data).
@@ -113,10 +113,15 @@ try {
 		ok(list_lines().filter(l => l.id === "tasks").length === 1 && list_lines().length === 3, "second child: no second line 1, one more reference");
 
 		r = await add({ tasks: { add: { title: "Plain job", module: "nomod" } } });
-		ok(r.ok && !fs.existsSync(path.join(DIR, "plain-job")) && !fs.existsSync(path.join(MODS, "nomod")) && lines().at(-1).tasks.add.id === "plain-job", "no module folder: the subtask nests in the parent's file, no folder, module folder not created");
+		ok(r.ok && !fs.existsSync(path.join(DIR, "plain-job")) && !fs.existsSync(path.join(MODS, "nomod")) && lines().at(-1).tasks.add.id === r.ids[0] && /^[a-z][a-z0-9]{7}$/.test(r.ids[0]), "no module folder: the subtask nests in the parent's file, no folder, module folder not created; its id is 8 random characters, not the title slug");
 		const n_before = lines().length;
-		r = await add({ tasks: { add: { title: "Plain job" } } });
-		ok(r.ok === false && r.suggest === "plain-job-2" && /plain-job-2/.test(r.why) && lines().length === n_before, "a repeated subtask id is refused, offers -2, writes nothing");
+		const plain_id = lines().at(-1).tasks.add.id;
+		r = await add({ tasks: { add: { title: "Plain job again", id: plain_id } } });
+		ok(r.ok === false && r.why.includes(plain_id) && lines().length === n_before, "a repeated explicit subtask id is refused and writes nothing");
+		r = await add({ tasks: { add: { title: "plain  JOB" } } });
+		ok(r.ok === false && r.existing === plain_id && lines().length === n_before, "the same title twice is the same ask: refused, naming the existing task (no id is made from the title)");
+		r = await add({ tasks: { add: { title: "Dotted", id: "a.b" } } });
+		ok(r.ok === false && /dot/.test(r.why) && lines().length === n_before, "an id with a dot is refused: a dot is a path");
 		r = await add({ tasks: { add: { title: "Module job", module: "fakemod", home: "fakemod" } } });
 		ok(r.ok === false && r.suggest === "module-job-2", "an existing module slug is refused with a -2 offer");
 		ok(fs.existsSync(path.join(MOD, "tasks", "module-job", "task.jsonl")) && !fs.existsSync(path.join(MOD, "tasks", "module-job-2")), "refusal overwrote nothing and made nothing");
@@ -169,9 +174,9 @@ try {
 			const list_refs = () => fs.readFileSync(path.join(MDIR, "tasks", "task.jsonl"), "utf8").trim().split(String.fromCharCode(10)).filter(l => JSON.parse(l).task).length;
 			const refs0 = list_refs();
 			r = await run(`/framework/${MODN}/tasks/module-from-path/`, { tasks: { add: { title: "Goal child" } } });
-			ok(r.ok && !fs.existsSync(path.join(GOAL, "goal-child")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0 && r.state.tasks.some(t => t.id === "goal-child"), "a call inside tasks/: the subtask nests in the goal's own file, no folder, no module-list reference");
+			ok(r.ok && !fs.existsSync(path.join(GOAL, "goal-child")) && !fs.existsSync(path.join(MDIR, "tasks", "goal-child")) && list_refs() === refs0 && r.state.tasks.some(t => t.title === "Goal child"), "a call inside tasks/: the subtask nests in the goal's own file, no folder, no module-list reference");
 			r = await run(URL, { tasks: { add: { title: "Dated outside" } } });
-			ok(!fs.existsSync(path.join(DIR, "dated-outside")) && r.state.tasks.some(t => t.id === "dated-outside"), "a dated ai/sessions path: the subtask nests, no folder");
+			ok(!fs.existsSync(path.join(DIR, "dated-outside")) && r.state.tasks.some(t => t.title === "Dated outside"), "a dated ai/sessions path: the subtask nests, no folder");
 
 			{	// move_to_session: a module task goes back into its filing session, with the three lines and the ledger
 				const { move_to_session } = await import("./page_tools.js");
@@ -218,7 +223,7 @@ try {
 			r = await call("item", { path: NURL });
 			ok(r.state.data.title === "edited outside" && stored() !== first, "a change made outside the tool is re-read, never served stale");
 
-			r = await call("item", { path: NURL, delta: { tasks: { add: { title: "Nested one" } } } });
+			r = await call("item", { path: NURL, delta: { tasks: { add: { title: "Nested one", id: "nested-one" } } } });   // an explicit id: this block is about nesting
 			ok(r.ok && !r.homes && nlines().at(-1).tasks.add.id === "nested-one" && !fs.existsSync(path.join(NDIR, "nested-one")), "a subtask nests in the parent's file: {tasks:{add}}, no folder");
 			await call("item", { path: NURL, delta: { "nested-one": { start: {} } } });
 			ok(nlines().at(-1)["nested-one"].start && stored().tasks.find("nested-one").state === "running", "a later change is written as {<child id>:{…}} and applied to the live child");

@@ -108,6 +108,8 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 
 ## Watch out
 
+- **Ids: a made thing gets `Item.short_id()`, code-made structure a fixed name.** 8 random letters and digits, a letter first, never a dot (a dot is a path) and never a slug of a title (a rename would leave a lying id). `new_id()` (a UUID) is still what a bare `new Item()` gets. The rule: [ids-and-paths.md §5](/framework/core/Session/tasks/data-shapes/ids-and-paths.md).
+
 - **Indexing is the tool's job, never the agent's.** Nothing you create asks the agent to index it: `Server/AIIndex.mjs` (`--watch`, kept alive by Servex) sees any task or session log change through `fs.watch` (about 250 ms) and appends the changed row to the day's `sessions/YYYY/MM/DD/index.jsonl` through `Server/AIIndexStream.mjs` (doc `Server/doc/ai-index.md`; owner ask: [one-state](/framework/ai/doc/one-state.md)). Today:
   - ✅ A task log written by `new-task`, `append.mjs`, `Agents.open_task`, `spawn_agent` or the item tool is indexed, because the watcher reads the file, not the creator.
   - ✅ A transcript session (VS Code, CLI) is streamed by `AISessionIndex.stream_line` when it is born or its state or title changes.
@@ -133,7 +135,8 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
 - `doc/method/*.md`, `doc/property/*.md` — one note per verb and field, each with its trap. The [Methods tab](/framework/core/Item/methods/) shows three of them (`set`, `get`, `toJSON`); the rest are read here, and many predate `set()` as a delta.
-- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
+- [doc/one-writer.md](./doc/one-writer.md) — every line to a `session`, `task`, `page` or `improvements.jsonl` goes through one entry point (`record_lines` / `run_item` behind `POST /api/item`), which applies it to the live root and then appends it; `RecordWriter.js` is the caller's side, and its fallback never writes a twin.
+- Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `RecordWriter.js` (posts a record's lines to the one entry point; the fallback append), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
 - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
 - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — adopt-or-ref ownership, first delta at adopt time, snapshots as compaction (decided or leaning; not built; also what works today and the gap).
