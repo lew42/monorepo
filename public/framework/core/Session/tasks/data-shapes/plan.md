@@ -25,6 +25,8 @@ Written 2026-10-28, ~16:30, after the owner's third add-on (asks 32–45 in the 
 | F3 | Prompts and Questions: still Tasks, or messages | synthesis decision 2 | messages |
 | F4 | Sentences in their own list, or inside the chat | synthesis [A] | their own list |
 | F5 | One default view: `object()`, `view()` and `inspect()` all exist in `ux/Content/Object/` | merge into one, or keep three | one (law 6: one of everything) |
+| F6 | How a change reaches the file's Store (the owner, 2026-10-29: "just call this.store and then a method on it… more direct and programmatic rather than evented") | **evented** (today: `emit("delta")` climbs `.parent` to the root's one listener, `core/Events/Events.js:23`; `Store.attach`, `core/Item/Store.js:136`), or **direct**: `item.store` is a getter that returns the nearest own store up the parent chain, and a change calls `this.store.change(this, line)` | direct for saving (a stack trace shows one call; the nearest store wins, so a child session's own file needs no `owned_below` check; a move re-points for free because it's a getter, not a copy); keep a plain, non-bubbling change event only for views. Measure both before switching |
+| F7 | Adding an item that already has a parent elsewhere (the owner, 2026-10-29: "edge cases that would backfire") | today it is silently re-parented (`Item.adopt_slot`, `core/Item/Item.js:199`; `List.adopt`) / `add` makes a `Ref` to it instead / `add` throws | `add` makes a `Ref`; `item.move_to(dest)` is the only way to move |
 
 ## The steps, in order
 
