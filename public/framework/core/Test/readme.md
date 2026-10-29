@@ -5,6 +5,8 @@
 - [Test.js](./Test.js) — `class Test`: `ok`, `eq`, `throws`, `done`; portable, no DOM, no node imports
 - [TestRunner.mjs](./TestRunner.mjs) — `class TestRunner` (node only): find, run, cover, watch, record
 - [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
+- [Steps.js](./Steps.js) — `class Steps`: runs a class's core test written as steps (`X.steps.js`), the same in node and the browser
+- [TestView.js](./TestView.js) + [view/](/framework/core/Test/view/) — watch a test run: every object drawn live in the default view, every line beside it
 - [tasks/test-system/plan.md](./tasks/test-system/plan.md) — the design and why
 
 ## Use
@@ -15,6 +17,7 @@ t.eq(a, b, "what must be equal");   t.ok(cond, "what must hold");
 t.done();   // prints PASS/FAIL, sets the exit code on failure
 ```
 - **Names:** `X.test.mjs` is a node test, passing when it exits 0 (old tests without `Test` count too). `X.test.js` is reserved for browser tests; none yet.
+- **One test, node and the browser:** a class's core test can be a list of steps, `X.steps.js` (`{title, code, note, run(t), check(t), show(t)}`; Item, List, Task have one). `X.steps.test.mjs` runs it in node with `new Steps(steps).all()`; [the test view](/framework/core/Test/view/?test=Item) runs the same steps on screen, one painted frame per step. `?step` waits for Next and stops at a `debugger` after each step, so DevTools shows that step's view. `t.click(label, fn)` is the UI path (a real button in the browser, a call in node); `t.same(a, b)` compares two objects as data and, on screen, as their drawn views (the `.store` row left out). Each test ends by rebuilding its object from the saved lines and checking the two views match.
 - **The one command:** `node public/framework/core/Test/TestRunner.mjs [folders…]`: whole repo by default, each file in its own process, 60 s timeout, 4 at once.
 - **Coverage:** a test covers its own folder plus every file it imports, transitively. `--covers <file>` lists them; `--list [folders]` lists tests.
 - **Near:** `--near <file>` lists the tests *near* a changed file: the `*.test.mjs` in its folder plus the tests that import it directly (one level, cheaper than `--covers`). A single test file path runs that file.

@@ -275,6 +275,8 @@ export default class DefaultView extends View {
 			DefaultView.flash(this.$counts?.el);
 			// It went from empty to not (or back): its row changes kind, a plain count or a view that opens.
 			const el = this.rows.get(origin.name);
+			// A list made after this view was built (Task's `tasks`, on its first add) gets its row now.
+			if (!el && this.$rows && !this.properties){ this.lists.set(origin.name, origin); return this.update(origin.name); }
 			if (el && el.classList.contains("ux-content-defaultview-row") !== this.empty(origin)) this.update(origin.name);
 		}
 	}
@@ -287,7 +289,9 @@ export default class DefaultView extends View {
 		holder.append(() => this.row(k, this.lists?.get(k) ?? this.value(k)));
 		const made = holder.el.firstElementChild;
 		if (!made){ old?.remove(); this.rows.delete(k); return; }
-		old ? old.replaceWith(made) : this.$rows.el.append(made);
+		// A new row keeps a fresh view's order: properties first, then the lists (body()).
+		const lists = [...this.lists?.keys() ?? []].map(name => this.rows.get(name)).filter(el => el?.parentNode === this.$rows.el);
+		old ? old.replaceWith(made) : this.$rows.el.insertBefore(made, this.lists?.has(k) ? null : lists[0] ?? null);
 		DefaultView.flash(made.querySelector(":scope > summary") ?? made);   // a nested view flashes its row, not its insides
 	}
 
