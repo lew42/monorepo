@@ -68,6 +68,8 @@ export class Task extends Item {
 	};
 	// A folder name a title makes (a task with its own folder); ids are never made from titles (Item.short_id).
 	static settled(t){ return t.state === "complete" || t.state === "stopped"; }   // done, or dropped with its reason: neither blocks a parent
+	// One rule for "the same title": trimmed, spaces collapsed, any case (the item tool's refusal, Improvements' merge).
+	static same_title(a, b){ return typeof a === "string" && typeof b === "string" && a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase(); }
 	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }

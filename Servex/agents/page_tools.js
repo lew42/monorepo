@@ -513,9 +513,8 @@ const FRAMEWORK = path.join(PUBLIC, "framework");
 const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
 // The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
-const same_title = (a, b) => typeof a === "string" && typeof b === "string" && a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase();
 const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
-export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
+export const slug_of = text => Task.slug(text);   // one slug rule, Task's: a folder name only (ids are Item.short_id, never a slug)
 
 // Which folder a new module task lives in, and its slug. Never suffixes: `taken` is true when the folder exists, and the caller refuses (offering `free`).
 // A task stays where it is filed: nested in the filing session's (or parent's) task.jsonl. It gets a module folder ONLY when the add carries an explicit
@@ -1249,7 +1248,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			if (id && a.id !== undefined && taken(id))
 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Leave the id out (one is made for you), or change the existing one.` };
 			// The same title twice is the same ask (a refinement goes into the existing task): refused, as the title-made id used to be.
-			const same = !home && !Class.merges_same_title && typeof a.title === "string" && [...(root()._tasks ?? []), ...plan.map(p => ({ id: p.id, get_one: k => p.a[k] }))].find(t => same_title(t.get_one("title"), a.title));
+			const same = !home && !Class.merges_same_title && typeof a.title === "string" && [...(root()._tasks ?? []), ...plan.map(p => ({ id: p.id, get_one: k => p.a[k] }))].find(t => Task.same_title(t.get_one("title"), a.title));
 			if (same) return { ok: false, why: `this task already has a subtask titled "${a.title}" (id "${same.id}"); nothing was written. Change that one, or give a different title.`, existing: same.id };
 			if (!home && tasky) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
@@ -1272,7 +1271,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				// A class whose list merges a repeated title (Improvements) made no new task: say which one it reinforced.
 				if (Class.merges_same_title && !root()._tasks?.find(id)){
 					ids.splice(ids.indexOf(id), 1);
-					const into = [...(root()._tasks ?? [])].find(t => Class.same?.(t.get_one("title"), a.title));
+					const into = [...(root()._tasks ?? [])].find(t => Task.same_title(t.get_one("title"), a.title));
 					(merged ??= []).push({ title: a.title, into: into?.id ?? null, weight: into?.weight ?? null });
 				}
 			}

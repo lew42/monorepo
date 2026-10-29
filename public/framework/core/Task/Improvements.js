@@ -12,15 +12,13 @@ export class Improvements extends Task {
 		add(x, opts){
 			if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);
 			const title = typeof x === "string" ? x : x?.title;
-			const same = typeof title === "string" ? [...this].find(t => Improvements.same(t.get_one("title"), title)) : null;
+			const same = typeof title === "string" ? [...this].find(t => Task.same_title(t.get_one("title"), title)) : null;
 			if (!same) return super.add(x, opts);
 			same.reinforce({ ...(x?.why ? { why: x.why } : {}), ...(x?.by ? { by: x.by } : {}) });
 			return same;
 		}
 	};
 
-	// One rule for "the same title": trimmed, spaces collapsed, any case.
-	static same(a, b){ return typeof a === "string" && typeof b === "string" && a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase(); }
 }
 
 export default Improvements;
