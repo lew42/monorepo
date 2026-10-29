@@ -46,9 +46,10 @@ export class Store {
 	// a second stream that would replay every line twice.
 	open(){
 		if (this.opening) return this.opening;
-		if (!Store.local()) return this.opening = this.moved().then(() => this.load());
-
-		return this.opening = this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+		const opening = !Store.local() ? this.moved().then(() => this.load())
+			: this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+		opening.catch(() => { if (this.opening === opening) this.opening = null; });   // a failed open (server restarting) is not kept: the next open tries again
+		return this.opening = opening;
 	}
 
 	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.

@@ -65,7 +65,10 @@ export class Ref extends Item {
 			if (was) was.off?.("delta", this._on_target);
 			if (hit) hit.on?.("delta", this._on_target ??= () => this.emit("target", this._target));
 		}
-		this.emit("target", hit);
+		// Redraw only when what a row shows changed (the target, its title, its state): a replayed line fires no "delta" on the
+		// item, so the root's "read" re-settles and this compares; a read that touched nothing shown emits nothing.
+		const seen = hit ? `${hit.get_one?.("title")}|${hit.state}|${root?.get_one?.("title")}` : String(this._why);
+		if (was !== hit || seen !== this._seen){ this._seen = seen; this.emit("target", hit); }
 		return hit;
 	}
 
@@ -150,4 +153,11 @@ export class Ref extends Item {
 }
 
 Item.register(Ref, "Ref");
+
+// A live move to another list (List.move) re-paths the same-file Refs that named the old path, one line each. Not on replay:
+// the file already holds those lines. Only while Ref is loaded: a page with no Refs pays nothing.
+Item.moving = {
+	before: item => item.root?.()?.store?.replaying || Store.muted ? undefined : Store.address(item, item.root()),
+	after: (item, old_path) => { if (old_path && Ref.backlinks(item.root()).size) Ref.repath(item, old_path); },
+};
 export default Ref;

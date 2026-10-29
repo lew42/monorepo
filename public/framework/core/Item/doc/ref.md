@@ -19,6 +19,7 @@
 
 - `Ref.shown(item)`: where is this item shown (by its path, or by its id after a move).
 - `Ref.repath(item, old_path)`: after a move inside the file, each of those Refs gets `{"set":{"path": <new>}}`, one line per Ref, through its own Store.
+- **Called by every move to another list:** `List.move` asks `Item.moving` (set by Ref.js) for the old path before and calls `Ref.repath` after, so a drag, the item tool's `move` or a `move` line all re-path. Not on replay (the file already holds those lines), and only while Ref.js is loaded. A reorder inside one list does not change a path, so it does nothing.
 
 **Decided: built by a walk on first ask, not kept up during replay.** Alternative: register each Ref as it is adopted during replay. Same answer, but it must also handle removals and a Ref's own path change; the walk is always right and costs one pass per change. Switch if a file grows to many thousands of items and `shown()` is called per draw.
 
@@ -26,17 +27,21 @@
 
 A move to another file leaves `{moved_to: {url, path}}` at the old place: `Ref.forward(old_item, {url, path})`. No list of referrers is stored in the target's file (that would be a two-file write that can drift). Alternative: stored backlinks per target; wins only if a site-wide "what links here" must be instant, and then node should build it as an index file, as search does.
 
+**No mover writes a forward yet.** `Ref.forward` is the call a cross-file move makes; the one cross-file mover today, `Server/TaskDirs.mjs`, moves whole folders in node and leaves its own stub instead (next paragraph). The first browser move between files should call `Ref.forward` on the old item.
+
 `Server/TaskDirs.mjs` already leaves a `moved.json` stub `{moved_to}` in a folder whose record moved; a Ref to such a folder does not read that stub yet (a folder ref opens the folder's record, and a moved folder has none). Small to add when a moved folder is first referenced.
 
 ## Where it shows
 
-The session page's Chat tab (the tasks box, `core/Session/SessionTasks.js`) lists each child session's open tasks as "child › task" through Refs, eight at first, then "+ N more". It redraws when a child's record reads a line, so a child's change shows in the parent within a frame. Nothing is written: the Refs are in memory, built from the existing Session entries (no session-shape change; that is plan step 4).
+The session page's Chat tab (the tasks box, `core/Session/SessionTasks.js`) lists each child session's open tasks as "child › task" through Refs, eight at first, then "+ N more". One heading per child session ("child ›"), its tasks under it, so a long child title is said once. It redraws when a child's record reads a line, so a child's change shows in the parent within a frame; a Ref emits `"target"` only when its target, title or state changed, so a read that touched nothing shown redraws nothing.
 
-Measured on session-e00f55c9 (2026-10-28, worktree server): 100 open child tasks drawn; a title change and a `start` appended to the child's `session.jsonl` reached the parent's row in 7 to 19 ms (headless, three runs). Shots: [the task's doc/](../../Session/tasks/data-shapes/build/browser-refs/doc/).
+Two things to know. A child's Refs are drawn only after the child's own row has opened its file (`Task.open_ref`): a Ref opening it first made a second root for that url and left the row a snapshot, seen on a slow load (2026-10-28). And here the Ref resolves back to the child row's own live object (`Item.open` answers `store.host`), so on this page it proves the wiring, not that a Ref alone keeps a row live; that standalone path is what `Ref.test.mjs` covers (one load, no tail). Nothing is written: the Refs are in memory, built from the existing Session entries (no session-shape change; that is plan step 4).
+
+Measured on session-e00f55c9 (2026-10-28, worktree server): 100 open child tasks drawn; a title change and a `start` appended to the child's `session.jsonl` reached the parent's row in 7 to 19 ms (headless, three runs), and 4 to 5 ms after the review's changes. Shots: [the task's doc/](../../Session/tasks/data-shapes/build/browser-refs/doc/).
 
 ## Also changed with it
 
-- `Store.open()` runs once per Store (two readers of one file no longer stream it twice).
+- `Store.open()` runs once per Store (two readers of one file no longer stream it twice); a failed open is not kept, so the next open tries again (`Item.open` likewise).
 - `Store.read()` emits `"read"` on its host after a batch, so a view can redraw when a replay changes things without a `"delta"` (Task's replay puts fields directly).
 - `Store.address(node, host)`: the dotted path a Ref stores.
 - `Item.class_for(lines)` and `Item.root_from(lines)`: `Item.open(url)` on a url nothing else names opens it as what its lines say (a session record is a Session, any other `{assign}` record a Task).

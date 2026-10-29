@@ -476,7 +476,8 @@ export class Item extends Events(Object) {
 		// One root per url: a second open() (from anywhere: a Ref, a task page) gets the same live object.
 		const store = this.Store.for(src);
 		if (store.host) return store.host;
-		return store.rooting ??= store.open().then(() => {
+		if (store.rooting) return store.rooting;
+		const rooting = store.rooting = store.open().then(() => {
 			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
 			const Class = this === Item ? Item.class_for(store.entries) : this;
 			const { host, rest } = Class.root_from(store.entries);
@@ -485,6 +486,8 @@ export class Item extends Events(Object) {
 			host.replay_end?.();
 			return host;
 		});
+		rooting.catch(() => { if (store.rooting === rooting) store.rooting = null; });   // a failed open is not cached: the next Item.open tries again
+		return rooting;
 	}
 
 	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or

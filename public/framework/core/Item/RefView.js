@@ -36,7 +36,7 @@ export default class RefView extends View {
 			return;
 		}
 		icon(RefView.STAGE[t.state] ?? "subdirectory_arrow_right").ac("ref-view-state", "is-" + (t.state ?? "item")).attr("title", t.state ?? "");
-		if (r.url && root && root !== t){
+		if (this.where !== false && r.url && root && root !== t){   // where: false when a heading above already names the file
 			a.c("ref-view-where", this.title_of(root)).href(r.url);
 			span.c("ref-view-sep", "›");
 		}

@@ -11,6 +11,9 @@
 	.ref-view-gone, .ref-view-wait { grid-column: 2 / -1; }
 	.ref-view.is-gone { opacity: .8; }
 	.ref-view-gone { font-style: italic; }
+	/* A heading naming the file once over its rows (RefView with where: false), e.g. one child session over its tasks. */
+	.ref-view-group { display: flex; align-items: center; gap: .5em; min-width: 0; margin: .6em 0 .15em; font-size: .85em; }
+	.ref-view-group .ref-view-where { max-width: none; }
 
 	@media (max-width: 40em) {
 		.ref-view { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; align-items: start; }

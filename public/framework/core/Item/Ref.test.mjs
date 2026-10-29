@@ -88,9 +88,9 @@ try {
 	t.eq(Ref.backlinks(doc).get("tasks.done").map(r => r.id), ["r3"], "the backlinks map holds every path a Ref names");
 
 	const n = read("doc.jsonl").length;
-	doc.get("tasks.done.tasks").move("c3", { after: null, from: doc.get("tasks.ui.tasks") });
-	const moved = Ref.repath(c3, "tasks.ui.tasks.c3");
-	t.eq(moved.map(r => r.id), ["r1", "r2"], "a move re-paths the Refs that named the old path");
+	doc.get("tasks.done.tasks").move("c3", { after: null, from: doc.get("tasks.ui.tasks") });   // the move alone: List.move calls Ref.repath
+	t.eq(["r1", "r2"].map(id => doc.chat.find(id).path), ["tasks.done.tasks.c3", "tasks.done.tasks.c3"], "a move re-paths the Refs that named the old path");
+	t.eq(Ref.repath(c3, "tasks.ui.tasks.c3"), [], "and calling repath again finds nothing left to do");
 	const added = read("doc.jsonl").slice(n + 1);   // after the move line itself
 	t.eq(added, [{ chat: { r1: { set: { path: "tasks.done.tasks.c3" } } } }, { chat: { r2: { set: { path: "tasks.done.tasks.c3" } } } }], "one line per Ref, naming its new path");
 

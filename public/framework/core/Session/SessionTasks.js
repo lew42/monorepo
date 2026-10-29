@@ -2,7 +2,7 @@
 // drawn as a row; a proposed one (waiting on the owner) gets Approve, Reject and Make it a project, each one {"decide":{task,is}} line.
 // Approved with a module named, node moves it to <module>/tasks/<slug>/ within 5 minutes (PromptTasks.sweep).
 // Servex files an owner prompt's asks there as proposals (Servex/agents/PromptTasks.js). Doc: doc/prompt-tasks.md.
-import View, { div, span, button, h3, details, summary } from "../View/View.js";
+import View, { div, span, a, button, h3, details, summary } from "../View/View.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
 import FsFile from "/framework/ext/filesystem/FsFile.js";
 import TaskView from "../Task/TaskView.js";
@@ -58,7 +58,7 @@ export default class SessionTasks extends JSONL {
 	follow(s){
 		const soon = this.soon ??= () => { clearTimeout(this.soon_timer); this.soon_timer = setTimeout(() => this.draw(), 200); };
 		if (this.followed !== s){ this.followed?.off("read", soon); this.followed = s; s.on("read", soon); }
-		s.walk(t => { if (t.ready && !t._ready_followed){ t._ready_followed = true; t.ready.then(soon, soon); } });
+		s.walk(t => { if (t.ready && !t._ready_followed){ t._ready_followed = true; t.ready.then(() => { t._opened = true; soon(); }, soon); } });
 	}
 
 	/* Each child session's open tasks, drawn in this session as "child › task" through a Ref ({url: the child's folder, path:
@@ -67,10 +67,12 @@ export default class SessionTasks extends JSONL {
 	child_refs(s){
 		const rows = s.sessions_below().flatMap(c => {
 			const url = c.get_one("path");
-			if (typeof url !== "string") return [];
+			// Only once the child's own row has opened its file (open_ref): a Ref opening it first would make a second root for that
+			// url, and the row would fall back to a snapshot (seen on a slow load, 2026-10-28).
+			if (typeof url !== "string" || (c.ready && !c._opened)) return [];
 			return [...(c._tasks ?? [])].filter(k => k.state !== "stopped" && k.state !== "complete").map(k => {
 				const key = url + "#" + k.id;
-				if (!this.refs.has(key)) this.refs.set(key, new Ref({ url, path: "tasks." + k.id }));
+				if (!this.refs.has(key)) this.refs.set(key, Object.assign(new Ref({ url, path: "tasks." + k.id }), { child: c }));
 				return this.refs.get(key);
 			});
 		});
@@ -78,7 +80,12 @@ export default class SessionTasks extends JSONL {
 		const shown = this.all_refs ? rows : rows.slice(0, SessionTasks.REFS);
 		details.c("session-task-refs", () => {
 			summary.c("muted", `In child sessions · ${rows.length} open`);
-			for (const r of shown) div.c("session-task", () => new RefView({ ref: r }));
+			// One heading per child session ("session ›"), its tasks under it: the long child title is said once, not on every row.
+			let last;
+			for (const r of shown){
+				if (r.child !== last){ last = r.child; div.c("ref-view-group", () => { a.c("ref-view-where", r.child.get_one?.("title") ?? r.child.id ?? r.url).href(r.url); span.c("ref-view-sep", "›"); }); }
+				div.c("session-task", () => new RefView({ ref: r, where: false }));
+			}
 			if (shown.length < rows.length) button.c("session-task-more", `+ ${rows.length - shown.length} more`).attr("type", "button").click(() => { this.all_refs = true; this.draw(); });
 		}).el.open = true;
 	}
