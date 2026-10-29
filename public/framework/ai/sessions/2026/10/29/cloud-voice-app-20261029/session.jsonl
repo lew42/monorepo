@@ -1,0 +1,6 @@
+{"session":{"id":"cloud-voice-app-20261029","kind":"cloud-voice-agent","caller":"voice-app","at":1793315877034}}
+{"tool_call":{"at":"2026-10-29T23:17:57.035Z","tool":"spawn_agent","args_hash":"7488b6803009","caller":"voice-app"}}
+{"spawned":{"at":"2026-10-29T23:18:15.134Z","agent":"minion-usage-check","task_dir":null,"caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-29T23:25:15.254Z","tool":"wait_for_agent","args_hash":"78e550ea2de3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-29T23:31:07.684Z","tool":"send_to_agent","args_hash":"be72ad3181de","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-29T23:31:09.972Z","tool":"wait_for_agent","args_hash":"6717dcc74551","caller":"voice-app"}}
