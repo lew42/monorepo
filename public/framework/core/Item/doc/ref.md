@@ -11,7 +11,7 @@
 5. **Gone.** Nothing found: `target` is `null`, `why` names what was looked for, and `RefView` draws a "gone" row. Never silently empty.
 6. **Live.** The Ref listens to its target's `"delta"` and to its root's `"read"` (one event per batch of lines a Store replays, `Store.read`), and emits `"target"`. `RefView` redraws on it.
 
-**Node.** `Item.open` fetches the url, so an absolute http url works (the test serves a temp folder). `Ref.resolver` (url → parsed lines, sync) is the hook a node host can wire, as `Task.resolver` is; nothing wires it yet, and Servex's item tool keeps resolving `{"task"}` references through `Task.resolver` as before.
+**Node.** `Item.open` fetches the url, so an absolute http url works (the test serves a temp folder). A relative url has no server to ask in node, so it resolves as gone. Servex's item tool keeps resolving `{"task"}` references through `Task.resolver`, as before. A sync node hook for Ref (url → lines, like `Task.resolver`) is small to add when an agent tool first needs a Ref answered; it was left out until then.
 
 ## Backlinks, within one file
 

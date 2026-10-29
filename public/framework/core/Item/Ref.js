@@ -15,12 +15,11 @@ import Store from "./Store.js";
      4. nothing found: `target` is null and RefView draws a visible "gone" row naming the path. Never silently empty.
    Within one file, `Ref.backlinks(root)` is a Map from each path to the Refs pointing at it, computed in memory (never saved);
    `Ref.shown(item)` answers "where is this shown", and `Ref.repath(item, old_path)` re-paths every Ref after a move, one line per Ref.
-   Node: `Ref.resolver` (url -> parsed lines, sync), when wired, opens a file without fetch; else Item.open fetches the url. */
+   Node: Item.open fetches the url, so an absolute http url resolves (Ref.test.mjs); a task's {"task":"<folder>"} keeps Task.resolver. */
 export class Ref extends Item {
 
 	static fields = ["url", "path"];
 	static HOPS = 8;   // forwards followed before a chain is called a loop
-	static resolver = null;
 	static changes = 0;   // bumped when any Ref changes its address: the backlinks are walked again
 
 	put(key, value){ super.put(key, value); if (key === "path" || key === "url") Ref.changes++; }
@@ -53,7 +52,6 @@ export class Ref extends Item {
 	// The root of `url` (its own file's when none), opened once per url.
 	async root_of(url){
 		if (!url) return this.root();
-		if (Ref.resolver) return Ref.open_sync(url);
 		return Item.open(await Ref.file_of(url));
 	}
 
@@ -118,19 +116,6 @@ export class Ref extends Item {
 			if (res?.ok && !res.headers.get("content-type")?.includes("html")) return dir + n;
 		}
 		return dir + order[0];
-	}
-
-	// Node, with `Ref.resolver` wired: the lines read from disk, replayed once per url (the same one-root rule as Item.open).
-	static open_sync(url){
-		const roots = Ref._roots ??= new Map();
-		if (roots.has(url)) return roots.get(url);
-		const lines = Ref.resolver(url) ?? [];
-		const Class = Item.class_for(lines);
-		const { host, rest } = Class.root_from(lines);
-		for (const line of rest) host.replay_line(line);
-		host.replay_end?.();
-		roots.set(url, host);
-		return host;
 	}
 
 	/** Every same-file Ref under `root`, by the path it names: computed by a walk, kept until any list changes (Item.generation),
