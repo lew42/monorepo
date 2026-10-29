@@ -129,6 +129,10 @@ try {
 	write("s/b/session.jsonl", [{ session: { id: "b" } }, { tasks: { add: { type: "Task", id: "x" } } }, { tasks: { x: { moved_to: { url: BASE + "/s/a/", path: "tasks.x" } } } }]);
 	const looped = loop.chat.add({ type: "Ref", id: "l1", url: BASE + "/s/a/", path: "tasks.x" });
 	t.eq(await looped.resolve(), null, "two forwards pointing at each other end as gone, not a hang");
+	// A forward that leads back to the same item has arrived (a handoff's reference child is its new file's root, forward and all).
+	write("s/self/session.jsonl", [{ session: { id: "self" } }, { tasks: { add: { type: "Task", id: "h", title: "Handed off" } } }, { tasks: { h: { moved_to: { url: BASE + "/s/self/", path: "tasks.h" } } } }]);
+	const selfie = loop.chat.add({ type: "Ref", id: "s1", url: BASE + "/s/self/", path: "tasks.h" });
+	t.eq((await selfie.resolve())?.get_one("title"), "Handed off", "a forward to the item itself is arrival, not a loop");
 
 	// The writer half: item.move_to({url, path}) leaves the forward on a live item; a List moves it inside its file.
 	const left = Item.hydrate({ id: "left", title: "Left" });

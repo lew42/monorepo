@@ -36,14 +36,18 @@ export class Ref extends Item {
 
 	// Steps 2 to 4 above, from a root already open.
 	async settle(root, url){
-		let path = this.path ?? "", hit = Ref.lookup(root, path), hops = 0, moved = false;
+		let path = this.path ?? "", hit = Ref.lookup(root, path), hops = 0, moved = false, arrived = false;
 		for (let to = Ref.forward_of(hit); to && hops < Ref.HOPS; to = Ref.forward_of(hit), hops++){
 			if (to.url){ url = to.url; root = await this.root_of(url); }
 			path = to.path ?? "";
-			hit = Ref.lookup(root, path);
+			const next = Ref.lookup(root, path);
 			moved = true;
+			// The forward led back to the same item: it is already its new home's root. A handoff leaves a reference with the same id,
+			// which in the browser loads the moved task from its new file into that very object (Task.open_ref), forward and all.
+			if (next === hit){ arrived = true; break; }
+			hit = next;
 		}
-		if (Ref.forward_of(hit)){ hit = null; this._why = "the forwards loop"; }
+		if (!arrived && Ref.forward_of(hit)){ hit = null; this._why = "the forwards loop"; }
 		if (moved && hit) this.set(url && url !== this.url ? { url, path } : { path });   // the new address, one line: next load goes straight there
 		this.watch(root);
 		return this.found(hit ?? null, root);
