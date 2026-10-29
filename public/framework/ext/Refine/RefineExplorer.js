@@ -60,7 +60,7 @@ export default class RefineExplorer extends View {
 			});
 			div.c("refine-section refine-section-tree", () => {
 				h4.c("refine-prompt-h", "The live system (click to open; properties and logs)");
-				new DefaultView({ subject: s });
+				new DefaultView({ subject: s, open: 1 });
 			});
 		});
 	}

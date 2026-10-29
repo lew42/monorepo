@@ -961,7 +961,7 @@ function validate(Task, task, delta){
 	for (const key of Object.keys(delta)){
 		if (key === "help") continue;
 		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
-		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined) continue;
+		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined || task.member?.(key) !== undefined) continue;   // member: a child by id (get() no longer searches lists)
 		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
 	}
 	return null;
@@ -985,7 +985,8 @@ async function page_refusal(at, delta){
 	const Page = await page_class();
 	if (!Page) return null;   // a broken Page degrades the check, never the tool
 	let why = bad_page_delta(Page, delta);
-	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, delta)]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
+	// A copy: the replay adopts what it adds (a `pages.add` spec gets a parent), and the caller still writes this delta.
+	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, structuredClone(delta))]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 

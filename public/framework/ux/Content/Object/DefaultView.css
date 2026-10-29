@@ -1,0 +1,33 @@
+@layer base, theme, site, util;
+
+/* The one default view (DefaultView.js). Rows are ui/item's own `.item` rows; this adds the small class
+   label, the property names, references and the flash a change leaves behind. */
+@layer theme {
+	.ux-content-defaultview { font-size: .9em; min-width: 0; }
+	.ux-content-defaultview .ux-content-defaultview { font-size: 1em; }   /* only the outermost shrinks, once */
+	.ux-content-defaultview > summary.item { gap: .4em; }
+	.ux-content-defaultview .item-name { display: flex; gap: .3em; align-items: baseline; }
+	.ux-content-defaultview-id { font-weight: 600; }
+	.ux-content-defaultview-key, .ux-content-defaultview-method { font-family: var(--mono, monospace); font-size: .95em; }
+	.ux-content-defaultview-row > .ux-content-defaultview-key { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+	.ux-content-defaultview-row > .item-end { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; font-family: var(--mono, monospace); font-size: .95em; }
+
+	/* The class name, as a small label: quiet, never louder than the id. */
+	.ux-content-defaultview-class {
+		flex: 0 0 auto; font-size: .75em; line-height: 1.5; padding-inline: .45em;
+		border-radius: 999px; background: var(--fill-a08); color: var(--subtle);
+	}
+
+	/* A reference points somewhere else: it reads as a link, and a click flashes its target's views. */
+	.ux-content-defaultview-ref { cursor: pointer; }
+	.ux-content-defaultview-ref > .item-end { color: var(--prime); }
+
+	.ux-content-defaultview-leaf { font-family: var(--mono, monospace); }
+
+	/* What just changed: a short wash that fades, so a reader sees which row moved. */
+	.ux-content-defaultview-flash { animation: ux-content-defaultview-flash 1.2s ease-out; }
+	@keyframes ux-content-defaultview-flash {
+		from { background-color: color-mix(in srgb, var(--prime) 30%, transparent); }
+		to { background-color: transparent; }
+	}
+}

@@ -59,6 +59,9 @@ export class Page extends Item {
 		return page;
 	}
 
+	// The whole line reaches set(), stamp included, so `jsonl_lines` and the "line" event keep `by`/`ts` (the inbox, the log view).
+	replay_line(line){ return this.set(line); }
+
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 
 	// ════ PAGE.JSONL ══════════════════
@@ -76,6 +79,7 @@ export class Page extends Item {
 
 		(this.jsonl_lines ??= []).push(obj);
 		this.emit("line", obj);
+		if (obj && ("by" in obj || "ts" in obj)){ const { by, ts, ...rest } = obj; obj = rest; }   // the writer's stamp: kept in the line above, never page data (Item.replay_line)
 		obj = this.take_words(obj);
 
 		if ("content" in obj){

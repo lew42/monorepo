@@ -23,7 +23,8 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
   id, data: {}                        // get(key), put(key, value) — seams over `data`; Page overrides both
   set(a, b)                           // ✅ one delta: a method key calls it, a nested .set() recurses, else data + emits "change"/"delta"
   store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays (each entry through `host.replay_line`, default `set`; `Item.replay(lines)` is the node twin) / appends / tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
-  view                                // getter/setter; lazy `new constructor.View({item})` once core grows one
+  view                                // getter/setter; lazy `new constructor.View({item})`: a class's OWN view, when it has one
+  views: []                           // ✅ every live default view drawing me (ux/Content/Object/DefaultView.js; ask 33)
   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
   toJSON(), static hydrate(json), static register(Class, name), static open(src)
 }
@@ -68,12 +69,17 @@ itself, written under its own name, omitted when it never made one. All user sta
 
 An item added to a parent logs its deltas to the parent's store. Not every item needs a file. An item breaks out by need: first it lives inside the parent's file, then in its own `thing.jsonl`, then in its own `thing/` directory once a real file must sit beside it.
 
-- ✅ An item added to a parent's `List` logs to the parent's store, nested under its id: `{"kids":{"add":{...}}}`, then `{"k":{"set":{...}}}`. A reload replays it. (`Item.test.mjs`)
+- ✅ An item added to a parent's `List` logs to the parent's store, and **every hop names its list**: `{"kids":{"add":{...}}}`, then `{"kids":{"k":{"set":{...}}}}`. A reload replays it with one `get()` per name, never a search. (`Item.test.mjs`, `persistence.test.mjs`)
+- ✅ A **dotted key** is the same path, flat: `{"kids.k":{"set":{...}}}`. Each level's `get()` takes the first name and hands the rest down, so a List (or any subclass) decides how it looks up its own members. `get("kids.k")` reads the same path. The writer still writes the nested form. So a data field can no longer be named with a dot (`"v1.2"`): a new dotted key is always a path. ([ids-and-paths.md](/framework/core/Session/tasks/data-shapes/ids-and-paths.md), DECIDED)
+- ✅ `get(key)` no longer searches every list. An **old line** that names a member by its id alone (`{"k":{…}}`) still replays, from the first list that has it (`member(id)`); it is counted in `Item.old_hops` and warned once in node.
+- ✅ `by` and `ts` on a line are the writer's stamp, never data: `replay_line` holds `ts` in **`Item.clock`** while the line applies (`Task.clock` is the same clock), for every Item. A Page keeps the whole line in `jsonl_lines`.
+- ✅ `item.set("prop", anotherItem)` **adopts** it: its parent is the item, its slot is `prop`, its later changes are written under `prop` (`{"prop":{"set":{…}}}`), and a replay makes the saved `{type, id, data}` an Item again. (`Item.test.mjs`)
+- ✅ Fast at size: a `List` keeps an id-to-member `Map`; `find(id)` (deep) is a `Map` rebuilt once per list change (`Item.generation`); `lists()` is cached. The largest voice session (8,360 lines) replays in about 200 ms (2.1 s before, 2026-10-28).
+- ✅ The persistence matrix: Item, List, Task, Prompt, Question, Session and Page, as the root of a file and nested, for add, set, move, remove and replay, through a real Store, a second tab and a fresh replay: `node persistence.test.mjs`. The whole path, hop by hop: `node delta-flow.test.mjs` (runs [seat g's demo](/framework/core/Session/tasks/data-shapes/seats/delta-flow/delta-flow.md)).
 - ✅ Own file: an item with its own store, or marked `_own_file`, is skipped by the parent's store (`Store.js` `owned_below`). `Task.open_ref` does this.
 - ✅ One tail: every store and `JSONL` instance tails through `ext/JSONL/live.js` `stream()`. Items, pages and tasks reach it through `Store.open()`; the board logs through the `JSONL` class, which calls `stream()` directly.
 - ✅ A button saves its verb: `item.act("start")` runs the method and records `{"start":{}}`. A task's store posts that line to Servex `POST /api/item` (the item tool's writer, loopback only), which stamps it `by: "owner"` and `ts`. If Servex can't take it, the line falls back to the plain append. Why: [doc/architecture.md](./doc/architecture.md#a-button-saves-its-verb-through-the-item-tool). (`act.test.mjs`)
-- ✅ An item moves home: `{"<id>":{"move":{"to":"<folder url>"}}}` through the item tool (or `spawn_agent` with `task: {from, id}`) moves a subtask out of its parent's log into its own folder, with its id, every line of its history, and one `{"task", "as"}` reference left behind. Why: [doc/architecture.md](./doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference). (`item_tool.test.mjs`)
-- ⬜ `item.set("prop", anotherItem)` is only a snapshot: the child is not adopted and its later deltas are not logged. Plan: [doc/next.md](./doc/next.md).
+- ✅ An item moves home: `{"tasks":{"<id>":{"move":{"to":"<folder url>"}}}}` (the old `{"<id>":{"move":…}}` is still read) through the item tool (or `spawn_agent` with `task: {from, id}`) moves a subtask out of its parent's log into its own folder, with its id, every line of its history, and one `{"task", "as"}` reference left behind. Why: [doc/architecture.md](./doc/architecture.md#an-item-moves-home-with-its-id-its-history-and-one-reference). (`item_tool.test.mjs`)
 - ⬜ Dynamic upgrade (an item moving itself from the parent's store to its own file when it needs one) is a noted idea, not built.
 - ⬜ A general RENAME (a `Dated`-store item's own folder tracking its title, with every reference — follows, links, index rows — updated in one step) does not exist, and a per-caller version was tried and dropped (voice sessions, 2026-10-25): `Servex/agents/Sessions.js`'s `rename_session` only retitles, on purpose. Moving the folder breaks the session's own item-tool `path`, handed out once at spawn and reused for the rest of that session's life — the very agent asking for the rename would lose its own record-keeping path the instant it ran, with no way to tell it the path changed mid-conversation. A bookmarked dated-folder url would 404 the same way (`Servex/agents/page_tools.js`'s `DATED_SESSION` checks the literal typed path). A real fix needs a resolve-by-id indirection here, in `Dated` or `Item`, so every dated-store item (sessions, cards, tasks) can move without breaking what already pointed at the old path — not built yet.
 
@@ -81,7 +87,7 @@ Code pointers and findings: [doc/architecture.md](./doc/architecture.md#items-sa
 
 The target model (the owner, 2026-10-21): any item holds items on demand, adding is a reference and moving is explicit, every added item gets persistence recursively, storage targets vary and are visible: [doc/owner-2026-10-21-items-hold-items.md](./doc/owner-2026-10-21-items-hold-items.md).
 
-A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`).
+A testing system is a need, not now (2026-10-20). Tests today are plain node files (`node Item.test.mjs`). The core test the [Item page](/framework/core/Item/) draws step by step is `Item.steps.js`; `node Item.steps.test.mjs` runs the same steps. The page's life-cycle picture is `Item.life.js` and its method pages are `Item.methods.js` plus `doc/method/<name>.md` for `set`, `get` and `toJSON` ([ClassDoc](/framework/ext/Doc/doc/class-doc.md)).
 
 ## Watch out
 
@@ -95,9 +101,9 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - Constructors do no I/O; `Item.open(saver)` is the one async entry: [doc/method/open.md](./doc/method/open.md).
 - Warnings fire once per message — clear `Item.warned` to re-hear them: [doc/decisions.md](./doc/decisions.md).
 - A child's `save()` delegates up and persists the whole document, never its subtree: [doc/method/save.md](./doc/method/save.md).
-- `item.view` is `undefined` until a `static View` is actually wired in (nobody has built the
-  generic one yet) — a reader of a content List with no view of its own falls back to its
-  own title/text; see `Page.render_content_list()`, core/Page.
+- `item.view` is `undefined` until a class wires its own `static View` — a reader of a content List with
+  no view of its own falls back to its own title/text; see `Page.render_content_list()`, core/Page. The
+  generic debug view is `view(item)` (ux/Content/Object), and every one drawing an item is in `item.views`.
 
 ## More
 
@@ -106,9 +112,10 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [`doc/item-notes.md`](./doc/item-notes.md) — comments pruned from `Item.js`, verbatim.
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
+- [Watch a tree being built](/framework/core/Item/watch/) — step through it: every object in the default view as it is made and changed, every line it saves beside it, then a replay of those lines. Files: `watch/` (`Watch.js`, `Box.js`, `ScratchStore.js`).
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
-- `doc/method/*.md`, `doc/property/*.md` — one page per verb and field, each with its trap.
+- `doc/method/*.md`, `doc/property/*.md` — one note per verb and field, each with its trap. The [Methods tab](/framework/core/Item/methods/) shows three of them (`set`, `get`, `toJSON`); the rest are read here, and many predate `set()` as a delta.
 - Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
 - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
 - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).

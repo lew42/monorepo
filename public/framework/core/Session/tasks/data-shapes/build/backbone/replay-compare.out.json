@@ -1,0 +1,44 @@
+{
+ "files": 9616,
+ "same": 9615,
+ "changed_between_runs": 0,
+ "different": 1,
+ "missing": 0,
+ "total_ms": {
+  "before": 3320,
+  "after": 578
+ },
+ "slowest": [
+  {
+   "file": "public/framework/ai/sessions/2026/10/25/v-sq8y7db/session.jsonl",
+   "lines": 8360,
+   "before_ms": 2123.8,
+   "after_ms": 205.3
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl",
+   "lines": 5625,
+   "before_ms": 703.4,
+   "after_ms": 100.7
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/02/cards/page.jsonl",
+   "lines": 9760,
+   "before_ms": 115.2,
+   "after_ms": 16.8
+  },
+  {
+   "file": "public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl",
+   "lines": 1069,
+   "before_ms": 84.5,
+   "after_ms": 60.9
+  },
+  {
+   "file": "public/framework/core/Page/ext/page.jsonl",
+   "lines": 15,
+   "before_ms": 73.6,
+   "after_ms": 13.1
+  }
+ ]
+}
+DIFF {"file":"public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl","before":"ac13e1abf1","after":"810706ccd7"}

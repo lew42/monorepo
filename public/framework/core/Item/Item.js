@@ -19,6 +19,14 @@ const is_list = node => !!node && Array.isArray(node.items) && typeof node.find 
 
 const building = new WeakSet();   // Items inside their own constructor (see constructor())
 
+// Can a key's value take the rest of a delta? (an Item or List; a Map has a set() too, but it is data)
+const routes = node => !!node && typeof node.set === "function" && !(node instanceof Map);
+// The saved shape of one Item (`toJSON()`): a registered type, an id, a data object, and nothing but lists beside them.
+const is_envelope = value => is_plain(value) && typeof value.type === "string" && "id" in value && is_data(value.data) && !!Item.types.get(value.type)
+	&& Object.keys(value).every(k => k === "type" || k === "id" || k === "data" || Array.isArray(value[k]));
+// A cache kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
+const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
+
 // Architecture: composition not inheritance; doc/item-notes.md
 export class Item extends Events(Object) {
 
@@ -144,18 +152,54 @@ export class Item extends Events(Object) {
 	}
 
 	set_one(key, value){
+		// A dotted key is a path: `{"tasks.ui.tasks.c3": v}` is `{"tasks": {"ui.tasks.c3": v}}`, and the next level's own
+		// set() takes the rest (ids-and-paths.md, DECIDED). A key that already names something here as it is wins.
+		const dot = key.indexOf(".");
+		if (dot > 0 && dot < key.length - 1 && !(key in this) && this.get_one(key) === undefined)
+			return void this.set_one(key.slice(0, dot), { [key.slice(dot + 1)]: value });
+
 		const here = this[key];
 		if (typeof here === "function") return void here.call(this, value);
 
 		const target = this.get(key);
-		if (target && typeof target.set === "function" && !(target instanceof Map)) return void target.set(value);
+		if (routes(target)) return void target.set(value);
 
-		const old = this.get(key);
+		// An old line named a list member by its id alone (`{"c3":{…}}`, what Store.hops wrote before every hop named its
+		// list): still replayed, from the first list that has it, as get() used to; new lines name the list. It warns only
+		// when the list could have been named (a Page's `pages` cannot be yet, so the page tool's `{"<tab>":{…}}` is current).
+		if (target === undefined){
+			const [name, list] = Object.entries(this.lists()).find(([, l]) => l.find(key) !== undefined) ?? [];
+			const kid = list?.find(key);
+			if (routes(kid)){
+				const named = [list.name, name].find(n => n && !skipped(n) && this.get(n) === list);
+				// Counted always (Item.old_hops: "<list>.<id>" -> lines); warned in node only, where the item tool and the tests
+				// run. In a browser it would be noise on every page: the page tool still documents `{"<card id>":{…}}` today.
+				if (named && is_plain(value)){
+					Item.old_hops.set(`${named}.${key}`, (Item.old_hops.get(`${named}.${key}`) ?? 0) + 1);
+					if (typeof document === "undefined") warn(`a line named the member "${key}" by its id alone (an old line): it now names its list, {"${named}":{"${key}":…}}`, "member-hop");
+				}
+				return void kid.set(value);
+			}
+		}
+
+		const old = target;
+		value = this.adopt_slot(key, value, old);
 		this.put(key, value);
 		if (old !== value){
 			this.emit("change", key, value, old);
 			this.emit("delta", { set: { [key]: value } }, this);
 		}
+	}
+
+	/* An Item put in a property is ADOPTED: its parent is me and its slot is the property's name, so its own changes bubble
+	   here and Store.hops writes them under that name ({"child":{"set":{…}}}), and a replay walks back into it. The line
+	   that puts it is the saved shape (`{type, id, data}`), so on replay that shape is made an Item again (seat a, E7/E9).
+	   A List is not adopted this way (its owner is fixed when it is made). */
+	adopt_slot(key, value, old){
+		if (old !== value && old instanceof Item && old.parent === this && old._slot === key){ delete old.parent; delete old._slot; }
+		if (is_envelope(value)) value = Item.hydrate(value);
+		if (value instanceof Item && !is_list(value) && value !== this){ value.parent = this; value._slot = key; }
+		return value;
 	}
 
 	/* THE single resolver (2026-10-03): ONE name, not a path. The owner's order:
@@ -180,8 +224,25 @@ export class Item extends Events(Object) {
 		const value = this.get_one(key);
 		if (value !== undefined) return value;
 
+		// A List made with me as its owner and `key` as its name, even one I keep behind a getter (List.named()).
+		const list = this._named?.get(key);
+		if (list && list.owner === this) return list;
+
+		// A dotted path: my get takes the first name, and what it finds takes the rest with its OWN get (a List looks
+		// up its member; a subclass may look up its own way). ids-and-paths.md, DECIDED.
+		const dot = typeof key === "string" ? key.indexOf(".") : -1;
+		if (dot > 0){
+			const next = this.get(key.slice(0, dot));
+			return routes(next) && typeof next.get === "function" ? next.get(key.slice(dot + 1)) : undefined;
+		}
+		return undefined;
+	}
+
+	// A member of one of my lists, by id: the first list that has it. Only an old line's id-only hop needs this
+	// (set_one above, the item tool's check); every new hop names its list, so get() no longer searches.
+	member(id){
 		for (const list of Object.values(this.lists())){
-			const hit = list.find(key);
+			const hit = list.find(id);
 			if (hit !== undefined) return hit;
 		}
 		return undefined;
@@ -224,9 +285,14 @@ export class Item extends Events(Object) {
 	// ⚠ Only lists I OWN. A member of an ownerless list has that list as its
 	// `parent`; counting it here made toJSON() loop forever (found by the
 	// List replay example, 2026-10-02).
+	// Cached: kept while I have the same own keys and each cached list is still mine under its name. A List made with me
+	// as its owner clears it (List's `owner` setter). Returned as a fresh object each call, as before.
 	lists(){
+		const keys = Object.keys(this).length, had = this._lists;
+		if (had && had.keys === keys && had.names.every(([k, list]) => this[k] === list && list.owner === this)) return Object.fromEntries(had.names);
 		const found = {};
 		for (const key in this) if (is_list(this[key]) && this[key].owner === this) found[key] = this[key];
+		hide(this, "_lists", { keys, names: Object.entries(found) });
 		return found;
 	}
 
@@ -236,8 +302,20 @@ export class Item extends Events(Object) {
 		return this;
 	}
 
-	// A DEEP search — every descendant, across every list, at every depth.
-	find(id){ let hit; this.walk(item => { hit ??= item.id === id ? item : undefined; }); return hit; }
+	// A DEEP search — every descendant, across every list, at every depth: the first one in walk order, me included.
+	// Indexed once per change to any list (Item.generation), so a line that names no child costs a Map lookup, not a walk.
+	find(id){
+		let ix = this._deep;
+		if (!ix || ix.gen !== Item.generation){
+			ix = { gen: Item.generation, map: new Map() };
+			this.walk(item => { if (!ix.map.has(item.id)) ix.map.set(item.id, item); });
+			hide(this, "_deep", ix);
+		}
+		const hit = ix.map.get(id);
+		if (hit === undefined || hit.id === id) return hit;
+		this._deep = null;   // an id changed in place since: walk again
+		return this.find(id);
+	}
 
 	// Strict descendants — `contains(this)` is false, so a drop-check still needs
 	// `target !== this` beside it.
@@ -255,6 +333,11 @@ export class Item extends Events(Object) {
 		return this._view = new this.constructor.View({ item: this });
 	}
 	set view(v){ this._view = v; }
+
+	// Every live view drawing me (ask 33): one item can show in two places at once, and a change reaches each.
+	// The default view (ux/Content/Object/DefaultView.js) adds itself here and drops out once off the page.
+	get views(){ return this._views ??= []; }
+	set views(v){ this._views = v; }
 
 	// A child asking to save persists its DOCUMENT — delegation up, never a partial write.
 	save(){ return this.saver ? this.saver.save(this) : this.parent ? this.parent.save() : Promise.resolve(false); }
@@ -352,7 +435,35 @@ export class Item extends Events(Object) {
 		item.replay_end?.();
 		return item;
 	}
-	replay_line(line){ return this.set(line); }
+	// `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while
+	// it applies (a Task stamps its verbs with it), for every Item. Before, a plain Item kept them as fields (seat a).
+	replay_line(line){
+		if (!is_plain(line) || !("by" in line || "ts" in line)) return this.set(line);
+		const { by, ts, ...rest } = line, was = Item.clock;
+		if (typeof ts === "string") Item.clock = ts;
+		try { return this.set(rest); } finally { Item.clock = was; }
+	}
+
+	// The time of the line being replayed (null outside a replay). One clock for every Item: `Task.clock` reads and
+	// writes this same value.
+	static get clock(){ return Item._clock; }
+	static set clock(at){ Item._clock = at; }
+
+	// A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set()
+	// opens the next). For a replay_line that reads its top-level keys itself (Task, Session) before any set() runs.
+	static dots(line){
+		if (!is_plain(line)) return line;
+		let out = null;
+		for (const key in line){
+			const dot = key.indexOf(".");
+			if (dot <= 0 || dot === key.length - 1) continue;
+			out ??= { ...line };
+			delete out[key];
+			const head = key.slice(0, dot), rest = { [key.slice(dot + 1)]: line[key] };
+			out[head] = is_plain(out[head]) ? { ...out[head], ...rest } : rest;
+		}
+		return out ?? line;
+	}
 
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.
@@ -380,6 +491,9 @@ const warn = (message, key = message) => {
 };
 
 Item.types = new Map();
+Item._clock = null;
+Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them
+Item.generation = 0;   // bumped by every List change: find()'s index is rebuilt only after one
 Item.names = new Map();
 Item.warned = new Set();
 Item.Store = Store;

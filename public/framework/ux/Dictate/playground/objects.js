@@ -6,7 +6,7 @@
  * want those to be object oriented so that we can give them an icon."
  *
  * Every class here carries `static icon = "…"` — a Material Symbols name, read by
- * `object()`/`view()`/`inspect()` alike (`ux/Content/Object/Object.js`'s `icon_name()`)
+ * the default view (`view()` in `ux/Content/Object/DefaultView.js`; `inspect()` is an old name for it)
  * — and nothing else: no methods, no behavior. `Playground.js` is still the one place
  * that reads and writes these; this file only gives their shape a name and a face.
  */
