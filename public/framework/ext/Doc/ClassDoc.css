@@ -41,7 +41,7 @@
 	.doc-class-step.is-pass { border-top-color: var(--ok); }
 	.doc-class-step.is-fail { border-top-color: var(--error); }
 	.doc-class-step-head { display: flex; align-items: center; gap: 0.5em; font-weight: 600; }
-	.doc-class-step-n { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--prime); color: var(--prime-ink); font-size: 0.85em; flex: none; }
+	.doc-class-step-n { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--prime); color: var(--prime-ink); font-size: 0.85em; line-height: 1; padding: .1em; flex: none; }
 	.doc-class-step > code, .doc-class-step-lines code { font-size: 0.85em; overflow-wrap: anywhere; white-space: pre-wrap; }
 	.doc-class-step-verdict { display: flex; gap: 0.4em; align-items: flex-start; font-size: 0.9em; }
 	.doc-class-step.is-pass .doc-class-step-verdict .icon { color: var(--ok); }

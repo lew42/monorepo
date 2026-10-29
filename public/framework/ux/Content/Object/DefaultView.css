@@ -14,7 +14,7 @@
 
 	/* The class name, as a small label: quiet, never louder than the id. */
 	.ux-content-defaultview-class {
-		flex: 0 0 auto; font-size: .75em; line-height: 1.5; padding-inline: .45em;
+		flex: 0 0 auto; font-size: .75em; line-height: 1.5; padding: .1em .45em;
 		border-radius: 999px; background: var(--fill-a08); color: var(--subtle);
 	}
 
@@ -25,7 +25,7 @@
 	.ux-content-defaultview-leaf { font-family: var(--mono, monospace); }
 
 	/* What just changed: a short wash that fades, so a reader sees which row moved. */
-	.ux-content-defaultview-flash { animation: ux-content-defaultview-flash 1.2s ease-out; }
+	.ux-content-defaultview-flash { animation: ux-content-defaultview-flash 1.2s ease-out; padding-inline: .25em; margin-inline: -.25em; border-radius: .25em; }   /* the wash keeps a little room around the text */
 	@keyframes ux-content-defaultview-flash {
 		from { background-color: color-mix(in srgb, var(--prime) 30%, transparent); }
 		to { background-color: transparent; }
