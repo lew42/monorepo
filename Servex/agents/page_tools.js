@@ -6,6 +6,7 @@ import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
 import Task from "../../public/framework/core/Task/Task.js";
+import Item from "../../public/framework/core/Item/Item.js";
 import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 import LogLine from "../../Server/LogLine.mjs";
 
@@ -201,7 +202,7 @@ function stamp_ids(value, ids){
 	const out = {};
 	for (const [key, v] of Object.entries(value)){
 		if (key === "add" && is_plain(v)){
-			const id = v.id ?? crypto.randomUUID();
+			const id = v.id ?? Item.short_id();
 			ids?.push(id);
 			out[key] = { id, ...stamp_ids(v, ids) };
 		} else out[key] = stamp_ids(v, ids);
@@ -1129,8 +1130,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
 	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
-		const a = flat.tasks.add, id = slug_of(a.id ?? a.title);
-		if (root()._tasks?.find(id)) { delete flat.tasks; flat[id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
+		// Matched by title (ids are random now, never made from the title); an older improvement whose id is its title slug matches too.
+		const a = flat.tasks.add, key = slug_of(a.title ?? a.id);
+		const same = [...(root()._tasks ?? [])].find(t => slug_of(t.get_one("title") ?? t.id) === key || t.id === key);
+		if (same) { delete flat.tasks; flat[same.id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
 	}
 	// MOVE (design.md): {"<id>":{"move":{"to":url}}}, {"tasks":{"<id>":{"move":{"to":url}}}} or move on target [<id>]. Handled here, not written as a line.
 	if (Class?.replay){
@@ -1187,9 +1190,14 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
-			const id = home ? null : slug_of(a.id ?? a.title);
-			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
-				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
+			// An agent-made id is 8 random characters, redrawn on a clash among siblings (ids-and-paths.md §5); never a slug of the title.
+			// An explicit id is kept, but a dot is refused (a dot is a path) and so is one a sibling already has.
+			const taken = id => root()._tasks?.find(id) || plan.some(p => p.id === id);
+			let id = home ? null : a.id !== undefined ? String(a.id) : Item.short_id();
+			if (id && a.id === undefined) while (taken(id)) id = Item.short_id();
+			if (id && id.includes(".")) return { ok: false, why: `an id never holds a dot ("${id}"): a dot is a path. Nothing was written. Leave the id out and one is made for you.` };
+			if (id && a.id !== undefined && taken(id))
+				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Leave the id out (one is made for you), or change the existing one.` };
 			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
 		}
@@ -1274,7 +1282,7 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, target, delta: { [method]: is_plain(args) ? args : {} } }, { resolve_log, ...ctx }, true));   // a task / session: the item path
 
-				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
+				const stamped = is_plain(args) ? { ...(method === "add" ? { id: Item.short_id() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
 				const line = nest(at.target, { [method]: stamped });
 				const no = await page_refusal(at, { [method]: stamped });
 				if (no) return JSON.stringify(no);
@@ -1295,7 +1303,7 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { content: { add: { ...item, ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true));
 
-				const id = item?.id ?? crypto.randomUUID();
+				const id = item?.id ?? Item.short_id();
 				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
 				const line = nest(at.target, { add });
 				const no = await page_refusal(at, { add });
