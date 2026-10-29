@@ -5,7 +5,7 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { run_item, page_tools } from "./page_tools.js";
+import { run_item, page_tools, record_lines } from "./page_tools.js";
 import Item from "../../public/framework/core/Item/Item.js";
 import Task from "../../public/framework/core/Task/Task.js";
 
@@ -44,9 +44,16 @@ try {
 			ok(read(PFILE).length === 5, "one line per write, nothing else");
 			r = await run_item({ path: PURL, delta: { content: { add: { type: "part-nope" } } } }, { caller: "t" });
 			ok(r.ok === false && read(PFILE).length === 5, "a page line its schema refuses writes nothing");
+			// A browser's raw line (record_lines, the one writer) advances the same warm root; one node cannot apply is still kept.
+			let w = record_lines(PFILE, [{ description: "from a tab", by: "owner", ts: new Date().toISOString() }]);
+			ok(w.written === 1 && replays === 0 && host.get_one("description") === "from a tab", "a browser's page line advances the warm Page, no replay");
+			host.replay_line = () => { throw new Error("a part only the browser registers"); };
+			w = record_lines(PFILE, [{ icon: "x", by: "owner", ts: new Date().toISOString() }]);
+			delete host.replay_line;
+			ok(w.written === 1 && !w.refused.length && read(PFILE).length === 7 && !Item.Store.instances.get(PURL + "page.jsonl").host, "a browser page line node cannot apply is still written; the warm root is dropped, the next read replays");
 		} finally { Page.replay = replay; }
 		const fresh = await import(pathToFileURL(path.join(ROOT, "public/framework/core/Page/Page.class.js")).href).then(m => m.default.replay(read(PFILE)));
-		ok(fresh.title === "Renamed" && [...fresh.content].length === 1, "a fresh replay of the file gives the same page");
+		ok(fresh.title === "Renamed" && fresh.get_one("description") === "from a tab" && [...fresh.content].length === 1, "a fresh replay of the file gives the same page");
 	}
 
 	// 2. A TASK ADDED BY VERB. The list's own `add` at a dotted target, and the Improvements class's `add`, which merges a repeated title:

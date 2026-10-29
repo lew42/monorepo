@@ -1094,8 +1094,10 @@ export function record_lines(file, lines){
 		if (!fresh.has(line)){ out.skipped++; continue; }
 		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
 		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
-		const warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
-		if (warm) try { try_line(warm, line); } catch (e) { out.refused.push({ i, why: e.message }); continue; }
+		let warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
+		// A page line the browser wrote and its schema passed is kept even when node's live Page cannot apply it (a part only the browser
+		// registers): the warm root is dropped (try_line does that) and the next read replays the file. A task line is still refused.
+		if (warm) try { try_line(warm, line); } catch (e) { if (path.basename(file) !== "page.jsonl"){ out.refused.push({ i, why: e.message }); continue; } warm = null; }
 		write_line(file, line, true);
 		if (warm) warm.store.sig = sig(file);
 		out.written++;
