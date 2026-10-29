@@ -148,8 +148,6 @@ export class Ref extends Item {
 		return moved;
 	}
 
-	/** A move to another file: the old place keeps `{moved_to: {url, path}}`, a forward old Refs follow. */
-	static forward(old_item, to){ old_item.set({ moved_to: { url: to.url, path: to.path ?? "" } }); return old_item; }
 }
 
 Item.register(Ref, "Ref");

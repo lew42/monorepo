@@ -113,7 +113,7 @@ try {
 		{ session: { id: "new", kind: "agent", at: "2026-10-28T19:30:00-05:00" } },
 		{ tasks: { add: { type: "Task", id: "w1", title: "Work, in its new session" } } },
 	]);
-	// The mover leaves a forward at the old place (here as the line it writes; Ref.forward(item, to) is the call that makes it).
+	// The mover leaves a forward at the old place (here as the line it writes; item.move_to({url, path}) is the call that makes it).
 	fs.appendFileSync(path.join(DIR, "s/old/session.jsonl"), JSON.stringify({ tasks: { w1: { moved_to: { url: BASE + "/s/new/", path: "tasks.w1" } } } }) + "\n");
 	const holder = Item.hydrate({ id: "holder", title: "Holder", chat: [] });
 	write("holder.jsonl", []);
@@ -130,10 +130,12 @@ try {
 	const looped = loop.chat.add({ type: "Ref", id: "l1", url: BASE + "/s/a/", path: "tasks.x" });
 	t.eq(await looped.resolve(), null, "two forwards pointing at each other end as gone, not a hang");
 
-	// The writer half: Ref.forward leaves the forward on a live item.
+	// The writer half: item.move_to({url, path}) leaves the forward on a live item; a List moves it inside its file.
 	const left = Item.hydrate({ id: "left", title: "Left" });
-	Ref.forward(left, { url: "/s/new/", path: "tasks.w1" });
-	t.eq(left.get_one("moved_to"), { url: "/s/new/", path: "tasks.w1" }, "Ref.forward sets {moved_to:{url, path}} at the old place");
+	t.eq(left.move_to({ url: "/s/new/", path: "tasks.w1" }), { moved_to: { url: "/s/new/", path: "tasks.w1" } }, "move_to another file answers the forward it set");
+	t.eq(left.get_one("moved_to"), { url: "/s/new/", path: "tasks.w1" }, "move_to sets {moved_to:{url, path}} at the old place");
+	const box = Item.hydrate({ id: "box", a: [{ id: "m1", title: "Moves" }], b: [] });
+	t.eq([box.a.find("m1").move_to(box.b), box.a.length, box.b.find("m1")?.get_one("title")], [null, 0, "Moves"], "move_to a List moves it there, inside its file");
 } finally {
 	server.close();
 	fs.rmSync(DIR, { recursive: true, force: true });

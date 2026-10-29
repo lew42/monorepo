@@ -668,7 +668,8 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
 
 /* MOVE AN ITEM TO A NEW HOME (core/Item/tasks/item-move/design.md): a subtask written as lines in a parent's log moves to the folder
  * `to` (a url) with its id, its whole history (each line keeps its by/ts) and ONE reference left behind:
- * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id).
+ * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id), then the
+ * forward item.move_to leaves on it ({"tasks": {"<id>": {"moved_to": {url: to, path: ""}}}}) for any Ref to the old place.
  * Order: check everything, then write the new file, the old-home reference and the ledger line. A refusal writes nothing.
  * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
 // `entry` ({type, spawn}, a spawn's handoff): the reference left behind is the Session entry, so the subtask is upgraded in place.
@@ -713,6 +714,9 @@ export async function move_item({ from, id, to, by = "agent", module, entry = nu
 	// 5. The old home: one reference, with the id it had here. 6. The ledger.
 	const at = now();
 	write_line(pf, { task: url, as: id, ...(entry?.type ? { type: entry.type } : {}), ...(entry?.spawn ? { spawn: entry.spawn } : {}), moved_from, by, ts: at }, true);
+	// 5b. The forward (item.move_to, the one verb): what stays at the old place says where the task went, so a Ref to its old
+	// path (a parent's session page, SessionTasks.child_refs) follows it to the new file's root instead of showing "gone".
+	write_line(pf, { tasks: { [id]: kid.move_to({ url, path: "" }) }, by, ts: at }, true);   // under tasks: a list hop is Item.set, which keeps any field (a bare {"<id>":…} line goes to Task.replay_line, which keeps only FIELDS)
 	fs.mkdirSync(path.dirname(ledgers.task_moves), { recursive: true });
 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(pf)}#${id}`, to: rel(dir), session: parent_url, ...(module ? { module } : {}), by, git: false }) + "\n");
 	return { from: moved_from, to: url, file: nf };

@@ -25,9 +25,9 @@
 
 ## Forwards, across files
 
-A move to another file leaves `{moved_to: {url, path}}` at the old place: `Ref.forward(old_item, {url, path})`. No list of referrers is stored in the target's file (that would be a two-file write that can drift). Alternative: stored backlinks per target; wins only if a site-wide "what links here" must be instant, and then node should build it as an index file, as search does.
+A move to another file leaves `{moved_to: {url, path}}` at the old place: `item.move_to({url, path})`, the one move verb (`item.move_to(list)` is a move inside the file, which re-paths the Refs that named the old path). No list of referrers is stored in the target's file (that would be a two-file write that can drift). Alternative: stored backlinks per target; wins only if a site-wide "what links here" must be instant, and then node should build it as an index file, as search does.
 
-**No mover writes a forward yet.** `Ref.forward` is the call a cross-file move makes; the one cross-file mover today, `Server/TaskDirs.mjs`, moves whole folders in node and leaves its own stub instead (next paragraph). The first browser move between files should call `Ref.forward` on the old item.
+**The handoff writes one.** `move_item` (`Servex/agents/page_tools.js`: the item tool's `move` key and `spawn_agent`'s `task: {from, id}`) writes the reference `{task, as}`, then the forward `move_to` answers, as `{"tasks": {"<id>": {"moved_to": {url, path: ""}}}}` (under `tasks`, because a bare `{"<id>": …}` line keeps only Task's FIELDS). So a parent's Ref to a handed-off task (SessionTasks' child rows) follows it to the new folder's root. `Server/TaskDirs.mjs` moves whole folders and leaves its own stub instead (next paragraph).
 
 `Server/TaskDirs.mjs` already leaves a `moved.json` stub `{moved_to}` in a folder whose record moved; a Ref to such a folder does not read that stub yet (a folder ref opens the folder's record, and a moved folder has none). Small to add when a moved folder is first referenced.
 

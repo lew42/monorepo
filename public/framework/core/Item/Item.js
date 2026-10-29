@@ -278,6 +278,23 @@ export class Item extends Events(Object) {
 		return this;
 	}
 
+	/* THE one move (cross-review finding 5). `dest` a List: I move there, inside my file, and every Ref that named my old path
+	   takes the new one (List.move, through Item.moving in Ref.js). `dest` {url, path}: another file. The file mover carries my
+	   lines there (node: move_item in Servex/agents/page_tools.js, the handoff), and I stay here as a forward,
+	   {moved_to: {url, path}}, which a Ref to my old place follows (Ref.settle) instead of showing "gone".
+	   Answers the forward line it set ({moved_to}), or null for a move inside the file. */
+	move_to(dest, opts = {}){
+		if (is_list(dest)){
+			const from = Object.values(this.parent?.lists?.() ?? {}).find(l => l.index_of(this) !== -1);
+			dest.move(this, { ...opts, ...(from && from !== dest ? { from } : {}) });
+			return null;
+		}
+		if (typeof dest?.url !== "string") throw new Error("move_to: give a List, or {url, path} for another file");
+		const forward = { moved_to: { url: dest.url, path: dest.path ?? "" } };
+		this.set(forward);
+		return forward;
+	}
+
 	root(){ let item = this; while (item.parent) item = item.parent; return item; }
 
 	// Every List property I own, by name — the one seam `find`, `walk` and

@@ -356,8 +356,10 @@ try {
 			ok(nl[0].id === "x" && nl[0].set.title === "X task" && nl[1].start && nl[2].expected === "a field", "new file: x's lines in order");
 			ok(JSON.stringify(nl.map(l => l.ts)) === JSON.stringify(before), "original ts kept");
 			ok(fs.existsSync(path.join(MDIR, "agent-a", "page.js")), "page.js made");
-			const last = plines().at(-1);
-			ok(last.task === MURL + "agent-a/" && last.as === "x" && last.moved_from === MURL + "#x", "the parent's last line is the one reference with as:x");
+			const [last, fwd] = plines().slice(-2);
+			ok(last.task === MURL + "agent-a/" && last.as === "x" && last.moved_from === MURL + "#x", "the parent keeps the one reference with as:x");
+			ok(JSON.stringify(fwd.tasks?.x) === JSON.stringify({ moved_to: { url: MURL + "agent-a/", path: "" } }), "then the forward item.move_to leaves on it, for a Ref to the old place");
+			ok(Session.replay(plines()).tasks.find("x").get_one("moved_to")?.url === MURL + "agent-a/", "the forward replays onto the reference");
 			const p = Session.replay(plines());
 			ok([...p.tasks].length === 1 && p.tasks.find("x") && p.tasks.find("x").state === "running", "Session replay: ONE child x, running");
 			ok(Task.replay(plines()).tasks.find("x")?.id === "x", "Task replay: the reference keeps id x");
@@ -385,9 +387,9 @@ try {
 				await call("item", { path: MURL, delta: { tasks: { add: { id: "z", title: "Z task" } } } });
 				const settle = async f => { for (let i = 0; i < 50 && !f(); i++) await new Promise(res => setTimeout(res, 20)); };
 				open_task({ dir: path.join(MDIR, "agent-d"), from: MURL, id: "z" }, { session_id: "s-d", agent: "agent-d", by: "spawner" });
-				await settle(() => plines().at(-1).as === "z");
+				await settle(() => plines().at(-2)?.as === "z");   // the reference, then its forward (item.move_to)
 				const dl = fs.readFileSync(SessionRecord_file(path.join(MDIR, "agent-d")), "utf8").trim().split("\n").map(l => JSON.parse(l));
-				ok(dl[0].assign && dl[1].id === "z" && plines().at(-1).as === "z" && plines().at(-1).by === "spawner" && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
+				ok(dl[0].assign && dl[1].id === "z" && plines().at(-2).as === "z" && plines().at(-2).by === "spawner" && plines().at(-1).tasks?.z?.moved_to && JSON.parse(ledger().at(-1)).by === "spawner", "open_task hands the subtask to the new folder, by the spawner");
 				open_task({ dir: path.join(MDIR, "agent-e"), from: MURL, id: "nobody" }, { session_id: "s-e", agent: "agent-e", by: "spawner" });
 				const ef = SessionRecord_file(path.join(MDIR, "agent-e"));
 				await settle(() => fs.readFileSync(ef, "utf8").includes("refused"));
