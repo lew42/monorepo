@@ -767,8 +767,11 @@ export function link_refs(Task){
 /* ONE LIVE INSTANCE PER FILE (plan, Amendments 4): the root is replayed once into `Item.Store.for(url)` and every later call on the
  * path reaches that same object. It is advanced with the line the tool just wrote (the same replay_line a browser's Store.read runs),
  * never re-read, unless the file (or a child file it replayed) changed on disk from outside: size/mtime differ -> replay again. */
+const LIVE_CAP = 1000;   // live roots kept at once: now that every page gets one, a long-lived Servex would otherwise keep every page it ever wrote
 function live_root(Class, file){
-	const store = Class.Store.for("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));
+	const url = "/" + path.relative(PUBLIC, file).split(path.sep).join("/"), all = Class.Store.instances, store = Class.Store.for(url);
+	if (all){ all.delete(url); all.set(url, store); }   // most recently used last
+	if (all?.size > LIVE_CAP) for (const [k] of all){ if (all.size <= LIVE_CAP * 0.9) break; all.delete(k); }   // the least recently used go cold: a later call replays
 	if (store.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s)) return store.host;
 	const deps = [];
 	collect = deps;
