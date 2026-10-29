@@ -78,8 +78,8 @@ new RefView({ ref });         // a row: "child › task", redrawn when either ch
 ```
 
 - A missed path falls back to its last part, the id, through the root's own index (`find`), built on that miss and never saved.
-- Within one file, `Ref.shown(item)` says where an item is shown, and `Ref.repath(item, old_path)` re-paths those Refs after a move (one line each).
-- Across files, a move leaves `{moved_to: {url, path}}` at the old place (`Ref.forward`); an old Ref follows it and takes the new address.
+- Within one file, `Ref.shown(item)` says where an item is shown, and `Ref.repath(item, old_path)` re-paths those Refs after a move (one line each); `List.move` calls it on every move to another list, so a drag re-paths by itself.
+- Across files, a move leaves `{moved_to: {url, path}}` at the old place (`Ref.forward`); an old Ref follows it and takes the new address. No mover writes one yet (doc/ref.md, Forwards).
 - Where it is used: the session page lists each child session's open tasks through Refs (`core/Session/SessionTasks.js`). How it works and why: [doc/ref.md](./doc/ref.md). Test: `node Ref.test.mjs`.
 
 ## Where an item saves (the rule, 2026-10-20)
