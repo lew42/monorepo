@@ -30,6 +30,10 @@ const cases = {
 };
 for (const [k, dir] of Object.entries(cases)) assert.equal(task_landed(dir), true, `${k} is landed`);
 const open = plant("open", launch("open"), { log: { at: now, msg: "working" } });
+const unmerged = plant("unmerged", launch("unmerged"), { complete: { at: now } });   // log says complete, branch not on michael/dev
+const verdict = Landed.verdict.bind(Landed);
+Landed.verdict = dir => dir === unmerged ? { landed: false, via: "test" } : verdict(dir);
+assert.equal(task_landed(unmerged), false, "complete with an unmerged branch is not landed (todo 207)");
 assert.equal(task_landed(open), false, "an open task is not landed");
 assert.equal(Landed.legacy([{ assign: { landed_at: now } }]), "running", "the fallback still wants an outcome");
 assert.equal(Landed.legacy([{ assign: { landed_at: now, outcome: "done" } }]), "complete");
@@ -40,7 +44,7 @@ const sent = [], logged = [], live = new Map();
 const servex = {
 	say: m => logged.push(m), queue: [],
 	task_loop: {
-		find_task_files: () => [...Object.values(cases), plant("open2", launch("open2"), { log: { at: now } }), plant("broke", launch("broke"), { log: { at: now } })].map(d => path.join(d, "task.jsonl")),
+		find_task_files: () => [...Object.values(cases), plant("open2", launch("open2"), { log: { at: now } }), unmerged, plant("broke", launch("broke"), { log: { at: now } })].map(d => path.join(d, "task.jsonl")),
 		slug: f => path.basename(path.dirname(f)),
 		write_line: async (f, line) => fs.appendFileSync(f, JSON.stringify(line) + "\n"),
 	},
@@ -50,7 +54,7 @@ const servex = {
 		watch(){}, stop(){},
 	},
 };
-for (const name of ["finish", "complete", "landed-only", "closed", "stopped", "open2"]) live.set("helper-" + name, { id: "helper-" + name, state: "idle" });
+for (const name of ["finish", "complete", "landed-only", "closed", "stopped", "open2", "unmerged"]) live.set("helper-" + name, { id: "helper-" + name, state: "idle" });
 live.set("helper-broke", { id: "helper-broke", state: "idle", watchdog_refusal: () => ({ why: "spend", text: "over budget" }) });
 const hb = new Heartbeat({ servex, silent_ms: 1 });
 hb.booted = 0;
@@ -65,6 +69,7 @@ for (const dir of Object.values(cases)){
 await hb.tick(); await hb.tick();
 for (const dir of Object.values(cases)) assert.equal((fs.readFileSync(path.join(dir, "task.jsonl"), "utf8").match(/"heartbeat":"skipped"/g) ?? []).length, 1, "still one after more ticks");
 assert.equal(sent.filter(s => s.text === CHECK && s.id !== "helper-open2").length, 0);
+assert.match(fs.readFileSync(path.join(unmerged, "task.jsonl"), "utf8"), /status check not sent to helper-unmerged/, "complete-but-unmerged gets no check, one refused line");
 console.log("ok  Heartbeat.tick: status check to the open task only; landed tasks get one `heartbeat: skipped, landed` line");
 
 /* 3. the watchdog guard on the agent itself, and the spend gate on resumes */

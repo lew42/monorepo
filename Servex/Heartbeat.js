@@ -134,6 +134,10 @@ export default class Heartbeat {
                 if (now - last < this.silent_ms * 2 ** Math.min(w.answered ?? 0, 4)) continue;
                 if (this.children(t.owner).length) continue;   // waiting on its own children; their results wake it
                 if (!alive){ await this.triage(file, t, w, live?.last_error ? `its session failed: ${live.last_error}` : "its agent is not running"); continue; }
+                /* The log SAYS complete but the branch is not on michael/dev (Landed.of_file counts that as not landed): the agent has
+                 * nothing in flight and Agent.landing_check already nags the merge, so a status check is a paid turn that cannot help
+                 * (mastermind-build-integration, 2026-10-28: pinged every ~1 h while its branch waited for review). */
+                if (t.logged){ if (w.told !== "logged"){ w.told = "logged"; await this.log(file, "refused", `status check not sent to ${t.owner}: its log says complete; only the merge is open`); } continue; }
                 if (s?.tool_at){   // never interrupt a tool: note it, and escalate only a tool stuck 3x the silence
                     const min = Math.round((now - s.tool_at) / 60000);
                     if (now - s.tool_at >= 3 * this.silent_ms) await this.escalate(file, t, `${t.owner} has been inside one tool call for ${min} min`);
@@ -196,11 +200,12 @@ export default class Heartbeat {
         if (!owner) return null;
         // the OWNER's session: its registry row first, so a revive never resumes line 1's old session under a new id
         const session_id = this.agents.reg?.().read()?.[owner]?.session_id ?? state.session_id ?? first.session_id;
+        const logged = Landed.done(Landed.state(file));
         const done = Landed.of_file(file);   // the one rule: Task.replay says complete or stopped
         /* WAITING OR PAUSED IS NOT SILENT (2026-10-23): a task waiting on the owner's look (a {"wait":{"on":"owner"}} line) or paused
          * gets no status checks; minion-queue was pinged every ~7 min after its show: line, each one a paid turn. */
         const replayed = Landed.state(file), held = replayed === "waiting" || replayed === "paused";
-        return { owner, session_id, card: state.card, paused: !!state.paused, held, done, skipped, escalated, revives,
+        return { owner, session_id, card: state.card, paused: !!state.paused, held, done, logged, skipped, escalated, revives,
             mtime: fs.statSync(file).mtimeMs, slug: this.servex.task_loop?.slug(file) ?? path.basename(path.dirname(file)) };
     }
 
