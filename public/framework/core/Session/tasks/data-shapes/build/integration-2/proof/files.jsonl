@@ -17,3 +17,5 @@
 {"file":"smoke.txt"}
 {"file":"tests.txt"}
 {"file":"tests-final.txt"}
+{"file":"merge-dry-run.txt"}
+{"file":"smoke-changed-pages.txt"}

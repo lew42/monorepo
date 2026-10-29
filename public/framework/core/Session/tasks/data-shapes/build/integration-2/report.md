@@ -42,7 +42,7 @@ No new failures. After each merge: [proof/tests.txt](proof/tests.txt). One break
 
 ## To merge (the owner's one decision)
 
-1. From the main tree: `MSYS_NO_PATHCONV=1 node Server/merge.mjs C:/Code/lew42/worktrees/data-shapes-2`
+1. From the main tree: `MSYS_NO_PATHCONV=1 node Server/merge.mjs C:/Code/lew42/worktrees/data-shapes-2 --review-dir public/framework/core/Session/tasks/data-shapes/build/integration-2` (`--review-dir`: this task sits under core/Session, outside the dated session folders the review gate scans). The dry run passes the review gate and every file merges cleanly ([merge-dry-run.txt](proof/merge-dry-run.txt)); smoke on all 11 changed pages and their links: 60 ok, 0 fail ([smoke-changed-pages.txt](proof/smoke-changed-pages.txt)). The shots the gate reads sit in `shots/` in the worktree (gitignored), so merge from this worktree.
 2. Then, never during a voice call: `node Servex/sustain.mjs --restart` (it waits while agents work), and restart the dev server (Servex `restart_server`, project monorepo), because build D changed `Append.js`.
 3. Straight after, the two-tab check: open /framework/core/Page/tool/ in two tabs; in one, add a part, edit it, move it. The page's `page.jsonl` should gain exactly one line per change, and the other tab show the add and the move once each. The edited text shows only after the move: that is michael/dev's behaviour today, not a regression.
 

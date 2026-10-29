@@ -1,0 +1,599 @@
+DRY RUN: computing only; no lock, no hold, nothing written.
+warning: ai/AITask has a page.js but its parent does not name it in children: — it is unreachable from the nav
+warning: ai/classes/Session has a page.js but its parent does not name it in children: — it is unreachable from the nav
+warning: ai/merge has a page.js but its parent does not name it in children: — it is unreachable from the nav
+warning: core/Item/watch has a page.js but its parent does not name it in children: — it is unreachable from the nav
+warning: core/Session has a page.js but its parent does not name it in children: — it is unreachable from the nav
+warning: ux/Dictate/playground has a page.js but its parent does not name it in children: — it is unreachable from the nav
+merge.mjs found 11 changed page(s) from the diff: /framework/core/Item/, /framework/core/Item/watch/, /framework/core/List/, /framework/core/Page/ai/agents/, /framework/core/Page/ai/, /framework/core/Test/, /framework/core/Test/view/, /framework/ext/Doc/, /framework/ext/Mention/, /framework/ext/Panel/, /framework/ux/Content/Object/
+!!! Shots: no screenshot round since this branch began for /framework/core/Item/, /framework/core/Item/watch/, /framework/core/List/, /framework/core/Page/ai/agents/, /framework/core/Page/ai/, /framework/core/Test/, /framework/core/Test/view/, /framework/ext/Doc/, /framework/ext/Mention/, /framework/ext/Panel/, /framework/ux/Content/Object/ — shoot, read, judge: node Server/shots.mjs <url> !!!
+  (console-allow.jsonl: "List — insert\(\): ".*" is already a property name on the list or its owner — refused" expired 2026-10-17 — no longer covered)
+  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-10 — no longer covered)
+  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-10 — no longer covered)
+  (console-allow.jsonl: "Failed to load resource: the server responded with a status of 404.*(spend\.json|usage\.json|tasks\.json|/shots/.*\.png)" expired 2026-10-20 — no longer covered)
+  (console-allow.jsonl: "Doc: .* has no member ".*" — nothing added" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "Item\.Store: unparsed line in .*files\.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[0-9a-f-]{36}/session.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[a-z][a-z0-9-]*/session.jsonl" expired 2026-10-26 — no longer covered)
+  (console-allow.jsonl: "HTTP 404: .*/framework/ai/sessions/[0-9a-f-]{36}/prompts.jsonl" expired 2026-10-26 — no longer covered)
+ok   /framework/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ai2/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise [dictate] socket: connected
+  noise [dictate] whisper: checking…
+  noise [dictate] whisper: connected
+ok   /framework/core/Item/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/watch/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+  noise PASS DefaultView (16 checks)
+ok   /framework/core/List/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/agents/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Test/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Test/view/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ext/Doc/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ext/Mention/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ext/Panel/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/data/panels.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/data/panels.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/ux/Content/Object/
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise [dictate] socket: connected
+  noise [dictate] whisper: checking…
+  noise [dictate] whisper: connected
+ok   /framework/core/Item/methods/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/live/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/Dated/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/doc/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/md/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/files/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/tasks/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/inbox/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/overview/intro/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/get/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/set/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/find/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/remove/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/root/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/walk/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/contains/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/lists/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/toJSON/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/hydrate/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/register/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/Item/methods/replay/  (link found on /framework/core/Item/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+  noise Item — unknown type "Widget" — preserved as Item
+  noise Item — duplicate id "x" — assigned a fresh one
+  noise Item — data must be an object
+ok   /framework/core/List/methods/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/doc/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/md/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/files/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/tasks/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/inbox/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/overview/intro/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/add/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/remove/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/move/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/order/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/find/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/at/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/forEach/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/map/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/insert/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/List/methods/toJSON/  (link found on /framework/core/List/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/doc/sessions/  (link found on /framework/core/Page/ai/agents/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/index.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/index.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/doc/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/md/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/tasks/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/inbox/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/overview/intro/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/servex/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/doc/dictation/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+ok   /framework/core/Page/ai/doc/assistant/  (link found on /framework/core/Page/ai/)
+  warn HTTP 404: http://127.0.0.1:53219/framework/ai/page-work.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/framework/ai/page-work.json)
+  warn HTTP 404: http://127.0.0.1:53219/directory.json
+  warn console: Failed to load resource: the server responded with a status of 404 (Not Found)  (http://127.0.0.1:53219/directory.json)
+  noise %cSocket connected. color: green; font-weight: bold;
+
+new page(s) — 1920 screenshot(s) into C:\Code\lew42\monorepo\.merge-shots\integration_data-shapes-2-1793247209946:
+http://127.0.0.1:53219/framework/core/Item/watch/ PROBLEMS → C:\Code\lew42\monorepo\.merge-shots\integration_data-shapes-2-1793247209946\127-0-0-1-53219-framework-core-Item-watch\sheet.png
+  1920: empty 0.642 · widest 612px · overflow false · narrow 0.893 of 75
+  errors: [
+  '1920: Failed to load resource: the server responded with a status of 404 (Not Found)'
+]
+http://127.0.0.1:53219/framework/core/Test/view/ PROBLEMS → C:\Code\lew42\monorepo\.merge-shots\integration_data-shapes-2-1793247209946\127-0-0-1-53219-framework-core-Test-view\sheet.png
+  1920: empty 0.548 · widest 420px · overflow false · narrow 0.904 of 52
+  errors: [
+  '1920: Failed to load resource: the server responded with a status of 404 (Not Found)'
+]
+5.7s
+
+NavCheck: 2 new page(s), all reachable by a click from their parent.
+the main tree has uncommitted edits to public/framework/core/Session/tasks/data-shapes/build/integration-2/session.jsonl; three-way merging each file into the working tree instead
+  WRITE    .claude/hooks/append.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    .claude/hooks/ledger.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    .claude/hooks/naming-guard.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    .claude/hooks/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    Server/AskIndex-tasks.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Server/Deprecated.mjs — new file from the branch
+  WRITE    Server/Deprecated.test.mjs — new file from the branch
+  WRITE    Server/LogLine.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Server/README.md — main tree unchanged from base: takes the branch's version
+  WRITE    Server/ReadyToMerge.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Server/WorktreePreview.mjs — new file from the branch
+  WRITE    Server/WorktreePreview.test.mjs — new file from the branch
+  WRITE    Server/Worktrees.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Server/doc/log-line.md — main tree unchanged from base: takes the branch's version
+  WRITE    Server/doc/worktrees.md — main tree unchanged from base: takes the branch's version
+  WRITE    Server/on-landing.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Server/plugins/SocketServer/Append.js — main tree unchanged from base: takes the branch's version
+  WRITE    Server/plugins/SocketServer/Tail.js — main tree unchanged from base: takes the branch's version
+  WRITE    Server/plugins/SocketServer/Tail.test.mjs — new file from the branch
+  WRITE    Servex/Lifecycle.js — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/ProcessRunner.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/Servex.js — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/WorktreeWatch.js — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/Worktrees.js — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/agents/Agents.js — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/agents/item-backbone.test.mjs — new file from the branch
+  WRITE    Servex/agents/item-generic.test.mjs — new file from the branch
+  WRITE    Servex/agents/item_tool.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/agents/one-writer.test.mjs — new file from the branch
+  WRITE    Servex/agents/page_tools.js — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/agents/requests.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/agents/session_tasks.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/agents/verb-note.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/doc/item-tool.md — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/doc/lifecycle.md — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/doc/processes.md — main tree unchanged from base: takes the branch's version
+  WRITE    Servex/doc/worktree-preview.md — new file from the branch
+  WRITE    Servex/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ai/AITask/doc/file/dashboard.js.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ai/classes/Session/SessionClassPage.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ai/merge/ReadyToMerge.css — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ai/merge/ReadyToMerge.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ai/merge/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/audio/Part.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/catalog/doc/instance-tree.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/code/objects/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/App/doc/adoption.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/Item.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/Item.life.js — new file from the branch
+  WRITE    public/framework/core/Item/Item.methods.js — new file from the branch
+  WRITE    public/framework/core/Item/Item.steps.js — new file from the branch
+  WRITE    public/framework/core/Item/Item.steps.test.mjs — new file from the branch
+  WRITE    public/framework/core/Item/Item.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/RecordWriter.js — new file from the branch
+  WRITE    public/framework/core/Item/RecordWriter.test.mjs — new file from the branch
+  WRITE    public/framework/core/Item/Ref.js — new file from the branch
+  WRITE    public/framework/core/Item/Ref.test.mjs — new file from the branch
+  WRITE    public/framework/core/Item/RefView.css — new file from the branch
+  WRITE    public/framework/core/Item/RefView.js — new file from the branch
+  WRITE    public/framework/core/Item/Store.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/delta-flow.test.mjs — new file from the branch
+  WRITE    public/framework/core/Item/doc/architecture.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/doc/map.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/doc/method/get.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/doc/method/set.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/doc/method/toJSON.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/doc/next.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/doc/one-writer.md — new file from the branch
+  WRITE    public/framework/core/Item/doc/ref.md — new file from the branch
+  WRITE    public/framework/core/Item/files.jsonl — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/persistence.test.mjs — new file from the branch
+  WRITE    public/framework/core/Item/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Item/watch/Box.js — new file from the branch
+  WRITE    public/framework/core/Item/watch/ScratchStore.js — new file from the branch
+  WRITE    public/framework/core/Item/watch/Watch.js — new file from the branch
+  WRITE    public/framework/core/Item/watch/page.js — new file from the branch
+  WRITE    public/framework/core/Item/watch/watch.css — new file from the branch
+  WRITE    public/framework/core/List/List.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/List/List.methods.js — new file from the branch
+  WRITE    public/framework/core/List/List.steps.js — new file from the branch
+  WRITE    public/framework/core/List/List.steps.test.mjs — new file from the branch
+  WRITE    public/framework/core/List/List.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/List/files.jsonl — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/List/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/List/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/Children.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/Page.class.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/Reader.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/ai/agents/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/ai/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/class-block.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/classes.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/content.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/data-children.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/data.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/file/Page.class.js.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/files.jsonl — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/how-a-page-renders.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/jsonl-pages.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/labels.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/loading.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/method/declare.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/method/nav_for.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/method/source_children.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/migration-children-to-pages.md — new file from the branch
+  WRITE    public/framework/core/Page/doc/page-js-notes.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/panels.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/property/children.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/vision.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/watch-out.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/doc/words.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/generator/doc/generator-tree-notes.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/generator/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/navigation/doc/prior-work.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/object.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Page/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/Session.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/SessionTasks.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/session-task.test.mjs — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/backbone/f1-live-instance.md — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/backbone/replay-compare.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/backbone/replay-compare.out.json — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/backbone/time-voice.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/class-docs/plan.md — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/default-view-read.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/files.jsonl — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/handoff.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/handoff.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/hook.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/hook.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/oneref.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/oneref.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/replaycost.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/replaycost.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/smoke-first.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/smoke.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/tests-final.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/tests.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/twotab-new.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/twotab-old.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/twotab.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/viewcheck.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/voice.mjs — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/proof/voice.txt — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/report.md — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/review.jsonl — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/review/diff.patch — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/review/files.jsonl — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/review/report.md — new file from the branch
+  WRITE    public/framework/core/Session/tasks/data-shapes/build/integration-2/session.jsonl — jsonl: union merge keeps both sides' appended lines
+  WRITE    public/framework/core/Session/tasks/data-shapes/ids-and-paths.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/tasks/data-shapes/plan.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Session/tasks/data-shapes/seats/legacy/migration-children-to-pages.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Sidebar/doc/architecture.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Sidebar/doc/entries.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Sidebar/doc/property/pages.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Sidebar/doc/sidebar-notes.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Sidebar/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Task/Improvements.js — new file from the branch
+  WRITE    public/framework/core/Task/Task.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Task/Task.steps.js — new file from the branch
+  WRITE    public/framework/core/Task/Task.steps.test.mjs — new file from the branch
+  WRITE    public/framework/core/Task/TaskView.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Task/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Test/Steps.js — new file from the branch
+  WRITE    public/framework/core/Test/TestView.css — new file from the branch
+  WRITE    public/framework/core/Test/TestView.js — new file from the branch
+  WRITE    public/framework/core/Test/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Test/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/core/Test/view/page.js — new file from the branch
+  WRITE    public/framework/dev/Socket/doc/wire.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/dev/Socket/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/dev/mobile/mobile.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/doc/rules.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/ClassDoc.css — new file from the branch
+  WRITE    public/framework/ext/Doc/ClassDoc.js — new file from the branch
+  WRITE    public/framework/ext/Doc/doc/architecture.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/class-doc.md — new file from the branch
+  WRITE    public/framework/ext/Doc/doc/class-doc/files.jsonl — new file from the branch
+  WRITE    public/framework/ext/Doc/doc/class-doc/item-1920.png — binary; main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/class-doc/item-400.png — binary; main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/class-doc/list-1920.png — binary; main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/class-doc/method-set-1920.png — binary; main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/files.jsonl — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/method/bar.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/method/declaration.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/doc/method/wall.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/files.jsonl — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Doc/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/JSONL/live.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Mention/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Panel/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Refine/RefineExplorer.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Saver/Saver.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Saver/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/Session/doc/sessions.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/catalog/doc/file/catalog.js.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/demo/doc/file/exhibit.js.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/demo/doc/method/exhibit.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ext/demo/doc/record.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/styles/css-scopes.txt — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/DefaultView.css — new file from the branch
+  WRITE    public/framework/ux/Content/Object/DefaultView.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/DefaultView.test.js — new file from the branch
+  WRITE    public/framework/ux/Content/Object/Inspect.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/InstanceTree.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/Object.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/doc/census.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/doc/default-view.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/doc/instance-tree.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/doc/shape.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/page.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/Object/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Content/readme.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/framework/ux/Dictate/playground/objects.js — main tree unchanged from base: takes the branch's version
+  WRITE    public/web/nav/doc/architecture.md — main tree unchanged from base: takes the branch's version
+  WRITE    public/web/nav/readme.md — main tree unchanged from base: takes the branch's version
+dry run: every file merges cleanly; nothing was written
