@@ -1,1 +1,16 @@
 {"assign":{"session_id":"fd5441b2-3331-421a-83bf-c1a222d4deea","agent":"mastermind-ai","role":"mastermind","title":"Feedback inbox (obvious): i-mvszhbt00uq. Problem: The Servex heartbeat keeps sending \"status check\" to mastermind-build-","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","requested_at":"2026-10-28T22:28:30-05:00","now":"starting"}}
+{"action":{"at":"2026-10-28T22:29:50-05:00","did":"edit","files":["Servex/Heartbeat.js"]}}
+{"commit":"4bed6f7fa203"}
+{"log":{"msg":"outcome i-mvszhbt00uq: root cause was Landed.of_file counting a complete-but-unmerged branch as not landed, so Heartbeat.tick kept sending status checks. Fixed in Servex/Heartbeat.js (t.logged skips the check, one refused line); test in Servex/Heartbeat-landed.test.mjs, doc in Servex/doc/task-loop.md. Active after the next Servex restart."},"by":"mastermind-ai","ts":"2026-10-29T03:30:15.116Z"}
+{"sessions":[{"id":"mastermind-ai","task":"/framework/ai/sessions/2026/10/28/spawned/mastermind-ai/"}],"by":"mastermind-ai","ts":"2026-10-29T03:30:15.117Z"}
+{"assign":{"landed_at":"2026-10-28T22:40:00-05:00","title":"Heartbeat: no status check for a complete task with an unmerged branch","outcome":"The heartbeat no longer pings an agent whose log says complete while its branch waits unmerged (commit 4bed6f7fa). Takes effect after the next Servex restart.","links":["/Servex/doc/task-loop.md","/Servex/Heartbeat.js","/Servex/Heartbeat-landed.test.mjs"]},"by":"mastermind-ai","ts":"2026-10-29T03:30:22.094Z"}
+{"log":{"at":"2026-10-28T22:30:23-05:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-10-28T22:30:23-05:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-10-29T03:30:23.726Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-10-28T22:30:23-05:00","msg":"owner-check: no owner words found"}}
+{"log":{"at":"2026-10-28T22:30:26-05:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-10-28T22:30:26-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-10-28T22:30:43-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"assign":{"outcome":"- [x] Heartbeat stops sending \"status check\" to an agent whose log says complete but whose branch is unmerged: [Heartbeat.js](/Servex/Heartbeat.js), proof [Heartbeat-landed.test.mjs](/Servex/Heartbeat-landed.test.mjs), commit 4bed6f7fa. Active after the next Servex restart. [Doc](/Servex/doc/task-loop.md)"},"by":"clarity-mastermind-ai"}
+{"assign":{"outcome":"- [x] Heartbeat stops sending \"status check\" to an agent whose log says complete but whose branch is unmerged: [Heartbeat.js](/Servex/Heartbeat.js), proof [Heartbeat-landed.test.mjs](/Servex/Heartbeat-landed.test.mjs), commit 4bed6f7fa. Active after the next Servex restart. [Doc](/Servex/doc/task-loop.md)"},"by":"clarity-mastermind-ai"}
+{"log":{"at":"2026-10-28T22:31:21-05:00","msg":"session resumed"}}
