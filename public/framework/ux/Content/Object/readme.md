@@ -25,7 +25,7 @@ A class may carry `static icon = "material-symbol-name"` (else `"data_object"`),
 
 ## Watch out
 
-- **Live means an emitter.** The view listens to the object's `"delta"` event (an Item, a List, anything with `on()`); a plain object draws once.
+- **Live means an emitter.** The view listens to the object's `"delta"` event (an Item, a List, anything with `on()`), and to `"read"` at the top of its tree, which a Store sends once per batch of lines it replays live (an agent's change, which sends no delta); a plain object draws once.
 - **Every view of an object is in `item.views`** (core/Item/Item.js; a WeakMap for other emitters). A view whose element has left the page drops out on the next change, so a view built and never attached stays listed.
 - **Built outside a render, pass `capture: false`**, or the view lands in whatever is capturing at that moment (the page body).
 - `item.view` (singular, core/Item) is a class's own view (`PageText.View`, `Task.View`), not this one.

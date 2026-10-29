@@ -12,6 +12,7 @@ const plural = (n, word) => `${n} ${n === 1 ? ONE[word] ?? word.replace(/s$/, ""
 // `item.views` (core/Item/Item.js); any other object with on()/emit() gets a list here instead.
 const others = new WeakMap();
 const hooked = new WeakSet();
+const readers = new WeakMap();   // a tree's top item -> the subjects under it that a "read" redraws
 export const views_of = x => x.views ?? (others.has(x) ? others.get(x) : others.set(x, []).get(x));
 
 /**
@@ -249,6 +250,18 @@ export default class DefaultView extends View {
 		if (hooked.has(s)) return;
 		hooked.add(s);
 		s.on("delta", (line, origin) => DefaultView.walk(s, line, origin));
+		DefaultView.listen_read(s);
+	}
+
+	// A line replayed live (an agent's change through the item tool, tailed by a Store) changes fields with put() and sends no
+	// "delta" (Task.replay_line); the Store says "read" once per batch on the item it replays into, and that bubbles up
+	// (core/Item/Store.js). So each view listens at the top of its subject's tree, and every view under it looks again.
+	static listen_read(s){
+		let top = s;
+		while (top.parent && typeof top.parent.on === "function") top = top.parent;
+		let subjects = readers.get(top);
+		if (!subjects){ readers.set(top, subjects = new Set()); top.on("read", () => subjects.forEach(x => DefaultView.walk(x, null, x))); }
+		subjects.add(s);
 	}
 
 	// One listener per object, every view of it told. Deltas bubble up through `parent`, so an object hears
