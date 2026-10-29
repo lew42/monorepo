@@ -15,6 +15,7 @@ export default class TaskView extends View {
 	static card(task){ return new this({ task, size: "card" }); }
 
 	initialize(){
+		this.task ??= this.subject;   // view(task) (ux/Content/Object/DefaultView.js) hands a class's View its object as `subject`
 		this.size ??= "card";
 		this.redraw = () => this.empty(() => this[this.size]());
 		this.ac("task-view", "task-" + this.size);

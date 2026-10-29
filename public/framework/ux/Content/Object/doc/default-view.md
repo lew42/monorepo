@@ -26,6 +26,8 @@ There were three overlapping views here: `object()` (a small card), `view()` (a 
   - **origin is the subject, a `set` line:** each named row is rebuilt alone and swapped in place (`update(k)`), the others are untouched, and the new row flashes.
   - **origin is the subject, a List verb** (add, remove, move, order, clear): `reconcile()` keeps each member's view, makes new ones, drops gone ones, and moves only what is out of place.
   - **origin is one of the subject's own lists:** the count in the row changes; a list that went empty or stopped being empty changes its row's kind.
+  - **a list made after the view was drawn** (a lazy one, such as a Task's `tasks` on first use): it is added to the view's lists and gets its own row then.
+- A new row goes in before the first list row, so the plain properties stay above the lists, as on a fresh draw (a replayed copy and a live original read the same).
 - A view whose element has left the page (after it was once on it) is dropped from `views` on the next change.
 
 ## Tested
