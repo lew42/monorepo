@@ -1,0 +1,20 @@
+{"phase":{"at":"2026-10-28T19:06:12-05:00","n":1,"kind":"findings","status":"start"}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":1,"kind":"fix","text":"The core/Task readme doesn't mention the new `Task.steps.js` or `Task.steps.test.mjs`, and doesn't say that `TaskView` now accepts `subject`. Item's and List's readmes both name their steps files (Item readme line 90, List readme line 48), so Task's should too (docs gap, Law 9). See `worktree/test-view:public/framework/core/Task/readme.md`, \"render() and TaskView\"."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":2,"kind":"fix","text":"`ux/Content/Object/doc/default-view.md` \"how it stays live\" is now out of date. It doesn't describe the two behaviours this diff adds to `DefaultView.update`: a list created after the view was drawn now gets its own row, and a new row lands before the lists. A fresh agent would have to read the diff to learn this (docs gap). See `DefaultView.js` lines 278 and 292 in the diff."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":3,"kind":"note","text":"Step text often wraps to 2–3 lines per step, so the \"one line of text per step, at most\" ask (requirements 5) is only partly met. The `// the X button` comments push the code past one line at 1920. See `shots/view-Task-1920.png`, steps column: \"Add two subtasks\", \"Finish one\" and \"Finish the last\" each take 2 code lines."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":4,"kind":"note","text":"The tally breaks a file path in the middle of the name, \"Item.steps.te / st.mjs\" (wrapping). See `shots/…-Test-view/1920.png`, steps column, the tally line. Put the path in a `code` element on its own line, or shorten it."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":5,"kind":"note","text":"The click path presses buttons that the test view makes itself (\"Start\", \"Done: The CSS\"). It doesn't press TaskView's real row buttons. Requirement 3 is met as written (\"a click calls a verb\"), but the comment in `Task.steps.js` calls them \"the buttons a task row has\", which overstates it."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":6,"kind":"note","text":"In the Lines column, steps that wrote nothing still get a full card (Create, Save, Replay: \"0 lines\"), each about 70px of empty space (spacing). See `shots/…-Test-view/1920.png`, right column."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":7,"kind":"note","text":"`Task.clock` is pinned in step 1 and only cleared in the Replay step. If an earlier step throws, the global clock stays pinned for the rest of the page (and the node process). Clearing it in a `finally` inside `Steps.all`, or giving the test an \"after\" hook, would make it safe."}}
+{"finding":{"at":"2026-10-28T19:06:12-05:00","n":8,"kind":"note","text":"Both pages log one 404 for a missing resource (`layout.json` errors at both widths). It shows on /framework/core/Test/ as well, so it probably comes from before this diff, but nobody has named it."}}
+{"phase":{"at":"2026-10-28T19:06:12-05:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.8409246000000001,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-10-28T19:09:59-05:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":1,"reply":"fixed"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":2,"reply":"fixed"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":3,"reply":"fixed: 5 of 7 Task steps now one code line; Save and Replay stay two, their code is the whole call"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":4,"reply":"fixed"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":5,"reply":"fixed: the comment now says the test view makes the buttons"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":6,"reply":"fixed"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":7,"reply":"fixed: t.cleanup, run by Steps.end on the last step, a failure, or Start over"}}
+{"answer":{"at":"2026-10-28T19:09:59-05:00","n":8,"reply":"noted: page-work.json and tasks.json, generated files absent in the worktree; core/Item/watch/ shows the same"}}
+{"phase":{"at":"2026-10-28T19:09:59-05:00","n":2,"kind":"answers","status":"done"}}

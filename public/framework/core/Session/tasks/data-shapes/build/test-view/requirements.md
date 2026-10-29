@@ -1,4 +1,6 @@
-# Build H: watch a class's test run, drawn in the default view, from the integration branch, NOT merged
+# Test view: watch a class test run, drawn live, step by step
+
+Build H, from the integration branch, not merged. Built: [/framework/core/Test/view/](/framework/core/Test/view/) (branch `worktree/test-view`).
 
 **The owner (asks 26 and 44):**
 - "For each test that we create, I should be able to run the test, but also see the outcome of the test rendered on screen with those debug views. That's what I used to do, and it works pretty well, especially if I can step through the test itself by putting breakpoints there."
@@ -7,11 +9,11 @@
 
 ## What exists (on `integration/data-shapes`)
 
-- **The default view:** `ux/Content/Object/DefaultView.js`. It's live and redraws only the row that changed.
-- **The step-through demo:** `core/Item/watch/`.
-- **Class pages with the core test drawn step by step:** Item 6/6, List 7/7 (build C; `ext/Doc/`, `core/Item/`, `core/List/`).
-- **Build A's persistence matrix test,** and seat (g)'s delta-flow test (node, `*.test.mjs`).
-- **The app's delayed inject** (`/app.js`), and the test system under `core/Test/` (read its readme first).
+- **The default view:** [`ux/Content/Object/DefaultView.js`](/framework/ux/Content/Object/) ([build](../default-view/)). It's live and redraws only the row that changed.
+- **The step-through demo:** [`core/Item/watch/`](/framework/core/Item/watch/).
+- **Class pages with the core test drawn step by step:** Item 6/6, List 7/7 ([build C](../class-docs/); `ext/Doc/`, `core/Item/`, `core/List/`).
+- **[Build A](../backbone/)'s persistence matrix test,** and the [delta-flow](../../seats/delta-flow/) test (node, `*.test.mjs`).
+- **The app's delayed inject** (`/app.js`), and the test system under [`core/Test/`](/framework/core/Test/) (read its readme first).
 
 ## Setup
 

@@ -1,0 +1,577 @@
+diff --git a/public/framework/core/Item/Item.steps.js b/public/framework/core/Item/Item.steps.js
+index 1ec863fc1..6c62e4e2a 100644
+--- a/public/framework/core/Item/Item.steps.js
++++ b/public/framework/core/Item/Item.steps.js
+@@ -1,10 +1,11 @@
+ import Box from "./watch/Box.js";
+-import ScratchStore from "./watch/ScratchStore.js";
++import Steps from "../Test/Steps.js";
+ 
+ /* Item's core test as steps: the class page draws each one (its code, a pass or fail, the object after it, the
+    lines it wrote; ext/Doc/ClassDoc.js) and Item.steps.test.mjs runs the same array in node.
+-   `t` is one shared bag: `t.store` keeps every line written (ScratchStore writes no file), `t.lines` are the ones
+-   the step just wrote. `show(t)` is the object drawn after the step. */
++   `t` is one shared bag (core/Test/Steps.js): `t.store` keeps every line written (ScratchStore writes no file), `t.lines`
++   are the ones the step just wrote, `t.click(label, fn)` is a button press in the browser's test view
++   (/framework/core/Test/view/?test=Item) and a plain call in node. `show(t)` is the object drawn after the step. */
+ export default [
+ 	{
+ 		title: "Create",
+@@ -24,17 +25,17 @@ export default [
+ 	},
+ 	{
+ 		title: "Set",
+-		code: `shop.set({ title: "Weekly shop" })`,
++		code: `shop.set({ title: "Weekly shop" })   // the Rename button`,
+ 		note: "A field on the root: one flat line.",
+-		run: t => { t.shop.set({ title: "Weekly shop" }); },
++		run: t => t.click("Rename", () => t.shop.set({ title: "Weekly shop" })),
+ 		check: t => t.shop.get("title") === "Weekly shop" && t.lines.length === 1,
+ 		show: t => t.shop,
+ 	},
+ 	{
+ 		title: "Add a child",
+-		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })`,
++		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })   // the Add milk button`,
+ 		note: "A list verb: one line, under the list's name. The child's parent is now shop.",
+-		run: t => { t.milk = t.shop.items.add({ id: "milk", title: "Milk", count: 1 }); },
++		run: t => t.click("Add milk", () => { t.milk = t.shop.items.add({ id: "milk", title: "Milk", count: 1 }); }),
+ 		check: t => t.milk.parent === t.shop && t.lines.length === 1 && "items" in t.lines[0],
+ 		show: t => t.shop,
+ 	},
+@@ -49,26 +50,13 @@ export default [
+ 	{
+ 		title: "Replay",
+ 		code: `const copy = new Box({ id: "shop" }); lines.forEach(line => copy.set(line))`,
+-		note: "A fresh object, built from the lines alone, equals the original.",
++		note: "A fresh object, built from the lines alone, equals the original, and so does its view.",
+ 		run: t => { t.copy = new Box({ id: "shop" }); t.store.lines.forEach(line => t.copy.set(line)); },
+-		check: t => JSON.stringify(t.copy) === JSON.stringify(t.shop),
++		check: t => t.same(t.shop, t.copy),
+ 		show: t => t.copy,
+ 	},
+ ];
+ 
+-// One run of every step, the same in node and the browser: each step's lines are the ones its store flushed.
+-// `after(step, t, ok)` is called once per step (the page draws there).
+-export async function run_steps(steps, after = () => {}){
+-	const t = { store: new ScratchStore({ url: "scratch.jsonl" }), lines: [] };
+-	t.store.on_lines = lines => t.lines.push(...lines);
+-	const results = [];
+-	for (const step of steps){
+-		t.lines = [];
+-		let ok, error;
+-		try { await step.run(t); await null; ok = !!step.check(t); }
+-		catch (e){ ok = false; error = e; }
+-		results.push({ step, ok, error, lines: [...t.lines] });
+-		after(step, t, ok, error);
+-	}
+-	return results;
+-}
++// One run of every step, the same in node and the browser (core/Test/Steps.js). `after(step, t, ok)` is called
++// once per step (the page draws there). Kept here because ClassDoc and the List page import it from here.
++export function run_steps(steps, after = () => {}){ return new Steps(steps).all(after); }
+diff --git a/public/framework/core/List/List.steps.js b/public/framework/core/List/List.steps.js
+index a2e079dba..2ab9cc206 100644
+--- a/public/framework/core/List/List.steps.js
++++ b/public/framework/core/List/List.steps.js
+@@ -24,9 +24,9 @@ export default [
+ 	},
+ 	{
+ 		title: "Add",
+-		code: `shop.items.add({ id: "milk" })`,
++		code: `shop.items.add({ id: "milk" })   // the Add milk button`,
+ 		note: "One line, under the list's name. The member's parent is the owner, never the list.",
+-		run: t => { t.milk = t.shop.items.add({ id: "milk" }); },
++		run: t => t.click("Add milk", () => { t.milk = t.shop.items.add({ id: "milk" }); }),
+ 		check: t => t.milk.parent === t.shop && ids(t.shop.items) === "milk" && "items" in t.lines[0],
+ 		show: t => t.shop,
+ 	},
+@@ -40,9 +40,9 @@ export default [
+ 	},
+ 	{
+ 		title: "Move",
+-		code: `shop.items.move("milk", { after: null })`,
++		code: `shop.items.move("milk", { after: null })   // the Milk first button`,
+ 		note: "A move is one line too, naming the member and where it goes.",
+-		run: t => { t.shop.items.move("milk", { after: null }); },
++		run: t => t.click("Milk first", () => t.shop.items.move("milk", { after: null })),
+ 		check: t => ids(t.shop.items) === "milk,bread" && t.lines.length === 1,
+ 		show: t => t.shop,
+ 	},
+@@ -57,9 +57,9 @@ export default [
+ 	{
+ 		title: "Replay",
+ 		code: `const copy = new Box({ id: "shop" }); lines.forEach(line => copy.set(line))`,
+-		note: "The lines alone rebuild the same list, in the same order.",
++		note: "The lines alone rebuild the same list, in the same order, and the same view.",
+ 		run: t => { t.copy = new Box({ id: "shop" }); t.store.lines.forEach(line => t.copy.set(line)); },
+-		check: t => JSON.stringify(t.copy) === JSON.stringify(t.shop),
++		check: t => t.same(t.shop, t.copy),
+ 		show: t => t.copy,
+ 	},
+ ];
+diff --git a/public/framework/core/Task/Task.steps.js b/public/framework/core/Task/Task.steps.js
+new file mode 100644
+index 000000000..6aff90208
+--- /dev/null
++++ b/public/framework/core/Task/Task.steps.js
+@@ -0,0 +1,69 @@
++import Task from "./Task.js";
++
++/* Task's core test as steps, in Item's step format (core/Item/Item.steps.js), run by core/Test/Steps.js: in node by
++   Task.steps.test.mjs, in the browser by the test view (/framework/core/Test/view/?test=Task). The clicks are the
++   buttons a task row has (TaskView), each calling the verb it names; the last step rebuilds the task from its lines.
++   The clock is held still for the run, so a replayed verb stamps the same times as the click did. */
++const CLOCK = "2026-10-28T12:00:00.000Z";
++
++export default [
++	{
++		title: "Create",
++		code: `const fix = new Task({ id: "fix" })`,
++		note: "A new task is idle, and making it writes nothing.",
++		run: t => { Task.clock = CLOCK; t.fix = new Task({ id: "fix" }); },
++		check: t => t.fix.state === "idle" && t.lines.length === 0,
++		show: t => t.fix,
++	},
++	{
++		title: "Save",
++		code: `store.attach(fix); fix.set({ title: "Fix the tab bar" })`,
++		note: "From here on, every change is one line.",
++		run: t => { t.store.attach(t.fix); t.fix.set({ title: "Fix the tab bar" }); },
++		check: t => t.fix.get("title") === "Fix the tab bar" && t.lines.length === 1,
++		show: t => t.fix,
++	},
++	{
++		title: "Add two subtasks",
++		code: `fix.tasks.add({ id: "css", title: "The CSS" })   // the "Add" button, twice`,
++		note: "Each is one line under tasks. The task is now 0 of 2 done.",
++		run: t => {
++			t.click("Add: The CSS", () => t.fix.tasks.add({ id: "css", title: "The CSS" }));
++			t.click("Add: The test", () => t.fix.tasks.add({ id: "test", title: "The test" }));
++		},
++		check: t => t.fix.progress().total === 2 && t.lines.length === 2,
++		show: t => t.fix,
++	},
++	{
++		title: "Start",
++		code: `fix.act("start")   // the Start button`,
++		note: "The button saves the verb, one line, and the subtasks start with it.",
++		run: t => t.click("Start", () => t.fix.act("start")),
++		check: t => t.fix.state === "running" && t.fix.tasks.find("css").state === "running" && JSON.stringify(t.lines) === `[{"start":{}}]`,
++		show: t => t.fix,
++	},
++	{
++		title: "Finish one",
++		code: `css.act("complete", { auto: true })   // its Done button`,
++		note: "1 of 2 done: the task keeps running while a subtask is open.",
++		run: t => t.click("Done: The CSS", () => t.fix.tasks.find("css").act("complete", { auto: true })),
++		check: t => t.fix.progress().done === 1 && t.fix.state === "running",
++		show: t => t.fix,
++	},
++	{
++		title: "Finish the last",
++		code: `test.act("complete", { auto: true })   // its Done button`,
++		note: "The last subtask done completes the task by itself.",
++		run: t => t.click("Done: The test", () => t.fix.tasks.find("test").act("complete", { auto: true })),
++		check: t => t.fix.state === "complete" && t.fix.progress().done === 2,
++		show: t => t.fix,
++	},
++	{
++		title: "Replay",
++		code: `const copy = new Task({ id: "fix" }); lines.forEach(line => copy.set(line))`,
++		note: "Rebuilt from the lines alone: the same task, the same view.",
++		run: t => { t.copy = new Task({ id: "fix" }); t.store.lines.forEach(line => t.copy.set(line)); Task.clock = null; },
++		check: t => t.copy.state === "complete" && t.same(t.fix, t.copy),
++		show: t => t.copy,
++	},
++];
+diff --git a/public/framework/core/Task/Task.steps.test.mjs b/public/framework/core/Task/Task.steps.test.mjs
+new file mode 100644
+index 000000000..bd4ac0bb2
+--- /dev/null
++++ b/public/framework/core/Task/Task.steps.test.mjs
+@@ -0,0 +1,8 @@
++// Task's core test, the same steps the test view draws (Task.steps.js). Run: node public/framework/core/Task/Task.steps.test.mjs
++import Test from "../Test/Test.js";
++import Steps from "../Test/Steps.js";
++import steps from "./Task.steps.js";
++
++const t = new Test("Task steps");
++for (const r of await new Steps(steps).all()) t.ok(r.ok, `${r.step.title}: ${r.step.code}${r.error ? " threw " + r.error.message : ""}`);
++t.done();
+diff --git a/public/framework/core/Task/TaskView.js b/public/framework/core/Task/TaskView.js
+index 95588c3a6..924cec0b5 100644
+--- a/public/framework/core/Task/TaskView.js
++++ b/public/framework/core/Task/TaskView.js
+@@ -15,6 +15,7 @@ export default class TaskView extends View {
+ 	static card(task){ return new this({ task, size: "card" }); }
+ 
+ 	initialize(){
++		this.task ??= this.subject;   // view(task) (ux/Content/Object/DefaultView.js) hands a class's View its object as `subject`
+ 		this.size ??= "card";
+ 		this.redraw = () => this.empty(() => this[this.size]());
+ 		this.ac("task-view", "task-" + this.size);
+diff --git a/public/framework/core/Test/Steps.js b/public/framework/core/Test/Steps.js
+new file mode 100644
+index 000000000..15f219153
+--- /dev/null
++++ b/public/framework/core/Test/Steps.js
+@@ -0,0 +1,51 @@
++import ScratchStore from "../Item/watch/ScratchStore.js";
++
++/**
++ * class Steps — one run of a class's core test, written once as a list of steps, the same in node and the browser.
++ *
++ *   const run = new Steps(steps);            // steps: [{ title, code, note, run(t), check(t), show(t) }] (Item.steps.js)
++ *   await run.next();                        // one step: { step, ok, error, lines }
++ *   await run.all((step, t, ok, error) => {}) // every step left; the callback once per step
++ *
++ * `t` is the bag every step shares: `t.store` keeps every line written (a ScratchStore writes no file), `t.lines`
++ * are the ones the step just wrote. Two helpers make one test cover both ways an object is made:
++ *   t.click(label, fn)   the UI path: in the browser a real button labelled `label` is pressed and its listener runs
++ *                        `fn` (TestView.press); in node `fn` runs directly
++ *   t.same(a, b)         the two objects are equal as data, and in the browser their two drawn views read the same
++ * `ui` is the browser's TestView; node passes none.
++ */
++export default class Steps {
++
++	constructor(steps, { ui = null } = {}){
++		this.steps = steps;
++		this.at = 0;
++		this.results = [];
++		const t = this.t = { store: new ScratchStore({ url: "scratch.jsonl" }), lines: [], ui };
++		t.store.on_lines = lines => t.lines.push(...lines);
++		t.click = (label, fn) => ui ? ui.press(label, fn) : fn();
++		t.same = (a, b) => JSON.stringify(a) === JSON.stringify(b) && (!ui || ui.same(a, b));
++	}
++
++	get done(){ return this.at >= this.steps.length; }
++
++	// Run the next step, wait the one microtask the store takes to flush, then check it.
++	async next(){
++		if (this.done) return null;
++		const step = this.steps[this.at++], t = this.t;
++		t.lines = [];
++		let ok, error;
++		try { await step.run(t); await null; ok = !!step.check(t); }
++		catch (e){ ok = false; error = e; }
++		const result = { step, ok, error, lines: [...t.lines] };
++		this.results.push(result);
++		return result;
++	}
++
++	async all(after = () => {}){
++		while (!this.done){
++			const r = await this.next();
++			after(r.step, this.t, r.ok, r.error);
++		}
++		return this.results;
++	}
++}
+diff --git a/public/framework/core/Test/TestView.css b/public/framework/core/Test/TestView.css
+new file mode 100644
+index 000000000..5824fc851
+--- /dev/null
++++ b/public/framework/core/Test/TestView.css
+@@ -0,0 +1,37 @@
++@layer base, theme, site, util;
++
++/* The test view (TestView.js), Watch's three columns (core/Item/watch/watch.css): steps | objects | lines.
++   One column on a phone, the lines under both from 70em, three side by side from 100em. */
++@layer site {
++	.core-test-view { display: grid; gap: var(--gap); grid-template-columns: 1fr; align-items: start; }
++	@media (min-width: 70em) {
++		.core-test-view { grid-template-columns: minmax(18em, 1fr) minmax(22em, 1.4fr); }
++		.core-test-view-lines { grid-column: 1 / -1; }
++	}
++	@media (min-width: 100em) {
++		.core-test-view { grid-template-columns: minmax(18em, 1fr) minmax(22em, 1.3fr) minmax(20em, 1.2fr); }
++		.core-test-view-lines { grid-column: auto; }
++	}
++	.core-test-view > * { min-width: 0; }
++	/* Narrow: only the step that just ran, so the objects stay near the top. */
++	@media (max-width: 69.99em) {
++		.core-test-view-list > li:not(.is-focus) { display: none; }
++	}
++
++	.core-test-view-pick.is-on { background: var(--prime); color: var(--on-prime, white); }
++	.core-test-view-tally { margin: 0; min-height: 1.5em; }
++	.core-test-view-list { margin: 0; padding-inline-start: 1.6em; display: flex; flex-direction: column; gap: .4em; }
++	.core-test-view-list > li { color: var(--subtle); }
++	.core-test-view-list > li.is-pass, .core-test-view-list > li.is-next { color: inherit; }
++	.core-test-view-list > li.is-pass::marker { content: "✓ "; color: var(--green, green); }
++	.core-test-view-list > li.is-fail::marker { content: "✗ "; color: var(--red, crimson); }
++	.core-test-view-list > li.is-fail { color: var(--red, crimson); }
++	.core-test-view-list > li.is-next .core-test-view-title { font-weight: 600; }
++	.core-test-view-list > li > * { display: block; }
++	.core-test-view-list code { white-space: normal; overflow-wrap: anywhere; }
++	.core-test-view-said { color: var(--subtle); font-size: .9em; }
++
++	.core-test-view-controls { min-height: 2.4em; align-items: center; }
++	.core-test-view-name { font-weight: 600; }
++	.core-test-view-lines .log-line { font-family: var(--mono, monospace); font-size: .85em; overflow-wrap: anywhere; }
++}
+diff --git a/public/framework/core/Test/TestView.js b/public/framework/core/Test/TestView.js
+new file mode 100644
+index 000000000..3a9229f10
+--- /dev/null
++++ b/public/framework/core/Test/TestView.js
+@@ -0,0 +1,165 @@
++import View, { div, h3, p, ol, li, span, code, button } from "../View/View.js";
++import Item from "../Item/Item.js";
++import { DefaultView } from "../../ux/Content/Object/DefaultView.js";
++import Logger from "../Page/card/log/Logger.js";
++import LogView from "../Page/card/log/LogView.js";
++import Steps from "./Steps.js";
++
++View.stylesheet(import.meta, "TestView.css");
++
++const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r)));   // one painted frame
++// A view as text, without its `.store` rows: where an object saves is not part of it (the replayed copy has none).
++const text = el => {
++	const copy = el.cloneNode(true);
++	copy.querySelectorAll(".ux-content-defaultview-ref").forEach(row => row.querySelector(".ux-content-defaultview-key")?.textContent === ".store" && row.remove());
++	return copy.textContent.replace(/\s+/g, " ").trim();
++};
++
++/**
++ * class TestView extends View — watch a class's core test run in the browser: the same steps node runs
++ * (core/Test/Steps.js), every object they make drawn live in the default view, every line written beside it.
++ *
++ *   new TestView({ tests: { Item: steps, List: steps, Task: steps }, name: "Item", stepping: false })
++ *
++ * Runs after the app has injected the page, one step per painted frame, so each change shows before the next.
++ * `stepping` (the page's `?step`): nothing runs until Next, and after each step a `debugger` statement pauses
++ * DevTools (when open) with that step's view on screen. A step's clicks are real buttons (`press`), and `same`
++ * compares two objects' drawn views as text.
++ */
++export default class TestView extends View {
++
++	render(){
++		this.ac("core-test-view");
++		div.c("core-test-view-steps flex v gap", () => {
++			div.c("flex wrap gap", () => Object.keys(this.tests).forEach(name =>
++				button(name).ac("core-test-view-pick").attr("data-test", name).on("click", () => this.load(name))));
++			div.c("flex wrap gap", () => {
++				this.$next = button("Next step").on("click", () => this.next());
++				this.$all = button("Run all").on("click", () => this.all());
++				button("Start over").on("click", () => this.load(this.name));
++			});
++			this.$tally = p.c("core-test-view-tally");
++			this.$list = ol.c("core-test-view-list");
++		});
++		div.c("core-test-view-objects flex v gap", () => {
++			h3("The objects, live");
++			this.$controls = div.c("core-test-view-controls flex wrap gap");
++			this.$objects = div.c("flex v gap");
++		});
++		div.c("core-test-view-lines flex v gap", () => {
++			h3("Lines written");
++			this.$log = div();
++		});
++		this.load(this.name);
++	}
++
++	// A fresh run of one test: the url says which (?test=), so a reload lands here again.
++	load(name){
++		this.name = this.tests[name] ? name : Object.keys(this.tests)[0];
++		const url = new URL(location.href);
++		url.searchParams.set("test", this.name);
++		history.replaceState(history.state, "", url.href.replace(/([?&]step)=(?=&|$)/, "$1"));   // ?step, not ?step=
++		this.el.querySelectorAll(".core-test-view-pick").forEach(b => b.classList.toggle("is-on", b.dataset.test === this.name));
++		this.token = (this.token ?? 0) + 1;
++		this.steps = this.tests[this.name];
++		this.run = new Steps(this.steps, { ui: this });
++		this.drawn = new Map();   // object -> its view
++		this.buttons = new Map();   // label -> button
++		this.logger = new Logger();
++		this.$controls.empty(() => span.c("muted", "Buttons appear here as the steps press them."));
++		this.$objects.empty(() => p.c("muted", "Nothing yet: step 1 makes the first object."));
++		this.$log.empty(() => new LogView({ logger: this.logger }));
++		this.draw_list();
++		if (!this.stepping) this.all();
++	}
++
++	// After the app has put this page on screen (it injects after the first page's content() runs).
++	async attached(){
++		await window.app?.ready;
++		while (!this.el.isConnected) await frame();
++	}
++
++	async next(){
++		const token = this.token;
++		await this.attached();
++		if (this.busy || this.run.done || token !== this.token) return false;
++		this.busy = true;
++		try {
++			const r = await this.run.next();
++			this.after(r);
++			await frame();
++		} finally { this.busy = false; }
++		if (this.stepping) debugger;   // ?step: DevTools stops here with this step's view drawn
++		return token === this.token;
++	}
++
++	async all(){
++		const stepping = this.stepping;
++		this.stepping = false;   // Run all runs to the end without pausing
++		try { while (!this.run.done && await this.next()) await new Promise(r => setTimeout(r, 150)); }
++		finally { this.stepping = stepping; }
++	}
++
++	// One step has run: its verdict, the lines it wrote as one log group.
++	after({ step, ok, error, lines }){
++		this.show(this.run.t);
++		this.logger.group(`${this.run.at}. ${step.title}`);
++		lines.forEach(line => this.logger.log(line));
++		this.logger.end();
++		this.draw_list();
++	}
++
++	// Every object a step left on `t` that no other object holds, drawn once; its view stays live from then on.
++	show(t){
++		for (const [name, x] of Object.entries(t)){
++			if (!(x instanceof Item) || x.parent || this.drawn.has(x)) continue;
++			if (!this.drawn.size) this.$objects.empty();
++			this.$objects.append(() => div.c("core-test-view-object", () => {
++				code.c("core-test-view-name", name);
++				this.drawn.set(x, new DefaultView({ subject: x, open: 9 }));   // the default view even when the class has its own (Task.View)
++			}));
++		}
++	}
++
++	// The UI path: press the button labelled `label` (made the first time), whose listener runs `fn`.
++	press(label, fn){
++		let b = this.buttons.get(label);
++		if (!b){
++			if (!this.buttons.size) this.$controls.empty();
++			this.$controls.append(() => { b = button(label).ac("core-test-view-control"); });
++			b.on("click", () => { try { b.result = b.fn(); b.error = null; } catch (e){ b.error = e; } });
++			this.buttons.set(label, b);
++		}
++		b.fn = fn;
++		b.el.click();
++		DefaultView.flash(b.el);
++		if (b.error) throw b.error;
++		return b.result;
++	}
++
++	// Two objects read the same on screen: their drawn views, as text.
++	same(a, b){
++		this.show(this.run.t);
++		const va = this.drawn.get(a), vb = this.drawn.get(b);
++		return !!(va && vb) && text(va.el) === text(vb.el);
++	}
++
++	// One line per step: its title and code; the step that just ran also says what it showed, a failed one why.
++	draw_list(){
++		const at = this.run.at, results = this.run.results, passed = results.filter(r => r.ok).length;
++		this.$tally.text(this.run.done
++			? `${passed} of ${results.length} steps pass. Node runs the same steps: node ${this.file()}`
++			: `${this.steps.length} steps. ${this.stepping ? "Press Next step; with DevTools open, each step stops at a breakpoint." : "Running…"}`);
++		this.$list.empty(() => this.steps.forEach((step, i) => {
++			const r = results[i];
++			li.c([r ? (r.ok ? "is-pass" : "is-fail") : i === at ? "is-next" : "", i === Math.max(at - 1, 0) ? "is-focus" : ""].join(" ").trim(), () => {
++				span.c("core-test-view-title", step.title);
++				code(step.code);
++				if (r && (!r.ok || i === at - 1)) span.c("core-test-view-said", r.ok ? step.note : `✗ ${r.error?.message ?? "the check failed"}`);   // the step that just ran says what it showed
++			}).attr("value", i + 1);
++		}));
++		this.$next.el.disabled = this.$all.el.disabled = this.run.done;
++	}
++
++	file(){ return `public/framework/core/${this.name}/${this.name}.steps.test.mjs`; }
++}
+diff --git a/public/framework/core/Test/page.js b/public/framework/core/Test/page.js
+index 8279c2ac1..40311e0a6 100644
+--- a/public/framework/core/Test/page.js
++++ b/public/framework/core/Test/page.js
+@@ -1,4 +1,4 @@
+-import { Page, View, div, p, span, pre } from "/app.js";
++import { Page, View, div, p, span, pre, a } from "/app.js";
+ import TestResults from "./TestResults.js";
+ 
+ /* The latest result per test file, failures first. Written by TestRunner.mjs (see readme.md). */
+@@ -7,8 +7,10 @@ export default new Page({
+ 	title: "Test",
+ 	icon: "fact_check",
+ 	description: "Is it passing? The latest run of every node test, failures first.",
++	children: "view",
+ 
+ 	content(){
++		p.c("pad", () => { a("Watch a test run").href("/framework/core/Test/view/"); span(": Item, List and Task step by step, every object drawn live, the same steps node runs."); });
+ 		const $box = div.c("pad");
+ 		const results = new TestResults({ url: new URL("./results.jsonl", import.meta.url).pathname });
+ 		const draw = () => $box.empty(() => {
+diff --git a/public/framework/core/Test/readme.md b/public/framework/core/Test/readme.md
+index 11013cceb..d047606ae 100644
+--- a/public/framework/core/Test/readme.md
++++ b/public/framework/core/Test/readme.md
+@@ -5,6 +5,8 @@
+ - [Test.js](./Test.js) — `class Test`: `ok`, `eq`, `throws`, `done`; portable, no DOM, no node imports
+ - [TestRunner.mjs](./TestRunner.mjs) — `class TestRunner` (node only): find, run, cover, watch, record
+ - [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
++- [Steps.js](./Steps.js) — `class Steps`: runs a class's core test written as steps (`X.steps.js`), the same in node and the browser
++- [TestView.js](./TestView.js) + [view/](/framework/core/Test/view/) — watch a test run: every object drawn live in the default view, every line beside it
+ - [tasks/test-system/plan.md](./tasks/test-system/plan.md) — the design and why
+ 
+ ## Use
+@@ -15,6 +17,7 @@ t.eq(a, b, "what must be equal");   t.ok(cond, "what must hold");
+ t.done();   // prints PASS/FAIL, sets the exit code on failure
+ ```
+ - **Names:** `X.test.mjs` is a node test, passing when it exits 0 (old tests without `Test` count too). `X.test.js` is reserved for browser tests; none yet.
++- **One test, node and the browser:** a class's core test can be a list of steps, `X.steps.js` (`{title, code, note, run(t), check(t), show(t)}`; Item, List, Task have one). `X.steps.test.mjs` runs it in node with `new Steps(steps).all()`; [the test view](/framework/core/Test/view/?test=Item) runs the same steps on screen, one painted frame per step. `?step` waits for Next and stops at a `debugger` after each step, so DevTools shows that step's view. `t.click(label, fn)` is the UI path (a real button in the browser, a call in node); `t.same(a, b)` compares two objects as data and, on screen, as their drawn views (the `.store` row left out). Each test ends by rebuilding its object from the saved lines and checking the two views match.
+ - **The one command:** `node public/framework/core/Test/TestRunner.mjs [folders…]`: whole repo by default, each file in its own process, 60 s timeout, 4 at once.
+ - **Coverage:** a test covers its own folder plus every file it imports, transitively. `--covers <file>` lists them; `--list [folders]` lists tests.
+ - **Near:** `--near <file>` lists the tests *near* a changed file: the `*.test.mjs` in its folder plus the tests that import it directly (one level, cheaper than `--covers`). A single test file path runs that file.
+diff --git a/public/framework/core/Test/view/page.js b/public/framework/core/Test/view/page.js
+new file mode 100644
+index 000000000..969d61113
+--- /dev/null
++++ b/public/framework/core/Test/view/page.js
+@@ -0,0 +1,20 @@
++import { Page } from "/app.js";
++import TestView from "../TestView.js";
++import item from "../../Item/Item.steps.js";
++import list from "../../List/List.steps.js";
++import task from "../../Task/Task.steps.js";
++
++/* Watch a class's core test run: the steps node runs (`node public/framework/core/<Class>/<Class>.steps.test.mjs`),
++   drawn live here. ?test=Item|List|Task picks one; ?step waits for Next and pauses DevTools after each step. */
++export default new Page({
++	meta: import.meta,
++	title: "Watch a test run",
++	label: "Test view",
++	description: "A class's core test, step by step: every object it makes drawn live, every line it saves beside it. The same steps run in node.",
++	icon: "play_circle",
++	width: "wide",
++	content(){
++		const q = new URLSearchParams(location.search);
++		new TestView({ tests: { Item: item, List: list, Task: task }, name: q.get("test") ?? "Item", stepping: q.has("step") }).ac("wide");
++	},
++});
+diff --git a/public/framework/ux/Content/Object/DefaultView.js b/public/framework/ux/Content/Object/DefaultView.js
+index df896725e..a5d35fe3d 100644
+--- a/public/framework/ux/Content/Object/DefaultView.js
++++ b/public/framework/ux/Content/Object/DefaultView.js
+@@ -275,6 +275,8 @@ export default class DefaultView extends View {
+ 			DefaultView.flash(this.$counts?.el);
+ 			// It went from empty to not (or back): its row changes kind, a plain count or a view that opens.
+ 			const el = this.rows.get(origin.name);
++			// A list made after this view was built (Task's `tasks`, on its first add) gets its row now.
++			if (!el && this.$rows && !this.properties){ this.lists.set(origin.name, origin); return this.update(origin.name); }
+ 			if (el && el.classList.contains("ux-content-defaultview-row") !== this.empty(origin)) this.update(origin.name);
+ 		}
+ 	}
+@@ -287,7 +289,9 @@ export default class DefaultView extends View {
+ 		holder.append(() => this.row(k, this.lists?.get(k) ?? this.value(k)));
+ 		const made = holder.el.firstElementChild;
+ 		if (!made){ old?.remove(); this.rows.delete(k); return; }
+-		old ? old.replaceWith(made) : this.$rows.el.append(made);
++		// A new row keeps a fresh view's order: properties first, then the lists (body()).
++		const lists = [...this.lists?.keys() ?? []].map(name => this.rows.get(name)).filter(el => el?.parentNode === this.$rows.el);
++		old ? old.replaceWith(made) : this.$rows.el.insertBefore(made, this.lists?.has(k) ? null : lists[0] ?? null);
+ 		DefaultView.flash(made.querySelector(":scope > summary") ?? made);   // a nested view flashes its row, not its insides
+ 	}
+ 
