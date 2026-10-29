@@ -15,7 +15,7 @@ Read-only map; nothing here is built. The tools come from `tools(agents)` in `Se
 | **Items and pages** (the generic writers) | `item` `page_set` `page_add` `page_call` `page_log` `page_read` `page_note` `page_reply` `read_page` `list_pages` `create_page` `place` `set_layout` | `page_tools.js`, `pages.js`, `Layers.js` |
 | **Cards and the Inbox** | `create_card` `card_set` `card_reply` `card_ask` `card_summary` `read_card` `list_cards` `list_waiting` `attach_card` `add_item` `amend_bubble` `owner_note` `inbox` `drop` `module_inbox` `updates` `follow` `unfollow` `list_follows` `set_focus` `clear` | `Cards.js`, `Layers.js`, `Follow.js`, `ModuleInbox.js` |
 | **Ask a module** | `ask_expert` `list_experts` `load_module` `readme_modules` `ask_module` `ask_manager` `ask_mastermind` `ask_directory` `claim_topic` `release_topic` `list_claims` `file_to_group` `skill` | `Experts.js`, `Layers.js`, `claims.js`, `tools.js` |
-| **Servers and health** | `list_servers` `start_server` `stop_server` `restart_server` `server_logs` `check_page` `system_health` `restart_servex` | `Servex.js`, `ops.js` |
+| **Servers and health** | `list_servers` `start_server` `stop_server` `restart_server` `server_logs` `check_page` `system_health` `check_usage` `restart_servex` | `Servex.js`, `ops.js` |
 | **Files and shell** (for the voice app and remote callers; local agents have Read/Edit/Bash) | `read_file` `write_file` `edit_file` `list_dir` `glob` `shell` | `files.js` |
 | **Opt-in** (not in the list unless a role adds it) | `query_sessions` | `tools.js` |
 

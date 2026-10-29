@@ -61,6 +61,7 @@ export default class Usage {
 		const file = path.join(repo, "public/framework/ai/usage.json");
 		try {
 			const { week, session } = usage_pace(Usage.read(repo));
+			if (!Number.isFinite(week.used) || !Number.isFinite(week.gone)) return { ok: false, why: "usage.json has no weekly figure yet" };
 			return {
 				ok: true, verdict: `${report_line(week)}${session ? ` · 5h session ${session.used}% used, ${session.gone.toFixed(0)}% of it gone (${session.pace}% of pace)` : ""}`,
 				week, session, over_pace: week.over,
