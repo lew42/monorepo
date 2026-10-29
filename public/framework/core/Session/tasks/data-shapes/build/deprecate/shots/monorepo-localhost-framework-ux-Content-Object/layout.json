@@ -1,0 +1,350 @@
+{
+ "url": "http://monorepo.localhost/framework/ux/Content/Object/",
+ "widths": {
+  "400": {
+   "empty": 0.307,
+   "widest_text": 473,
+   "widest_text_sample": "\"child add move previews walls preview p",
+   "overflow_x": false,
+   "items": 130,
+   "narrow_share": 0.323,
+   "layout": "doc",
+   "tabs_gap": null,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 16,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 16
+      }
+     ]
+    },
+    "p": {
+     "total": 16,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 16
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 51,
+     "h": 58,
+     "share": 0.058,
+     "ink": 0.65,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 109,
+     "h": 27,
+     "share": 0.027,
+     "ink": 0.925,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 135,
+     "h": 4717,
+     "share": 4.717,
+     "ink": 0.581,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "view() — three real, live ones",
+     "lines": 2
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "object() — the small card (the",
+     "lines": 2
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "This page, as an instance (Doc",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-menu",
+     "text": "☰Menu",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.537,
+   "widest_text": 590,
+   "widest_text_sample": "row per property, opening deeper the sam",
+   "overflow_x": false,
+   "items": 153,
+   "narrow_share": 0.497,
+   "layout": "doc",
+   "tabs_gap": 32,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 38
+      }
+     ]
+    },
+    "p": {
+     "total": 38,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 38
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 72,
+     "share": 0.072,
+     "ink": 0.625,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 72,
+     "share": 0.072,
+     "ink": 0.625,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 72,
+     "h": 3668,
+     "share": 3.668,
+     "ink": 0.344,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "object() — the small card (the",
+     "lines": 2
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "This page, as an instance (Doc",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.531,
+   "widest_text": 632,
+   "widest_text_sample": "row per property, opening deeper the sam",
+   "overflow_x": false,
+   "items": 187,
+   "narrow_share": 0.711,
+   "layout": "doc",
+   "tabs_gap": 48,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 54
+      }
+     ]
+    },
+    "p": {
+     "total": 54,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 54
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 77,
+     "share": 0.077,
+     "ink": 0.637,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 77,
+     "share": 0.077,
+     "ink": 0.637,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 77,
+     "h": 3356,
+     "share": 3.356,
+     "ink": 0.333,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.7
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "object() — the small card (the",
+     "lines": 2
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "This page, as an instance (Doc",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.602,
+   "widest_text": 859,
+   "widest_text_sample": "Same icon as the instance below, in a vi",
+   "overflow_x": false,
+   "items": 187,
+   "narrow_share": 0.824,
+   "layout": "doc",
+   "tabs_gap": 83,
+   "tab_rows": 1,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "doc-well",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    }
+   },
+   "bands": [
+    {
+     "cls": "doc-well",
+     "y": 0,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-bar",
+     "y": 0,
+     "h": 87,
+     "share": 0.087,
+     "ink": 0.425,
+     "big_empty": false
+    },
+    {
+     "cls": "tab-panel",
+     "y": 87,
+     "h": 3826,
+     "share": 3.826,
+     "ink": 0.258,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "mode-btn",
+     "text": "brightness_auto",
+     "lines": 1.8
+    },
+    {
+     "tag": "h3",
+     "cls": "md",
+     "text": "object() — the small card (the",
+     "lines": 2
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  }
+ },
+ "errors": []
+}

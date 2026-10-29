@@ -1,0 +1,241 @@
+{
+ "url": "http://monorepo.localhost/framework/core/Item/watch/",
+ "widths": {
+  "400": {
+   "empty": 0.807,
+   "widest_text": 352,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 0.583,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 16,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 16
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "h1",
+     "y": 21,
+     "h": 46,
+     "share": 0.046,
+     "ink": 0.975,
+     "big_empty": false
+    },
+    {
+     "cls": "error",
+     "y": 108,
+     "h": 36,
+     "share": 0.036,
+     "ink": 0.9,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "drawer-rail-ai",
+     "text": "✦AI",
+     "lines": 3.2
+    }
+   ]
+  },
+  "1200": {
+   "empty": 0.942,
+   "widest_text": 376,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 48,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 48
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "h1",
+     "y": 45,
+     "h": 49,
+     "share": 0.049,
+     "ink": 0.375,
+     "big_empty": false
+    },
+    {
+     "cls": "error",
+     "y": 137,
+     "h": 38,
+     "share": 0.038,
+     "ink": 0.325,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    }
+   ]
+  },
+  "1920": {
+   "empty": 0.886,
+   "widest_text": 403,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 65,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 65
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "h1",
+     "y": 48,
+     "h": 53,
+     "share": 0.053,
+     "ink": 0.4,
+     "big_empty": false
+    },
+    {
+     "cls": "error",
+     "y": 147,
+     "h": 41,
+     "share": 0.041,
+     "ink": 0.338,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  },
+  "3440": {
+   "empty": 0.923,
+   "widest_text": 453,
+   "widest_text_sample": "Page Load Error",
+   "overflow_x": false,
+   "items": 12,
+   "narrow_share": 1,
+   "layout": "custom",
+   "tabs_gap": null,
+   "tab_rows": 0,
+   "left_stack": {
+    "h1": {
+     "total": 90,
+     "layers": [
+      {
+       "cls": "page",
+       "px": 90
+      }
+     ]
+    },
+    "p": {
+     "total": 0,
+     "layers": []
+    }
+   },
+   "bands": [
+    {
+     "cls": "h1",
+     "y": 54,
+     "h": 59,
+     "share": 0.059,
+     "ink": 0.25,
+     "big_empty": false
+    },
+    {
+     "cls": "error",
+     "y": 165,
+     "h": 46,
+     "share": 0.046,
+     "ink": 0.163,
+     "big_empty": false
+    }
+   ],
+   "wraps": [
+    {
+     "tag": "button",
+     "cls": "drawer-menu",
+     "text": "✦",
+     "lines": 1.8
+    },
+    {
+     "tag": "button",
+     "cls": "chatbox-compose-more",
+     "text": "",
+     "lines": 2.4
+    }
+   ]
+  }
+ },
+ "errors": [
+  "400: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "400: Error: 404 — nothing matches \"/framework/core/Item/watch/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework",
+  "1920: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1920: Error: 404 — nothing matches \"/framework/core/Item/watch/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework",
+  "3440: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "3440: Error: 404 — nothing matches \"/framework/core/Item/watch/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework",
+  "1200: Failed to load resource: the server responded with a status of 404 (Not Found)",
+  "1200: Error: 404 — nothing matches \"/framework/core/Item/watch/\"\n    at App.load (http://monorepo.localhost/framework/core/App/App.js:64:11)\n    at async App.instantiate (http://monorepo.localhost/framework"
+ ]
+}
