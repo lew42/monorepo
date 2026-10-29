@@ -451,6 +451,7 @@ if (skipSmoke) console.warn("\n!!! --skip-smoke: NO SMOKE TEST WILL RUN. This fl
 if (dryRun) console.log("DRY RUN: computing only; no lock, no hold, nothing written.");
 if (!dryRun && !(await takeLock())) { console.error("gave up waiting for .merge.lock"); process.exit(3); }
 let code = 0, held = false, quickShot = null, mergedHead = null;
+const startHead = git(MAIN, "rev-parse", BASE).stdout.trim();   // a landing moves it; then GitHub is pushed (below)
 const slugOf = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
 const holdScript = path.join(MAIN, "Server", "hold.mjs");   // the main repo's own hold; a scratch repo has none
 const hold = (state, why, files = []) => {
@@ -649,6 +650,13 @@ try {
 } finally {
 	if (held) hold("off", "merge");
 	if (!dryRun) try { fs.unlinkSync(lockFile); } catch {}
+}
+// KEEP GITHUB CURRENT (the owner, 2026-10-29: "when we're committing, we should be pushing to GitHub regularly"; a cloud
+// agent's clone was 6,089 commits behind). A landing that moved michael/dev pushes it; a failed push only warns.
+if (!dryRun && !mainArg && code === 0 && git(MAIN, "rev-parse", BASE).stdout.trim() !== startHead) {
+	const p = git(MAIN, "push", "origin", BASE);
+	if (p.status === 0) console.error(`pushed ${BASE} to origin`);
+	else console.error(`push of ${BASE} failed (the merge stands): ${(p.stderr || "").trim().split("\n").pop()}`);
 }
 // --quick's own last word: ONE line of JSON, always last on stdout when it lands, so the fixer
 // (or anything else driving this) can read it without parsing the human log above it.

@@ -33,7 +33,7 @@ Any agent, Claude or not, starts from the short base in `public/framework/ai/age
 - **Link, don't regenerate:** reference the prompt, session, task or doc by link; never retype what is written.
 - **Never destructive:** don't delete logs, merge records or overwrite history; if something must go, move it aside and say so. Git is the undo.
 - **Moves and renames are scripted, never retyped:** a node script with a dry run and a manifest of every old to new path. Then link anything that exists in the repo but not on the site.
-- **Commit after every working step:** smoke-test, then commit, in a worktree; merge after reviewing the diff.
+- **Commit after every working step:** smoke-test, then commit, in a worktree; merge after reviewing the diff; keep GitHub current: `merge.mjs` pushes michael/dev after each landing, and a commit made straight on michael/dev is pushed too. (the owner, 2026-10-29)
 - **Stream, don't poll:** anything real-time is a JSONL append and a `live()` tail, never `setInterval` + `fetch`.
 
 ## Cost and roles (long form: `public/framework/ai/doc/agent-rules.md`)
