@@ -15,8 +15,7 @@ import { register } from "node:module";
 register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
 const FIXED = Date.parse("2026-10-28T12:00:00Z"), RealDate = Date;
 globalThis.Date = class extends RealDate { constructor(...a){ a.length ? super(...a) : super(FIXED); } static now(){ return FIXED; } };
-let uid = 0;
-Object.defineProperty(globalThis.crypto, "randomUUID", { value: () => `u${++uid}`, configurable: true, writable: true });
+// Ids are Item.short_id (random); nothing here depends on their value.
 
 const { default: Test } = await import("../Test/Test.js");
 const { default: Item } = await import("./Item.js");

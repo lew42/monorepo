@@ -357,7 +357,8 @@ export class Item extends Events(Object) {
 
 	wire(){ return this.type ?? Item.names.get(this.constructor) ?? this.constructor.name; }
 
-	static new_id(){ return crypto.randomUUID(); }
+	// One id maker (cross-review finding 3): every new Item gets a short id, whether a string add, an object add or a new Ref. Page keeps its own (a folder name).
+	static new_id(){ return this.short_id(); }
 	// The id a person or an agent makes (a click, an item-tool add): 8 random letters and digits, never a dot, and never
 	// all digits (a number-like key would jump to the front of its object). Code-made structure keeps a fixed name instead.
 	// core/Session/tasks/data-shapes/ids-and-paths.md §5.
