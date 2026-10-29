@@ -91,6 +91,8 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 
 ## Watch out
 
+- **Ids: a made thing gets `Item.short_id()`, code-made structure a fixed name.** 8 random letters and digits, a letter first, never a dot (a dot is a path) and never a slug of a title (a rename would leave a lying id). `new_id()` (a UUID) is still what a bare `new Item()` gets. The rule: [ids-and-paths.md §5](/framework/core/Session/tasks/data-shapes/ids-and-paths.md).
+
 - **Indexing is the tool's job, never the agent's.** Nothing you create asks the agent to index it: `Server/AIIndex.mjs` (`--watch`, kept alive by Servex) sees any task or session log change through `fs.watch` (about 250 ms) and appends the changed row to the day's `sessions/YYYY/MM/DD/index.jsonl` through `Server/AIIndexStream.mjs` (doc `Server/doc/ai-index.md`; owner ask: [one-state](/framework/ai/doc/one-state.md)). Today:
   - ✅ A task log written by `new-task`, `append.mjs`, `Agents.open_task`, `spawn_agent` or the item tool is indexed, because the watcher reads the file, not the creator.
   - ✅ A transcript session (VS Code, CLI) is streamed by `AISessionIndex.stream_line` when it is born or its state or title changes.

@@ -10,7 +10,7 @@ The owner's questions (2026-10-28), following [flow-and-ids.md](flow-and-ids.md)
 
 ## DECIDED by the owner (2026-10-28): dots, and each level decides for itself
 
-This replaces the `/` proposal in §4, §6 and §8 below.
+This replaces the `/` proposal in §4, §6 and §8 below. *Built in the item tool on `worktree/item-generic` (build I, not merged): dotted `target` and keys walked through each level's `get`, `Item.short_id()` for every id an agent or a click makes ([Servex/doc/item-tool.md](/Servex/doc/item-tool.md)).*
 
 1. **A path uses dots, never slashes:** `{"tasks.ui.tasks.c3":{"complete":{}}}`. That form is read everywhere and typed by people and tools; the store itself keeps writing nested lines (§4). A slash looks like a file-system path. A dot reads as what it is, an in-memory JavaScript object path. Slashes stay for things that really are on disk.
 2. **`set` walks the path through `get`, one level at a time, and each level decides how to look up the next part.**

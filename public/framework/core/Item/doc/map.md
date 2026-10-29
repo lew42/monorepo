@@ -42,7 +42,7 @@ An **item** is a thing kept as one JSONL log: line 1 says what it is, later line
 ## Gaps and overlaps (for the plan)
 
 - Two ways to write a line (`log`/`LogLine` for stamped event lines, `item` for deltas the class replays) and a third for pages (`page_*`). `page_*` is `item` on a page path; the aliases can go once callers move.
-- `run_item` maps `task.jsonl`, `session.jsonl` and `page.jsonl` to Task, Session and Page (`FILE_CLASS`, `page_tools.js`), but `item-tool.md` said Session was "class not built yet" (stale; fixed there). A Session folder made by `AISession` keeps its words in `page.jsonl`, so which class wins is decided by the files present.
+- `run_item` maps `task.jsonl`, `session.jsonl`, `page.jsonl` and `improvements.jsonl` to Task, Session, Page and Improvements (`FILE_CLASS`, `page_tools.js`), or line 1's `class` when `Item.types` registers it; every one gets the same live root and one-line write (build I, 2026-10-28, [Servex/doc/item-tool.md](/Servex/doc/item-tool.md)). Earlier, `item-tool.md` said Session was "class not built yet" (stale; fixed there). A Session folder made by `AISession` keeps its words in `page.jsonl`, so which class wins is decided by the files present.
 - Cards, inbox, follows and claims are written by their own tools (`Cards.js`, `Follow.js`, `claims.js`, `ModuleInbox.js`) and are not Item classes; they are the groups the compacted-tools proposal would move behind `item` ([tools-map.md](/Servex/doc/tools-map.md)).
 
 ## How a change is saved: the browser and the item tool
