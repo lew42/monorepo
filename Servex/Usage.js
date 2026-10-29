@@ -10,6 +10,7 @@ import os from "os";
 import path from "path";
 import { execFile } from "child_process";
 import { fileURLToPath } from "url";
+import { usage_pace, report_line } from "../Server/UsagePace.mjs";
 
 const EVERY_MS = 15 * 60 * 1000;
 
@@ -50,17 +51,25 @@ export default class Usage {
 		} catch { return SONNET; }
 	}
 
-	/* True while weekly use is above the share of the week gone (the repo's pacing rule, used% <= elapsed%). The one reading of usage.json for the weekly figure. Unreadable usage counts as NOT over, so the voice seat stays on Opus when the file is missing. */
+	/* True while weekly use is above the share of the week gone (the repo's pacing rule, used% <= elapsed%). Unreadable usage counts as NOT over, so the voice seat stays on Opus when the file is missing. */
 	static over_pace(repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
-		try {
-			const j = JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/usage.json"), "utf8"));
-			const week = (j.utilization?.limits ?? []).find(l => l.kind === "weekly_all");
-			const used = week?.percent ?? j.utilization?.seven_day?.utilization;
-			const resets = Date.parse(week?.resets_at ?? j.utilization?.seven_day?.resets_at ?? "");
-			const elapsed = 100 * (1 - (resets - Date.now()) / (7 * 24 * 3600 * 1000));
-			return Number.isFinite(used) && Number.isFinite(elapsed) && used > elapsed;
-		} catch { return false; }
+		try { return usage_pace(Usage.read(repo)).week.over; } catch { return false; }
 	}
+
+	/* What the check_usage tool answers: the same numbers as `node Server/usage-now.mjs`, read from usage.json (Usage.js keeps it fresh). */
+	static status(repo = path.join(path.dirname(fileURLToPath(import.meta.url)), "..")){
+		const file = path.join(repo, "public/framework/ai/usage.json");
+		try {
+			const { week, session } = usage_pace(Usage.read(repo));
+			return {
+				ok: true, verdict: `${report_line(week)}${session ? ` · 5h session ${session.used}% used, ${session.gone.toFixed(0)}% of it gone (${session.pace}% of pace)` : ""}`,
+				week, session, over_pace: week.over,
+				age_minutes: Math.round((Date.now() - fs.statSync(file).mtimeMs) / 60000)
+			};
+		} catch (e) { return { ok: false, why: `usage.json unreadable: ${e.message}` }; }
+	}
+
+	static read(repo){ return JSON.parse(fs.readFileSync(path.join(repo, "public/framework/ai/usage.json"), "utf8")); }
 
 	tick(){
 		if (this.busy) return;
