@@ -3,3 +3,4 @@
 {"home":"/framework/servex/tasks/stamped-logs/"}
 {"wait":{"on":"/framework/servex/","what":"Servex infrastructure: logs stamped by code, not typed by AI; foundational work not started.","decide_by":"2026-10-29T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:56.371Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/stamped-logs/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:56.387Z"}
+{"stop":{"at":"2026-10-28T19:04:25-05:00","why":"dropped: deferral to /framework/servex/ is past its decide-by time (2026-10-29T00:00:00Z)"}}

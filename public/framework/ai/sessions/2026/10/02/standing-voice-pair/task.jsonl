@@ -3,3 +3,4 @@
 {"home":"/framework/servex/tasks/standing-voice-pair/"}
 {"wait":{"on":"/framework/servex/","what":"Standing voice pair system (like fixer-1) for Servex; not started.","decide_by":"2026-10-29T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:57.103Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/02/standing-voice-pair/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:57.105Z"}
+{"stop":{"at":"2026-10-28T19:04:25-05:00","why":"dropped: deferral to /framework/servex/ is past its decide-by time (2026-10-29T00:00:00Z)"}}

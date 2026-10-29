@@ -5,9 +5,9 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-28 00:03 UTC, last 24 h)
+## NOW (computed 2026-10-29 00:04 UTC, last 24 h)
 
-**Pace:** Week: 72% used · 84% gone · 86% of pace (steady, 1 day 2 hours left)
+**Pace:** Week: 79% used · 98% gone · 80% of pace (steady, 2 hours 55 minutes left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
@@ -19,14 +19,14 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 
 **Latest commits on this branch:**
 ```
-fad5e1081 servex: log sweep (31 files)
-1b461e813 servex: log sweep (31 files)
-173008dfc servex: log sweep (31 files)
-7074748f4 servex: log sweep (31 files)
-e2264b37d servex: log sweep (31 files)
-0cf842be9 servex: log sweep (31 files)
-fe8ab8b5e servex: log sweep (31 files)
-6b78d094a servex: log sweep (31 files)
+7aa4da5bd core/Session: build G session log stamp
+c0d1fd49c core/Session: build G task record (review, session log, shots)
+6c235ac49 servex: log sweep (23 files)
+7b10e6791 core/Session: build D commit stamp
+1408d163f core/Session: build D one writer landed (branch worktree/one-writer at 34fb0294e, not merged): review answered, proof, landing
+1e1817d44 core/Session: data-shapes, build F landed (not merged); builds G deprecate and H test view started
+5e4b55e3a core/Session: build F re-landed short with an ask checklist; detail in report.md; review.md items 3 and 7 as bullets
+060ff6198 core/Session: build F owner note and commit stamp
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
