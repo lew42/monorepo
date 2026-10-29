@@ -229,7 +229,7 @@ const tool = (name, description, properties, required, handler) =>
 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
 
 const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session page \"/framework/ai/sessions/<id>/\" (its file is found for you, even if none exists yet). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
-const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a string with slashes or dots. [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
+const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a slash; a hop may be a dotted path (\"tasks.ui.tasks.c3\" is four hops, each level looking up the next with its own get). [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
 
 /* ---------- page_read's COMPUTED state (deliverable 2) ----------
  * No second copy of the page is ever stored: every call re-reads page.jsonl from disk and
@@ -399,11 +399,12 @@ const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task fo
 const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. No `delta` = the current state. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
 
 // improvements.jsonl: a folder's proposed fixes and moves, one nested Task each (Servex/agents/roles/mastermind.md, "Improvements").
-const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Task" };
+const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Improvements" };
 const LOADERS = {
 	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
 	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
+	Improvements: async () => (await import("../../public/framework/core/Task/Improvements.js")).default,
 };
 /* The real Page, for the page files (LOADERS has only the Task family: Class.replay there means "a task"). The resolve hook lets Page.class.js
  * import in node (site-absolute imports map to public/); parts/kinds.js registers the part types, the ONE list the browser also imports. */
@@ -442,7 +443,7 @@ function page_text(root, file, url, format = "markdown"){
 	const base = String(url ?? "").replace(/\/?$/, "/"), subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
 	return format === "html" ? render_html(picture, subpages) : render_markdown(picture, subpages);
 }
-const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"], Improvements: ["core/Task/Improvements.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
 
@@ -451,7 +452,7 @@ const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "co
 
 // A Process adds its own line-1 field and the lines only ProcessRunner writes (core/Task/doc/process.md).
 const PROMPT_KEYS = [...TASK_KEYS, "raw", "paragraphs", "replies", "subject", "parts", "process", "handled", "text", "from"];   // core/Task/Prompt.js
-const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Prompt: PROMPT_KEYS, Question: [...TASK_KEYS, "text", "from", "answer"], Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
+const KEYS = { Task: TASK_KEYS, Improvements: TASK_KEYS, Session: SESSION_KEYS, Prompt: PROMPT_KEYS, Question: [...TASK_KEYS, "text", "from", "answer"], Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
 
 const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
 
@@ -725,7 +726,7 @@ function notify_requests(live, at, body, requests, by){
 	for (const r of requests) if (hooks.requested && r.to) Promise.resolve(hooks.requested(r)).catch(() => {});   // a log with no agent (a VS Code tab's session) has nobody to tell
 	if (!hooks.answered) return;
 	const done = [];
-	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
+	if (at.target.length && body.complete !== undefined) done.push(walk(live, at.target));
 	else if (!at.target.length){
 		if (body.complete !== undefined) done.push(live);
 		for (const [k, v] of Object.entries(body)) if (is_plain(v) && v.complete !== undefined) done.push(live._tasks?.find(k));
@@ -919,10 +920,26 @@ function complete_calls(delta, out = [], trail = []){
 	}
 	return out;
 }
-// The task a target (then a trail of child ids) names, walking `_tasks` one id at a time; the deepest one found (a Question's own rules apply to it, not the session's).
+// The item a target (then a trail of child ids) names, walked level by level through each level's own get (hop, below); the deepest one found (a Question's own rules apply to it, not the session's).
 function node_at(root, ...paths){
+	let node = root, item = root;   // the deepest ITEM on the path (a List between two items is only passed through)
+	for (const key of hops(paths.flat())){ node = hop(node, key); if (node === undefined) break; if (node instanceof Item) item = node; }
+	return item;
+}
+
+/* THE ADDRESS IS A DOTTED PATH (ids-and-paths.md, DECIDED): "tasks.ui.tasks.c3", or the same as a list of hops. Each level takes the
+ * next part with its OWN get (a property, a named List, a List's member; a subclass may look up its own way), never one walker that
+ * knows every shape. An old id-only hop (a member named without its list) still resolves, through member(). */
+const hops = path => [].concat(path ?? []).flatMap(k => String(k).split(".")).filter(Boolean);
+function hop(node, key){
+	if (node == null || typeof node !== "object") return undefined;
+	const got = typeof node.get === "function" ? node.get(key) : undefined;
+	if (got !== null && typeof got === "object") return got;
+	return node.member?.(key) ?? undefined;
+}
+function walk(root, path){
 	let node = root;
-	for (const id of paths.flat()){ const kid = node?._tasks?.find(id); if (!kid) return node; node = kid; }
+	for (const key of hops(path)){ node = hop(node, key); if (node === undefined) return undefined; }
 	return node;
 }
 
@@ -972,8 +989,9 @@ const LIST_VERBS = ["add", "remove", "move", "order", "clear"];
 
 // null = not a query delta (run it as a change); {ok:false} = a mix, refused; else the answer. Nothing here writes.
 function ask(root, target, delta){
-	let node = root;
-	for (const id of target){ node = node._tasks?.find(id); if (!node) return { ok: false, why: `no task "${id}" under this path to ask` }; }
+	const node = walk(root, target);
+	if (!node) return { ok: false, why: `no "${hops(target).join(".")}" under this path to ask` };
+	if (!(node instanceof Item)) return null;   // a List: nothing to query, the delta is its verbs
 	const r = walk_queries(node, delta);
 	if (!r.queried) return null;
 	if (r.set.length) return { ok: false, why: `${r.set.join(", ")} ${r.set.length > 1 ? "are queries" : "is a query"}: ${r.set.length > 1 ? "they only read" : "it only reads"} and cannot be set (give {} or an argument object). Nothing was written.` };
@@ -1120,6 +1138,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	url ??= own_page(ctx);
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
+	if (target !== undefined) target = hops(target);   // a dotted target is its hops: the line is still written nested
 	let at = await resolve(url, target, true);
 	if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a page under public/` };
 	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
@@ -1160,14 +1179,6 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	}
 	if (tasky){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
 	else if (Object.keys(flat).length === 1 && "completion" in flat) return { ok: false, why: `no task record at "${url}" (${path.basename(at.file)} is not a session or task record), so there is no completion to answer. Nothing was written.` };
-	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
-	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
-	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
-		// Matched by title (ids are random now, never made from the title); an older improvement whose id is its title slug matches too.
-		const a = flat.tasks.add, key = slug_of(a.title ?? a.id);
-		const same = [...(root()._tasks ?? [])].find(t => slug_of(t.get_one("title") ?? t.id) === key || t.id === key);
-		if (same) { delete flat.tasks; flat[same.id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
-	}
 	// MOVE (design.md): {"<id>":{"move":{"to":url}}}, {"tasks":{"<id>":{"move":{"to":url}}}} or move on target [<id>]. Handled here, not written as a line.
 	if (tasky){
 		const mv = (id, v) => is_plain(v) && Object.keys(v).length === 1 && is_plain(v.move) ? { id, to: v.move.to } : null;
@@ -1199,6 +1210,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	if (made?.why) return { ok: false, why: made.why, done: made.done };
 
 	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
+	let merged = null;   // adds a class merged into an existing task (Improvements), reported in the answer
 	let line = null, size;
 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
 	const put = (l, own = true) => {
@@ -1232,7 +1244,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			if (id && a.id !== undefined && taken(id))
 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Leave the id out (one is made for you), or change the existing one.` };
 			// The same title twice is the same ask (a refinement goes into the existing task): refused, as the title-made id used to be.
-			const same = !home && typeof a.title === "string" && [...(root()._tasks ?? []), ...plan.map(p => ({ id: p.id, get_one: k => p.a[k] }))].find(t => same_title(t.get_one("title"), a.title));
+			const same = !home && !Class.merges_same_title && typeof a.title === "string" && [...(root()._tasks ?? []), ...plan.map(p => ({ id: p.id, get_one: k => p.a[k] }))].find(t => same_title(t.get_one("title"), a.title));
 			if (same) return { ok: false, why: `this task already has a subtask titled "${a.title}" (id "${same.id}"); nothing was written. Change that one, or give a different title.`, existing: same.id };
 			if (!home && tasky) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
@@ -1252,6 +1264,12 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				ids.push(id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
 				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: stamp() });
+				// A class whose list merges a repeated title (Improvements) made no new task: say which one it reinforced.
+				if (Class.merges_same_title && !root()._tasks?.find(id)){
+					ids.splice(ids.indexOf(id), 1);
+					const into = [...(root()._tasks ?? [])].find(t => Class.same?.(t.get_one("title"), a.title));
+					(merged ??= []).push({ title: a.title, into: into?.id ?? null, weight: into?.weight ?? null });
+				}
 			}
 		}
 		const { tasks: _t, ...more } = body;
@@ -1292,7 +1310,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	// (it then appended the line itself: a twin). The picture is a read, item({path}) with no delta. A page's write still answers its page.
 	if (tasky){
 		const live = root();
-		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}),
+		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
 	}
 	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias ? await extra() : {}) };

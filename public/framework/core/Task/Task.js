@@ -51,7 +51,8 @@ export class Task extends Item {
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new Task.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+		// A subclass may bring its own list (Improvements merges a repeated title); its members are plain Tasks.
+		if (!this._tasks){ this._tasks = new this.constructor.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
