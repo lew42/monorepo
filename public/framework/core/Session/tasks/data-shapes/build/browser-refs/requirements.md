@@ -1,6 +1,8 @@
-# Build E: references that resolve in the browser (needed before plan step 4), from the integration branch, NOT merged
+# Build E: a link to an item in another file works in the browser (not merged)
 
-**Why:** a reference to an item in another file, such as a child session or a task folder, resolves only in node today (`Task.resolver`, `core/Task/Task.js:454-461`), so the browser draws a "loading" stub. The owner's lean (ask 35, fork F2) is that a task's subtasks move into the child session, with the parent showing them in context (ask 36). That needs references that resolve in the browser, and that survive the child renaming or moving its tasks.
+**Why, in plain words:** a session can point at an item that lives in another file, such as a child session or a task folder. Today only node can follow that pointer (`Task.resolver`, `core/Task/Task.js:454-461`); the browser shows a "loading" stub. The owner wants a task's subtasks to move into the child session while the parent still shows them (asks 35 and 36). So the browser must follow these pointers, and they must keep working when the child renames or moves its tasks. This is needed before plan step 4.
+
+Terms: a **reference** is the pointer; a **backlink** is the reverse list of who points at an item; a **forward** is a note left at an old place saying where the item went.
 
 Read: [../../ids-and-paths.md](../../ids-and-paths.md) §6 (references: absolute, backlinks computed in memory, forwards across files), [../plan-review/review.md](../plan-review/review.md) finding 8 (an id fallback across files), and [../../placement.md](../../placement.md) §5.
 

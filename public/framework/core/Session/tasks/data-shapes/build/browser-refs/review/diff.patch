@@ -1,0 +1,752 @@
+diff --git a/public/framework/core/Item/Item.js b/public/framework/core/Item/Item.js
+index a3e57de23..d22bc3938 100644
+--- a/public/framework/core/Item/Item.js
++++ b/public/framework/core/Item/Item.js
+@@ -473,14 +473,41 @@ export class Item extends Events(Object) {
+ 			return Item.hydrate(json ?? {}).assign({ saver: src });
+ 		}
+ 
++		// One root per url: a second open() (from anywhere: a Ref, a task page) gets the same live object.
+ 		const store = this.Store.for(src);
+-		await store.open();
++		if (store.host) return store.host;
++		if (store.rooting) return store.rooting;
++		const rooting = store.rooting = store.open().then(() => {
++			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
++			const Class = this === Item ? Item.class_for(store.entries) : this;
++			const { host, rest } = Class.root_from(store.entries);
++			store.entries = rest;
++			store.attach(host);
++			host.replay_end?.();
++			return host;
++		});
++		rooting.catch(() => { if (store.rooting === rooting) store.rooting = null; });   // a failed open is not cached: the next Item.open tries again
++		return rooting;
++	}
++
++	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
++	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
++	// {"assign"} record a Task; else a plain Item.
++	static class_for(entries){
++		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
++		const named = Item.types.get(first.type ?? first.class);
++		if (named) return named;
++		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
++		if (a) return Item.types.get("Task") ?? Item;
++		return Item;
++	}
+ 
+-		const [first, ...rest] = store.entries;
+-		const host = new this(first ?? {});
+-		store.entries = rest;
+-		store.attach(host);
+-		return host;
++	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
++	// rest replayed; a class with its own replay_new (Task, Session) builds its root from all the lines and replays them all.
++	static root_from(entries){
++		if (this.replay_new !== Item.replay_new) return { host: this.replay_new(entries), rest: entries };
++		const [first, ...rest] = entries;
++		return { host: new this(first ?? {}), rest };
+ 	}
+ }
+ 
+diff --git a/public/framework/core/Item/Ref.js b/public/framework/core/Item/Ref.js
+new file mode 100644
+index 000000000..626e58acc
+--- /dev/null
++++ b/public/framework/core/Item/Ref.js
+@@ -0,0 +1,163 @@
++import Item from "./Item.js";
++import Store from "./Store.js";
++
++/* Ref — a small Item that points at an item living somewhere else, instead of holding a copy (ids-and-paths.md §6).
++   It stores WHERE the target is, never its title or state, so it cannot drift:
++     {"type":"Ref","path":"tasks.ui.tasks.c3"}                                  the same file
++     {"type":"Ref","url":"/framework/ai/sessions/…/v-7k2q/","path":"tasks.ui"}  another file (a folder url opens its record)
++
++   Replay makes the Ref and nothing more. It is resolved when first needed (`resolve()`, or drawn by RefView):
++     1. the root: its own file's root (`this.root()`), or `Item.open(url)`, one root per url, the same live object everywhere;
++     2. `root.get(path)`; on a miss, the path's last part (the id) through `root.find(id)`, whose index is built on that first
++        miss and never saved (Item.find);
++     3. a target holding `{moved_to: {url, path}}` is a forward left at the old place: followed, and this Ref quietly takes the
++        new address (one line), so the next load goes straight there;
++     4. nothing found: `target` is null and RefView draws a visible "gone" row naming the path. Never silently empty.
++   Within one file, `Ref.backlinks(root)` is a Map from each path to the Refs pointing at it, computed in memory (never saved);
++   `Ref.shown(item)` answers "where is this shown", and `Ref.repath(item, old_path)` re-paths every Ref after a move, one line per Ref.
++   Node: Item.open fetches the url, so an absolute http url resolves (Ref.test.mjs); a task's {"task":"<folder>"} keeps Task.resolver. */
++export class Ref extends Item {
++
++	static fields = ["url", "path"];
++	static HOPS = 8;   // forwards followed before a chain is called a loop
++	static changes = 0;   // bumped when any Ref changes its address: the backlinks are walked again
++
++	put(key, value){ super.put(key, value); if (key === "path" || key === "url") Ref.changes++; }
++
++	/** The resolved item: undefined until resolve() has run, null when it is gone. */
++	get target(){ return this._target; }
++	get gone(){ return this._target === null; }
++
++	/** Resolve (again): find the root, the target, follow forwards; returns the target or null. A live root's change re-runs it. */
++	async resolve(){
++		const root = await this.root_of(this.url);
++		return this.settle(root, this.url);
++	}
++
++	// Steps 2 to 4 above, from a root already open.
++	async settle(root, url){
++		let path = this.path ?? "", hit = Ref.lookup(root, path), hops = 0, moved = false;
++		for (let to = Ref.forward_of(hit); to && hops < Ref.HOPS; to = Ref.forward_of(hit), hops++){
++			if (to.url){ url = to.url; root = await this.root_of(url); }
++			path = to.path ?? "";
++			hit = Ref.lookup(root, path);
++			moved = true;
++		}
++		if (Ref.forward_of(hit)){ hit = null; this._why = "the forwards loop"; }
++		if (moved && hit) this.set(url && url !== this.url ? { url, path } : { path });   // the new address, one line: next load goes straight there
++		this.watch(root);
++		return this.found(hit ?? null, root);
++	}
++
++	// The root of `url` (its own file's when none), opened once per url.
++	async root_of(url){
++		if (!url) return this.root();
++		return Item.open(await Ref.file_of(url));
++	}
++
++	found(hit, root){
++		const was = this._target;
++		this._target = hit;
++		this._root_of_target = root;
++		if (hit === null) this._why ??= `nothing at "${this.path ?? ""}"` + (this.url ? ` in ${this.url}` : "");
++		else this._why = null;
++		if (was !== hit){
++			if (was) was.off?.("delta", this._on_target);
++			if (hit) hit.on?.("delta", this._on_target ??= () => this.emit("target", this._target));
++		}
++		// Redraw only when what a row shows changed (the target, its title, its state): a replayed line fires no "delta" on the
++		// item, so the root's "read" re-settles and this compares; a read that touched nothing shown emits nothing.
++		const seen = hit ? `${hit.get_one?.("title")}|${hit.state}|${root?.get_one?.("title")}` : String(this._why);
++		if (was !== hit || seen !== this._seen){ this._seen = seen; this.emit("target", hit); }
++		return hit;
++	}
++
++	// A root that changes live (its Store read a line) may have gained or lost the target: look again, once per batch.
++	watch(root){
++		if (this._watched === root) return;
++		if (this._watched) this._watched.off?.("read", this._on_root);
++		this._watched = root;
++		root.on?.("read", this._on_root ??= () => this.settle(this._watched, this.url));
++	}
++
++	/** Why it is gone, in words, for the "gone" row. */
++	get why(){ return this._why ?? null; }
++
++	/** The title a reader sees: the root's title, then the target's, as "session › task". */
++	label(){
++		const t = this._target, root = this._root_of_target;
++		const name = x => x?.get_one?.("title") ?? x?.title ?? x?.id ?? "";
++		return root && root !== t && this.url ? `${name(root)} › ${name(t)}` : name(t);
++	}
++
++	// ---- statics: lookup, files, backlinks ----
++
++	/** The item at `path` under `root`; on a miss, the path's last part looked up as an id anywhere under it (Item.find). */
++	static lookup(root, path){
++		if (!root) return null;
++		if (!path) return root;
++		const hit = root.get(path);
++		if (hit instanceof Item) return hit;
++		const id = String(path).split(".").at(-1);
++		return root.find?.(id) ?? null;
++	}
++
++	static forward_of(item){
++		const to = item?.get_one?.("moved_to");
++		return to && typeof to === "object" ? to : null;
++	}
++
++	/** A folder url opens the record it keeps (session.jsonl, else task.jsonl, else page.jsonl); a file url is itself. */
++	static async file_of(url){
++		if (/\.jsonl$/.test(url)) return url;
++		const dir = String(url).replace(/\/?$/, "/");
++		const names = typeof document !== "undefined" ? (await import("../Router/listing.js")).names(dir) : null;
++		const order = ["session.jsonl", "task.jsonl", "page.jsonl"];
++		if (names) return dir + (order.find(n => names.includes(n)) ?? order[0]);
++		for (const n of order){
++			const res = await fetch(dir + n, { method: "HEAD" }).catch(() => null);
++			if (res?.ok && !res.headers.get("content-type")?.includes("html")) return dir + n;
++		}
++		return dir + order[0];
++	}
++
++	/** Every same-file Ref under `root`, by the path it names: computed by a walk, kept until any list changes (Item.generation),
++	    never saved. A Ref to another file is not here: across files a move leaves a forward instead. */
++	static backlinks(root){
++		const had = root._backlinks;
++		if (had && had.gen === Item.generation && had.changes === Ref.changes) return had.map;
++		const map = new Map();
++		root.walk(item => { if (item instanceof Ref && !item.url) (map.get(item.path ?? "") ?? map.set(item.path ?? "", []).get(item.path ?? "")).push(item); });
++		Object.defineProperty(root, "_backlinks", { value: { gen: Item.generation, changes: Ref.changes, map }, writable: true, configurable: true, enumerable: false });
++		return map;
++	}
++
++	/** Where is this shown: the Refs in its own file that point at it, by its path or, after a move, by its id. */
++	static shown(item){
++		const root = item.root(), path = Store.address(item, root), out = new Set(Ref.backlinks(root).get(path) ?? []);
++		for (const [p, refs] of Ref.backlinks(root)) if (p !== path && String(p).split(".").at(-1) === item.id) refs.forEach(r => out.add(r));
++		return [...out];
++	}
++
++	/** After `item` moved within its file: every Ref that named `old_path` (or found it by its id) takes the new path, one line each. */
++	static repath(item, old_path){
++		const root = item.root(), now = Store.address(item, root), refs = new Set(Ref.backlinks(root).get(old_path) ?? []);
++		for (const r of Ref.shown(item)) refs.add(r);
++		const moved = [...refs].filter(r => r.path !== now);
++		for (const r of moved) r.set({ path: now });
++		return moved;
++	}
++
++	/** A move to another file: the old place keeps `{moved_to: {url, path}}`, a forward old Refs follow. */
++	static forward(old_item, to){ old_item.set({ moved_to: { url: to.url, path: to.path ?? "" } }); return old_item; }
++}
++
++Item.register(Ref, "Ref");
++
++// A live move to another list (List.move) re-paths the same-file Refs that named the old path, one line each. Not on replay:
++// the file already holds those lines. Only while Ref is loaded: a page with no Refs pays nothing.
++Item.moving = {
++	before: item => item.root?.()?.store?.replaying || Store.muted ? undefined : Store.address(item, item.root()),
++	after: (item, old_path) => { if (old_path && Ref.backlinks(item.root()).size) Ref.repath(item, old_path); },
++};
++export default Ref;
+diff --git a/public/framework/core/Item/Ref.test.mjs b/public/framework/core/Item/Ref.test.mjs
+new file mode 100644
+index 000000000..e4b6aba6f
+--- /dev/null
++++ b/public/framework/core/Item/Ref.test.mjs
+@@ -0,0 +1,142 @@
++// Ref: references that resolve through a real Store and real files. Plain node: `node public/framework/core/Item/Ref.test.mjs`
++// The files sit in a temp folder served over http, so Item.open fetches them exactly as a browser would (one load; the live
++// tail is the browser's, shown on the session page).
++//   1. another file: Item.open(url), one root per url, then get(path); a missing target is "gone", named
++//   2. an id fallback: the path misses, the id is found through the root's index (built on that miss, never saved)
++//   3. backlinks within one file: built from the replayed lines; "where is this shown"; a move re-paths each Ref, one line each
++//   4. a forward across files: {moved_to:{url, path}} at the old place; an old Ref follows it and takes the new address
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import http from "node:http";
++import Test from "../Test/Test.js";
++import Item from "./Item.js";
++import "../List/List.js";
++import Store from "./Store.js";
++import "../Task/Task.js";
++import "../Session/Session.js";
++import Ref from "./Ref.js";
++
++const t = new Test("core/Item/Ref");
++const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "ref-test-"));
++const write = (file, lines) => { fs.mkdirSync(path.dirname(path.join(DIR, file)), { recursive: true }); fs.writeFileSync(path.join(DIR, file), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); };
++const read = file => fs.readFileSync(path.join(DIR, file), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++
++const server = http.createServer((req, res) => {
++	const file = path.join(DIR, decodeURIComponent(new URL(req.url, "http://x").pathname));
++	if (!file.startsWith(DIR) || !fs.existsSync(file) || fs.statSync(file).isDirectory()){ res.writeHead(404); return res.end(); }
++	res.writeHead(200, { "content-type": "application/x-ndjson" });
++	res.end(req.method === "HEAD" ? undefined : fs.readFileSync(file));
++});
++await new Promise(ok => server.listen(0, "127.0.0.1", ok));
++const BASE = `http://127.0.0.1:${server.address().port}`;
++
++// A document attached to a real file the way Store.test does it: a change appends its one line to the file.
++const attach = (host, file) => {
++	const store = new Store({ url: BASE + "/" + file });
++	store.append = line => fs.appendFileSync(path.join(DIR, file), JSON.stringify(line) + "\n");
++	store.attach(host);
++	return store;
++};
++
++const child = [
++	{ session: { id: "child-1", kind: "agent", at: "2026-10-28T20:00:00-05:00" } },
++	{ tasks: { add: { type: "Task", id: "t1", title: "Build the page" } } },
++	{ tasks: { add: { type: "Task", id: "t2", title: "Write the doc" } } },
++	{ tasks: { t2: { tasks: { add: { type: "Task", id: "t3", title: "Proofread" } } } } },
++];
++
++try {
++	// 1. another file, one root per url, gone
++	write("s/child-1/session.jsonl", child);
++	const r1 = new Ref({ url: "/s/child-1/", path: "tasks.t1" });
++	r1.url = BASE + "/s/child-1/";   // set after construction too: the field is the address, the line it writes is {set:{url}}
++	const hit = await r1.resolve();
++	t.eq(hit?.get_one("title"), "Build the page", "a Ref to another file resolves to the item at its path");
++	t.ok(hit?.constructor.name === "Task" && r1._root_of_target?.constructor.name === "Session", "the file opens as what its lines say: a Session record, its tasks Tasks");
++	t.eq(r1.label(), "child-1 › Build the page", "drawn in context: session › task");
++
++	const r2 = new Ref({ url: BASE + "/s/child-1/", path: "tasks.t2.tasks.t3" });
++	await r2.resolve();
++	t.ok(r2._root_of_target === r1._root_of_target, "one root per url: two Refs to one file share the same live object");
++	t.ok(await Item.open(BASE + "/s/child-1/session.jsonl") === r1._root_of_target, "and Item.open(url) answers that same root");
++	t.eq(r2.target?.get_one("title"), "Proofread", "a nested path walks one get() per level");
++
++	const gone = new Ref({ url: BASE + "/s/child-1/", path: "tasks.nope" });
++	t.eq(await gone.resolve(), null, "a missing target resolves to null");
++	t.ok(gone.gone && /tasks\.nope/.test(gone.why), `it is gone and says what it looked for (${gone.why})`);
++	const nofile = new Ref({ url: BASE + "/s/never-made/", path: "tasks.t1" });
++	t.eq(await nofile.resolve(), null, "a Ref to a folder with no record is gone too, not a throw");
++
++	// 2. an id fallback
++	const before = fs.readFileSync(path.join(DIR, "s/child-1/session.jsonl"), "utf8");
++	const stale = new Ref({ url: BASE + "/s/child-1/", path: "tasks.t1.tasks.t3" });   // t3 was under t2, never t1
++	t.eq((await stale.resolve())?.get_one("title"), "Proofread", "the path misses, the id (its last part) finds the item");
++	const root = stale._root_of_target;
++	t.ok(!Object.keys(root).includes("_deep") && !!Object.getOwnPropertyDescriptor(root, "_deep"), "the id index is built on the miss, kept off the item's keys");
++	t.eq(fs.readFileSync(path.join(DIR, "s/child-1/session.jsonl"), "utf8"), before, "and never saved: the file is unchanged");
++
++	// 3. backlinks within one file
++	const doc = Item.hydrate({ id: "doc", title: "Doc", tasks: [{ id: "ui", title: "UI", tasks: [{ id: "c3", title: "C3" }] }, { id: "done", title: "Done", tasks: [] }], chat: [] });
++	write("doc.jsonl", []);
++	attach(doc, "doc.jsonl");
++	doc.chat.add({ type: "Ref", id: "r1", path: "tasks.ui.tasks.c3" });
++	doc.chat.add({ type: "Ref", id: "r2", path: "tasks.ui.tasks.c3" });
++	doc.chat.add({ type: "Ref", id: "r3", path: "tasks.done" });
++	const c3 = doc.get("tasks.ui.tasks.c3");
++	t.eq(Ref.shown(c3).map(r => r.id), ["r1", "r2"], "where is C3 shown: the two Refs that point at it");
++	t.eq(Ref.backlinks(doc).get("tasks.done").map(r => r.id), ["r3"], "the backlinks map holds every path a Ref names");
++
++	const n = read("doc.jsonl").length;
++	doc.get("tasks.done.tasks").move("c3", { after: null, from: doc.get("tasks.ui.tasks") });   // the move alone: List.move calls Ref.repath
++	t.eq(["r1", "r2"].map(id => doc.chat.find(id).path), ["tasks.done.tasks.c3", "tasks.done.tasks.c3"], "a move re-paths the Refs that named the old path");
++	t.eq(Ref.repath(c3, "tasks.ui.tasks.c3"), [], "and calling repath again finds nothing left to do");
++	const added = read("doc.jsonl").slice(n + 1);   // after the move line itself
++	t.eq(added, [{ chat: { r1: { set: { path: "tasks.done.tasks.c3" } } } }, { chat: { r2: { set: { path: "tasks.done.tasks.c3" } } } }], "one line per Ref, naming its new path");
++
++	// Replayed from the file: the backlinks are rebuilt from the lines, and every Ref finds C3 at its new place.
++	const again = Item.hydrate({ id: "doc", title: "Doc", tasks: [{ id: "ui", title: "UI", tasks: [{ id: "c3", title: "C3" }] }, { id: "done", title: "Done", tasks: [] }], chat: [] });
++	const reader = new Store({ url: BASE + "/doc.jsonl" });
++	reader.attach(again);
++	reader.read(read("doc.jsonl"));
++	const c3b = again.get("tasks.done.tasks.c3");
++	t.ok(!!c3b, "the replayed file has C3 under Done");
++	t.eq(Ref.shown(c3b).map(r => r.id), ["r1", "r2"], "the backlinks built from the replay point at the moved C3");
++	t.ok((await again.chat.find("r1").resolve()) === c3b, "and a replayed Ref resolves straight to it");
++
++	// 4. a forward across files
++	write("s/old/session.jsonl", [
++		{ session: { id: "old", kind: "agent", at: "2026-10-28T19:00:00-05:00" } },
++		{ tasks: { add: { type: "Task", id: "w1", title: "Work, before it moved" } } },
++	]);
++	write("s/new/session.jsonl", [
++		{ session: { id: "new", kind: "agent", at: "2026-10-28T19:30:00-05:00" } },
++		{ tasks: { add: { type: "Task", id: "w1", title: "Work, in its new session" } } },
++	]);
++	// The mover leaves a forward at the old place (here as the line it writes; Ref.forward(item, to) is the call that makes it).
++	fs.appendFileSync(path.join(DIR, "s/old/session.jsonl"), JSON.stringify({ tasks: { w1: { moved_to: { url: BASE + "/s/new/", path: "tasks.w1" } } } }) + "\n");
++	const holder = Item.hydrate({ id: "holder", title: "Holder", chat: [] });
++	write("holder.jsonl", []);
++	attach(holder, "holder.jsonl");
++	const old_ref = holder.chat.add({ type: "Ref", id: "o1", url: BASE + "/s/old/", path: "tasks.w1" });
++	const followed = await old_ref.resolve();
++	t.eq(followed?.get_one("title"), "Work, in its new session", "an old Ref follows the forward to the new file");
++	t.eq([old_ref.url, old_ref.path], [BASE + "/s/new/", "tasks.w1"], "and takes the new address");
++	t.eq(read("holder.jsonl").slice(1), [{ chat: { o1: { set: { url: BASE + "/s/new/" } } } }], "written as one line (what changed: the url; the path is the same), so the next load goes straight there");
++
++	const loop = Item.hydrate({ id: "loop", chat: [] });
++	write("s/a/session.jsonl", [{ session: { id: "a" } }, { tasks: { add: { type: "Task", id: "x" } } }, { tasks: { x: { moved_to: { url: BASE + "/s/b/", path: "tasks.x" } } } }]);
++	write("s/b/session.jsonl", [{ session: { id: "b" } }, { tasks: { add: { type: "Task", id: "x" } } }, { tasks: { x: { moved_to: { url: BASE + "/s/a/", path: "tasks.x" } } } }]);
++	const looped = loop.chat.add({ type: "Ref", id: "l1", url: BASE + "/s/a/", path: "tasks.x" });
++	t.eq(await looped.resolve(), null, "two forwards pointing at each other end as gone, not a hang");
++
++	// The writer half: Ref.forward leaves the forward on a live item.
++	const left = Item.hydrate({ id: "left", title: "Left" });
++	Ref.forward(left, { url: "/s/new/", path: "tasks.w1" });
++	t.eq(left.get_one("moved_to"), { url: "/s/new/", path: "tasks.w1" }, "Ref.forward sets {moved_to:{url, path}} at the old place");
++} finally {
++	server.close();
++	fs.rmSync(DIR, { recursive: true, force: true });
++}
++
++t.done();
+diff --git a/public/framework/core/Item/RefView.css b/public/framework/core/Item/RefView.css
+new file mode 100644
+index 000000000..7c55dc15d
+--- /dev/null
++++ b/public/framework/core/Item/RefView.css
+@@ -0,0 +1,25 @@
++@layer base, theme, site, util;
++
++@layer site {
++	/* One row: state icon, where (the other file's root), ›, what (the target). Narrow: where on top, small; what below, full width. */
++	.ref-view { display: grid; grid-template-columns: auto minmax(0, max-content) auto minmax(0, 1fr); align-items: center; gap: .5em; min-width: 0; }
++	.ref-view-state { flex: none; }
++	.ref-view-state.is-complete { color: var(--green, #2e7d32); }
++	.ref-view-where { max-width: 24em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; opacity: .75; }
++	.ref-view-sep { opacity: .5; }
++	.ref-view-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
++	.ref-view-gone, .ref-view-wait { grid-column: 2 / -1; }
++	.ref-view.is-gone { opacity: .8; }
++	.ref-view-gone { font-style: italic; }
++	/* A heading naming the file once over its rows (RefView with where: false), e.g. one child session over its tasks. */
++	.ref-view-group { display: flex; align-items: center; gap: .5em; min-width: 0; margin: .6em 0 .15em; font-size: .85em; }
++	.ref-view-group .ref-view-where { max-width: none; }
++
++	@media (max-width: 40em) {
++		.ref-view { grid-template-columns: auto minmax(0, 1fr); row-gap: 0; align-items: start; }
++		.ref-view-where { grid-column: 2; max-width: none; font-size: .85em; }
++		.ref-view-sep { display: none; }
++		.ref-view-title { grid-column: 2; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
++		.ref-view-gone { white-space: normal; }
++	}
++}
+diff --git a/public/framework/core/Item/RefView.js b/public/framework/core/Item/RefView.js
+new file mode 100644
+index 000000000..89895742f
+--- /dev/null
++++ b/public/framework/core/Item/RefView.js
+@@ -0,0 +1,48 @@
++import View, { a, span, icon } from "../View/View.js";
++import Ref from "./Ref.js";
++
++View.stylesheet(import.meta, "RefView.css");
++
++/* One Ref drawn as a row: its target's state, then "where › what" (the other file's root, then the item), live. It resolves the
++   Ref on its first draw, redraws when the target or its file changes, and a Ref that finds nothing draws a "gone" row naming
++   the path it looked for. `new RefView({ref})`, or `ref.view` (Item's view getter hands it `item`). Doc: readme.md, "Ref". */
++export default class RefView extends View {
++	// The target's state as an icon (a Task's stages; anything else has none). Kept here so core/Item imports nothing from core/Task.
++	static STAGE = { idle: "check_box_outline_blank", waiting: "hourglass_empty", running: "play_circle", paused: "pause_circle", stopped: "stop_circle", complete: "check_box", loading: "hourglass_top", missing: "error_outline" };
++
++	initialize(){
++		this.ref ??= this.item;
++		this.ac("ref-view");
++		this.attr("data-ref", (this.ref.url ?? "") + "#" + (this.ref.path ?? ""));   // which Ref this row draws, for a test or a reader
++		this.redraw = () => {
++			if (this.drawn && !this.el.isConnected){ this.ref.off("target", this.redraw); return; }   // taken off the page: stop listening
++			this.drawn = true;
++			this.empty(() => this.row());
++		};
++		this.ref.on("target", this.redraw);
++		this.redraw();
++		if (this.ref.target === undefined) this.ref.resolve().catch(err => { this.ref._why = String(err?.message ?? err); this.ref.found(null, null); });
++	}
++
++	title_of(x){ return x?.get_one?.("title") ?? x?.id ?? ""; }
++
++	row(){
++		const r = this.ref, t = r.target, root = r._root_of_target;
++		this.el.classList.toggle("is-gone", t === null);
++		if (t === undefined) return void span.c("ref-view-wait muted", "… " + (r.path || r.url));
++		if (t === null){
++			icon("link_off").ac("ref-view-state");
++			span.c("ref-view-gone", `gone: ${r.why ?? r.path}`);
++			return;
++		}
++		icon(RefView.STAGE[t.state] ?? "subdirectory_arrow_right").ac("ref-view-state", "is-" + (t.state ?? "item")).attr("title", t.state ?? "");
++		if (this.where !== false && r.url && root && root !== t){   // where: false when a heading above already names the file
++			a.c("ref-view-where", this.title_of(root)).href(r.url);
++			span.c("ref-view-sep", "›");
++		}
++		const href = t.get_one?.("path");
++		(href ? a.c("ref-view-title", this.title_of(t)).href(href) : span.c("ref-view-title", this.title_of(t)));
++	}
++}
++
++Ref.View = RefView;
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index f91b4da8a..c13ceca65 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -42,10 +42,14 @@ export class Store {
+ 	// On localhost: live, two-way (append and tail). Everywhere else: one load, no
+ 	// writer — ext/JSONL/live.js is imported ONLY here, dynamically, so this file
+ 	// (and Item.js, which never imports it either) still loads in plain node.
++	// Once per file: a second open() (two references to one file, a reference and a task page) gets the same promise, never
++	// a second stream that would replay every line twice.
+ 	open(){
+-		if (!Store.local()) return this.moved().then(() => this.load());
+-
+-		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
++		if (this.opening) return this.opening;
++		const opening = !Store.local() ? this.moved().then(() => this.load())
++			: this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
++		opening.catch(() => { if (this.opening === opening) this.opening = null; });   // a failed open (server restarting) is not kept: the next open tries again
++		return this.opening = opening;
+ 	}
+ 
+ 	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.
+@@ -95,17 +99,22 @@ export class Store {
+ 	// and has not yet seen come back is dropped instead of replayed a second time;
+ 	// that is how a writer that also tails its own file ignores its own echo.
+ 	read(entries){
++		const replayed = [];
+ 		for (const entry of entries){
+ 			if (this.skip_echo(entry)){ this.count++; continue; }
+ 
+ 			if (this.host){
+ 				this.replaying = true;
+ 				try { this.host.replay_line(entry); } finally { this.replaying = false; }
++				replayed.push(entry);
+ 			} else {
+ 				this.entries.push(entry);
+ 			}
+ 			this.count++;
+ 		}
++		// One "read" event on the host per batch it replayed: a replay may change it without a "delta" (Task.replay_line puts
++		// its fields), so a view or a Ref that must redraw on a live line listens for this (core/Item/Ref.js).
++		if (replayed.length) this.host.emit?.("read", replayed);
+ 		return this;
+ 	}
+ 
+@@ -303,4 +312,7 @@ function wrap(path, payload){
+ 	return path.length === 0 ? payload : { [path[0]]: wrap(path.slice(1), payload) };
+ }
+ 
++// The dotted path from `host` down to `node` ("tasks.c3"), the one a Ref stores and `host.get(path)` reads back; "" for the host itself.
++Store.address = (node, host) => address(node, host) ?? "";
++
+ export default Store;
+diff --git a/public/framework/core/Item/doc/ref.md b/public/framework/core/Item/doc/ref.md
+new file mode 100644
+index 000000000..04195ae36
+--- /dev/null
++++ b/public/framework/core/Item/doc/ref.md
+@@ -0,0 +1,48 @@
++# Ref: a reference that resolves in the browser and in node
++
++**What it is.** `Ref` (`core/Item/Ref.js`, registered as `"Ref"`) is an Item that holds where another item is, never a copy of it. The design is [ids-and-paths.md §6](../../Session/tasks/data-shapes/ids-and-paths.md); this page is what was built (build E of the data-shapes plan, branch `worktree/browser-refs`).
++
++## How a Ref resolves
++
++1. **Replay makes the Ref and nothing more.** Its two fields are `url` (absent for the same file) and `path`, a dotted path from the file's root (`"tasks.ui.tasks.c3"`). Nothing is fetched until it is needed, so line order can never break it.
++2. **The root.** Same file: `ref.root()`. Another file: `Item.open(url)`. A folder url opens the record it keeps (`session.jsonl`, else `task.jsonl`, else `page.jsonl`; the dev server's folder listing decides, so no request 404s). `Item.open` keeps **one root per url**: a second caller, from anywhere, gets the same live object (`Store.for` keeps one Store per url, `store.open()` runs once, and `Item.open` returns `store.host` once one is attached). A `{"task": "<folder>"}` child that `Task.open_ref` already opened IS that root.
++3. **The target.** `root.get(path)`. On a miss, the path's last part (the id) is looked up through `root.find(id)`, a deep index built on that first miss and rebuilt only after a list changes (`Item.generation`). It is a hidden property, never saved.
++4. **Forwards.** A target holding `{moved_to: {url, path}}` was moved to another file. The Ref follows it (at most `Ref.HOPS` = 8, so a loop ends as gone) and writes its new address as one line, so the next load goes straight there.
++5. **Gone.** Nothing found: `target` is `null`, `why` names what was looked for, and `RefView` draws a "gone" row. Never silently empty.
++6. **Live.** The Ref listens to its target's `"delta"` and to its root's `"read"` (one event per batch of lines a Store replays, `Store.read`), and emits `"target"`. `RefView` redraws on it.
++
++**Node.** `Item.open` fetches the url, so an absolute http url works (the test serves a temp folder). A relative url has no server to ask in node, so it resolves as gone. Servex's item tool keeps resolving `{"task"}` references through `Task.resolver`, as before. A sync node hook for Ref (url → lines, like `Task.resolver`) is small to add when an agent tool first needs a Ref answered; it was left out until then.
++
++## Backlinks, within one file
++
++`Ref.backlinks(root)` is a Map from each path to the same-file Refs that name it, made by one walk and kept until a list changes or a Ref changes its address. It is computed, never written (CLAUDE.md law 7).
++
++- `Ref.shown(item)`: where is this item shown (by its path, or by its id after a move).
++- `Ref.repath(item, old_path)`: after a move inside the file, each of those Refs gets `{"set":{"path": <new>}}`, one line per Ref, through its own Store.
++- **Called by every move to another list:** `List.move` asks `Item.moving` (set by Ref.js) for the old path before and calls `Ref.repath` after, so a drag, the item tool's `move` or a `move` line all re-path. Not on replay (the file already holds those lines), and only while Ref.js is loaded. A reorder inside one list does not change a path, so it does nothing.
++
++**Decided: built by a walk on first ask, not kept up during replay.** Alternative: register each Ref as it is adopted during replay. Same answer, but it must also handle removals and a Ref's own path change; the walk is always right and costs one pass per change. Switch if a file grows to many thousands of items and `shown()` is called per draw.
++
++## Forwards, across files
++
++A move to another file leaves `{moved_to: {url, path}}` at the old place: `Ref.forward(old_item, {url, path})`. No list of referrers is stored in the target's file (that would be a two-file write that can drift). Alternative: stored backlinks per target; wins only if a site-wide "what links here" must be instant, and then node should build it as an index file, as search does.
++
++**No mover writes a forward yet.** `Ref.forward` is the call a cross-file move makes; the one cross-file mover today, `Server/TaskDirs.mjs`, moves whole folders in node and leaves its own stub instead (next paragraph). The first browser move between files should call `Ref.forward` on the old item.
++
++`Server/TaskDirs.mjs` already leaves a `moved.json` stub `{moved_to}` in a folder whose record moved; a Ref to such a folder does not read that stub yet (a folder ref opens the folder's record, and a moved folder has none). Small to add when a moved folder is first referenced.
++
++## Where it shows
++
++The session page's Chat tab (the tasks box, `core/Session/SessionTasks.js`) lists each child session's open tasks as "child › task" through Refs, eight at first, then "+ N more". One heading per child session ("child ›"), its tasks under it, so a long child title is said once. It redraws when a child's record reads a line, so a child's change shows in the parent within a frame; a Ref emits `"target"` only when its target, title or state changed, so a read that touched nothing shown redraws nothing.
++
++Two things to know. A child's Refs are drawn only after the child's own row has opened its file (`Task.open_ref`): a Ref opening it first made a second root for that url and left the row a snapshot, seen on a slow load (2026-10-28). And here the Ref resolves back to the child row's own live object (`Item.open` answers `store.host`), so on this page it proves the wiring, not that a Ref alone keeps a row live; that standalone path is what `Ref.test.mjs` covers (one load, no tail). Nothing is written: the Refs are in memory, built from the existing Session entries (no session-shape change; that is plan step 4).
++
++Measured on session-e00f55c9 (2026-10-28, worktree server): 100 open child tasks drawn; a title change and a `start` appended to the child's `session.jsonl` reached the parent's row in 7 to 19 ms (headless, three runs), and 4 to 5 ms after the review's changes. Shots: [the task's doc/](../../Session/tasks/data-shapes/build/browser-refs/doc/).
++
++## Also changed with it
++
++- `Store.open()` runs once per Store (two readers of one file no longer stream it twice); a failed open is not kept, so the next open tries again (`Item.open` likewise).
++- `Store.read()` emits `"read"` on its host after a batch, so a view can redraw when a replay changes things without a `"delta"` (Task's replay puts fields directly).
++- `Store.address(node, host)`: the dotted path a Ref stores.
++- `Item.class_for(lines)` and `Item.root_from(lines)`: `Item.open(url)` on a url nothing else names opens it as what its lines say (a session record is a Session, any other `{assign}` record a Task).
++- In the browser, a `{"task": "<folder>"}` child whose folder holds `session.jsonl` counts as a child session (`Task.is_child_session`), as node's `session_resolver` already said.
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index c08da9c96..409141a53 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -26,8 +26,9 @@ Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit c
+   view                                // getter/setter; lazy `new constructor.View({item})`: a class's OWN view, when it has one
+   views: []                           // ✅ every live default view drawing me (ux/Content/Object/DefaultView.js; ask 33)
+   remove(), root(), contains(item), walk(fn), find(id), save(), delete()
+-  toJSON(), static hydrate(json), static register(Class, name), static open(src)
++  toJSON(), static hydrate(json), static register(Class, name), static open(src)   // open(url): ONE root per url, the same live object for every caller
+ }
++ └─ Ref (Ref.js)                     // ✅ points at an item somewhere else: {path} or {url, path}; resolve() → the live target, or null (gone)
+  └─ Page (core/Page)                  // ✅ Page extends Item directly (2026-10-03 — PageLog, a middle class, folded in)
+      pages: List                      // its sub-pages
+      content: List                    // its visible blocks, made lazily
+@@ -65,6 +66,22 @@ Wire format is `{ type, id, data, <listname>: [...] }` — each List property an
+ itself, written under its own name, omitted when it never made one. All user state lives under
+ `data`. Headless, runs in node.
+ 
++## References: `Ref` (2026-10-28)
++
++A `Ref` is a small Item that points at an item living somewhere else, so the same thing can show in two places without a copy. It stores only where the target is: `{"type":"Ref","path":"tasks.ui"}` in the same file, `{"type":"Ref","url":"<folder or .jsonl>","path":"tasks.ui"}` in another.
++
++```js
++const ref = new Ref({ url: "/framework/ai/sessions/…/child/", path: "tasks.t1" });
++await ref.resolve();          // Item.open(url) (one root per url, live), then root.get(path)
++ref.target;                   // the child's live task, or null when it is gone
++new RefView({ ref });         // a row: "child › task", redrawn when either changes; "gone: …" when missing
++```
++
++- A missed path falls back to its last part, the id, through the root's own index (`find`), built on that miss and never saved.
++- Within one file, `Ref.shown(item)` says where an item is shown, and `Ref.repath(item, old_path)` re-paths those Refs after a move (one line each).
++- Across files, a move leaves `{moved_to: {url, path}}` at the old place (`Ref.forward`); an old Ref follows it and takes the new address.
++- Where it is used: the session page lists each child session's open tasks through Refs (`core/Session/SessionTasks.js`). How it works and why: [doc/ref.md](./doc/ref.md). Test: `node Ref.test.mjs`.
++
+ ## Where an item saves (the rule, 2026-10-20)
+ 
+ An item added to a parent logs its deltas to the parent's store. Not every item needs a file. An item breaks out by need: first it lives inside the parent's file, then in its own `thing.jsonl`, then in its own `thing/` directory once a real file must sit beside it.
+diff --git a/public/framework/core/List/List.js b/public/framework/core/List/List.js
+index a03889363..465c9d11b 100644
+--- a/public/framework/core/List/List.js
++++ b/public/framework/core/List/List.js
+@@ -333,6 +333,7 @@ export class List extends Item {
+ 		const source = from ?? this;
+ 		const made = typeof idOrX === "object" && idOrX !== null ? idOrX : source.find(idOrX);
+ 		if (!made) return this;
++		const was = source !== this ? Item.moving?.before(made) : undefined;   // a move to another list changes its path: Ref re-paths (core/Item/Ref.js)
+ 
+ 		if (source !== this){ source.take(made); source.released?.(made); }
+ 		else this.take(made);
+@@ -345,6 +346,7 @@ export class List extends Item {
+ 			after: this.after_of(made),
+ 			...(source !== this ? { from: source } : {}),
+ 		});
++		if (was !== undefined) Item.moving.after(made, was);
+ 		return this;
+ 	}
+ 
+diff --git a/public/framework/core/Session/SessionTasks.js b/public/framework/core/Session/SessionTasks.js
+index 3a8f65ba1..5acdbe656 100644
+--- a/public/framework/core/Session/SessionTasks.js
++++ b/public/framework/core/Session/SessionTasks.js
+@@ -2,16 +2,20 @@
+ // drawn as a row; a proposed one (waiting on the owner) gets Approve, Reject and Make it a project, each one {"decide":{task,is}} line.
+ // Approved with a module named, node moves it to <module>/tasks/<slug>/ within 5 minutes (PromptTasks.sweep).
+ // Servex files an owner prompt's asks there as proposals (Servex/agents/PromptTasks.js). Doc: doc/prompt-tasks.md.
+-import View, { div, span, button, h3, details, summary } from "../View/View.js";
++import View, { div, span, a, button, h3, details, summary } from "../View/View.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import FsFile from "/framework/ext/filesystem/FsFile.js";
+ import TaskView from "../Task/TaskView.js";
+ import Session from "./Session.js";
++import Ref from "../Item/Ref.js";
++import RefView from "../Item/RefView.js";
+ View.stylesheet(import.meta, "SessionMenu.css");
+ 
+ export default class SessionTasks extends JSONL {
+ 
++	static REFS = 8;   // child-session rows shown before "+ N more"
+ 	lines = [];
++	refs = new Map();   // "<child folder>#<task id>" -> its Ref, kept across redraws so each resolves once
+ 
+ 	// { url: the session.jsonl url, $box: the View to draw into, session_class }
+ 	// A streamed batch is applied to the one live Session, line by line: the whole record is not replayed again, and a child
+@@ -33,6 +37,7 @@ export default class SessionTasks extends JSONL {
+ 	draw(){
+ 		const Class = this.session_class ?? Session, s = this.session ??= Class.replay(this.lines), all = [...(s._tasks ?? [])];
+ 		this.on_session?.(s, this.lines);   // the session page's Overview list and Timeline read the same replay and lines
++		this.follow(s);
+ 		// A stopped task was dropped on purpose (noise, superseded, rejected): folded at the end and left out of the count (Task.progress_of).
+ 		const tasks = all.filter(t => t.state !== "stopped"), stopped = all.filter(t => t.state === "stopped");
+ 		this.$box?.empty(() => {
+@@ -40,6 +45,7 @@ export default class SessionTasks extends JSONL {
+ 			const waiting = tasks.filter(t => t.state === "waiting").length, { done, total } = s.progress();
+ 			h3.c("session-tasks-title", `Tasks · ${done} of ${total} done` + (waiting ? ` · ${waiting} waiting on you` : ""));
+ 			for (const t of tasks) this.row(t);
++			this.child_refs(s);
+ 			if (stopped.length) details.c("session-tasks-stopped", () => {
+ 				summary.c("muted", `${stopped.length} stopped, not counted`);
+ 				for (const t of stopped) div.c("session-task flex gap-50", () => TaskView.row(t));
+@@ -47,6 +53,43 @@ export default class SessionTasks extends JSONL {
+ 		});
+ 	}
+ 
++	// A child session reads its own file after the first draw (Task.open_ref) and tails it: redraw once it has, and on each line it
++	// reads later ("read" bubbles up from the child's Store, core/Item/Store.js), at most once per 200 ms.
++	follow(s){
++		const soon = this.soon ??= () => { clearTimeout(this.soon_timer); this.soon_timer = setTimeout(() => this.draw(), 200); };
++		if (this.followed !== s){ this.followed?.off("read", soon); this.followed = s; s.on("read", soon); }
++		s.walk(t => { if (t.ready && !t._ready_followed){ t._ready_followed = true; t.ready.then(() => { t._opened = true; soon(); }, soon); } });
++	}
++
++	/* Each child session's open tasks, drawn in this session as "child › task" through a Ref ({url: the child's folder, path:
++	   "tasks.<id>"}, core/Item/Ref.js): the parent holds where the task is, never a copy, so the row is the child's live task.
++	   This is how a task handed to a child shows in its parent (data-shapes plan, fork F2). Only in memory: nothing is written. */
++	child_refs(s){
++		const rows = s.sessions_below().flatMap(c => {
++			const url = c.get_one("path");
++			// Only once the child's own row has opened its file (open_ref): a Ref opening it first would make a second root for that
++			// url, and the row would fall back to a snapshot (seen on a slow load, 2026-10-28).
++			if (typeof url !== "string" || (c.ready && !c._opened)) return [];
++			return [...(c._tasks ?? [])].filter(k => k.state !== "stopped" && k.state !== "complete").map(k => {
++				const key = url + "#" + k.id;
++				if (!this.refs.has(key)) this.refs.set(key, Object.assign(new Ref({ url, path: "tasks." + k.id }), { child: c }));
++				return this.refs.get(key);
++			});
++		});
++		if (!rows.length) return;
++		const shown = this.all_refs ? rows : rows.slice(0, SessionTasks.REFS);
++		details.c("session-task-refs", () => {
++			summary.c("muted", `In child sessions · ${rows.length} open`);
++			// One heading per child session ("session ›"), its tasks under it: the long child title is said once, not on every row.
++			let last;
++			for (const r of shown){
++				if (r.child !== last){ last = r.child; div.c("ref-view-group", () => { a.c("ref-view-where", r.child.get_one?.("title") ?? r.child.id ?? r.url).href(r.url); span.c("ref-view-sep", "›"); }); }
++				div.c("session-task", () => new RefView({ ref: r, where: false }));
++			}
++			if (shown.length < rows.length) button.c("session-task-more", `+ ${rows.length - shown.length} more`).attr("type", "button").click(() => { this.all_refs = true; this.draw(); });
++		}).el.open = true;
++	}
++
+ 	// One live task: its row, and Approve / Reject / Make it a project while it waits on the owner.
+ 	row(t){
+ 		div.c("session-task flex gap-50", () => {
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index f8cd79b9e..62b097149 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -4,7 +4,7 @@ A `Session` is one run of an agent or a tab. **It is a Task** (`Session extends
+ 
+ Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.) The proposed move and the rest of the dictation/chat/session shape: [ai/system-proposal.md](/framework/ai/system-proposal.md); how the parts fit today: [ai/system-map.md](/framework/ai/system-map.md).
+ 
+-**Where the session page lives.** [`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AISessionDetail.js) (`class AISessionDetail extends Page`) draws one session at its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`. Tabs: overview, timeline, chat, tasks, and More (board, coverage, cost, models, related). Its data is this class's `SessionTasks` replaying `session.jsonl`; its Chat tab shows the Claude transcript or the file's `Prompt`s (chat v2/v3). Tabs and renderers: [ai/AISession/readme.md](/framework/ai/AISession/readme.md); how it relates to the chat: [system-map.md, section 3b](/framework/ai/system-map.md#3b-the-session-detail-page).
++**Where the session page lives.** [`ai/AISession/AISessionDetail.js`](/framework/ai/AISession/AISessionDetail.js) (`class AISessionDetail extends Page`) draws one session at its dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`. Tabs: overview, timeline, chat, tasks, and More (board, coverage, cost, models, related). Its data is this class's `SessionTasks` replaying `session.jsonl` (which also lists each child session's open tasks as "child › task" through a `Ref`, live: [core/Item/doc/ref.md](../Item/doc/ref.md)); its Chat tab shows the Claude transcript or the file's `Prompt`s (chat v2/v3). Tabs and renderers: [ai/AISession/readme.md](/framework/ai/AISession/readme.md); how it relates to the chat: [system-map.md, section 3b](/framework/ai/system-map.md#3b-the-session-detail-page).
+ 
+ ## Snapshot
+ 
+diff --git a/public/framework/core/Session/tasks/data-shapes/ids-and-paths.md b/public/framework/core/Session/tasks/data-shapes/ids-and-paths.md
+index dbaca3332..c6315e50d 100644
+--- a/public/framework/core/Session/tasks/data-shapes/ids-and-paths.md
++++ b/public/framework/core/Session/tasks/data-shapes/ids-and-paths.md
+@@ -131,7 +131,7 @@ The rule from the synthesis: **one owner per item, and everyone else holds a ref
+    - **Another file:** open that file's Store, `Item.open(url)`, which replays it once and keeps one root per url (`Store.for`, `core/Item/Store.js`, already does this), then `get(path)` on that root.
+ 3. **A target that can't be found** draws a visible "gone" row naming the path. It's never silently empty.
+ 
+-**Today's gap:** resolving a reference to another file works only in node (`Task.resolver`, `core/Task/Task.js:454`). The browser needs the same step, which is just `Item.open(url)` over the live tail it already has.
++**Built (build E, 2026-10-28, branch `worktree/browser-refs`):** `Ref` resolves in the browser too, through `Item.open(url)` over the live tail, with the id fallback, backlinks and forwards below: [core/Item/doc/ref.md](../../../Item/doc/ref.md). Before it, only node resolved one (`Task.resolver`).
+ 
+ ### Moves: the options
+ 
+diff --git a/public/framework/core/Task/Task.js b/public/framework/core/Task/Task.js
+index b672fcbf2..10d721182 100644
+--- a/public/framework/core/Task/Task.js
++++ b/public/framework/core/Task/Task.js
+@@ -207,7 +207,7 @@ export class Task extends Item {
+ 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
+ 	static session_resolver = null;
+ 	get is_session(){ return false; }
+-	static is_child_session(t){ return !!t && (t.is_session || !!Task.session_resolver?.(t.get_one("path"))); }
++	static is_child_session(t){ return !!t && (t.is_session || !!t._session_file || !!Task.session_resolver?.(t.get_one("path"))); }   // _session_file: the browser read the folder's session.jsonl (open_ref), what session_resolver tells node
+ 	/* The child sessions in my task tree, at any depth: a Session entry nests under the task that caused it, so it is found below that
+ 	   task, not only in my own list. A child session's own children are its `children`, never mine. Computed on read, never stored. */
+ 	sessions_below(){
+@@ -506,6 +506,7 @@ export class Task extends Item {
+ 			const s = this.Store.for(dir + b);
+ 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
+ 		}
++		if (store.url.endsWith("/session.jsonl") && (store.host || store.count)) kid._session_file = true;   // a session's record: a child session, as node's session_resolver says
+ 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
+ 			const res = await fetch(store.url).catch(() => null);
+ 			const entries = res?.ok ? store.parse(await res.text()) : [];
