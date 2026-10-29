@@ -24,7 +24,6 @@ export default new Doc({
 	icon: "alternate_email",
 
 	subject: mentions,
-	methods: "mention_html",
 	notes: "syntax",
 	files: "Mention.js maps/refs.js maps/people.js page.js readme.md",
 
