@@ -6,7 +6,7 @@ export function window_pace(limit, length, now = Date.now()){
 	const resets = Date.parse(limit?.resets_at), used = limit?.percent;
 	const gone = Math.min(100, Math.max(0, 100 * (1 - (resets - now) / length)));
 	const pace = Math.round(100 * used / Math.max(gone, 0.1));
-	return { used, gone: +gone.toFixed(1), margin: +(gone - used).toFixed(1), pace, over: used > gone, advice: advice(pace), resets_at: limit.resets_at, left_ms: Math.max(0, resets - now) };
+	return { used, gone: +gone.toFixed(1), margin: +(gone - used).toFixed(1), pace, over: used > gone, advice: advice(pace), resets_at: limit?.resets_at, left_ms: Math.max(0, resets - now) };
 }
 
 export function usage_pace(json, now = Date.now()){
