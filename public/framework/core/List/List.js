@@ -130,6 +130,7 @@ export class List extends Item {
 
 	// Back-compat aliases for the pre-rename names — several callers outside this
 	// task's fence still use them; renaming them too is out of fence here.
+	// DEPRECATED (2026-10-28): use `forEach` and `items` (these two aliases are the pre-rename names). Guide: /framework/core/List/readme.md. Remove when: a typed search finds no caller of `List#each` or `List#children`.
 	each(fn){ return this.forEach(fn); }
 	get children(){ return this.items; }
 

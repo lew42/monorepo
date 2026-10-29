@@ -1,5 +1,7 @@
 # Generator — pages without the filesystem
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 A seed draws a **spec string**; the spec builds a **real page tree** under this url. Real
 urls, the real Router, the real `active-page` contract, core's columns — all of it, and not
 one file on disk. It is [`styles/layouts/space/`](/framework/styles/layouts/space/) one level

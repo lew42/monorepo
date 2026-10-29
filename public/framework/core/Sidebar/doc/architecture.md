@@ -1,5 +1,7 @@
 # Sidebar architecture — a brand, a tree, a footer, nothing else
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 `Sidebar` is a `View` subclass: a brand over a search box over a tree of links, resizable by its own right edge, with a footer pinned to the bottom. Any page can render one; no layout owns it. Main class: [`Sidebar.js`](../Sidebar.js). Styles: [`Sidebar.css`](../Sidebar.css). Live demo: [`/framework/core/Sidebar/`](/framework/core/Sidebar/).
 
 ## One `pages` property; an entry with `pages` is a group

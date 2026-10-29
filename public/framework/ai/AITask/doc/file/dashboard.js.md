@@ -1,3 +1,5 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 Enumeration and loading over the same underlying rows: `dashboard(page)` for
 one day (grouped by state), `rail(page)` for the index across every day
 (`active_strip()` first, then every dormant task down one time spine),

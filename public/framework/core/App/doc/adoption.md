@@ -1,5 +1,7 @@
 # Adoption: `app` arrives on the walk, not at boot
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 A `Page` is constructed in userland at module scope (`export default new Page(…)`),
 so there is no constructor for App to inject into.
 

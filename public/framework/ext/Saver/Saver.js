@@ -1,3 +1,4 @@
+// DEPRECATED (2026-10-28): use `item.store` (`Item.Store.for(url)`) for a delta log; the Saver is whole-document storage, not for logs. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files are moved to `item.store` or this class is renamed as the whole-document store.
 export default class Saver {
 
 	constructor(...args){ this.assign(...args); }

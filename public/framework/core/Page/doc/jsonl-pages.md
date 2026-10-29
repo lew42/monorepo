@@ -1,5 +1,7 @@
 # page.jsonl pages: how they load, how they name children, one real example
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 These are three answers, each with the verbatim source and its file:line, read on 2026-10-15. The full lookup order (`md/`, `fs/`, `inbox/`, bare `.md` files) is in [loading.md](loading.md), and the line format is in [jsonl.md](jsonl.md). The classes are in [class-block.md](class-block.md).
 
 ## 1. From a url to a Page: page.js versus page.jsonl

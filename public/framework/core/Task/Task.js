@@ -30,6 +30,7 @@ const FIELDS = ["title", "expected", "module", "mode", "now", "description", "wa
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
+// DEPRECATED (2026-10-28): use `complete` (the `finish` verb and `Task#finish`). Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated; no live code calls `Task#finish`.
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 
 export class Task extends Item {
@@ -440,6 +441,7 @@ export class Task extends Item {
 	}
 
 	// Old name, kept for old callers and old logs; nothing new writes it.
+	// DEPRECATED (2026-10-28): use `complete(args)`. Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated by script.
 	finish(args){ return this.complete(args); }
 
 	// ---- Replay: Item.replay / Item.Store.read drive these; only the legacy mapping lives here ----
@@ -541,6 +543,7 @@ export class Task extends Item {
 			// put(), not set(): set() reads `at` as a path (and drops the line) and calls any key that names a method.
 			const { state, session_id, at: _t, ...rest } = a;
 			for (const [k, v] of Object.entries(rest))
+				// DEPRECATED (2026-10-28): use per-field deltas (`completed_at`, `completion`, `session`). Guide: /framework/core/Task/readme.md. Remove when: no history log carries `assign.finished_at` or a numeric `assign.complete` and the others are migrated by script.
 				this.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
 			if (session_id !== undefined) this.put("session", session_id);
 		}
@@ -599,6 +602,7 @@ export class Task extends Item {
 	}
 
 	// landed -> complete (landed_at alone, outcome or not: Server/doc/state.md), closed -> stopped, else running (today's chasing)
+	// DEPRECATED (2026-10-28): use explicit state verbs in the log; this infers state for old folders with none. Guide: /framework/core/Task/readme.md. Remove when: no history log needs the state inference (not true today: 46+ non-dated logs and many dated ones have no explicit verb).
 	replay_legacy(partial){
 		const d = this.data;
 		if (d.landed_at) this.set({ state: "complete", completed_at: d.landed_at });

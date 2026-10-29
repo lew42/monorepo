@@ -1,5 +1,7 @@
 # page.js notes
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 ## The Overview as a palette
 
 The Overview is the **palette**: every building block a page can be made of, each card a picture of the shape and nothing else.

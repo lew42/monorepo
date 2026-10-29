@@ -1,5 +1,7 @@
 # Nav architecture — show each pattern as a real site, never a screenshot
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 `/web/nav/` is a set of navigation patterns, each one a live, clickable fake site. The section is a plain page whose `children:` names the patterns; the rail beside its text is the section itself. Entry: [`page.js`](../page.js). Each pattern is one folder with one `page.js`; demo sites are built there, not in shared code.
 
 ## The rail is built from `initialize()`, never `content()`

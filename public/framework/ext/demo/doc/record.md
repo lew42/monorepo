@@ -1,5 +1,7 @@
 # demo — design record, long form
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 **question → options → weighing → verdict.** The current state is one screen up,
 in `../readme.md`; this is the history, the alternatives and the reversals. Where
 the two disagree, the readme is right and a section here has gone stale — §21

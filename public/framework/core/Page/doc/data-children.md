@@ -1,5 +1,7 @@
 # Children that live in data — two seams, one applied
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 **Seam 1 was applied on 2026-09-17**, on the owner's own sentence that day — *"pages are
 everything and they don't have to be real paths… even if they don't have a real path slash
 page.js, they can still use this if they can pretend as if they did"* — which is the
