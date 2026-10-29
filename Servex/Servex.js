@@ -425,16 +425,23 @@ export default class Servex extends Events {
         const runner = new Process({
             name, log: this.log, port: project.port, cwd: project.dir,
             command: start.command, args: start.args, shell: start.shell,
-            // The main site answers the home Wi-Fi too, so the desktop and the phone reach ONE
-            // server (http://10.0.0.135:3104/); the owner approved this 2026-10-04. Worktree
-            // servers stay loopback. Exec/write routes keep their own loopback guards.
             // NO_PAGEFILES on worktree servers: a worktree's files.jsonl listings are the main
             // tree's to keep; catching them up there made 74-101 tracked edits that blocked merge and removal.
-            env: { NO_WHISPER: "1", HOST: name === "monorepo" ? "0.0.0.0" : "127.0.0.1", ...(name === "monorepo" ? {} : { NO_PAGEFILES: "1" }) },
+            env: { NO_WHISPER: "1", HOST: this.host(name), ...(name === "monorepo" ? {} : { NO_PAGEFILES: "1" }) },
             detach: true                  // outlives Servex; the next Servex adopts it — Process.js
         });
         this.processes.set(name, runner);
         return runner;
+    }
+
+    /* Which address a project's dev server binds. The main site answers the home Wi-Fi too, so the
+     * desktop and the phone reach ONE server (http://10.0.0.135:3104/); the owner approved this
+     * 2026-10-04. A worktree waiting for its merge whose task asked for a preview does too
+     * (Worktrees.serve_previews keeps the list and restarts the server; build F, 2026-10-28).
+     * Every other worktree stays loopback. Exec/write routes keep their own loopback guards, and a
+     * LAN socket is push-only (public/framework/dev/Socket/doc/lan.md). */
+    host(name){
+        return name === "monorepo" || this.worktrees?.lan?.has(name) ? "0.0.0.0" : "127.0.0.1";
     }
 
     async command(name, verb){
@@ -915,6 +922,15 @@ export default class Servex extends Events {
 
         /* The worktree pool: { K, N_hours, slots: [...] } — the Live card reads it. */
         router.get("/api/worktrees", cors, (req, res) => res.json(this.pool ? this.pool.list() : { K: 0, N_hours: 0, slots: [] }));
+
+        /* A clean-up pass now, not in up to 10 minutes: on-landing.mjs posts it when a task that asked for a
+         * preview lands, so its worktree's dev server is on the LAN before the owner taps the link. Answers the
+         * pass's summary (Worktrees.summary: `waiting`, `lan`). The router is loopback only. */
+        router.post("/api/worktrees/tick", async (req, res) => {
+            if (!this.worktrees) return res.json({ ok: false, why: "SERVEX_NO_WORKTREES is set" });
+            try { await this.worktrees.tick(); res.json({ ok: true, ...this.worktrees.summary() }); }
+            catch (e) { res.status(500).json({ ok: false, why: String(e?.message || e) }); }
+        });
 
         /* SERVER OBJECTS (Cards that show the thing, 2026-09-25) — walks Servex instance two levels deep.
          * Returns names, counts, and states only, never sensitive values. */

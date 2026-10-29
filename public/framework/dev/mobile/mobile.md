@@ -23,6 +23,10 @@ Find the site's own port — `node server.js` prints it when it starts, or ask S
 `monorepo.localhost` will **not** work on the phone. Only this machine answers `.localhost`
 names (next section).
 
+A worktree's server answers only this machine, except a worktree waiting for review whose task
+asked for a preview: its link is on the merge card and in the task's log
+([worktree-preview.md](/Servex/doc/worktree-preview.md)).
+
 ## 3. Fix the microphone
 A browser will not hand out `navigator.mediaDevices` on a plain `http://` LAN address — the
 browser's own rule, not a bug in this app. Full detail and exact commands:

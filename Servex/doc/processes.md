@@ -99,8 +99,8 @@ Every folder in `C:/Code/lew42/worktrees/` becomes a Servex project with its own
 - **locked** or **no branch** (a detached HEAD): never touched.
 - **in use**: an agent works in it, or git touched it in the last 2 hours (`SERVEX_WORKTREE_QUIET_HOURS`): any change to its index, `HEAD` or the LAST LINE of `logs/HEAD` (read by its own timestamp, not the file's mtime — `git gc` or a reflog expiry can rewrite `logs/HEAD` without adding a line, which once made 36 worktrees at once look freshly used), so a status, an add, a commit or a checkout all count (a VS Code tab may be in it). Our own pass reads with `--no-optional-locks`, so it never counts.
 - **uncommitted**: it has real changes. Never touched.
-- **open**: its branch has commits michael/dev does not.
-- **finished**: its branch is merged or applied by merge.mjs, or the task that took it has landed and its owner has stopped.
+- **open**: its branch has commits michael/dev does not. `waiting` when its task has landed: it is held until the merge (or 48 quiet hours), and a task that asked for a preview has its server on the home Wi-Fi and is never stopped as idle ([worktree-preview.md](worktree-preview.md)).
+- **finished**: its branch is merged or applied by merge.mjs.
 
 A **finished** worktree is removed:
 1. `Server/junction-check.mjs` must pass first. If it fails, nothing is removed that pass; the failure goes to the `servex` log and shows as `worktrees.junctions_ok: false` in `/api/processes`, and the next pass (10 minutes on) tries again.
@@ -126,6 +126,8 @@ and `Worktrees.js` checks it on every pass, independently of the `pool`/`locked`
 - **nothing has used it for the same 2 quiet hours** as the `in use` check above, with no live
   agent working there right now.
 - **Never** a `qf-*` pool slot (`Pool.js` looks after those itself).
+- **Never** a preview waiting for its merge (on the `lan` list): the phone opens its port directly,
+  and nothing would start it again ([worktree-preview.md](worktree-preview.md)).
 
 The dev server stops through Servex's own stop path — `command(name, "stop")`, the exact call
 `stop_server` makes — so Servex's own record of it stays correct and the proxy's autostart still

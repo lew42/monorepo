@@ -36,6 +36,7 @@ import { task_state, task_for_worktree } from "../Server/worktree-sweep.mjs";
 import SessionRecord from "../Server/SessionRecord.mjs";
 import LogLine from "../Server/LogLine.mjs";
 import Landed from "./Landed.js";
+import WorktreePreview from "../Server/WorktreePreview.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const norm = p => p ? path.resolve(String(p)).replace(/\\/g, "/").toLowerCase() : "";
@@ -262,6 +263,8 @@ export default class Lifecycle {
 		for (let p = this.procs?.get(r.pid), i = 0; p && i < 4 && /^(node|cmd)\.exe$/i.test(p.name); p = this.procs.get(p.ppid), i++)
 			if (/Servex[\\/](index|sustain|gate)\.m?js|whisper/i.test(p.cmd)) return "Servex, the gate or whisper owns it";
 		if (r.path && /[\\/]worktrees[\\/]qf-\d+/i.test(r.path)) return "a pool slot (Pool.js looks after it)";
+		// a dev server the owner's phone link points at, until its branch merges (build F, Servex/doc/worktree-preview.md)
+		if (r.path && r.kind === "server"){ const held = WorktreePreview.held(r.path, main_repo()); if (held) return held; }
 		// An unlogged chrome.exe (logged: false, from the Playwright-marker scan above) has no path
 		// to judge by — it skips the "logged or under C:\Code\lew42" guard below entirely and goes
 		// straight to why()'s own orphan/30-minute rule instead.
