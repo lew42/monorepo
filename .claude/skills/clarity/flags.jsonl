@@ -1947,3 +1947,6 @@
 {"at":"2026-10-29T00:51:08.463Z","target":"public/framework/core/Session/tasks/data-shapes/build/cross-review/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-10-29T00:52:09.518Z","target":"public/framework/core/Session/tasks/data-shapes/build/cross-review/requirements.md","verdict":"spawned","to":"clarity-cross-review"}
 {"at":"2026-10-28T12:00:00Z","target":"public/framework/core/Session/tasks/data-shapes/build/cross-review/requirements.md","verdict":"clear","what":"text-check clean; title, table of branches and numbered answers read in ten seconds","to":"none"}
+{"at":"2026-10-29T03:13:56.300Z","target":"public/framework/core/Session/tasks/data-shapes/build/integration-2/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-10-29T03:14:57.379Z","target":"public/framework/core/Session/tasks/data-shapes/build/integration-2/requirements.md","verdict":"spawned","to":"clarity-integration-2-2"}
+{"at":"2026-10-28T12:00:00.000Z","target":"public/framework/core/Session/tasks/data-shapes/build/integration-2/requirements.md","verdict":"clear","what":"text-check clean; title and steps clear, step 6 outcome list is concrete","to":"none"}
