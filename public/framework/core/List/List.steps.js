@@ -24,7 +24,7 @@ export default [
 	},
 	{
 		title: "Add",
-		code: `shop.items.add({ id: "milk" })   // the Add milk button`,
+		code: `shop.items.add({ id: "milk" })   // Add milk`,
 		note: "One line, under the list's name. The member's parent is the owner, never the list.",
 		run: t => t.click("Add milk", () => { t.milk = t.shop.items.add({ id: "milk" }); }),
 		check: t => t.milk.parent === t.shop && ids(t.shop.items) === "milk" && "items" in t.lines[0],
@@ -40,7 +40,7 @@ export default [
 	},
 	{
 		title: "Move",
-		code: `shop.items.move("milk", { after: null })   // the Milk first button`,
+		code: `shop.items.move("milk", { after: null })   // Milk first`,
 		note: "A move is one line too, naming the member and where it goes.",
 		run: t => t.click("Milk first", () => t.shop.items.move("milk", { after: null })),
 		check: t => ids(t.shop.items) === "milk,bread" && t.lines.length === 1,

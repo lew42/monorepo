@@ -12,6 +12,7 @@ import ScratchStore from "../Item/watch/ScratchStore.js";
  *   t.click(label, fn)   the UI path: in the browser a real button labelled `label` is pressed and its listener runs
  *                        `fn` (TestView.press); in node `fn` runs directly
  *   t.same(a, b)         the two objects are equal as data, and in the browser their two drawn views read the same
+ *   t.cleanup(fn)        run `fn` when the run ends: after the last step, a failed step, or `end()` (Start over)
  * `ui` is the browser's TestView; node passes none.
  */
 export default class Steps {
@@ -24,7 +25,12 @@ export default class Steps {
 		t.store.on_lines = lines => t.lines.push(...lines);
 		t.click = (label, fn) => ui ? ui.press(label, fn) : fn();
 		t.same = (a, b) => JSON.stringify(a) === JSON.stringify(b) && (!ui || ui.same(a, b));
+		this.cleanups = [];
+		t.cleanup = fn => this.cleanups.push(fn);
 	}
+
+	// Undo what the steps set up for the run (a held clock): once, however the run stops.
+	end(){ this.cleanups.splice(0).reverse().forEach(fn => fn()); }
 
 	get done(){ return this.at >= this.steps.length; }
 
@@ -38,6 +44,7 @@ export default class Steps {
 		catch (e){ ok = false; error = e; }
 		const result = { step, ok, error, lines: [...t.lines] };
 		this.results.push(result);
+		if (!ok || this.done) this.end();
 		return result;
 	}
 

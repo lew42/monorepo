@@ -28,7 +28,7 @@
 	.core-test-view-list > li.is-fail { color: var(--red, crimson); }
 	.core-test-view-list > li.is-next .core-test-view-title { font-weight: 600; }
 	.core-test-view-list > li > * { display: block; }
-	.core-test-view-list code { white-space: normal; overflow-wrap: anywhere; }
+	.core-test-view-list code { white-space: normal; overflow-wrap: break-word; font-size: .8em; }   /* break at spaces; one line for most steps */
 	.core-test-view-said { color: var(--subtle); font-size: .9em; }
 
 	.core-test-view-controls { min-height: 2.4em; align-items: center; }

@@ -60,6 +60,7 @@ export default class TestView extends View {
 		url.searchParams.set("test", this.name);
 		history.replaceState(history.state, "", url.href.replace(/([?&]step)=(?=&|$)/, "$1"));   // ?step, not ?step=
 		this.el.querySelectorAll(".core-test-view-pick").forEach(b => b.classList.toggle("is-on", b.dataset.test === this.name));
+		this.run?.end();
 		this.token = (this.token ?? 0) + 1;
 		this.steps = this.tests[this.name];
 		this.run = new Steps(this.steps, { ui: this });
@@ -103,9 +104,11 @@ export default class TestView extends View {
 	// One step has run: its verdict, the lines it wrote as one log group.
 	after({ step, ok, error, lines }){
 		this.show(this.run.t);
-		this.logger.group(`${this.run.at}. ${step.title}`);
-		lines.forEach(line => this.logger.log(line));
-		this.logger.end();
+		if (lines.length){   // a step that wrote nothing gets no empty card
+			this.logger.group(`${this.run.at}. ${step.title}`);
+			lines.forEach(line => this.logger.log(line));
+			this.logger.end();
+		}
 		this.draw_list();
 	}
 
@@ -147,9 +150,9 @@ export default class TestView extends View {
 	// One line per step: its title and code; the step that just ran also says what it showed, a failed one why.
 	draw_list(){
 		const at = this.run.at, results = this.run.results, passed = results.filter(r => r.ok).length;
-		this.$tally.text(this.run.done
-			? `${passed} of ${results.length} steps pass. Node runs the same steps: node ${this.file()}`
-			: `${this.steps.length} steps. ${this.stepping ? "Press Next step; with DevTools open, each step stops at a breakpoint." : "Running…"}`);
+		this.$tally.empty(() => this.run.done
+			? [span(`${passed} of ${results.length} steps pass. Node runs the same steps: `), code(`node ${this.name}.steps.test.mjs`), span(` in core/${this.name}/.`)]
+			: span(`${this.steps.length} steps. ${this.stepping ? "Press Next step; with DevTools open, each step stops at a breakpoint." : "Running…"}`));
 		this.$list.empty(() => this.steps.forEach((step, i) => {
 			const r = results[i];
 			li.c([r ? (r.ok ? "is-pass" : "is-fail") : i === at ? "is-next" : "", i === Math.max(at - 1, 0) ? "is-focus" : ""].join(" ").trim(), () => {
@@ -161,5 +164,4 @@ export default class TestView extends View {
 		this.$next.el.disabled = this.$all.el.disabled = this.run.done;
 	}
 
-	file(){ return `public/framework/core/${this.name}/${this.name}.steps.test.mjs`; }
 }

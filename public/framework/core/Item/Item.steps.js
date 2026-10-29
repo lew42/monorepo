@@ -25,7 +25,7 @@ export default [
 	},
 	{
 		title: "Set",
-		code: `shop.set({ title: "Weekly shop" })   // the Rename button`,
+		code: `shop.set({ title: "Weekly shop" })   // Rename`,
 		note: "A field on the root: one flat line.",
 		run: t => t.click("Rename", () => t.shop.set({ title: "Weekly shop" })),
 		check: t => t.shop.get("title") === "Weekly shop" && t.lines.length === 1,
@@ -33,7 +33,7 @@ export default [
 	},
 	{
 		title: "Add a child",
-		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })   // the Add milk button`,
+		code: `const milk = shop.items.add({ id: "milk", title: "Milk", count: 1 })   // Add milk`,
 		note: "A list verb: one line, under the list's name. The child's parent is now shop.",
 		run: t => t.click("Add milk", () => { t.milk = t.shop.items.add({ id: "milk", title: "Milk", count: 1 }); }),
 		check: t => t.milk.parent === t.shop && t.lines.length === 1 && "items" in t.lines[0],
