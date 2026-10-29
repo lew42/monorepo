@@ -31,6 +31,7 @@ const FIELDS = ["title", "expected", "module", "mode", "now", "description", "wa
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+const VERDICTS = new Set(["approve", "improve", "reject"]);
 
 export class Task extends Item {
 
@@ -535,7 +536,8 @@ export class Task extends Item {
 		const rp = this._rp ??= { at: null, explicit: false };
 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
-		const verb = VERBS.find(v => line[v] && typeof line[v] === "object");
+		// A verdict may be a bare note ({"approve":"ok"}): the verb takes a string itself, so the line is written as given.
+		const verb = VERBS.find(v => line[v] && (typeof line[v] === "object" || (VERDICTS.has(v) && typeof line[v] === "string")));
 		rp.at = line.at ?? line.ts ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
 		if (a){
 			// put(), not set(): set() reads `at` as a path (and drops the line) and calls any key that names a method.
@@ -584,6 +586,7 @@ export class Task extends Item {
 			this._applying = true;
 			try {
 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
+				else if (typeof line[verb] === "string") this[verb](line[verb]);
 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
 			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
 		}

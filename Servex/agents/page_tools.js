@@ -1120,8 +1120,6 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
 	if (!is_plain(delta)) return { ok: false, why: "`delta` must be one object (a log line)" };
 	const flat = expand_dots(delta);
-	// A verdict verb given as a bare note ({"approve":"ok"}) would be written but ignored on replay (Task.replay_line reads verbs as objects): make it {note}.
-	for (const v of ["approve", "improve", "reject"]) if (typeof flat[v] === "string") flat[v] = { note: flat[v] };
 	if (Object.keys(flat).length === 1 && flat.help){
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };

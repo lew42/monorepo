@@ -1,4 +1,4 @@
-/* node Servex/agents/verb-note.test.mjs — {"approve":"note"} through the item tool is written as {note} and takes effect (core/Task/doc/templates.md). */
+/* node Servex/agents/verb-note.test.mjs — {"approve":"note"} through the item tool is written as given and takes effect (Task.replay_line passes the string to the verb) (core/Task/doc/templates.md). */
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
@@ -17,7 +17,8 @@ try {
 	await call({ wait: { on: "mastermind", what: "plan review" } });
 	const r = await call({ approve: "looks good" });
 	const last = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l)).filter(l => l.approve).at(-1);
-	assert.equal(last.approve.note, "looks good", "a string approve is written as {note}");
+	assert.equal(last.approve, "looks good", "a string approve is written as given: Task's verb takes the note itself, the tool no longer rewrites it");
+	assert.equal(r.state.data.verdict?.note, "looks good", "and the note reaches the verdict");
 	assert.equal(r.state.state, "idle", "and it takes effect: waiting -> accepted (idle); start is the agent's own call");
 	console.log("verb-note.test.mjs: all checks passed");
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
