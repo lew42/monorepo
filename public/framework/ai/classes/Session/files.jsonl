@@ -2,3 +2,4 @@
 {"file":"page.js"}
 {"file":"failures.jsonl"}
 {"file":"improvements.jsonl"}
+{"file":"failures.jsonl","gone":true}

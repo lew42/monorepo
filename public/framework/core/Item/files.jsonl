@@ -24,3 +24,7 @@
 {"file":"Item.life.js"}
 {"file":"methods/"}
 {"file":"methods/","gone":true}
+{"file":"delta-flow.test.mjs"}
+{"file":"persistence.test.mjs"}
+{"file":"RecordWriter.js"}
+{"file":"RecordWriter.test.mjs"}

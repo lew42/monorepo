@@ -42,7 +42,7 @@ build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works onc
 build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
 build.duration();         // ms of RUNNING time — pausing stops the clock
 
-build.tasks.add("Write the readme");                  // a string: a Task with that title (id "write-the-readme", Task.slug)
+build.tasks.add("Write the readme");                  // a string: a Task with that title and a random 8-character id (Item.short_id)
 build.tasks.add({ title: "Shoot it", expected: "…" }); // an object with no type: a Task
 build.tasks.add({ type: "Project", title: "Next" });  // a typed object: that class (Project, Process, Session)
 ```
