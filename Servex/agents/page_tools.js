@@ -939,9 +939,15 @@ function hop(node, key){
 	if (got !== null && typeof got === "object") return got;
 	return node.member?.(key) ?? undefined;
 }
+// One walker (cross-review finding 4): the root's own get takes the whole dotted path once, and each level hands the rest on
+// (Item.get). Only when that finds nothing does it go hop by hop, so an old id-only hop still resolves through member().
 function walk(root, path){
+	const parts = hops(path);
+	if (!parts.length) return root;
+	const got = typeof root?.get === "function" ? root.get(parts.join(".")) : undefined;
+	if (got !== null && typeof got === "object") return got;
 	let node = root;
-	for (const key of hops(path)){ node = hop(node, key); if (node === undefined) return undefined; }
+	for (const key of parts){ node = hop(node, key); if (node === undefined) return undefined; }
 	return node;
 }
 
