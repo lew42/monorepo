@@ -477,14 +477,41 @@ export class Item extends Events(Object) {
 			return Item.hydrate(json ?? {}).assign({ saver: src });
 		}
 
+		// One root per url: a second open() (from anywhere: a Ref, a task page) gets the same live object.
 		const store = this.Store.for(src);
-		await store.open();
+		if (store.host) return store.host;
+		if (store.rooting) return store.rooting;
+		const rooting = store.rooting = store.open().then(() => {
+			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
+			const Class = this === Item ? Item.class_for(store.entries) : this;
+			const { host, rest } = Class.root_from(store.entries);
+			store.entries = rest;
+			store.attach(host);
+			host.replay_end?.();
+			return host;
+		});
+		rooting.catch(() => { if (store.rooting === rooting) store.rooting = null; });   // a failed open is not cached: the next Item.open tries again
+		return rooting;
+	}
 
-		const [first, ...rest] = store.entries;
-		const host = new this(first ?? {});
-		store.entries = rest;
-		store.attach(host);
-		return host;
+	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
+	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
+	// {"assign"} record a Task; else a plain Item.
+	static class_for(entries){
+		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
+		const named = Item.types.get(first.type ?? first.class);
+		if (named) return named;
+		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
+		if (a) return Item.types.get("Task") ?? Item;
+		return Item;
+	}
+
+	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
+	// rest replayed; a class with its own replay_new (Task, Session) builds its root from all the lines and replays them all.
+	static root_from(entries){
+		if (this.replay_new !== Item.replay_new) return { host: this.replay_new(entries), rest: entries };
+		const [first, ...rest] = entries;
+		return { host: new this(first ?? {}), rest };
 	}
 }
 

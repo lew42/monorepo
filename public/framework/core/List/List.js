@@ -334,6 +334,7 @@ export class List extends Item {
 		const source = from ?? this;
 		const made = typeof idOrX === "object" && idOrX !== null ? idOrX : source.find(idOrX);
 		if (!made) return this;
+		const was = source !== this ? Item.moving?.before(made) : undefined;   // a move to another list changes its path: Ref re-paths (core/Item/Ref.js)
 
 		if (source !== this){ source.take(made); source.released?.(made); }
 		else this.take(made);
@@ -346,6 +347,7 @@ export class List extends Item {
 			after: this.after_of(made),
 			...(source !== this ? { from: source } : {}),
 		});
+		if (was !== undefined) Item.moving.after(made, was);
 		return this;
 	}
 

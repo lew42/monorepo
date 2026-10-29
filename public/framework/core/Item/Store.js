@@ -42,10 +42,14 @@ export class Store {
 	// On localhost: live, two-way (append and tail). Everywhere else: one load, no
 	// writer — ext/JSONL/live.js is imported ONLY here, dynamically, so this file
 	// (and Item.js, which never imports it either) still loads in plain node.
+	// Once per file: a second open() (two references to one file, a reference and a task page) gets the same promise, never
+	// a second stream that would replay every line twice.
 	open(){
-		if (!Store.local()) return this.moved().then(() => this.load());
-
-		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+		if (this.opening) return this.opening;
+		const opening = !Store.local() ? this.moved().then(() => this.load())
+			: this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+		opening.catch(() => { if (this.opening === opening) this.opening = null; });   // a failed open (server restarting) is not kept: the next open tries again
+		return this.opening = opening;
 	}
 
 	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.
@@ -95,17 +99,22 @@ export class Store {
 	// and has not yet seen come back is dropped instead of replayed a second time;
 	// that is how a writer that also tails its own file ignores its own echo.
 	read(entries){
+		const replayed = [];
 		for (const entry of entries){
 			if (this.skip_echo(entry)){ this.count++; continue; }
 
 			if (this.host){
 				this.replaying = true;
 				try { this.host.replay_line(entry); } finally { this.replaying = false; }
+				replayed.push(entry);
 			} else {
 				this.entries.push(entry);
 			}
 			this.count++;
 		}
+		// One "read" event on the host per batch it replayed: a replay may change it without a "delta" (Task.replay_line puts
+		// its fields), so a view or a Ref that must redraw on a live line listens for this (core/Item/Ref.js).
+		if (replayed.length) this.host.emit?.("read", replayed);
 		return this;
 	}
 
@@ -302,5 +311,8 @@ function list_name(owner, key, list){
 function wrap(path, payload){
 	return path.length === 0 ? payload : { [path[0]]: wrap(path.slice(1), payload) };
 }
+
+// The dotted path from `host` down to `node` ("tasks.c3"), the one a Ref stores and `host.get(path)` reads back; "" for the host itself.
+Store.address = (node, host) => address(node, host) ?? "";
 
 export default Store;
