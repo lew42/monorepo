@@ -114,12 +114,32 @@ The chat is drawn over the stored list. The fast seat folds into the smart agent
 | Build F: worktree preview, kept up and on the phone | mastermind-build-worktree-preview (Opus, high) | [build/worktree-preview/](build/worktree-preview/requirements.md) | `worktree/worktree-preview`: **landed, not merged.** A landed, unmerged worktree is kept until its merge (38 checks); its server goes on home Wi-Fi only when the task asks for a preview; the phone link is on the ready-to-merge card. Not yet tried on a real phone. Live after the merge plus `node Servex/sustain.mjs --restart`, never during a voice call |
 | Build G: mark the lingering legacy | mastermind-build-deprecate (Sonnet, high) | [build/deprecate/](build/deprecate/requirements.md) | `worktree/deprecate`: **landed, not merged.** 13 deprecation marks on 11 symbols; 44 docs carry an "old way" line; census script `Server/Deprecated.mjs`; the `page.children` guide moved beside `core/Page/` |
 | Build H: watch a class's test run, steppable | mastermind-build-test-view (Opus, high) | [build/test-view/](build/test-view/requirements.md) | `worktree/test-view`: **landed, not merged.** `/framework/core/Test/view/?test=Task` (add `&step` to pause at `debugger`); one test in node and on the page (Item 6/6, List 7/7, Task 7/7); a UI click then a JSONL replay draw the same views; review: 7 fixed, 1 noted |
-| Build I: the item tool, generic over every class (step 1e; spawned 19:20) | mastermind-build-item-tool (Opus, high) | [build/item-tool/](build/item-tool/requirements.md) | `worktree/item-generic` (an older `worktree/item-tool` branch already existed), from build D: working; so far verdict strings replay in Task, and ids are 8 random characters, never a title slug |
-| Cross-review of all nine branches (read-only; spawned 19:51) | mastermind-cross-review (Opus, high) | [build/cross-review/](build/cross-review/requirements.md) | none (writes `review.md`: clashes, drift, merge order, what integration 2 must test) |
+| Build I: the item tool, generic over every class (step 1e) | mastermind-build-item-tool (Opus, high) | [build/item-tool/](build/item-tool/requirements.md) | `worktree/item-generic` (contains D): **landed, not merged.** One live root per file for any class; dotted addresses walk any list, written nested; agent-made ids are 8 random characters (folders keep title slugs); verdict strings and the improvements merge moved into class verbs; 8 special cases left, each listed in `Servex/doc/item-tool.md`; Servex/agents tests 51 of 52 (the one failure also fails on D). The two stale tests the cross-review found pass on its head `affb90aed` (checked by the tab) |
+| Cross-review of all nine branches (read-only) | mastermind-cross-review (Opus, high) | [build/cross-review/](build/cross-review/requirements.md) | **landed**: [review.md](build/cross-review/review.md). All branches merge clean in any order; the merge order and the follow-ups are below |
 
 **Every build's worktree folder was closed by Servex after it landed,** and the leftover regenerated files were saved as a last "worktree closed" commit on each branch. The branches are intact, but their servers are gone. The integration build drops those commits and keeps its own server up.
 
-**After the reset:** one more integration branch holding everything (A, B, C, then D, E, F, G, H, I), tested together, so the owner reviews and merges one branch. It starts after the reset, not before, so nothing heavy runs across it.
+**After the reset: integration 2.** One branch holding everything, tested together, so the owner reviews and merges one branch. It starts after the reset, so nothing heavy runs across it. From the [cross-review](build/cross-review/review.md):
+
+- **Merge order** (all merge clean; lowest risk first, testing after each):
+  1. `integration/data-shapes` (A, B, C);
+  2. `worktree/deprecate` (G);
+  3. `worktree/test-view` (H);
+  4. `worktree/browser-refs` (E);
+  5. `worktree/item-generic` (I, which contains D; **never D without I**: on D alone a refused browser page line loses the click);
+  6. `worktree/worktree-preview` (F);
+  7. then `node Servex/sustain.mjs --restart` and a dev-server restart, never during a voice call.
+- **Fix on the way in:**
+  - one id maker: `new_id()` returns `short_id()`;
+  - one path walker: the item tool calls `root.get(path)` once;
+  - `item.move_to(dest)` as the one verb (move, re-path, forward), so a handoff leaves a forward instead of a "gone" row; needed before F2;
+  - the default view also listens for `"read"`, so a task redraws when an agent changes it;
+  - the two small duplicates (the same-title rule, the state-icon map);
+  - the two direct `task.jsonl` appends that build F added go through the one writer.
+- **The riskiest change for the live site:** build D sends every browser page edit, and the hooks, through Servex. **The check:**
+  - after the restart, add, edit and move a part in one tab: exactly one line per change, and a second tab shows each change once;
+  - with Servex stopped, a hook takes at most about 3 s and writes one line.
+- **What integration 2 must test beyond each branch's own tests:** the cross-review's list of seven, in its "What integration 2 must test" section.
 
 ## How the work runs
 
