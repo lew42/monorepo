@@ -21,6 +21,7 @@ import Cards from "../Servex/cards/Cards.js";
 import SessionRecord from "./SessionRecord.mjs";
 import WorktreePreview from "./WorktreePreview.mjs";
 import Worktrees from "./Worktrees.mjs";
+import RecordWriter from "../public/framework/core/Item/RecordWriter.js";
 
 const root = path.resolve(fileURLToPath(import.meta.url), "../..");
 // What the AI system mastermind should see goes to its inbox, module_inbox "ai" (2026-10-23; it was servex-mastermind's daily task log,
@@ -40,6 +41,8 @@ const append = (file, msg) => {
 	try { const b = fs.readFileSync(file); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
 	fs.appendFileSync(file, lead + JSON.stringify({ log: { at: now(), msg } }) + "\n");
 };
+// A line through the one writer (core/Item/RecordWriter.js): posted to Servex, which applies it to the record's live root, else appended once. Never throws.
+const record = (file, msg) => RecordWriter.write(file, [{ log: { at: now(), msg } }], { by: "on-landing" });
 const slug = u => u.replace(/^https?:\/\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "") || "page";
 
 try {
@@ -157,7 +160,7 @@ try {
 			// HOLD UNTIL MERGE (build F, 2026-10-28): an unmerged branch waits for review, so its folder stays; Servex's
 			// Worktrees.js closes it once the branch merges, or after its 48-hour backstop.
 			const close = Worktrees.on_landing(entry);
-			if (close.act === "keep") append(task, `worktree-close: kept ${entry.name} - ${close.why}`);
+			if (close.act === "keep") await record(task, `worktree-close: kept ${entry.name} - ${close.why}`);
 			else if (close.act === "close") {
 				const r = spawnSync(process.execPath, [path.join(root, "Server/Worktrees.mjs"), "--apply", "--archive", "--now", "--path", entry.path], { encoding: "utf8", windowsHide: true });
 				const out = (r.stdout || r.stderr || "").trim().split("\n").filter(Boolean);
@@ -178,10 +181,10 @@ try {
 				const j = await r.json();
 				pass = j.lan?.includes(pv.name) ? "; its server is on the LAN" : `; not on the LAN yet (${j.why || "Servex's next pass"})`;
 			} catch (e) { pass = "; Servex did not answer, its next pass (within 10 min) binds it"; }
-			append(task, pv.url ? `preview: ${pv.url} - open it on your phone over the home Wi-Fi until its branch merges${pass}`
+			await record(task, pv.url ? `preview: ${pv.url} - open it on your phone over the home Wi-Fi until its branch merges${pass}`
 				: `preview: no link - ${pv.why || (pv.port ? "this PC has no private LAN address" : "Servex has not given " + pv.name + " a port yet")}`);
 		}
-	} catch (e) { try { append(task, "preview: not computed - " + String(e && e.message || e).slice(0, 150)); } catch {} }
+	} catch (e) { await record(task, "preview: not computed - " + String(e && e.message || e).slice(0, 150)); }
 	// THE REAPER (lifecycle, 2026-09-29): everything else this task still owns — a server started
 	// by hand, its health watcher, headless browsers, idle reviewers and minions — is closed now,
 	// in node, instead of trusting an agent to remember. Each close is an end line in Servex's
