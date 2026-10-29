@@ -117,7 +117,9 @@ try {
 		const n_before = lines().length;
 		const plain_id = lines().at(-1).tasks.add.id;
 		r = await add({ tasks: { add: { title: "Plain job again", id: plain_id } } });
-		ok(r.ok === false && r.why.includes(plain_id) && lines().length === n_before, "a repeated explicit subtask id is refused and writes nothing (the same title twice is fine: each add draws its own id)");
+		ok(r.ok === false && r.why.includes(plain_id) && lines().length === n_before, "a repeated explicit subtask id is refused and writes nothing");
+		r = await add({ tasks: { add: { title: "plain  JOB" } } });
+		ok(r.ok === false && r.existing === plain_id && lines().length === n_before, "the same title twice is the same ask: refused, naming the existing task (no id is made from the title)");
 		r = await add({ tasks: { add: { title: "Dotted", id: "a.b" } } });
 		ok(r.ok === false && /dot/.test(r.why) && lines().length === n_before, "an id with a dot is refused: a dot is a path");
 		r = await add({ tasks: { add: { title: "Module job", module: "fakemod", home: "fakemod" } } });

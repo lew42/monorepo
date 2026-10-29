@@ -415,6 +415,33 @@ const page_class = () => page_loaded ??= (async () => {
 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
 	return Object.assign(Page, { PART_TYPES });
 })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
+// The class for a kind: the Task family and Page by their loaders, else any class Item.types registers once those have loaded. null = none.
+async function class_for(kind){
+	if (kind === "Page") return page_class();
+	if (LOADERS[kind]) return LOADERS[kind]().catch(() => null);
+	await Promise.all([page_class(), ...Object.values(LOADERS).map(load => load().catch(() => null))]);
+	const Class = Item.types.get(kind);
+	return typeof Class?.replay === "function" ? Class : null;
+}
+
+/* A page's picture from its LIVE root: the page's data and layout words, and its content items flattened to {id, type, ...data},
+ * the shape render_markdown and render_html draw. Measured on the 1167 page.jsonl files in git (2026-10-28): 1137 draw the same as the
+ * old text replay; 19 differ (an untyped item said "item", a nested data card is flattened, a title set by a line now shows, one order);
+ * 11 need a browser to replay at all, and those fall back to the text replay for reading (their writes were already refused). */
+function page_picture(page){
+	const out = { ...page.data };
+	for (const w of ["navigation", "width", "arrangement", "surface", "background", "type_size"]) out[w] ??= page[w] ?? undefined;
+	const items = [...page.content].filter(i => !i.transient).map(i => { const type = i.wire?.(); return { ...i.data, id: i.id, ...(type && type !== "Item" ? { type } : {}) }; });
+	return { page: out, items };
+}
+// The page as text (or html): from the live root when there is one, else (no Page class, or a page node cannot replay) the text replay.
+function page_text(root, file, url, format = "markdown"){
+	let picture = null;
+	if (root) try { picture = page_picture(root()); } catch {}
+	picture ??= replay(parse_lines(file));
+	const base = String(url ?? "").replace(/\/?$/, "/"), subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
+	return format === "html" ? render_html(picture, subpages) : render_markdown(picture, subpages);
+}
 const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
@@ -485,6 +512,7 @@ const FRAMEWORK = path.join(PUBLIC, "framework");
 const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
 // The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
+const same_title = (a, b) => typeof a === "string" && typeof b === "string" && a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase();
 const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
 export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
 
@@ -745,7 +773,7 @@ function live_root(Class, file){
 	collect = deps;
 	let root;
 	try { root = Class.replay(parse_lines(file)); } finally { collect = null; }
-	Object.assign(store, { host: root, sig: sig(file), deps, file });
+	Object.assign(store, { host: root, sig: sig(file), deps, file, replaying: true });   // replaying: in node a root only ever replays lines (a page's {"file"} line then imports nothing, Jsonl.js)
 	root.store = store;
 	root.at_path = "/" + path.relative(PUBLIC, path.dirname(file)).split(path.sep).join("/") + "/";   // a session record has no `path` field: its cost is looked up by its folder
 	return root;
@@ -987,9 +1015,9 @@ function bad_page_delta(Page, node, trail = ""){
 async function page_refusal(at, delta){
 	const Page = await page_class();
 	if (!Page) return null;   // a broken Page degrades the check, never the tool
-	let why = bad_page_delta(Page, delta);
-	// A copy: the replay adopts what it adds (a `pages.add` spec gets a parent), and the caller still writes this delta.
-	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, structuredClone(delta))]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
+	// Only the schema here: whether the line replays is tried on the page's live root when it is written (put() in run_item_now),
+	// never by replaying the whole page plus the line.
+	const why = bad_page_delta(Page, delta);
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
@@ -1110,12 +1138,17 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		else if (delta !== undefined) return { ok: false, why: `"${url}" has no session record to answer ${Object.keys(delta).join(", ")}, and these keys are never written to its page. Nothing was written.` };
 	}
 
-	const kind = class_of(at.file);
-	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
+	// ONE LIVE ROOT PER FILE, for any class Item.types registers (a page, a task, a session, an improvements file): the class named on
+	// line 1, else the one its file name implies. A Task-family root (tasky) also gets the task steps below; every root gets the same write.
+	let kind = class_of(at.file), Class = await class_for(kind);
+	if (!Class){ kind = FILE_CLASS[path.basename(at.file)] ?? "Page"; Class = await class_for(kind); }
+	const tasky = !!Class && (Class === Task || Class.prototype instanceof Task), paged = !!Class && Class === await page_class();
 	if (Class) link_refs(await LOADERS.Task());   // references on a parent resolve to live children
 	const root = () => live_root(Class, at.file);
+	// A write needs the live root; a file the class cannot replay (a page whose lines need a browser) refuses the write, as before.
+	const live_or_refuse = () => { try { return root(); } catch (e) { throw new Refused(`the ${paged ? "page" : "record"} would not replay (${e.message})`); } };
 	const first_time = () => !told.has(`${ctx.caller}|${kind}`) && told.set(`${ctx.caller}|${kind}`, true);
-	const state = () => Class?.replay ? task_state(Class, root()) : (fs.existsSync(at.file) ? render_markdown(replay(parse_lines(at.file)), Subpages.listed(at.file).map(name => ({ name, url: String(url).replace(/\/?$/, "/") + name + "/" }))) : null);
+	const state = () => tasky ? task_state(Class, root()) : !fs.existsSync(at.file) ? null : paged || !Class ? page_text(Class ? root : null, at.file, url) : root().toJSON();
 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
 
 	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
@@ -1125,7 +1158,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
 	}
-	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
+	if (tasky){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
 	else if (Object.keys(flat).length === 1 && "completion" in flat) return { ok: false, why: `no task record at "${url}" (${path.basename(at.file)} is not a session or task record), so there is no completion to answer. Nothing was written.` };
 	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
 	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
@@ -1136,7 +1169,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		if (same) { delete flat.tasks; flat[same.id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
 	}
 	// MOVE (design.md): {"<id>":{"move":{"to":url}}}, {"tasks":{"<id>":{"move":{"to":url}}}} or move on target [<id>]. Handled here, not written as a line.
-	if (Class?.replay){
+	if (tasky){
 		const mv = (id, v) => is_plain(v) && Object.keys(v).length === 1 && is_plain(v.move) ? { id, to: v.move.to } : null;
 		const inner = is_plain(flat.tasks) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1 ? Object.entries(flat.tasks)[0] : null;
 		const asked = at.target.length === 1 ? mv(at.target[0], flat) : Object.keys(flat).length === 1 ? (inner ? mv(...inner) : mv(...Object.entries(flat)[0])) : null;
@@ -1145,10 +1178,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			return r.why ? { ok: false, why: r.why } : { ok: true, moved: { from: r.from, to: r.to }, state: state() };
 		}
 	}
-	if (Class?.replay){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
-	else if (kind === "Page"){ const no = await page_refusal(at, flat); if (no) return no; }
+	if (tasky){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
+	else if (paged){ const no = await page_refusal(at, flat); if (no) return no; }
 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
-	if (Class?.replay) for (const { args, trail } of complete_calls(flat)){
+	if (tasky) for (const { args, trail } of complete_calls(flat)){
 		const node = node_at(root(), at.target, trail), Own = node?.constructor ?? Class;
 		const why = Own.completion_problem?.(args, node);
 		if (why) return { ok: false, why };
@@ -1169,15 +1202,15 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	let line = null, size;
 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
 	const put = (l, own = true) => {
-		const live = Class?.replay ? root() : null;   // root BEFORE the write: after it the file's size differs and root() would re-read
-		if (live) try_line(live, l);
+		const live = Class ? live_or_refuse() : null;   // root BEFORE the write: after it the file's size differs and root() would re-read
+		if (live) try_line(live, paged ? structuredClone(l) : l);   // a copy for a page: its replay adopts what it adds, and l is still to be written
 		try { size = write_line(at.file, l, own); } catch (e) { if (live) live.store.host = null; throw e; }
 		if (live) live.store.sig = sig(live.store.file);
 		line = l;
 	};
 
 	let body = pages === undefined && folder === undefined ? flat : rest;
-	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
+	if (tasky && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
 		const { add, ...others } = body.tasks;
 		// A REQUEST (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request to that agent. Node stamps
 		// `from` on it, tells the receiver once, and tells the sender when it completes (hooks.requested / hooks.answered, below).
@@ -1198,7 +1231,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			if (id && id.includes(".")) return { ok: false, why: `an id never holds a dot ("${id}"): a dot is a path. Nothing was written. Leave the id out and one is made for you.` };
 			if (id && a.id !== undefined && taken(id))
 				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Leave the id out (one is made for you), or change the existing one.` };
-			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
+			// The same title twice is the same ask (a refinement goes into the existing task): refused, as the title-made id used to be.
+			const same = !home && typeof a.title === "string" && [...(root()._tasks ?? []), ...plan.map(p => ({ id: p.id, get_one: k => p.a[k] }))].find(t => same_title(t.get_one("title"), a.title));
+			if (same) return { ok: false, why: `this task already has a subtask titled "${a.title}" (id "${same.id}"); nothing was written. Change that one, or give a different title.`, existing: same.id };
+			if (!home && tasky) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
 		}
 		for (const { a, home, id } of plan){
@@ -1221,7 +1257,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		const { tasks: _t, ...more } = body;
 		body = Object.keys(others).length ? { ...more, tasks: others } : more;
 	}
-	if (folder !== undefined && Class?.replay){
+	if (folder !== undefined && tasky){
 		const g = await give_folder(root(), at, folder, ctx);
 		if (g.why) return { ok: false, why: g.why };
 		homes.push(...g.made);
@@ -1230,31 +1266,31 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	let unchanged = null;
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
 		// A verb that does nothing (refused from this state, or its child not found) is still written, but the answer says so.
-		const verb = Class?.replay && !at.target.length ? verb_in(body) : null;
+		const verb = tasky && !at.target.length ? verb_in(body) : null;
 		// Compared without the clocks: a running child's ran_ms (row_of) grows between the two reads, so it would always look changed.
 		const steady = state => JSON.stringify(state, (k, v) => k === "ran_ms" || k === "span_ms" || k === "last_at" ? undefined : v);
 		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
 		const was = verb ? steady(print(root())) : null;
-		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!Class?.replay);
+		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!tasky);
 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
-	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
+	if (tasky && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
 	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
 	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
-	if (Class?.replay) try { notify_requests(root(), at, body, requests, by); } catch {}
+	if (tasky) try { notify_requests(root(), at, body, requests, by); } catch {}
 	// Caveats of a task that just completed reach its parent's log (a subtask nested in this file is on this log already).
-	if (Class?.replay && !at.target.length && is_plain(body.complete) && root().state === "complete") try { tell_parent_caveats(path.dirname(at.file), body.complete.caveats, by); } catch {}
+	if (tasky && !at.target.length && is_plain(body.complete) && root().state === "complete") try { tell_parent_caveats(path.dirname(at.file), body.complete.caveats, by); } catch {}
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
-	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
+	if (tasky && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;
 		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: stamp() }); line = keep; }
 	} catch {}
 	// A write to a task or session answers with what was written, never the whole picture (session-is-a-task item 12): a session's picture
 	// walks every task's cost and every child agent, which made each write 20 s on a 140 KB record, past the browser Store's 5 s timeout
 	// (it then appended the line itself: a twin). The picture is a read, item({path}) with no delta. A page's write still answers its page.
-	if (Class?.replay){
+	if (tasky){
 		const live = root();
 		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}),
 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
@@ -1282,13 +1318,9 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, target, delta: { [method]: is_plain(args) ? args : {} } }, { resolve_log, ...ctx }, true));   // a task / session: the item path
 
-				const stamped = is_plain(args) ? { ...(method === "add" ? { id: Item.short_id() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
-				const line = nest(at.target, { [method]: stamped });
-				const no = await page_refusal(at, { [method]: stamped });
-				if (no) return JSON.stringify(no);
-
-				const size = write_line(at.file, line);
-				return JSON.stringify({ ok: true, line, size });
+				// The item tool's own write: checked, applied to the page's live root, then appended (an `add` gets its id there).
+				const r = await run_item({ path: url, target, delta: { [method]: is_plain(args) ? { ...args, by: ctx.caller ?? "agent", ts: now() } : args ?? {} } }, { resolve_log, ...ctx }, true);   // by/ts inside a plain argument, as before
+				return JSON.stringify(r.ok ? { ok: true, ...(r.ids?.length ? { ids: r.ids } : {}), line: r.line, size: r.size } : r);
 			}),
 
 		tool("page_add",
@@ -1303,13 +1335,10 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { content: { add: { ...item, ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true));
 
-				const id = item?.id ?? Item.short_id();
-				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
-				const line = nest(at.target, { add });
-				const no = await page_refusal(at, { add });
-				if (no) return JSON.stringify(no);
-
-				const size = write_line(at.file, line);
+				// The item tool's own write (live root, one line); the id is the caller's or 8 random characters.
+				const r = await run_item({ path: url, delta: { content: { add: { ...item, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true);   // by/ts inside the card too, as before (who added it)
+				if (!r.ok) return JSON.stringify(r);
+				const { line, size } = r, id = r.ids?.[0], add = { ts: line?.ts };
 				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).
 				if (item?.type === "Prompt" && typeof item.text === "string" && hooks.prompted)
 					try { Promise.resolve(hooks.prompted({ file: at.file, line: size?.lines ?? null, id, text: item.text, at: add.ts, by: ctx.caller ?? null })).catch(() => {}); } catch {}
@@ -1350,9 +1379,8 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { now: { preview: text } } }, { resolve_log, ...ctx }, true));   // a task has no page log: its "now"
 
-				const line = nest(at.target, { log: { text, by: ctx.caller ?? "agent", ts: now() } });
-				const size = write_line(at.file, line);
-				return JSON.stringify({ ok: true, line, size });
+				const r = await run_item({ path: url, delta: { log: { text, by: ctx.caller ?? "agent", ts: now() } } }, { resolve_log, ...ctx }, true);   // through the live root, one line
+				return JSON.stringify(r.ok ? { ok: true, line: r.line, size: r.size } : r);
 			}),
 
 		tool("page_read",
@@ -1367,10 +1395,8 @@ export function page_tools(resolve_log = null){
 				const file = at.file;
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 
-				const state = replay(parse_lines(file));
-				const base = String(url ?? "").replace(/\/?$/, "/");
-				const subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
-				return format === "html" ? render_html(state, subpages) : render_markdown(state, subpages);
+				const Page = await page_class();   // the page's live root (one per file, shared with item()), else the text replay
+				return page_text(Page ? () => live_root(Page, file) : null, file, url, format === "html" ? "html" : "markdown");
 			}),
 	];
 }
