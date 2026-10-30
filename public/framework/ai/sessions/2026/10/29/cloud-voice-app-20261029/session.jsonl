@@ -4,3 +4,7 @@
 {"tool_call":{"at":"2026-10-29T23:25:15.254Z","tool":"wait_for_agent","args_hash":"78e550ea2de3","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-29T23:31:07.684Z","tool":"send_to_agent","args_hash":"be72ad3181de","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-29T23:31:09.972Z","tool":"wait_for_agent","args_hash":"6717dcc74551","caller":"voice-app"}}
+{"log":{"at":"2026-10-29T18:37:28-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-29T18:42:28-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-29T18:47:28-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-29T18:57:27-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

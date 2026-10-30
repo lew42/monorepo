@@ -3,3 +3,4 @@
 {"home":"/framework/servex/tasks/main-branch-guard/"}
 {"wait":{"on":"/framework/servex/","what":"Servex infrastructure: guard main checkout on michael/dev; not started.","decide_by":"2026-10-30T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:33:58.630Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/main-branch-guard/"}],"by":"minion-review-stops","ts":"2026-10-25T13:33:58.635Z"}
+{"stop":{"at":"2026-10-29T19:02:28-05:00","why":"dropped: deferral to /framework/servex/ is past its decide-by time (2026-10-30T00:00:00Z)"}}

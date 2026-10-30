@@ -5,28 +5,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-29 00:04 UTC, last 24 h)
+## NOW (computed 2026-10-30 00:02 UTC, last 24 h)
 
-**Pace:** Week: 79% used · 98% gone · 80% of pace (steady, 2 hours 55 minutes left)
+**Pace:** Week: 8% used · 13% gone · 64% of pace (room to spend, 6 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (0):**
 - none
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (1):**
+- [Two jobs, for the owner (Mike), relayed by a Claude cloud session that can't see plan usage itself.](/framework/ai/sessions/2026/10/29/spawned/minion-usage-check/) (minion-usage-check)
 
 **Latest commits on this branch:**
 ```
-7aa4da5bd core/Session: build G session log stamp
-c0d1fd49c core/Session: build G task record (review, session log, shots)
-6c235ac49 servex: log sweep (23 files)
-7b10e6791 core/Session: build D commit stamp
-1408d163f core/Session: build D one writer landed (branch worktree/one-writer at 34fb0294e, not merged): review answered, proof, landing
-1e1817d44 core/Session: data-shapes, build F landed (not merged); builds G deprecate and H test view started
-5e4b55e3a core/Session: build F re-landed short with an ask checklist; detail in report.md; review.md items 3 and 7 as bullets
-060ff6198 core/Session: build F owner note and commit stamp
+c063a9f8d ai: requirements for the check_usage task (review finding 1)
+84fc1c026 servex: log sweep (8 files)
+ecd145991 rules: keep GitHub current; merge.mjs pushes michael/dev after each landing
+70e450c0e servex: log sweep (3 files)
+183297fbf servex: log sweep (1 files)
+7ba59673c servex: log sweep (3 files)
+2f69f0621 core/Session: data-shapes forks F6 (direct store call vs evented delta) and F7 (adding an already-parented item)
+a2985706f servex: log sweep (1 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
