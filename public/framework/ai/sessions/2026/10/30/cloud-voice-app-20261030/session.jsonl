@@ -28,3 +28,13 @@
 {"log":{"at":"2026-10-30T15:07:29-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-10-30T16:07:29-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-10-30T17:07:29-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-10-30T18:07:29-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-10-30T23:09:28.152Z","tool":"send_to_agent","args_hash":"29380b55859b","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T23:09:29.363Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T23:10:00.138Z","tool":"wait_for_agent","args_hash":"aca5645f605c","caller":"voice-app"}}
+{"log":{"at":"2026-10-30T18:17:29-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"tool_call":{"at":"2026-10-30T23:20:49.348Z","tool":"spawn_agent","args_hash":"5a25ee5ddb77","caller":"voice-app"}}
+{"spawned":{"at":"2026-10-30T23:20:54.685Z","agent":"minion-replay-research","task_dir":null,"caller":"voice-app"}}
+{"log":{"at":"2026-10-30T18:27:30-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-30T18:32:30-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"tool_call":{"at":"2026-10-30T23:33:29.954Z","tool":"send_to_agent","args_hash":"a59f79dc00f1","caller":"voice-app"}}
