@@ -1,209 +1,358 @@
 [
-  {
-    "id": "D1",
-    "title": "List extends Item, or wraps it",
-    "question": "Should `List` keep extending `Item`, or become a plain collection held by an Item?",
-    "context": "Today `List extends Item` (your call, 2026-10-03). A list gets an id, a view and saving for free.\nThe cost: `List.get` reads its own data before its members, so a stale edit is saved as data (gap 7).\nA small fix covers that: members win, and a missing member warns (T6).",
-    "options": [
-      { "id": "extends", "label": "Keep: List extends Item", "summary": "No churn. Fix the lookup order and add a warning for a missing member." },
-      { "id": "wraps", "label": "Wrap: a plain List inside an Item", "summary": "Cleaner lookup, but it touches every caller and Page.pages/content." },
-      { "id": "mixin", "label": "Mixin: Collection(Item)", "summary": "Any Item can hold members directly. The most flexible option, and the biggest change." }
-    ],
-    "recommended": "extends",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L53-L59",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L189-L191",
-      "persistence-sync/lew42/overview.md"
-    ]
-  },
-  {
-    "id": "D2",
-    "title": "How a change reaches the store (your F6)",
-    "question": "Should a change reach its file by an event that climbs the parents, or by a direct `this.store.change()` call?",
-    "context": "Today `emit(\"delta\")` climbs `.parent` to the root, where `Store.attach` listens.\nYour F6 lean (2026-10-29): `item.store` is a getter for the nearest store, and a change calls it directly.\nDirect also fixes embedded tab pages, whose events stop at the page (gap 9). The line format stays the same.",
-    "options": [
-      { "id": "evented", "label": "Evented (today)", "summary": "No change. You still need the `owned_below` check, and tab pages still don't save." },
-      { "id": "direct", "label": "Direct, events for views only", "summary": "F6: `this.store.change(this, payload, source)`. The nearest store wins. Views keep a `change` event that doesn't bubble." },
-      { "id": "both", "label": "Direct, plus a bubbling delta event", "summary": "Save directly, and keep `delta` for listeners such as Ref and Task. Two paths to keep in step." }
-    ],
-    "recommended": "direct",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L135-L147",
-      "persistence-sync/lew42/branch-assessment.md"
-    ]
-  },
-  {
-    "id": "D3",
-    "title": "Adding an item that already has a parent (your F7)",
-    "question": "What should `list.add(x)` do when `x` already lives somewhere else?",
-    "context": "Today `x` is silently re-parented: the last parent wins, but the first list still holds it (gap 8).\nYour F7 lean (2026-10-29) and design-decisions §3: `add` makes a Ref, and `move_to` is the only way to move.\nTo watch: `add` would then return a Ref, not `x`.",
-    "options": [
-      { "id": "ref", "label": "Add a Ref", "summary": "`add` writes `{type:\"Ref\", path}` and returns the Ref. Moving is explicit with `move_to(dest)`." },
-      { "id": "throw", "label": "Throw", "summary": "The caller must say `ref` or `move_to`. Safe, but clumsy for agents." },
-      { "id": "reparent", "label": "Re-parent (today)", "summary": "Simple, but the item ends up in two lists and only one of them saves it." }
-    ],
-    "recommended": "ref",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L29",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L140-L145",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/ai/design-decisions-2026-10-27.md#L17-L25"
-    ]
-  },
-  {
-    "id": "D4",
-    "title": "Every line gets seq, client and n, and the sender gets an ack",
-    "question": "Should the stream cursor be a line number, writes dedupe on `{client, n}`, and the sender get an `ack` instead of its own echo?",
-    "context": "Today the cursor is a byte offset, dedupe uses `by|ts`, and echoes are skipped by matching text.\nTwo tabs writing in the same millisecond lose an edit, and a retry can double-apply (R1, R2, R3).\nYour storage.md already says the cursor is a line number (`seq`), never a byte offset.",
-    "options": [
-      { "id": "seq-n-ack", "label": "seq + {client, n} + ack", "summary": "The server sets seq. The writer sets client and n. by and ts stay for audit." },
-      { "id": "interim", "label": "Add a client id to the by|ts key only", "summary": "A one-hour patch for R1. Retries and convergence stay broken." }
-    ],
-    "recommended": "seq-n-ack",
-    "kind": "clear-win",
-    "refs": [
-      "persistence-sync/lessons/sync-protocol.md",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/storage.md#L147",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L123-L130"
-    ]
-  },
-  {
-    "id": "D5",
-    "title": "Names for the storage layers",
-    "question": "What should the server-side storage interface be called?",
-    "context": "The report calls it \"Store adapter\". That clashes with `Item.Store`, the Item-side class.\nYour storage.md already uses three words: Store (Item side), Backend (how a browser reaches lines), Journal (where a server keeps them).",
-    "options": [
-      { "id": "journal", "label": "Store / Backend / Journal", "summary": "Your own words: FileJournal, SqliteJournal, RoomJournal." },
-      { "id": "adapter", "label": "Store / StoreAdapter", "summary": "The report's word. Two kinds of \"store\" in one sentence." },
-      { "id": "log", "label": "Store / Log", "summary": "Short, but \"log\" already means console logs and agent logs in Servex." }
-    ],
-    "recommended": "journal",
-    "kind": "clear-win",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/storage.md#L1-L33",
-      "persistence-sync/report.md"
-    ]
-  },
-  {
-    "id": "D6",
-    "title": "Id rule per list",
-    "question": "Should each List choose how its member ids are made?",
-    "context": "Today every new id is `Item.short_id()`: 8 random characters. A Page's sub-pages use their folder names.\nChat wants ordered numbers; imports and offline clients want UUIDs.\nOnly the Room may hand out `seq` ids, since two clients would clash.",
-    "options": [
-      { "id": "per-list", "label": "`ids` option on List", "summary": "\"short\" (default), \"uuid\", \"seq\" (Room-made), \"name\". The item tool reads it when it stamps ids." },
-      { "id": "short-only", "label": "short_id everywhere (today)", "summary": "One rule. Chat order comes from list order, not from the id." },
-      { "id": "uuid-only", "label": "UUID everywhere", "summary": "Safe to merge anywhere. Long ids in every line and url." }
-    ],
-    "recommended": "per-list",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L377-L387",
-      "design/phase-1.md"
-    ]
-  },
-  {
-    "id": "D7",
-    "title": "Binding views to data",
-    "question": "How should a view stay in step with the Item it shows?",
-    "context": "Today views wire `on(\"change\")` by hand, which agents forget to do or to undo.\n`Property.of(item, key)` is already built and writes back through `item.set`. A signals library would add a dependency.\nLoops are stopped by: same value = silent, replay/remote never write, derived values are read-only.",
-    "options": [
-      { "id": "property", "label": "`item.prop(key)` (Property.of)", "summary": "Views take a Property and keep the unbind. `Property.derive` for computed values. No new dependency." },
-      { "id": "events", "label": "Events by hand (today)", "summary": "Nothing to build. Every view repeats the same wiring." },
-      { "id": "signals", "label": "Signals (e.g. Preact signals)", "summary": "Automatic dependency tracking. A new dependency, and a second reactive model beside Events." }
-    ],
-    "recommended": "property",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Property/Property.js#L133-L166",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/binding.md#L144-L154"
-    ]
-  },
-  {
-    "id": "D8",
-    "title": "Where the local Room lives",
-    "question": "Locally, which process hosts each page's Room (seq, ack, broadcast)?",
-    "context": "Today Servex holds the live roots and the item tool. The dev server holds the Tail socket and Append.\nYour F1 lean: the dev server, one per project tree, worktrees included. The report chose Servex.\nOn Cloudflare, the Worker serves the files and a Durable Object is the Room, which mirrors the dev-server option.",
-    "options": [
-      { "id": "dev-server", "label": "The dev server (F1)", "summary": "Whatever serves the files hosts the Rooms. Servex runs agents, which connect as Room clients." },
-      { "id": "servex", "label": "Servex", "summary": "The live roots are already there. One process for every project, and the dev server forwards to it." }
-    ],
-    "recommended": "dev-server",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Session/tasks/data-shapes/plan.md#L23",
-      "persistence-sync/report.md",
-      "design/phase-1.md"
-    ]
-  },
-  {
-    "id": "D9",
-    "title": "Embedded, own file, or own folder",
-    "question": "Who decides where an item's lines are kept, and how is that written?",
-    "context": "Today there are three shapes: `{\"file\":\"kid/page.jsonl\"}`, `{\"task\":…,\"as\":…}` and `{\"tab\":…}`.\nProposed: one `file` field on the member (`\"c3.jsonl\"` or `\"c3/\"`). `move_to({url})` moves an item and leaves a forward.\nNo item moves itself automatically yet (your readme: a noted idea, not built).",
-    "options": [
-      { "id": "class-default", "label": "Class default + explicit move", "summary": "Task and Session default to their own folder; everything else is embedded. Moving is one verb." },
-      { "id": "auto-size", "label": "Automatic, by size", "summary": "An item breaks out past ~256 KB of lines. Hands-off, but files appear on their own." },
-      { "id": "caller", "label": "The caller always says", "summary": "Fully explicit. Every add has to choose." }
-    ],
-    "recommended": "class-default",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/readme.md#L85-L101",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md"
-    ]
-  },
-  {
-    "id": "D10",
-    "title": "Two people on one item",
-    "question": "What happens when two people (or a person and an agent) edit the same item?",
-    "context": "Today: no rule. Each tab can end up showing the other tab's value (gap 1).\nYou asked for simple edit locks; CRDTs are priority 5.\nA soft lock is presence (\"editing content.p9\"). It is never written to the log and expires after 30 s.",
-    "options": [
-      { "id": "soft-lock", "label": "Soft lock (warn) + last write wins", "summary": "Others see \"Mike is editing\". A write still lands, and the writer is told." },
-      { "id": "hard-lock", "label": "Hard lock (refuse)", "summary": "The Room refuses writes under a held path. Safest, but a stuck lock blocks agents for up to 30 s." },
-      { "id": "lww", "label": "Last write wins only", "summary": "No locks. Simplest; the ack and hold-back from R3 make tabs agree." }
-    ],
-    "recommended": "soft-lock",
-    "kind": "opinionated",
-    "refs": [
-      "persistence-sync/lessons/sync-protocol.md",
-      "persistence-sync/report.md"
-    ]
-  },
-  {
-    "id": "D11",
-    "title": "Typing without bloating the log",
-    "question": "Where are keystrokes merged into fewer lines?",
-    "context": "Today each `set()` is one line, flushed per microtask.\nA reader who opens the page mid-typing must still see the live text.\nWith seq, a reader loads the file, then asks the Room for everything after its last seq.",
-    "options": [
-      { "id": "client", "label": "Client merges, Room appends each op", "summary": "One pending line per field, sent after 300 ms idle, 2 s at most, or on blur. Late readers catch up by seq." },
-      { "id": "server", "label": "Room buffers, serves memory", "summary": "The Room delays appends and answers new readers from the live root. Faster disk, but a crash can lose seconds." },
-      { "id": "none", "label": "Every keystroke is a line", "summary": "No code. Logs grow fast; leave it to compaction." }
-    ],
-    "recommended": "client",
-    "kind": "opinionated",
-    "refs": [
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L168-L178",
-      "design/phase-1.md"
-    ]
-  },
-  {
-    "id": "D12",
-    "title": "Writes say where they came from; one action, one line",
-    "question": "Should every change carry `{source: local | replay | remote}`, and should `batch(fn)` group an action into one line per item?",
-    "context": "Today every open tab re-writes the same Ref re-path or task auto-complete (T1).\n`wait()` writes 7 lines (T2). `act()` records a verb and doesn't group anything.\n`source` (not `origin`, which already names the changed node). `batch` matches tldraw and your core/new sketch.",
-    "options": [
-      { "id": "both", "label": "`source` tag + `batch(fn)`", "summary": "Side effects run only for local changes, and an action writes one line per item touched." },
-      { "id": "source-only", "label": "`source` tag only", "summary": "Fixes the duplicate side effects. Multi-line actions stay." },
-      { "id": "neither", "label": "Neither", "summary": "Keep today's behaviour." }
-    ],
-    "recommended": "both",
-    "kind": "clear-win",
-    "refs": [
-      "persistence-sync/lessons/object-model.md",
-      "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L102-L113"
-    ]
-  }
+ {
+  "id": "D1",
+  "title": "List extends Item, or wraps it",
+  "question": "Should `List` keep extending `Item`, or become a plain collection held by an Item?",
+  "context": "Today `List extends Item` (your call, 2026-10-03), so a list gets an id, a view and saving for free.\nThe catch: a saved line like `{\"content\":{\"p9\":{\"set\":{\"text\":\"Hi\"}}}}` is replayed by walking the names: `content`, then `p9`. `List.get(\"p9\")` checks the list's own data before its members. If another tab just removed or moved `p9`, it isn't a member any more, so the edit is quietly saved as a data field named `p9` on the list, and lost (gap 7).\nThe fix is small and keeps `extends`: look up members first, and if no member has that id, warn and skip the line (T6).",
+  "options": [
+   {
+    "id": "extends",
+    "label": "Keep: List extends Item",
+    "summary": "No churn. Fix the lookup order and add a warning for a missing member."
+   },
+   {
+    "id": "wraps",
+    "label": "Wrap: a plain List inside an Item",
+    "summary": "Cleaner lookup, but it touches every caller and Page.pages/content."
+   },
+   {
+    "id": "mixin",
+    "label": "Base class: Item and List share a Node base",
+    "summary": "Your idea: one base handles parent, bubbling and saving; Item adds data, List adds members. Clean, but a deliberate refactor."
+   }
+  ],
+  "recommended": "extends",
+  "kind": "opinionated",
+  "example": "class List extends Item {            // stays an Item: id, view, saving\n  get(key){\n    const member = this.find(key)    // members win over data\n    if (!member) console.warn(`${this.name}: no member \"${key}\"`)  // T6\n    return member\n  }\n}\n\n// the alternative (wraps): the Item holds a plain collection\npage.content.items.get(\"p9\")         // one more hop on every call",
+  "refs": [
+   "design/d1-explained.md",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L53-L59",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L189-L191",
+   "persistence-sync/lew42/overview.md"
+  ]
+ },
+ {
+  "id": "D2",
+  "title": "How a change reaches the store (your F6)",
+  "question": "Should a change reach its file by an event that climbs the parents, or by a direct `this.store.change()` call?",
+  "context": "Today `emit(\"delta\")` climbs `.parent` to the root, where `Store.attach` listens.\nYour F6 lean (2026-10-29): `item.store` is a getter for the nearest store, and a change calls it directly.\nDirect also fixes embedded tab pages, whose events stop at the page (gap 9). The line format stays the same.",
+  "options": [
+   {
+    "id": "evented",
+    "label": "Evented (today)",
+    "summary": "No change. You still need the `owned_below` check, and tab pages still don't save."
+   },
+   {
+    "id": "direct",
+    "label": "Direct, events for views only",
+    "summary": "F6: `this.store.change(this, payload, source)`. The nearest store wins. Views keep a `change` event that doesn't bubble."
+   },
+   {
+    "id": "both",
+    "label": "Direct, plus a bubbling delta event",
+    "summary": "Save directly, and keep `delta` for listeners such as Ref and Task. Two paths to keep in step."
+   }
+  ],
+  "recommended": "direct",
+  "kind": "opinionated",
+  "example": "set_one(key, value){\n  // … put the value; if it changed:\n  this.emit(\"change\", key, value, old)   // views only, does not bubble\n  this.store?.change(this, { set: { [key]: value } }, \"local\")\n}\nget store(){ return this._store ?? this.parent?.store }  // nearest wins\n\n// today (evented): the event climbs .parent to the root\nthis.emit(\"delta\", line)   // a tab page stops it: bubbles() is false",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L135-L147",
+   "persistence-sync/lew42/branch-assessment.md"
+  ]
+ },
+ {
+  "id": "D3",
+  "title": "Adding an item that already has a parent (your F7)",
+  "question": "What should `list.add(x)` do when `x` already lives somewhere else?",
+  "context": "Today `x` is silently re-parented: the last parent wins, but the first list still holds it (gap 8).\nYour F7 lean (2026-10-29) and design-decisions §3: `add` makes a Ref, and `move_to` is the only way to move.\nTo watch: `add` would then return a Ref, not `x`.",
+  "options": [
+   {
+    "id": "ref",
+    "label": "Add a Ref",
+    "summary": "`add` writes `{type:\"Ref\", path}` and returns the Ref. Moving is explicit with `move_to(dest)`."
+   },
+   {
+    "id": "throw",
+    "label": "Throw",
+    "summary": "The caller must say `ref` or `move_to`. Safe, but clumsy for agents."
+   },
+   {
+    "id": "reparent",
+    "label": "Re-parent (today)",
+    "summary": "Simple, but the item ends up in two lists and only one of them saves it."
+   }
+  ],
+  "recommended": "ref",
+  "kind": "opinionated",
+  "example": "const c3 = tasks.add({ type: \"Task\", data: { title: \"x\" } })\nconst ref = other.add(c3)     // c3 already lives in tasks\n// {\"other\":{\"add\":{\"type\":\"Ref\",\"path\":\"tasks.c3\"}}}\nref instanceof Ref            // true: add returns the Ref, not c3\nc3.move_to(other)             // the only way to move\n\n// today (re-parent): c3.parent = other, yet tasks still lists c3\nother.add(c3)",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L29",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/List/List.js#L140-L145",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/ai/design-decisions-2026-10-27.md#L17-L25"
+  ]
+ },
+ {
+  "id": "D4",
+  "title": "Every line gets seq, client and n, and the sender gets an ack",
+  "question": "Should the stream cursor be a line number, writes dedupe on `{client, n}`, and the sender get an `ack` instead of its own echo?",
+  "context": "Today the cursor is a byte offset, dedupe uses `by|ts`, and echoes are skipped by matching text.\nTwo tabs writing in the same millisecond lose an edit, and a retry can double-apply (R1, R2, R3).\nYour storage.md already says the cursor is a line number (`seq`), never a byte offset.",
+  "options": [
+   {
+    "id": "seq-n-ack",
+    "label": "seq + {client, n} + ack",
+    "summary": "The server sets seq. The writer sets client and n. by and ts stay for audit."
+   },
+   {
+    "id": "interim",
+    "label": "Add a client id to the by|ts key only",
+    "summary": "A one-hour patch for R1. Retries and convergence stay broken."
+   }
+  ],
+  "recommended": "seq-n-ack",
+  "kind": "clear-win",
+  "example": "// a tab sends (the writer sets client and n):\n{\"client\":\"t-19bc\",\"n\":12,\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}\n// the Room saves it with seq 43, then tells the sender:\n{\"ack\":{\"client\":\"t-19bc\",\"n\":12,\"seq\":43}}\n// a retry of n 12 is re-acked, never applied twice\n\n// the interim patch: only widen today's dedupe key\nconst key = line.by + \"|\" + line.ts + \"|\" + client   // retries still double-apply",
+  "refs": [
+   "persistence-sync/lessons/sync-protocol.md",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/storage.md#L147",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L123-L130"
+  ]
+ },
+ {
+  "id": "D5",
+  "title": "Names for the storage layers",
+  "question": "What should the server-side storage interface be called?",
+  "context": "The report calls it \"Store adapter\". That clashes with `Item.Store`, the Item-side class.\nYour storage.md already uses three words: Store (Item side), Backend (how a browser reaches lines), Journal (where a server keeps them).",
+  "options": [
+   {
+    "id": "journal",
+    "label": "Store / Backend / Journal",
+    "summary": "Your own words: FileJournal, SqliteJournal, RoomJournal."
+   },
+   {
+    "id": "adapter",
+    "label": "Store / StoreAdapter",
+    "summary": "The report's word. Two kinds of \"store\" in one sentence."
+   },
+   {
+    "id": "log",
+    "label": "Store / Log",
+    "summary": "Short, but \"log\" already means console logs and agent logs in Servex."
+   }
+  ],
+  "recommended": "journal",
+  "kind": "clear-win",
+  "example": "class FileJournal { append(key, lines){} read(key, { since }){} }  // server\nconst room  = new Room({ key, root, journal: new FileJournal(dir) })\nconst store = Store.for(url)                // Item side\nstore.backend = new RoomBackend(socket)     // how a browser reaches lines\n// later, same Room: new SqliteJournal(file), new RoomJournal(state.storage)\n\n// the alternative: \"store\" twice in one sentence\nnew Room({ key, root, adapter: new FileStoreAdapter(dir) })",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/storage.md#L1-L33",
+   "persistence-sync/report.md"
+  ]
+ },
+ {
+  "id": "D6",
+  "title": "Id rule per list",
+  "question": "Should each List choose how its member ids are made?",
+  "context": "Today every new id is `Item.short_id()`: 8 random characters. A Page's sub-pages use their folder names.\nChat wants ordered numbers; imports and offline clients want UUIDs.\nOnly the Room may hand out `seq` ids, since two clients would clash.",
+  "options": [
+   {
+    "id": "per-list",
+    "label": "`ids` option on List",
+    "summary": "\"short\" (default), \"uuid\", \"seq\" (Room-made), \"name\". The item tool reads it when it stamps ids."
+   },
+   {
+    "id": "short-only",
+    "label": "short_id everywhere (today)",
+    "summary": "One rule. Chat order comes from list order, not from the id."
+   },
+   {
+    "id": "uuid-only",
+    "label": "UUID everywhere",
+    "summary": "Safe to merge anywhere. Long ids in every line and url."
+   }
+  ],
+  "recommended": "per-list",
+  "kind": "opinionated",
+  "example": "new List({ owner, name: \"tasks\" })                  // \"short\": k3x9a1bz\nnew List({ owner, name: \"cards\", ids: \"uuid\" })     // imports, offline clients\nnew List({ owner, name: \"messages\", ids: \"seq\" })   // the Room makes 1, 2, 3\npage.pages                                          // \"name\": the folder name\nmessages.add({ type: \"Message\", data: { text: \"hi\" } })  // no id given; the list's rule picks it\n\n// the alternative: one rule everywhere\nconst id = Item.short_id()    // chat order comes from list order",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L377-L387",
+   "design/phase-1.md"
+  ]
+ },
+ {
+  "id": "D7",
+  "title": "Binding views to data",
+  "question": "How should a view stay in step with the Item it shows?",
+  "context": "Today views wire `on(\"change\")` by hand, which agents forget to do or to undo.\n`Property.of(item, key)` is already built and writes back through `item.set`. A signals library would add a dependency.\nLoops are stopped by: same value = silent, replay/remote never write, derived values are read-only.",
+  "options": [
+   {
+    "id": "property",
+    "label": "`item.prop(key)` (Property.of)",
+    "summary": "Views take a Property and keep the unbind. `Property.derive` for computed values. No new dependency."
+   },
+   {
+    "id": "events",
+    "label": "Events by hand (today)",
+    "summary": "Nothing to build. Every view repeats the same wiring."
+   },
+   {
+    "id": "signals",
+    "label": "Signals (e.g. Preact signals)",
+    "summary": "Automatic dependency tracking. A new dependency, and a second reactive model beside Events."
+   }
+  ],
+  "recommended": "property",
+  "kind": "opinionated",
+  "example": "const title = task.prop(\"title\")          // Property.of(task, \"title\")\nnew TextInput({ value: title })           // two-way: typing calls task.set\nnew Label({ text: title })                // one-way\nconst shout = Property.derive([title], t => t.toUpperCase())  // read-only\n// the view keeps the unbind and calls it in drop()\n\n// today: every view wires (and must unwire) by hand\ntask.on(\"change\", (k, v) => k === \"title\" && redraw(v))",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Property/Property.js#L133-L166",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Page/doc/binding.md#L144-L154"
+  ]
+ },
+ {
+  "id": "D8",
+  "title": "Where the local Room lives",
+  "question": "Locally, which process hosts each page's Room (seq, ack, broadcast)?",
+  "context": "Today Servex holds the live roots and the item tool. The dev server holds the Tail socket and Append.\nYour F1 lean: the dev server, one per project tree, worktrees included. The report chose Servex.\nOn Cloudflare, the Worker serves the files and a Durable Object is the Room, which mirrors the dev-server option.",
+  "options": [
+   {
+    "id": "dev-server",
+    "label": "The dev server (F1)",
+    "summary": "Whatever serves the files hosts the Rooms. Servex runs agents, which connect as Room clients."
+   },
+   {
+    "id": "servex",
+    "label": "Servex",
+    "summary": "The live roots are already there. One process for every project, and the dev server forwards to it."
+   }
+  ],
+  "recommended": "dev-server",
+  "kind": "opinionated",
+  "example": "// the dev server serves the files and hosts each page's Room\nconst room = rooms.get(\"/sessions/x/\")     // one Room per page, worktrees included\n// a tab and an agent are both Room clients:\nws.send(JSON.stringify({ hello: { v: 1, client: \"t-19bc\", room: \"/sessions/x/\", since: 41 } }))\n\n// the alternative: Servex hosts every Room\ndev_server.forward(ws, \"ws://localhost:SERVEX_PORT/room/sessions/x/\")",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Session/tasks/data-shapes/plan.md#L23",
+   "persistence-sync/report.md",
+   "design/phase-1.md"
+  ]
+ },
+ {
+  "id": "D9",
+  "title": "Embedded, own file, or own folder",
+  "question": "Who decides where an item's lines are kept, and how is that written?",
+  "context": "Today there are three shapes: `{\"file\":\"kid/page.jsonl\"}`, `{\"task\":…,\"as\":…}` and `{\"tab\":…}`.\nProposed: one `file` field on the member (`\"c3.jsonl\"` or `\"c3/\"`). `move_to({url})` moves an item and leaves a forward.\nNo item moves itself automatically yet (your readme: a noted idea, not built).",
+  "options": [
+   {
+    "id": "class-default",
+    "label": "Class default + explicit move",
+    "summary": "Task and Session default to their own folder; everything else is embedded. Moving is one verb."
+   },
+   {
+    "id": "auto-size",
+    "label": "Automatic, by size",
+    "summary": "An item breaks out past ~256 KB of lines. Hands-off, but files appear on their own."
+   },
+   {
+    "id": "caller",
+    "label": "The caller always says",
+    "summary": "Fully explicit. Every add has to choose."
+   }
+  ],
+  "recommended": "class-default",
+  "kind": "opinionated",
+  "example": "class Task extends Item { static file = \"dir\" }   // class default: its own folder\nclass Note extends Item {}                         // default: embedded in the parent's file\ntasks.add({ type: \"Task\", data: { title: \"x\" } })\n// {\"tasks\":{\"add\":{\"id\":\"c3\",\"type\":\"Task\",\"file\":\"c3/\"}}}\nc3.move_to({ url: \"/archive/c3/\" })   // one verb; leaves a moved_to forward\n\n// the alternative: the caller always says\ntasks.add({ type: \"Task\", file: \"c3/\", data: { title: \"x\" } })",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/readme.md#L85-L101",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/doc/owner-2026-10-21-items-hold-items.md"
+  ]
+ },
+ {
+  "id": "D10",
+  "title": "Two people on one item",
+  "question": "What happens when two people (or a person and an agent) edit the same item?",
+  "context": "Today: no rule. Each tab can end up showing the other tab's value (gap 1).\nYou asked for simple edit locks; CRDTs are priority 5.\nA soft lock is presence (\"editing content.p9\"). It is never written to the log and expires after 30 s.",
+  "options": [
+   {
+    "id": "soft-lock",
+    "label": "Soft lock (warn) + last write wins",
+    "summary": "Others see \"Mike is editing\". A write still lands, and the writer is told."
+   },
+   {
+    "id": "hard-lock",
+    "label": "Hard lock (refuse)",
+    "summary": "The Room refuses writes under a held path. Safest, but a stuck lock blocks agents for up to 30 s."
+   },
+   {
+    "id": "lww",
+    "label": "Last write wins only",
+    "summary": "No locks. Simplest; the ack and hold-back from R3 make tabs agree."
+   }
+  ],
+  "recommended": "soft-lock",
+  "kind": "opinionated",
+  "example": "new List({ owner, name: \"content\", lock: \"warn\" })\nroom.presence(sock, { user: \"mike\", editing: \"content.p9\" })  // never a log line; ends after 30 s\n// another writer edits content.p9: the write lands, and the ack warns:\n{\"ack\":{\"client\":\"a-77\",\"n\":3,\"seq\":44,\"warn\":\"locked\",\"by\":\"mike\"}}\n\n// the alternative (hard lock): the same edit is refused\n{\"reject\":{\"client\":\"a-77\",\"n\":3,\"why\":\"locked\",\"by\":\"mike\"}}",
+  "refs": [
+   "persistence-sync/lessons/sync-protocol.md",
+   "persistence-sync/report.md"
+  ]
+ },
+ {
+  "id": "D11",
+  "title": "Typing without bloating the log",
+  "question": "Where are keystrokes merged into fewer lines?",
+  "context": "Today each `set()` is one line, flushed per microtask.\nA reader who opens the page mid-typing must still see the live text.\nWith seq, a reader loads the file, then asks the Room for everything after its last seq.",
+  "options": [
+   {
+    "id": "client",
+    "label": "Client merges, Room appends each op",
+    "summary": "One pending line per field, sent after 300 ms idle, 2 s at most, or on blur. Late readers catch up by seq."
+   },
+   {
+    "id": "server",
+    "label": "Room buffers, serves memory",
+    "summary": "The Room delays appends and answers new readers from the live root. Faster disk, but a crash can lose seconds."
+   },
+   {
+    "id": "none",
+    "label": "Every keystroke is a line",
+    "summary": "No code. Logs grow fast; leave it to compaction."
+   }
+  ],
+  "recommended": "client",
+  "kind": "opinionated",
+  "example": "store.coalesce = { idle: 300, max: 2000 }        // ms\ninput.oninput = e => title.set(e.target.value)   // the screen updates on every key\n// one pending line for \"title\", replaced in place while you type;\n// sent 300 ms after you pause (2 s at most, or on blur):\n{\"set\":{\"title\":\"Shipping the plan\"}}            // 1 line, not 17\n// a late reader: fetch page.jsonl, then hello {since: 41}\n\n// the alternative: every keystroke is a line\n{\"set\":{\"title\":\"S\"}}  {\"set\":{\"title\":\"Sh\"}}  {\"set\":{\"title\":\"Shi\"}} …",
+  "refs": [
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L168-L178",
+   "design/phase-1.md"
+  ]
+ },
+ {
+  "id": "D12",
+  "title": "Writes say where they came from; one action, one line",
+  "question": "Should every change carry `{source: local | replay | remote}`, and should `batch(fn)` group an action into one line per item?",
+  "context": "Today every open tab re-writes the same Ref re-path or task auto-complete (T1).\n`wait()` writes 7 lines (T2). `act()` records a verb and doesn't group anything.\n`source` (not `origin`, which already names the changed node). `batch` matches tldraw and your core/new sketch.",
+  "options": [
+   {
+    "id": "both",
+    "label": "`source` tag + `batch(fn)`",
+    "summary": "Side effects run only for local changes, and an action writes one line per item touched."
+   },
+   {
+    "id": "source-only",
+    "label": "`source` tag only",
+    "summary": "Fixes the duplicate side effects. Multi-line actions stay."
+   },
+   {
+    "id": "neither",
+    "label": "Neither",
+    "summary": "Keep today's behaviour."
+   }
+  ],
+  "recommended": "both",
+  "kind": "clear-win",
+  "example": "task.on(\"change\", (key, value, old, { source }) => {\n  if (source === \"local\") repath_refs(task)   // replay and remote never run side effects\n})\ntask.batch(() => {                            // one line per item touched\n  task.set({ status: \"done\" })\n  task.set({ done_at: \"2026-10-30T10:00:01Z\" })\n})\n// {\"tasks\":{\"c3\":{\"set\":{\"status\":\"done\",\"done_at\":\"2026-10-30T10:00:01Z\"}}}}\n\n// without batch(), wait() writes 7 lines (T2)",
+  "refs": [
+   "persistence-sync/lessons/object-model.md",
+   "https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L102-L113"
+  ]
+ }
 ]

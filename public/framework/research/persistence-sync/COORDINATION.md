@@ -22,7 +22,7 @@ Every agent owns only the files it was assigned, plus its own op log. Never edit
 | `persistence-sync/scripts/*`, `data/tools.jsonl`, `app/*` | app-builder agent |
 | `persistence-sync/tools/README.md`, `tools/_TEMPLATE.md` | taxonomy agent |
 | `persistence-sync/tools/<id>.md` | the profile agent assigned that tool |
-| `design/*` | design agent |
+| `design/*` | design agent (finished); `design/takeaways.json` and the `example` field in `design/decisions.json`: design-examples agent |
 | `persistence-sync/lew42/branch-assessment.md` | branch-assessment agent |
 | `agent-ops/*` | agent-ops agent |
 | `persistence-sync/report.md`, `README.md`, this file | coordinator |

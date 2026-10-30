@@ -1,0 +1,141 @@
+[
+  {
+    "id": "T-keep-1",
+    "group": "Keep",
+    "line": "item.set(delta) is the one API, and the delta is the saved line",
+    "detail": "You change an Item with one call. The same object, wrapped in the path down to the item, is what gets saved.",
+    "code": "task.set({ title: \"Ship it\" })\n// the line saved to page.jsonl is the same delta,\n// wrapped in the names down to the task:\n// {\"tasks\":{\"c3\":{\"set\":{\"title\":\"Ship it\"}}}}",
+    "see": [
+      "2",
+      "6"
+    ]
+  },
+  {
+    "id": "T-keep-2",
+    "group": "Keep",
+    "line": "Nested names down to the target, then one verb; members found by id",
+    "detail": "A line walks down by name, and a List finds its member by id. An index would point at a different item after someone inserts above it.",
+    "code": "// {\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}\nroot.get(\"content\")       // a List\nroot.get(\"content.p9\")    // List.get(\"p9\") -> find(\"p9\"), one Map lookup\nroot.get(\"content.p9\").set({ text: \"Draft\" })  // the one verb\n// never content[2]: the 2 changes when a part is added above it",
+    "see": [
+      "3.1",
+      "6"
+    ]
+  },
+  {
+    "id": "T-keep-3",
+    "group": "Keep",
+    "line": "List, Page and Ref stay Items; Ref forwards with moved_to",
+    "detail": "No renames. A Ref points at an item somewhere else, and a moved item leaves a forward that Ref follows.",
+    "code": "class List extends Item {}\nclass Page extends Item {}          // adds url and name\nclass Ref  extends Item {}          // {url, path} points elsewhere\n// after c3.move_to({ url: \"/archive/c3/\" }) the old place keeps:\n// {\"tasks\":{\"c3\":{\"moved_to\":{\"url\":\"/archive/c3/\"}}}}\n// ref.resolve() follows that forward (up to 8 hops)",
+    "see": [
+      "D1",
+      "D3",
+      "1",
+      "5"
+    ]
+  },
+  {
+    "id": "T-keep-4",
+    "group": "Keep",
+    "line": "One writer per file, and one home per page",
+    "detail": "Only one process appends to a file, so no two writers fight over it. A page lives in one place; other places hold a Ref, not a second copy.",
+    "code": "journal.exclusive(\"page.jsonl\", () =>\n  journal.append(\"page.jsonl\", [line]))   // the sole writer\n// a page has one home; elsewhere you hold a Ref\nsessions.add(page)   // page already lives in tasks -> a Ref\n// no two-way sync between copies",
+    "see": [
+      "D9",
+      "D10",
+      "7",
+      "10"
+    ]
+  },
+  {
+    "id": "T-change-1",
+    "group": "Change",
+    "line": "Every line gets seq, client and n; the sender gets an ack",
+    "detail": "The server numbers each line (seq). The writer adds client and n, so a retry is saved once. The sender hears an ack instead of its own echo.",
+    "code": "// a tab sends:\n{\"client\":\"t-19bc\",\"n\":12,\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}\n// the Room appends it and tells the sender:\n{\"ack\":{\"client\":\"t-19bc\",\"n\":12,\"seq\":43}}\n// everyone else gets the line with its seq:\n{\"op\":{\"seq\":43,\"client\":\"t-19bc\",\"n\":12,\"line\":{\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}}}",
+    "see": [
+      "D4",
+      "6",
+      "8"
+    ]
+  },
+  {
+    "id": "T-change-2",
+    "group": "Change",
+    "line": "Changes save through this.store.change(); events are for views only",
+    "detail": "Your F6. A change calls the nearest store directly, so a tab page with no bubbling still saves. The change event stays for views.",
+    "code": "set_one(key, value){\n  // … put the value; if it changed:\n  this.emit(\"change\", key, value, old)   // views listen; does not bubble\n  this.store?.change(this,               // saving: one direct call\n    { set: { [key]: value } }, \"local\")\n}\nget store(){ return this._store ?? this.parent?.store }  // nearest store up the chain",
+    "see": [
+      "D2",
+      "2",
+      "7"
+    ]
+  },
+  {
+    "id": "T-change-3",
+    "group": "Change",
+    "line": "add writes the whole item; adding an owned item makes a Ref",
+    "detail": "The add line carries the full envelope (id, type, data, child lists), so a replay gives back exactly what you built. Your F7: an item that already has a parent is added as a Ref.",
+    "code": "const c3 = tasks.add({ type: \"Task\", data: { title: \"x\" } })\n// {\"tasks\":{\"add\":{\"id\":\"c3\",\"type\":\"Task\",\"data\":{\"title\":\"x\"}}}}\nconst ref = other.add(c3)    // c3 already has a parent\n// {\"other\":{\"add\":{\"type\":\"Ref\",\"path\":\"tasks.c3\"}}}\nc3.move_to(other)            // the only way to move",
+    "see": [
+      "D3",
+      "3"
+    ]
+  },
+  {
+    "id": "T-change-4",
+    "group": "Change",
+    "line": "Views bind through item.prop(key), not hand-wired events",
+    "detail": "item.prop(key) is the Property.of you already built. A view takes the handle, keeps the unbind, and writes back through item.set.",
+    "code": "const title = task.prop(\"title\")   // Property.of(task, \"title\")\nnew TextInput({ value: title })    // two-way\nnew Label({ text: title })         // one-way\n// the view keeps the unbind and calls it in drop()",
+    "see": [
+      "D7",
+      "9"
+    ]
+  },
+  {
+    "id": "T-adopt-1",
+    "group": "Adopt",
+    "line": "Room plus Journal: JSONL now, SQLite next, Durable Object later",
+    "detail": "The Room is plain JS that knows lines and seq, never Items. The Journal passed into it decides where the lines live.",
+    "code": "const room = new Room({ key: \"tasks/page.jsonl\", root,\n  journal: new FileJournal(dir) })   // now: a .jsonl file\n// next:  journal: new SqliteJournal(\"tasks.sqlite\")\n// later: journal: new RoomJournal(state.storage)  // Durable Object\n// the Room code does not change",
+    "see": [
+      "D5",
+      "D8",
+      "7",
+      "8"
+    ]
+  },
+  {
+    "id": "T-adopt-2",
+    "group": "Adopt",
+    "line": "Presence as a throwaway frame: soft locks, cursors, typing dots",
+    "detail": "Presence is relayed to the other tabs and never written to the log. A soft lock is just presence that expires 30 s after it stops.",
+    "code": "room.presence(sock, { user: \"mike\", editing: \"content.p9\" })\n// relayed to the others, never appended to the journal:\n// {\"presence\":{\"client\":\"t-19bc\",\"state\":{\"user\":\"mike\",\"editing\":\"content.p9\"}}}\n// the UI shows \"Mike is editing\"; it ends on blur or after 30 s",
+    "see": [
+      "D10",
+      "12"
+    ]
+  },
+  {
+    "id": "T-avoid-1",
+    "group": "Avoid",
+    "line": "No CRDTs, fractional positions or offline multi-writer before phase 5",
+    "detail": "Order stays a plain list of ids with an after. Merging by several offline writers is a later phase, and it needs its own tests first.",
+    "code": "list.add(item, { after: \"c2\" })       // order = ids + after\nlist.order([\"c1\", \"c3\", \"c2\"])        // or set the whole order\n// not yet: position: 0.5, or a Yjs doc per list\n// phase 5: Yjs for one rich-text field only",
+    "see": [
+      "16"
+    ]
+  },
+  {
+    "id": "T-avoid-2",
+    "group": "Avoid",
+    "line": "Never log anything faster than a few changes a second",
+    "detail": "Game ticks, audio/video and every keystroke are streams, not lines. Send them live, and save the result as one Item change.",
+    "code": "// 60 times a second: a stream, never logged\ncanvas.onpointermove = e => stream.send({ x: e.x, y: e.y })\n// once, when it matters: an Item change, one line\ncanvas.onpointerup = e => piece.set({ x: e.x, y: e.y })",
+    "see": [
+      "D11",
+      "14"
+    ]
+  }
+]

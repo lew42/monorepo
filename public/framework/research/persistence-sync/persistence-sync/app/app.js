@@ -217,7 +217,8 @@
   const group = (title, rows) => (rows.length ? `<h2 class="label">${esc(title)}</h2>${list(rows)}` : '');
   const info = (title, items, kv = false) => (items.length ? `<h2 class="label">${esc(title)}</h2><dl class="info${kv ? ' kv' : ''}">${items.map(([k, v]) => `<div><dt>${k}</dt>${v ? `<dd>${v}</dd>` : ''}</div>`).join('')}</dl>` : '');
   const badge = (s, cls) => (s ? `<span class="badge ${cls ?? statusClass(s)}">${esc(s)}</span>` : '');
-  const head = (title, right = '') => `<div class="head"><h1>${title}</h1>${right ? `<span class="head-right">${right}</span>` : ''}</div>`;
+  // The top bar already names a top-level page, so there the heading line shrinks to just the count.
+  const head = (title, right = '') => (atTop ? (right ? `<div class="head solo"><span class="head-right">${right}</span></div>` : '') : `<div class="head"><h1>${title}</h1>${right ? `<span class="head-right">${right}</span>` : ''}</div>`);
   const pills = (tools) => `<div class="pills">${tools.map((t) => `<a class="pill" href="${toolHref(t.id)}">${esc(t.name)}</a>`).join('')}</div>`;
   let sortRelease = false;
   function toolRow(t, note = '', opts = {}) {
@@ -284,7 +285,17 @@
       <article class="prose status" id="status">${status ? '' : ''}</article>
       ${group('Key links', links)}
       ${recent.length ? `<h2 class="label">Recently updated</h2><div class="list compact">${recent.map((d) => row({ href: docHref(d.path), title: esc(d.title), right: esc(ago(d.updated)), one: true })).join('')}</div>` : ''}`;
-    if (status) await renderMd(document.getElementById('status'), statusBody, 'STATUS.md', ticket);
+    if (status) {
+      const el = document.getElementById('status');
+      if (!(await renderMd(el, statusBody, 'STATUS.md', ticket))) return;
+      // Each status section (an h2 and what follows it) folds: the first two start open, the rest closed.
+      el.querySelectorAll('h2').forEach((h, i) => {
+        const d = document.createElement('details'), sum = document.createElement('summary');
+        d.className = 'fold'; d.open = i < 2;
+        sum.append(...h.childNodes); h.replaceWith(d); d.append(sum);
+        for (let n = d.nextSibling; n && n.nodeName !== 'DETAILS'; n = d.nextSibling) d.append(n);
+      });
+    }
   }
 
   // ---------- Categories & strategies ----------
@@ -402,6 +413,7 @@
       <div class="fchips" id="f-chips"></div>
       <div id="cards"></div>`;
     const panel = document.getElementById('f-panel'), toggle = document.getElementById('f-toggle');
+    let showAll = false;
     const update = () => {
       for (const k of Object.keys(st)) { const el = document.getElementById(`f-${k}`); if (el) st[k] = el.value; }
       if (st.sort === 'dl') st.sort = '';
@@ -425,8 +437,11 @@
       document.getElementById('f-chips').innerHTML = active.map(([k, lab]) => `<button type="button" class="fchip" data-k="${k}" aria-label="Remove filter ${esc(lab)}">${esc(lab)}<span aria-hidden="true">✕</span></button>`).join('');
       document.getElementById('f-n').textContent = active.length ? ` · ${active.length}` : '';
       document.getElementById('count').textContent = res.length === TOOLS.length ? plural(res.length, 'tool') : `${res.length} of ${TOOLS.length}`;
-      document.getElementById('cards').innerHTML = list(res.map((t) => toolRow(t))) || `<p class="empty">No matches.</p>`;
+      // 147 rows is a long scroll: show the first 30, and the rest on a tap.
+      const shown = showAll || res.length <= 36 ? res : res.slice(0, 30);
+      document.getElementById('cards').innerHTML = (list(shown.map((t) => toolRow(t))) || `<p class="empty">No matches.</p>`) + (shown.length < res.length ? `<button type="button" class="btn more" id="f-more">Show all ${res.length}</button>` : '');
     };
+    document.getElementById('cards').addEventListener('click', (e) => { if (e.target.closest('#f-more')) { showAll = true; update(); } });
     view.querySelectorAll('select').forEach((el) => el.addEventListener('change', update));
     document.getElementById('f-q').addEventListener('input', update);
     const showPanel = (on) => { panel.hidden = !on; toggle.setAttribute('aria-expanded', String(on)); toggle.classList.toggle('on', on); };
@@ -549,22 +564,26 @@
     for (const p of href.split('/')) { if (p === '..') { if (out.length && out[out.length - 1] !== '..') out.pop(); else out.push('..'); } else if (p && p !== '.') out.push(p); }
     return out.join('/');
   };
-  // pre: prefix for heading ids when several docs share one page (the Design tab); links to the design docs stay on that tab.
-  const DESIGN_PRE = { 'design/takeaways.md': 'tk-', 'design/phase-1.md': 'p1-', 'design/fixes.md': 'fx-' };
-  const designHref = (path, frag) => `#/design?h=${DESIGN_PRE[path] || ''}${frag || 'd-' + path.replace(/^design\/|\.md$/g, '')}`;
-  function enhance(root, path, pre = '') {
+  // Links to the design docs open their short pages instead (the doc itself stays in Docs).
+  const designHref = (path, frag) => {
+    if (path === 'design/takeaways.md') return '#/design/takeaways';
+    if (path === 'design/fixes.md') return '#/design/fixes';
+    if (path === 'design/phase-1.md') { const m = String(frag || '').match(/^h-(\d+)-/); return m && P1.sections.some((x) => x.n === +m[1]) ? `#/design/phase1/${+m[1]}` : '#/design/phase1'; }
+    return '';
+  };
+  function enhance(root, path) {
     root.querySelectorAll('script,iframe,object,embed,style,form').forEach((el) => el.remove());
     root.querySelectorAll('*').forEach((el) => [...el.attributes].forEach((a) => { if (/^on/i.test(a.name) || /^\s*javascript:/i.test(a.value)) el.removeAttribute(a.name); }));
     root.querySelectorAll('table').forEach((tb) => { const w = document.createElement('div'); w.className = 'table-wrap'; tb.replaceWith(w); w.append(tb); });
     const seen = new Map();
-    root.querySelectorAll('h1,h2,h3,h4').forEach((h) => { let id = pre + 'h-' + kebab(h.textContent); const n = seen.get(id) || 0; seen.set(id, n + 1); if (n) id += `-${n}`; h.id = id; });
+    root.querySelectorAll('h1,h2,h3,h4').forEach((h) => { let id = 'h-' + kebab(h.textContent); const n = seen.get(id) || 0; seen.set(id, n + 1); if (n) id += `-${n}`; h.id = id; });
     root.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute('href');
       if (/^https?:/i.test(href)) { a.target = '_blank'; a.rel = 'noopener'; return; }
-      if (href.startsWith('#')) { a.dataset.anchor = pre + 'h-' + kebab(safeDecode(href.slice(1))); a.setAttribute('href', pre ? `#/design?h=${a.dataset.anchor}` : docHref(path, { h: a.dataset.anchor })); return; }
+      if (href.startsWith('#')) { a.dataset.anchor = 'h-' + kebab(safeDecode(href.slice(1))); a.setAttribute('href', docHref(path, { h: a.dataset.anchor })); return; }
       if (/^[a-z]+:/i.test(href)) return;
       const [file, frag] = href.split('#'), target = resolvePath(path, safeDecode(file));
-      if (DESIGN_PRE[target] && docByPath.has(target)) a.setAttribute('href', designHref(target, frag ? `h-${kebab(safeDecode(frag))}` : ''));
+      if (designHref(target) && docByPath.has(target)) a.setAttribute('href', designHref(target, frag ? `h-${kebab(safeDecode(frag))}` : ''));
       else if (docByPath.has(target)) a.setAttribute('href', docHref(target, frag ? { h: 'h-' + kebab(safeDecode(frag)) } : {}));
       else { a.href = REPO_BLOB + target.replace(/^(\.\.\/)+/, ''); a.target = '_blank'; a.rel = 'noopener'; }
     });
@@ -576,10 +595,10 @@
     });
   }
   // Renders markdown into el; returns false when a newer route replaced the view meanwhile.
-  async function renderMd(el, md, path, ticket, pre = '') {
+  async function renderMd(el, md, path, ticket) {
     const mk = await loadMarked();
     if (ticket !== current) return false;
-    if (mk) { el.innerHTML = mk.parse(md, { gfm: true }); enhance(el, path, pre); highlightCode(el); }
+    if (mk) { el.innerHTML = mk.parse(md, { gfm: true }); enhance(el, path); linkRefs(el, refScope(path)); el._hl = highlightCode(el); }
     else el.innerHTML = `<pre style="white-space:pre-wrap">${esc(md)}</pre>`;
     return true;
   }
@@ -587,10 +606,13 @@
   // In-page find: highlight every match and step through them with a small floating bar.
   let findBar = null;
   const closeFind = () => { findBar?.remove(); findBar = null; };
-  function find(root, term) {
+  // A reference code (T3, F10) matches as a whole word, capitals only. atHeading starts at the first match inside a
+  // heading (where the code is defined) instead of the first mention. Returns the marks.
+  function find(root, term, atHeading = false) {
     root.querySelectorAll('mark').forEach((mk) => mk.replaceWith(...mk.childNodes)); root.normalize(); closeFind();
-    if (!term) return;
-    const re = new RegExp(reEsc(term), 'gi'), marks = [], nodes = [];
+    if (!term) return [];
+    const isCode = /^[A-Z]\d{1,2}$/.test(term);
+    const re = new RegExp(isCode ? `\\b${term}\\b` : reEsc(term), isCode ? 'g' : 'gi'), marks = [], nodes = [];
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); while (w.nextNode()) nodes.push(w.currentNode);
     for (const n of nodes) {
       const text = n.nodeValue; re.lastIndex = 0; if (!re.test(text)) continue;
@@ -601,7 +623,8 @@
     findBar = document.createElement('div'); findBar.className = 'findbar';
     findBar.innerHTML = `<span></span><button type="button" aria-label="Previous match">↑</button><button type="button" aria-label="Next match">↓</button><button type="button" aria-label="Close find">✕</button>`;
     document.body.append(findBar);
-    let i = -1;
+    let i = atHeading ? marks.findIndex((mk) => mk.closest('h1,h2,h3,h4')) - 1 : -1;
+    if (i < -1) i = -1;
     const go = (dir) => {
       if (!marks.length) { findBar.firstChild.textContent = `No matches for “${term}”`; return; }
       marks[i]?.classList.remove('cur'); i = (i + dir + marks.length) % marks.length; marks[i].classList.add('cur');
@@ -612,6 +635,7 @@
     const [prev, next, close] = findBar.querySelectorAll('button');
     prev.onclick = () => go(-1); next.onclick = () => go(1); close.onclick = () => find(root, '');
     go(1);
+    return marks;
   }
 
   async function showDoc(path, params, ticket) {
@@ -638,58 +662,156 @@
     bFind.onclick = () => { showFind(findrow.hidden); if (!findrow.hidden) input.focus(); };
     input.addEventListener('change', () => { setUrl(docHref(path, { find: input.value.trim() })); find(prose, input.value.trim()); });
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); });
-    if (params.get('find')) { showFind(true); find(prose, params.get('find')); }
+    if (params.get('find')) {
+      const term = params.get('find'), atH = params.get('at') === 'h';
+      showFind(true);
+      const marks = find(prose, term, atH);
+      // Syntax colouring rewrites code blocks, which drops marks inside them: mark again once it is done.
+      prose._hl?.then(() => { if (ticket === current && findBar && marks.some((m) => !m.isConnected)) find(prose, term, atH); });
+    }
     else if (params.get('h')) document.getElementById(params.get('h'))?.scrollIntoView();
   }
 
+  // ---------- reference codes ----------
+  // Short codes in the text are links: D3 (a decision), T3 / F5 / R2 (the failing-test specs in the lessons docs),
+  // "gap 7" (the lew42 overview) and repo paths ending in .md. Never inside code blocks, headings or existing links.
+  const SPEC_DOCS = { T: ['persistence-sync/lessons/object-model.md', 6], F: ['persistence-sync/lessons/storage-compaction.md', 10], R: ['persistence-sync/lessons/sync-protocol.md', 9] };
+  const GAP_DOC = 'persistence-sync/lew42/overview.md';
+  // The docs where these codes mean those specs (2). In STATUS, OWNER and README (1) F6 and F7 are the owner's own forks, so they stay plain.
+  // Elsewhere (0) D1 and R2 are Cloudflare's.
+  const refScope = (path) => (/^(design\/|persistence-sync\/lessons\/|persistence-sync\/lew42\/overview\.md$|persistence-sync\/report\.md$)/.test(path) ? 2 : /^(STATUS|OWNER|README)\.md$/.test(path) ? 1 : 0);
+  const CLOUD = /Cloudflare|Workers|SQLite|bucket|\bS3\b|archive|segment|object storage|Durable|\bDO\b|egress|Time Travel/i;
+  const specCache = new Map();
+  const specDefined = (code) => {
+    if (!specCache.has(code)) {
+      const [path, max] = SPEC_DOCS[code[0]] || [], d = path && getDoc(path), n = +code.slice(1);
+      specCache.set(code, !!d && n >= 1 && n <= max && new RegExp(`\\b${code}\\b`).test(d.md));
+    }
+    return specCache.get(code);
+  };
+  // The text to find for "gap N": its heading in the overview's gaps section, cut before any code or link.
+  const gapFind = (n) => {
+    const lines = (getDoc(GAP_DOC)?.md || '').split('\n');
+    let i = lines.findIndex((l) => /^##\s+.*\bGaps\b/i.test(l));
+    if (i < 0) return null;
+    for (i++; i < lines.length && !/^##\s/.test(lines[i]); i++) {
+      const m = lines[i].match(/^###\s+(\d+)\.\s+(.*)$/);
+      if (m && +m[1] === n) { const t = m[2].split(/[`*[<]/)[0].trim(); return t.length >= 8 ? t : `gap ${n}`; }
+    }
+    return null;
+  };
+  const REF_RE = /(?<![\w/#.-])(?:([DTFR])(\d{1,2})|[Gg]ap (\d{1,2}))\b|(?<![\w/:.-])((?:[\w.-]+\/)+[\w.-]+\.md)\b/g;
+  function refTarget(m, text, el, codes) {
+    if (m[4]) { const d = getDoc(m[4]); return d ? designHref(d.path) || docHref(d.path) : ''; }
+    if (!codes || /your $/i.test(text.slice(Math.max(0, m.index - 5), m.index))) return '';
+    if (codes === 1 && /^F[67]$/.test(m[1] + m[2])) return '';
+    if (m[3]) { const t = gapFind(+m[3]); return t ? docHref(GAP_DOC, { find: t, at: 'h' }) : ''; }
+    const code = m[1] + m[2];
+    // D1 and R2 are also Cloudflare products: link them only where they read as spec codes ("(R2)", "R1, R2", "**R2**", "test R2").
+    if (/^(D1|R2)$/.test(code) && (CLOUD.test(el.textContent) || !/(?:[(·*]|\btests?|\b[DTFR]\d{1,2}(?:,|, and| and))\s*$/.test(text.slice(0, m.index)))) return '';
+    if (m[1] === 'D') return decById(code) ? `#/design/decision/${code}` : '';
+    return specDefined(code) ? docHref(SPEC_DOCS[m[1]][0], { find: code, at: 'h' }) : '';
+  }
+  // codes (0, 1 or 2, see refScope): whether the spec codes and "gap N" link too, or only repo .md paths.
+  function linkRefs(root, codes) {
+    const nodes = [], skip = 'a,pre,code,button,textarea,select,script,style,h1,h2,h3,h4,h5,h6,mark';
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.nodeValue.length > 2 && !n.parentElement.closest(skip) ? 1 : 2) });
+    while (w.nextNode()) nodes.push(w.currentNode);
+    for (const n of nodes) {
+      const text = n.nodeValue; let last = 0, out = null;
+      REF_RE.lastIndex = 0;
+      for (let m; (m = REF_RE.exec(text)); ) {
+        const href = refTarget(m, text, n.parentElement, codes);
+        if (!href) continue;
+        out ||= document.createDocumentFragment();
+        const a = document.createElement('a');
+        a.className = 'ref'; a.href = href; a.textContent = m[0];
+        out.append(text.slice(last, m.index), a); last = m.index + m[0].length;
+      }
+      if (out) { out.append(text.slice(last)); n.replaceWith(out); }
+    }
+    if (!codes) return;
+    root.querySelectorAll('code').forEach((c) => { // a whole inline `T3`
+      const t = c.textContent.trim(), m = /^([DTFR])(\d{1,2})$/.exec(t);
+      if (c.closest('pre,a') || !m) return;
+      const href = refTarget(Object.assign([t, m[1], m[2]], { index: 0 }), t, c, true);
+      if (href) { const a = document.createElement('a'); a.className = 'ref'; a.href = href; c.replaceWith(a); a.append(c); }
+    });
+  }
+
   // ---------- Design ----------
-  // design/takeaways.md, then the decisions as tap-to-choose cards, then phase-1.md and fixes.md.
-  // A tap saves {choice, note, at} to the artifact database, collection "decisions", doc id = decision id
+  // A hub of four short lists: takeaways, decisions, phase 1 classes, fixes. Each opens one-screen pages.
+  // Data (made by scripts/build.mjs): R.takeaways, R.decisions, R.phase1 (design/phase-1.md split at its "## " headings), R.fixes.
+  // A tap on a decision option saves {choice, note, at} to the artifact database, collection "decisions", doc id = decision id
   // (editors write, everyone who can open reads). Without a database (file://) it saves on this device.
   const DECISIONS = Array.isArray(R.decisions) ? R.decisions : null;
-  const DESIGN_DOCS = [['takeaways', 'Takeaways', 'tk-'], ['phase-1', 'Phase 1', 'p1-'], ['fixes', 'Fixes', 'fx-']];
+  const TAKE = R.takeaways?.items || [];
+  const P1 = R.phase1 || { title: '', line: '', sections: [] };
+  const FIXES = R.fixes || null;
+  const takeaways = () => TAKE;
+  const GROUP_WORDS = { keep: 'Keep', change: 'Change', adopt: 'Adopt', avoid: 'Avoid' }, GROUP_CLS = { keep: 'good', change: 'warn', adopt: 'acc', avoid: 'bad' };
+  const groupWord = (g) => GROUP_WORDS[g] || cap(g);
   const saved = new Map(), saveErr = new Map();
   let canWrite = null, decisionsLive = false;
   const LS_KEY = 'research-decisions';
   const lsRead = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}') || {}; } catch { return {}; } };
   const lsWrite = (o) => { try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch {} };
-  // Small inline markup for decision text: `code`, **bold**, blank line = new paragraph.
-  const inl = (t) => String(t ?? '').split(/\n{2,}/).filter(Boolean).map((p) => `<p>${esc(p).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>')}</p>`).join('');
+  // Small inline markup for design text: `code`, **bold**; inl() also makes blank-line paragraphs.
+  const plain = (s) => String(s ?? '').replace(/[`*]/g, '');
+  const inlLine = (t) => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+  const inl = (t) => String(t ?? '').split(/\n{2,}/).filter(Boolean).map((p) => `<p>${inlLine(p).replace(/\n/g, '<br>')}</p>`).join('');
+  const codeBlock = (c) => arr(c).map((x) => { const o = x && typeof x === 'object' ? x : { code: x }; return o.code ? `<pre><code class="language-${/^(js|json)$/.test(o.lang) ? o.lang : 'js'}">${esc(o.code)}</code></pre>` : ''; }).join('');
   const decId = (d) => String(d.id);
+  const decById = (id) => (DECISIONS || []).find((d) => decId(d) === id);
   const isRec = (d, o) => d.recommended != null && [o.id, o.label].some((x) => String(x).toLowerCase() === String(d.recommended).toLowerCase());
+  const optLabel = (d, id) => { const o = arr(d.options).find((x) => x.id === id || String(x.label).toLowerCase() === String(id).toLowerCase()); return o ? o.label || o.id : id; };
   const refLink = (r) => {
     const x = r && typeof r === 'object' ? r.path || r.url || r.id || '' : String(r ?? ''), label = r && typeof r === 'object' ? r.label || r.title || '' : '';
     const doc = !isUrl(x) && getDoc(String(x).split('#')[0]);
-    if (doc) return `<a class="pill sm" href="${esc(docHref(doc.path))}">${esc(label || doc.title)}</a>`;
-    if (isUrl(x)) return `<a class="pill sm" href="${esc(x)}" target="_blank" rel="noopener">${esc(label || x.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40))} ↗</a>`;
+    if (doc) return `<a class="pill sm" href="${esc(designHref(doc.path) || docHref(doc.path))}">${esc(label || doc.title)}</a>`;
+    if (isUrl(x)) {
+      const gh = x.match(/github\.com\/[^/]+\/[^/]+\/(?:blob|tree)\/[0-9a-f]{7,40}\/([^#]+)(?:#(L[\dL-]+))?$/); // a permalink shows as File.js L10-L20
+      return `<a class="pill sm" href="${esc(x)}" target="_blank" rel="noopener">${esc(label || (gh ? `${gh[1].split('/').pop()}${gh[2] ? ' ' + gh[2] : ''}` : x.replace(/^https?:\/\/(www\.)?/, '').slice(0, 40)))} ↗</a>`;
+    }
     if (byId.has(x)) return `<a class="pill sm" href="${toolHref(x)}">${esc(byId.get(x).name)}</a>`;
     return x ? `<span class="pill sm static">${esc(label || x)}</span>` : '';
   };
+  // The options are div role=button (not <button>) so a code in their text can be a link.
   const decCard = (d) => `<article class="dcard" id="dec-${esc(decId(d))}" data-dec="${esc(decId(d))}">
       <h3>${esc(d.title || decId(d))}</h3>
       ${d.question ? `<div class="dq">${inl(d.question)}</div>` : ''}
       ${d.context ? `<div class="dctx">${inl(d.context)}</div>` : ''}
-      <div class="dopts" role="group" aria-label="${esc(d.title || decId(d))}">${arr(d.options).map((o) => `<button type="button" class="dopt" data-opt="${esc(o.id)}" aria-pressed="false"><span class="dopt-top"><span>${esc(o.label || o.id)}</span>${isRec(d, o) ? '<span class="badge good">recommended</span>' : ''}</span>${o.summary ? `<span class="dopt-sum">${esc(o.summary)}</span>` : ''}</button>`).join('')}</div>
+      ${d.example ? `<div class="prose dex">${codeBlock(d.example)}</div>` : ''}
+      <div class="dopts" role="group" aria-label="${esc(d.title || decId(d))}">${arr(d.options).map((o) => `<div class="dopt" role="button" tabindex="0" data-opt="${esc(o.id)}" aria-pressed="false"><span class="dopt-top"><span>${inlLine(o.label || o.id)}</span>${isRec(d, o) ? '<span class="badge good">recommended</span>' : ''}</span>${o.summary ? `<span class="dopt-sum">${inlLine(o.summary)}</span>` : ''}</div>`).join('')}</div>
       <textarea class="dnote" rows="2" placeholder="Note (optional)" aria-label="Note for ${esc(d.title || decId(d))}"></textarea>
       <div class="dstat"><span class="dmsg"></span><button type="button" class="linkbtn" data-clear hidden>Clear</button></div>
       ${arr(d.refs).length ? `<div class="drefs">${arr(d.refs).map(refLink).join('')}</div>` : ''}
     </article>`;
   function paintDecision(id) {
     const card = [...document.querySelectorAll('.dcard')].find((c) => c.dataset.dec === id);
-    if (!card) return;
-    const v = saved.get(id), err = saveErr.get(id), note = card.querySelector('.dnote'), msg = card.querySelector('.dmsg');
-    card.classList.toggle('ro', canWrite === false);
-    card.querySelectorAll('.dopt').forEach((b) => { b.setAttribute('aria-pressed', String(!!v && v.choice === b.dataset.opt)); b.toggleAttribute('aria-disabled', canWrite === false); });
-    if (document.activeElement !== note && note.value !== (v?.note || '')) note.value = v?.note || '';
-    note.readOnly = canWrite === false;
-    if (!err && v?.choice) { msg.dataset.ago = v.at; msg.dataset.prefix = decisionsLive ? 'Saved' : 'Saved on this device'; msg.textContent = `${msg.dataset.prefix} ${ago(v.at)}`; }
-    else { delete msg.dataset.ago; delete msg.dataset.prefix; msg.textContent = err ? `Not saved: ${err}` : canWrite === false ? 'Only editors can choose.' : ''; }
-    msg.classList.toggle('bad', !!err);
-    card.querySelector('[data-clear]').hidden = !v || canWrite === false;
-    const n = DECISIONS ? DECISIONS.filter((x) => saved.get(decId(x))?.choice).length : 0, c = document.getElementById('dec-count');
-    if (c) c.textContent = `${n} of ${DECISIONS.length} chosen`;
+    if (card) {
+      const v = saved.get(id), err = saveErr.get(id), note = card.querySelector('.dnote'), msg = card.querySelector('.dmsg');
+      card.classList.toggle('ro', canWrite === false);
+      card.querySelectorAll('.dopt').forEach((b) => { b.setAttribute('aria-pressed', String(!!v && v.choice === b.dataset.opt)); b.toggleAttribute('aria-disabled', canWrite === false); });
+      if (document.activeElement !== note && note.value !== (v?.note || '')) note.value = v?.note || '';
+      note.readOnly = canWrite === false;
+      if (!err && v?.choice) { msg.dataset.ago = v.at; msg.dataset.prefix = decisionsLive ? 'Saved' : 'Saved on this device'; msg.textContent = `${msg.dataset.prefix} ${ago(v.at)}`; }
+      else { delete msg.dataset.ago; delete msg.dataset.prefix; msg.textContent = err ? `Not saved: ${err}` : canWrite === false ? 'Only editors can choose.' : ''; }
+      msg.classList.toggle('bad', !!err);
+      card.querySelector('[data-clear]').hidden = !v || canWrite === false;
+    }
+    paintDecisionMeta();
   }
-  const paintDecisions = () => (DECISIONS || []).forEach((d) => paintDecision(decId(d)));
+  // The "n of N chosen" count and the choice / recommendation badges on the hub and the list.
+  function paintDecisionMeta() {
+    const decs = DECISIONS || [], n = decs.filter((x) => saved.get(decId(x))?.choice).length;
+    document.querySelectorAll('#dec-count').forEach((c) => { c.textContent = `${n} of ${decs.length} chosen`; });
+    document.querySelectorAll('[data-dbadge]').forEach((el) => {
+      const d = decById(el.dataset.dbadge), v = d && saved.get(decId(d))?.choice;
+      el.innerHTML = !d ? '' : v ? `<span class="badge good">chosen: ${esc(plain(optLabel(d, v)))}</span>` : d.recommended != null ? `<span class="badge">recommended: ${esc(plain(optLabel(d, d.recommended)))}</span>` : '';
+    });
+  }
+  const paintDecisions = () => (DECISIONS || []).forEach((d) => paintDecision(decId(d))) || paintDecisionMeta();
   async function saveDecision(id, patch) {
     const prev = saved.get(id), next = { choice: prev?.choice || '', note: prev?.note || '', ...patch, at: new Date().toISOString() };
     saved.set(id, next); saveErr.delete(id); paintDecision(id);
@@ -714,7 +836,7 @@
   }
   function onDesignClick(e) {
     const card = e.target.closest('.dcard');
-    if (!card || canWrite === false) return;
+    if (!card || canWrite === false || e.target.closest('a')) return;
     const id = card.dataset.dec, b = e.target.closest('.dopt');
     if (b) saveDecision(id, { choice: b.dataset.opt, note: card.querySelector('.dnote').value.trim() });
     else if (e.target.closest('[data-clear]')) clearDecision(id);
@@ -725,29 +847,121 @@
     const id = card.dataset.dec, note = e.target.value.trim();
     if (saved.get(id)?.choice && note !== (saved.get(id).note || '')) saveDecision(id, { note });
   }
-  async function showDesign(params, ticket) {
-    const decs = DECISIONS || [], clear = decs.filter((d) => d.kind === 'clear-win'), calls = decs.filter((d) => d.kind !== 'clear-win');
-    const none = () => '<p class="empty">Not written yet.</p>';
-    const sec = ([key, title, pre]) => {
-      const d = getDoc(`design/${key}.md`);
-      return `<section class="${key === 'takeaways' ? 'dtake' : 'dsec'}" id="d-${key}">${d?.md.trim() ? `<article class="prose" id="dm-${key}"></article>` : `<h2 class="label">${esc(title)}</h2>${none(title)}`}</section>`;
-    };
-    const decs_html = (list_, title) => (list_.length ? `<h2 class="label"><span>${title}</span>${title === 'Decisions' ? '<span class="count" id="dec-count"></span>' : ''}</h2>${list_.map(decCard).join('')}` : '');
-    view.innerHTML = `<nav class="dnav" aria-label="Design sections"><a class="pill" data-anchor="d-takeaways" href="#/design?h=d-takeaways">Takeaways</a><a class="pill" data-anchor="d-decisions" href="#/design?h=d-decisions">Decisions</a><a class="pill" data-anchor="d-phase-1" href="#/design?h=d-phase-1">Phase 1</a><a class="pill" data-anchor="d-fixes" href="#/design?h=d-fixes">Fixes</a></nav>
-      ${sec(DESIGN_DOCS[0])}
-      <section id="d-decisions" class="dsec dec">${decs.length ? decs_html(calls.length ? calls : clear, calls.length ? 'Decisions' : 'Clear wins') + (calls.length ? decs_html(clear, 'Clear wins') : '') : `<h2 class="label">Decisions</h2>${none('Decisions')}`}</section>
-      ${sec(DESIGN_DOCS[1])}${sec(DESIGN_DOCS[2])}`;
+  // Enter or Space on a focused option taps it.
+  function onDesignKey(e) {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('.dopt')) { e.preventDefault(); e.target.click(); }
+  }
+
+  const prevNext = (items, i, href, label) => `<nav class="pn" aria-label="Previous and next">${[[i - 1, 'prev', '‹ Previous'], [i + 1, 'next', 'Next ›']].map(([j, cls, k]) => (items[j] ? `<a class="pn-a ${cls}" href="${esc(href(items[j]))}"><span class="pn-k">${k}</span><span class="pn-t">${label(items[j])}</span></a>` : '<span></span>')).join('')}</nav>`;
+  const rowText = (html) => `<span class="row-text">${html}</span>`;
+  const countHead = (title, n) => `<h2 class="label"><span>${esc(title)}</span><span>${n}</span></h2>`;
+  const notYet = (what) => `<p class="empty">${esc(what)} not written yet.</p>`;
+  const takeHref = (t) => `#/design/takeaway/${encodeURIComponent(t.id)}`;
+  const decHref = (d) => `#/design/decision/${encodeURIComponent(decId(d))}`;
+  const p1Href = (s) => `#/design/phase1/${s.n}`;
+  const p1Row = (n) => { const s = P1.sections.find((x) => x.n === n); return s && row({ href: p1Href(s), title: `<b>Phase 1 · ${s.n}.</b> ${esc(s.name)}`, one: true }); };
+
+  function showDesignHub(params) {
+    const dec = (params.get('h') || '').match(/^dec-(.+)$/); // an old link to one decision card
+    if (dec && decById(dec[1])) { location.replace(decHref(decById(dec[1]))); return; }
+    const hubRow = (href, title, sub, n, extra = '') => (n ? row({ href, title: `<b>${title}</b>`, sub, meta: extra, right: String(n) }) : row({ href, title: `<b>${title}</b>`, meta: 'not written yet' }).replace('class="row"', 'class="row muted"'));
+    view.innerHTML = `<p class="sub">Four short lists. Tap one to open it.</p>${list([
+      hubRow('#/design/takeaways', 'Takeaways', 'What to keep, change, adopt and avoid', TAKE.length),
+      hubRow('#/design/decisions', 'Decisions', 'Open calls, each with a recommendation', (DECISIONS || []).length, '<span id="dec-count"></span>'),
+      hubRow('#/design/phase1', 'Phase 1 classes', 'The class design, one short part at a time', P1.sections.length),
+      hubRow('#/design/fixes', 'Fixes', 'Clear-win fixes, ranked by value for effort', FIXES?.items.length || 0),
+    ])}`;
     paintDecisions();
-    for (const [key, , pre] of DESIGN_DOCS) {
-      const el = document.getElementById(`dm-${key}`), d = getDoc(`design/${key}.md`);
-      if (el && d && !(await renderMd(el, d.md, d.path, ticket, pre))) return;
-    }
-    const h = params.get('h');
-    if (h) document.getElementById(h)?.scrollIntoView();
+  }
+
+  function showTakeaways() {
+    if (!TAKE.length) { view.innerHTML = notYet('Takeaways'); return; }
+    const groups = [...new Set(TAKE.map((t) => t.group))].sort((a, b) => (GROUPS_ORDER.indexOf(a) + 1 || 9) - (GROUPS_ORDER.indexOf(b) + 1 || 9));
+    view.innerHTML = `<p class="sub">Tap one for the detail and the code.</p>${groups.map((g) => { const items = TAKE.filter((t) => t.group === g); return countHead(groupWord(g), items.length) + list(items.map((t) => row({ href: takeHref(t), title: rowText(inlLine(t.line)) }))); }).join('')}`;
+  }
+  const GROUPS_ORDER = ['keep', 'change', 'adopt', 'avoid'];
+
+  function showTakeaway(id) {
+    const i = TAKE.findIndex((t) => t.id === id), t = TAKE[i];
+    if (!t) { view.innerHTML = `${head('Not found')}<p class="empty">No takeaway “${esc(id)}”. <a href="#/design/takeaways">Back to the list</a></p>`; return; }
+    const same = TAKE.filter((x) => x.group === t.group);
+    const see = arr(t.see).map((s) => {
+      const x = String(s).trim(), n = x.match(/^(?:§|phase[- ]?1\s*)?(\d{1,2})(?:\.\d+)?$/i);
+      if (decById(x.toUpperCase())) { const d = decById(x.toUpperCase()); return row({ href: decHref(d), title: `<b>Decision ${esc(decId(d))}</b>`, sub: esc(d.title || ''), one: false }); }
+      if (n && p1Row(+n[1])) return p1Row(+n[1]);
+      const l = refLink(s); return l ? `<div class="row static">${l}</div>` : '';
+    }).filter(Boolean);
+    view.innerHTML = `<p class="tk-kick"><span class="badge ${GROUP_CLS[t.group] || ''}">${esc(groupWord(t.group))}</span> <span>${same.indexOf(t) + 1} of ${same.length}</span></p>
+      <h1 class="tt">${inlLine(t.line)}</h1>
+      <div class="prose tdetail">${inl(t.detail)}${codeBlock(t.code)}</div>
+      ${see.length ? `<h2 class="label">See</h2>${list(see)}` : ''}
+      ${prevNext(TAKE, i, takeHref, (x) => inlLine(x.line))}`;
+  }
+
+  function showDecisions() {
+    const decs = DECISIONS || [];
+    if (!decs.length) { view.innerHTML = notYet('Decisions'); return; }
+    const calls = decs.filter((d) => d.kind !== 'clear-win'), clear = decs.filter((d) => d.kind === 'clear-win');
+    const rows = (l) => list(l.map((d) => row({ href: decHref(d), title: rowText(`<b class="did">${esc(decId(d))}</b> ${esc(d.title || '')}`), meta: `<span class="dbadge" data-dbadge="${esc(decId(d))}"></span>` })));
+    view.innerHTML = `<p class="sub"><span id="dec-count"></span> · Tap one to choose.</p>
+      ${calls.length ? countHead(clear.length ? 'Your call' : 'Decisions', calls.length) + rows(calls) : ''}
+      ${clear.length ? countHead('Clear wins', clear.length) + rows(clear) : ''}`;
+    paintDecisions();
+  }
+
+  function showDecision(id) {
+    const decs = DECISIONS || [], i = decs.findIndex((d) => decId(d) === id), d = decs[i];
+    if (!d) { view.innerHTML = `${head('Not found')}<p class="empty">No decision “${esc(id)}”. <a href="#/design/decisions">Back to the list</a></p>`; return; }
+    view.innerHTML = decCard(d) + prevNext(decs, i, decHref, (x) => `<b>${esc(decId(x))}</b> ${esc(x.title || '')}`);
+    paintDecisions();
+  }
+
+  function showPhase1List() {
+    if (!P1.sections.length) { view.innerHTML = notYet('Phase 1'); return; }
+    view.innerHTML = `<p class="sub">${inlLine(P1.line || P1.title)}</p>
+      ${list(P1.sections.map((s) => row({ href: p1Href(s), title: rowText(`<b class="did">${s.n}.</b> ${esc(s.name)}`) })))}
+      <p class="sub small">The whole thing as one page: <a href="${esc(docHref('design/phase-1.md'))}">design/phase-1.md</a></p>`;
+  }
+
+  async function showPhase1(n, ticket) {
+    const i = P1.sections.findIndex((s) => String(s.n) === n), s = P1.sections[i];
+    if (!s) { view.innerHTML = `${head('Not found')}<p class="empty">No part “${esc(n)}”. <a href="#/design/phase1">Back to the list</a></p>`; return; }
+    view.innerHTML = `<article class="prose psec" id="psec"></article>${prevNext(P1.sections, i, p1Href, (x) => `<b>${x.n}.</b> ${esc(x.name)}`)}`;
+    const el = document.getElementById('psec');
+    if (!(await renderMd(el, s.md, 'design/phase-1.md', ticket))) return;
+    el.querySelectorAll('a[data-anchor]').forEach((a) => { // "#7-store-backend-journal" points at another part
+      const m = a.dataset.anchor.match(/^h-(\d+)-/);
+      if (!document.getElementById(a.dataset.anchor) && m && P1.sections.some((x) => x.n === +m[1])) { a.setAttribute('href', `#/design/phase1/${+m[1]}`); delete a.dataset.anchor; }
+    });
+  }
+
+  function showFixes() {
+    if (!FIXES) { view.innerHTML = notYet('Fixes'); return; }
+    const EFF = { S: 'good', M: 'warn', L: 'bad' };
+    view.innerHTML = `<p class="sub">${esc(FIXES.line)} Tap one for why.</p>
+      <div class="list">${FIXES.items.map((f) => `<details class="fix"><summary class="row"><span class="row-body"><span class="row-title">${rowText(`<b class="did">${f.n}.</b> ${inlLine(f.title)}`)}</span>${f.tests.length ? `<span class="row-meta">Test: ${esc(f.tests.join(', '))}</span>` : ''}</span><span class="badge ${EFF[f.effort] || ''}">${esc(f.effort)}</span><span class="chev" aria-hidden="true">›</span></summary><p class="fix-why">${inlLine(f.why)}</p></details>`).join('')}</div>
+      ${FIXES.later.length ? `<details class="later"><summary>Notes for later (${FIXES.later.length})</summary><ul>${FIXES.later.map((x) => `<li>${inlLine(x)}</li>`).join('')}</ul></details>` : ''}
+      <p class="sub small">The whole thing as one page: <a href="${esc(docHref('design/fixes.md'))}">design/fixes.md</a></p>`;
+  }
+
+  async function showDesign(parts, params, ticket) {
+    const kind = parts[1] || '', id = parts[2] || '';
+    if (kind === 'takeaways') showTakeaways();
+    else if (kind === 'takeaway' && id) showTakeaway(id);
+    else if (kind === 'decisions') showDecisions();
+    else if (kind === 'decision' && id) showDecision(id);
+    else if (kind === 'phase1' && id) await showPhase1(id, ticket);
+    else if (kind === 'phase1') showPhase1List();
+    else if (kind === 'fixes') showFixes();
+    else showDesignHub(params);
+    if (ticket !== current) return;
+    linkRefs(view, 2);
+    highlightCode(view);
   }
 
   view.addEventListener('click', onDesignClick);
   view.addEventListener('change', onDesignChange);
+  view.addEventListener('keydown', onDesignKey);
 
   // ---------- live data (artifact database) ----------
   // Published with the db capability, the page also reads collection "live": status and owner ({md, updated_at})
@@ -804,6 +1018,71 @@
     if (newerBuild) showNewer();
   }, 60000);
 
+  // ---------- navigation ----------
+  // One sticky row: a back button (below the top level) and a title button that opens a list of pages.
+  // Top level: the five sections. A page below it: its siblings, with "↑" entries to go up.
+  const TOP = [['home', 'Home', '#/'], ['design', 'Design', '#/design'], ['categories', 'Categories', '#/categories'], ['tools', 'Tools', '#/tools'], ['docs', 'Docs', '#/docs']];
+  const topOf = (k) => TOP.find((t) => t[0] === k);
+  const DESIGN_LISTS = [['takeaways', 'Takeaways', '#/design/takeaways'], ['decisions', 'Decisions', '#/design/decisions'], ['phase1', 'Phase 1 classes', '#/design/phase1'], ['fixes', 'Fixes', '#/design/fixes']];
+  const navBtn = document.getElementById('navbtn'), navMenu = document.getElementById('navmenu'), navScrim = document.getElementById('scrim');
+  let atTop = true;
+  // Describe where a route sits: title, back target, "up" entries and siblings ([href, label, isCurrent]).
+  function navFor(parts, params) {
+    const k = parts[0] || '', a = parts[1] || '';
+    const top = (key) => ({ top: key, title: topOf(key)[1], back: '', ups: [], sibs: TOP.map((t) => [t[2], t[1], t[0] === key]), sibHead: '' });
+    const sub = (key, o) => ({ top: key, back: o.ups[0]?.[0] || topOf(key)[2], ups: [], sibs: [], sibHead: '', ...o });
+    const upTo = (key) => ['#/' + (key === 'home' ? '' : key), topOf(key)[1]];
+    if (k === 'design' && a) {
+      const list = DESIGN_LISTS.find((l) => l[0] === a), id = parts[2] || '';
+      if (list && !id) return sub('design', { title: list[1], ups: [upTo('design')], sibs: DESIGN_LISTS.map((l) => [l[2], l[1], l[0] === a]), sibHead: 'Design' });
+      if (a === 'takeaway' && id) return sub('design', { title: 'Takeaway', ups: [['#/design/takeaways', 'Takeaways'], upTo('design')], sibs: takeaways().map((t) => [`#/design/takeaway/${encodeURIComponent(t.id)}`, plain(t.line), t.id === id]), sibHead: 'Takeaways' });
+      if (a === 'decision' && id) return sub('design', { title: `Decision ${id}`, ups: [['#/design/decisions', 'Decisions'], upTo('design')], sibs: (DECISIONS || []).map((d) => [`#/design/decision/${encodeURIComponent(decId(d))}`, `${decId(d)} · ${d.title || ''}`, decId(d) === id]), sibHead: 'Decisions' });
+      if (a === 'phase1' && id) { const s = P1.sections.find((x) => String(x.n) === id); return sub('design', { title: s ? s.name : 'Phase 1', ups: [['#/design/phase1', 'Phase 1 classes'], upTo('design')], sibs: P1.sections.map((x) => [`#/design/phase1/${x.n}`, `${x.n}. ${x.name}`, String(x.n) === id]), sibHead: 'Phase 1 classes' }); }
+    }
+    if (k === 'category' && a) {
+      const c = CATS.get(a), x = c && parts[2] && c.subs.get(parts[2]);
+      if (x) return sub('categories', { title: x.label, ups: [[catHref(c), c.label], upTo('categories')], sibs: [...c.subs.values()].filter((y) => y.key).map((y) => [subHref(y), y.label, y === x]), sibHead: c.label });
+      return sub('categories', { title: c ? c.label : 'Not found', ups: [upTo('categories')], sibs: catList.map((y) => [catHref(y), y.label, y === c]), sibHead: 'Categories' });
+    }
+    if (k === 'axis' && a) { const ax = AX.get(a); return sub('categories', { title: ax ? ax.label : 'Not found', ups: [upTo('categories')], sibs: [...AX.values()].filter((y) => y.options.size).map((y) => [axisHref(y), y.label, y === ax]), sibHead: 'Design choices' }); }
+    if (k === 'option' && a) { const ax = AX.get(a), o = ax?.options.get(parts[2] || ''); return sub('categories', { title: o ? o.label : 'Not found', ups: ax ? [[axisHref(ax), ax.label], upTo('categories')] : [upTo('categories')], sibs: ax ? [...ax.options.values()].map((y) => [optHref(y), y.label, y === o]) : [], sibHead: ax ? ax.label : '' }); }
+    if ((k === 'layer' || k === 'feature') && a) {
+      const m = k === 'layer' ? LAYERS : FEATS, g = m.get(a), href = k === 'layer' ? layerHref : featHref;
+      return sub('categories', { title: g ? g.label : 'Not found', ups: [upTo('categories')], sibs: [...m.values()].filter((y) => y.items.length).map((y) => [href(y), y.label, y === g]), sibHead: k === 'layer' ? 'Stack layers' : 'Features' });
+    }
+    if (k === 'tool' && a) {
+      const t = byId.get(a), c = t && catOf(t), hasCat = c && c.key !== NONE_KEY;
+      return sub('tools', { title: t ? t.name : 'Not found', ups: [upTo('tools'), ...(hasCat ? [[catHref(c), c.label]] : [])], sibs: hasCat ? c.tools.map((y) => [toolHref(y.id), y.name, y === t]) : [], sibHead: hasCat ? c.label : '', back: '#/tools' });
+    }
+    if (k === 'docs' && params.get('s')) {
+      const sec = SECTIONS.find((x) => x.id === params.get('s'));
+      return sub('docs', { title: sec ? sec.title : 'Docs', ups: [upTo('docs')], sibs: SECTIONS.map((x) => [qs('#/docs', { s: x.id }), x.title, x === sec]), sibHead: 'Docs' });
+    }
+    if (k === 'doc' && a) {
+      const d = getDoc(parts.slice(1).join('/')), own = d && /^(OWNER|STATUS)\.md$/.test(d.path), sec = d && sectionOf(d.path);
+      if (!d) return sub('docs', { title: 'Not found', ups: [upTo('docs')] });
+      const sibs = own ? ['OWNER.md', 'STATUS.md'].map(getDoc).filter(Boolean) : docs.filter((x) => sectionOf(x.path) === sec).sort(docOrder);
+      return sub(own ? 'home' : 'docs', { title: d.title, ups: own ? [upTo('home')] : [[qs('#/docs', { s: sec.id }), sec.title], upTo('docs')], sibs: sibs.map((x) => [docHref(x.path), x.title, x === d]), sibHead: own ? 'Home' : sec.title });
+    }
+    if (TOP.some((t) => t[0] === k)) return top(k);
+    return top('home');
+  }
+  function renderNav(n) {
+    document.getElementById('navtitle').textContent = n.title;
+    const back = document.getElementById('back');
+    back.hidden = !n.back; back.setAttribute('href', n.back || '#/');
+    const mi = (href, label, cls = '') => `<a class="mi${cls}" href="${esc(href)}"${cls.includes('on') ? ' aria-current="page"' : ''}><span>${esc(label)}</span></a>`;
+    navMenu.innerHTML = n.back
+      ? n.ups.map(([h, l]) => mi(h, `↑ ${l}`, ' up')).join('') + (n.sibs.length ? `<div class="mh">${esc(n.sibHead)}</div>` : '') + n.sibs.map(([h, l, on]) => mi(h, l, on ? ' on' : '')).join('')
+      : n.sibs.map(([h, l, on]) => mi(h, l, on ? ' on' : '')).join('');
+    setMenu(false);
+  }
+  function setMenu(open) {
+    navMenu.hidden = navScrim.hidden = !open;
+    navBtn.setAttribute('aria-expanded', String(open));
+    if (open) navMenu.querySelector('.on')?.scrollIntoView({ block: 'nearest' });
+  }
+
   // ---------- footer + router ----------
   function footer() {
     const issues = [...arr(BUILD.design_notes), ...arr(BUILD.skipped).map((s) => `skipped op line ${s}`), ...arr(BUILD.near_miss).map((s) => `possible id mismatch: ${s}`), ...arr(BUILD.ops_without_metrics).map((s) => `no metrics row for ${s}`)];
@@ -813,7 +1092,7 @@
   // Each history entry remembers its depth (history.state.n) so Back knows whether going back stays in the app;
   // otherwise Back goes to the view's parent (Android's own back button closes the hosted page).
   let current = 0, lastN = 0;
-  const scrolls = new Map(), backBtn = document.getElementById('back');
+  const scrolls = new Map();
   async function route(e) {
     if (e?.oldURL) scrolls.set(new URL(e.oldURL).hash || '#/', scrollY);
     if (history.state?.n == null) try { history.replaceState({ n: e?.oldURL ? lastN + 1 : 0 }, ''); } catch {}
@@ -822,11 +1101,9 @@
     const raw = location.hash.replace(/^#\/?/, ''), qi = raw.indexOf('?');
     const parts = (qi < 0 ? raw : raw.slice(0, qi)).split('/').filter(Boolean).map(safeDecode);
     const params = new URLSearchParams(qi < 0 ? '' : raw.slice(qi + 1));
-    const tab = { design: 'design', tool: 'tools', tools: 'tools', categories: 'categories', category: 'categories', axis: 'categories', option: 'categories', layer: 'categories', feature: 'categories', doc: /^(OWNER|STATUS)\.md$/.test(parts.slice(1).join('/')) ? 'home' : 'docs', docs: 'docs' }[parts[0]] || 'home';
-    document.querySelectorAll('.tabs a[data-tab]').forEach((a) => { a.classList.toggle('on', a.dataset.tab === tab); a.toggleAttribute('aria-current', a.dataset.tab === tab); });
-    const docSec = parts[0] === 'doc' ? getDoc(parts.slice(1).join('/')) : null;
-    const parent = { tool: '#/tools', category: parts[2] ? `#/category/${encodeURIComponent(parts[1])}` : '#/categories', axis: '#/categories', option: `#/axis/${encodeURIComponent(parts[1] || '')}`, layer: '#/categories', feature: '#/categories', doc: docSec && /^(OWNER|STATUS)\.md$/.test(docSec.path) ? '#/' : docSec ? qs('#/docs', { s: sectionOf(docSec.path).id }) : '#/docs', docs: params.get('s') ? '#/' : '' }[parts[0]] || '';
-    if (backBtn) { backBtn.hidden = !parent; backBtn.setAttribute('href', parent || '#/'); }
+    const nav = navFor(parts, params);
+    atTop = !nav.back;
+    renderNav(nav);
     const ticket = ++current;
     if (parts[0] === 'tool') showTool(parts[1] || '');
     else if (parts[0] === 'tools') showTools(params);
@@ -836,19 +1113,23 @@
     else if (parts[0] === 'option') showOption(parts[1] || '', parts[2] || '');
     else if (parts[0] === 'layer' || parts[0] === 'feature') showTag(parts[0], parts[1] || '');
     else if (parts[0] === 'docs') showDocs(params);
-    else if (parts[0] === 'design') await showDesign(params, ticket);
+    else if (parts[0] === 'design') await showDesign(parts, params, ticket);
     else if (parts[0] === 'doc') await showDoc(parts.slice(1).join('/'), params, ticket);
     else await showHome(ticket);
     if (ticket === current && !params.get('h') && !params.get('find')) window.scrollTo(0, scrolls.get(location.hash || '#/') || 0);
   }
   document.addEventListener('click', (e) => {
     if (e.target.closest('#back') && history.state?.n > 0) { e.preventDefault(); history.back(); return; }
+    if (e.target.closest('#scrim')) { setMenu(false); return; }
+    if (e.target.closest('#navmenu a')) { setMenu(false); return; }
     // Contents and heading links inside a doc scroll in place instead of re-rendering.
     const a = e.target.closest('a[data-anchor]'), el = a && document.getElementById(a.dataset.anchor);
     if (el) { e.preventDefault(); setUrl(a.getAttribute('href')); el.scrollIntoView(); }
   });
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
   window.addEventListener('hashchange', route);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !navMenu.hidden) { setMenu(false); navBtn.focus(); } });
+  navBtn.addEventListener('click', () => setMenu(navMenu.hidden));
   footer();
   route();
   startLive();

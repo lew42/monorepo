@@ -19,6 +19,6 @@
 
 - Tool profiles by cheap Haiku agents: automerge-repo, Colyseus, Loro, Yjs, Backbone (Tools tab).
 
-## Paused
+## Now
 
-**Waiting for your choices on the Design tab.** Nothing is running. Usage is back under pace (97% at 03:10 UTC). Parked ideas: `ideas/backburner.md`.
+**Reorganizing the app for you:** one header with a dropdown instead of the tab row; Design split into four short pages (Takeaways, Decisions, Phase 1 classes, Fixes); one page per class section; a small code example behind every takeaway and decision. Usage is back under pace (97% at 03:10 UTC). Parked ideas: `ideas/backburner.md`.

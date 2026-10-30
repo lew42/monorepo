@@ -281,6 +281,82 @@ export function readDecisions(file) {
   return { decisions: out, designNotes: notes };
 }
 
+// ---------- design pages ----------
+// The Design tab is a hub of four short lists. Their data is made here so the app only has to show it:
+//   takeaways: design/takeaways.json [{id, group, line, detail, code, see[]}]; without it, the bullets of takeaways.md.
+//   phase1:    design/phase-1.md split at its "## " headings (outside code fences) into sections.
+//   fixes:     the numbered list of design/fixes.md ({n, title, why, effort, tests}) plus its "Notes for later".
+// Missing or odd input is reported in design_notes, never fatal.
+const stripMd = (t) => String(t ?? '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').trim();
+const GROUPS = ['keep', 'change', 'adopt', 'avoid'];
+
+export function readTakeaways(jsonFile, mdText) {
+  const notes = [], text = read(jsonFile);
+  let arrIn = null;
+  if (text != null) {
+    try { const v = JSON.parse(text); arrIn = Array.isArray(v) ? v : Array.isArray(v?.takeaways) ? v.takeaways : null; if (!arrIn) notes.push('design/takeaways.json: expected an array'); }
+    catch (e) { notes.push(`design/takeaways.json: bad JSON (${e.message})`); }
+  }
+  if (arrIn) {
+    const seen = new Set(), items = [];
+    arrIn.forEach((t, i) => {
+      if (!t || typeof t !== 'object' || !t.id || !t.line) { notes.push(`design/takeaways.json: entry ${i + 1} needs id and line`); return; }
+      const id = String(t.id).replace(/[^A-Za-z0-9_\-.~:@+]/g, '-');
+      if (seen.has(id)) { notes.push(`design/takeaways.json: duplicate id ${id}`); return; }
+      seen.add(id);
+      const g = String(t.group || '').trim().split(/[\s(]/)[0].toLowerCase();
+      items.push({ ...t, id, group: GROUPS.includes(g) ? g : g || 'keep' });
+    });
+    if (items.length) return { takeaways: { source: 'json', items }, notes };
+  }
+  // Fallback: the bullets under **Keep**, **Change**, **Adopt (...)**, **Avoid** in takeaways.md.
+  const items = []; let group = '';
+  for (const line of String(mdText || '').split('\n')) {
+    const h = line.match(/^\*\*(\w+)[^*]*\*\*\s*$/);
+    if (h) { group = h[1].toLowerCase(); continue; }
+    const b = line.match(/^[-*]\s+(.*\S)/);
+    if (b && group) items.push({ id: `${group}-${items.filter((x) => x.group === group).length + 1}`, group, line: b[1], detail: '', code: '', see: [] });
+  }
+  if (!items.length) return { takeaways: null, notes };
+  notes.push('takeaways: design/takeaways.json not usable, showing the bullets of takeaways.md');
+  return { takeaways: { source: 'md', items }, notes };
+}
+
+export function splitPhase1(md) {
+  const lines = String(md || '').split('\n'), parts = [{ title: '', body: [] }];
+  let fence = false;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) fence = !fence;
+    const h = !fence && line.match(/^## (.+?)\s*$/);
+    if (h) parts.push({ title: h[1], body: [line] }); else parts.at(-1).body.push(line);
+  }
+  const intro = parts.shift().body.join('\n');
+  const sections = parts.map((p, i) => {
+    const m = p.title.match(/^(\d+)\.\s*(.*)$/), body = p.body.join('\n').replace(/\n\s*---\s*$/, '').trim();
+    return { n: m ? +m[1] : i + 1, name: m ? m[2] : p.title, md: body };
+  });
+  const title = (intro.match(/^#\s+(.+)$/m) || [])[1] || 'Phase 1 design';
+  const legend = stripMd((intro.split(/\n\s*\n/).find((x) => /^Legend:/.test(x.trim())) || '').replace(/\s+/g, ' '));
+  let line = ''; for (const sent of legend.match(/[^.]+\.(\s|$)/g) || []) { if (line && (line + sent).length > 170) break; line += sent; }
+  return { phase1: sections.length ? { title, line: line.trim(), sections } : null, notes: sections.length ? [] : ['design/phase-1.md: no "## " sections found'] };
+}
+
+export function parseFixes(md) {
+  const notes = [], items = [], later = [];
+  let inLater = false;
+  for (const line of String(md || '').split('\n')) {
+    if (/^##\s+Notes for later/i.test(line)) { inLater = true; continue; }
+    if (/^#{1,2}\s/.test(line) && inLater) inLater = false;
+    if (inLater) { const b = line.match(/^[-*]\s+(.*\S)/); if (b) later.push(b[1]); continue; }
+    const m = line.match(/^(\d+)\.\s+\*\*(.+?)\*\*\s*(?:Why:\s*)?(.*?)\s*\*\*([SML])\*\*\s*(?:·\s*(.*?))?\s*$/);
+    if (m) items.push({ n: +m[1], title: m[2].replace(/\.$/, ''), why: m[3].trim(), effort: m[4], tests: (m[5] || '').split(/\s*,\s*/).filter(Boolean) });
+    else if (/^\d+\.\s/.test(line)) notes.push(`design/fixes.md: could not read "${line.slice(0, 50)}"`);
+  }
+  const first = stripMd((String(md || '').split(/\n\s*\n/).find((x) => /^Ranked/.test(x.trim())) || '').replace(/\s+/g, ' '));
+  const line = (first.match(/Effort:.*?week\./) || first.match(/^[^.]+\./) || [''])[0];
+  return { fixes: items.length ? { line, items, later } : null, notes };
+}
+
 // ---------- main ----------
 
 function main() {
@@ -318,8 +394,11 @@ function main() {
   const built_at = new Date().toISOString();
   // Design tab: design/*.md ride along in docs (design/takeaways.md, phase-1.md, fixes.md); decisions.json is embedded here.
   const { decisions, designNotes } = readDecisions(path.join(REPO, 'design', 'decisions.json'));
+  const docText = (p) => docs.find((d) => d.path === p)?.md || '';
+  const tk = readTakeaways(path.join(REPO, 'design', 'takeaways.json'), docText('design/takeaways.md')), p1 = splitPhase1(docText('design/phase-1.md')), fx = parseFixes(docText('design/fixes.md'));
+  designNotes.push(...tk.notes, ...p1.notes, ...fx.notes);
   const data = {
-    built_at, tools, taxonomy_md: taxonomyMd, taxonomy: parseTaxonomy(taxonomyMd), docs, mentions: mentions(tools, docs), decisions,
+    built_at, tools, taxonomy_md: taxonomyMd, taxonomy: parseTaxonomy(taxonomyMd), docs, mentions: mentions(tools, docs), decisions, takeaways: tk.takeaways, phase1: p1.phase1, fixes: fx.fixes,
     build: { ops_files: opsFiles.map(rel), ops: ops.length, skipped, csv_rows: rows.length, csv_only: csvOnly, ops_without_metrics: opsNoMetrics, near_miss: nearMiss, design_notes: designNotes },
   };
 
@@ -359,6 +438,7 @@ function main() {
   const tx = data.taxonomy;
   console.log(`taxonomy: ${tx.categories.length} categories in ${tx.families.length} families, ${tx.subcategories.length} subcategories, ${tx.layers.length} layers, ${tx.axes.length} axes (${tx.axes.reduce((n, a) => n + a.options.length, 0)} options), ${tx.features.length} features, ${tx.statuses.length} statuses, ${tx.rules.length} rules${tx.ready ? '' : ' (marked in progress)'}`);
   const dFiles = ['takeaways.md', 'phase-1.md', 'fixes.md'].map((f) => `${f}${docs.some((d) => d.path === `design/${f}`) ? '' : ' (missing)'}`).join(', ');
+  console.log(`design: takeaways ${tk.takeaways ? `${tk.takeaways.items.length} (from ${tk.takeaways.source})` : 'none'}, phase 1 sections ${p1.phase1 ? p1.phase1.sections.length : 'none'}, fixes ${fx.fixes ? fx.fixes.items.length : 'none'}`);
   console.log(`design tab: ${dFiles}; decisions: ${decisions ? decisions.length : 'none'}${designNotes.length ? '\n  ' + designNotes.join('\n  ') : ''}`);
   console.log(`wrote data/tools.jsonl, app/data.js and app/hosted.html`);
 }
