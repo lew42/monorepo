@@ -119,7 +119,7 @@ set_one(key, value){
 //   else queue(wrap(hops(item, host), payload))
 ```
 
-Your F6 note says to measure both before switching ([plan.md F6, michael/dev](https://github.com/lew42/monorepo/blob/ecd14599/public/framework/core/Session/tasks/data-shapes/plan.md#L28-L29)). The line format does not change either way.
+Your F6 note says to measure both before switching ([plan.md F6, michael/dev](https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28-L29)). The line format does not change either way.
 
 ---
 
