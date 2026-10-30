@@ -13,3 +13,7 @@
 {"spawned":{"at":"2026-10-30T00:26:14.930Z","agent":"minion-usage","task_dir":null,"caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-30T00:26:53.950Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
 {"log":{"at":"2026-10-29T19:32:28-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-29T19:42:28-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-29T19:52:28-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"tool_call":{"at":"2026-10-30T00:58:45.673Z","tool":"send_to_agent","args_hash":"cdfadd959a10","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T00:58:46.791Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
