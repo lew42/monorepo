@@ -17,6 +17,8 @@
 - Categories: 12 categories, 46 subcategories, every tool placed.
 - Research snapshot saved on monorepo branch `research/persistence-sync`.
 
+- Tool profiles by cheap Haiku agents: automerge-repo, Colyseus, Loro, Yjs, Backbone (Tools tab).
+
 ## Paused
 
-Usage is at 100% of weekly pace, so no new agents until your decisions are in. Parked ideas: `ideas/backburner.md`.
+**Waiting for your choices on the Design tab.** Nothing is running. Usage is back under pace (97% at 03:10 UTC). Parked ideas: `ideas/backburner.md`.
