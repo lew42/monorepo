@@ -1,0 +1,101 @@
+{
+  "dilemma": "multi-user",
+  "lens": "edge-cases",
+  "by": "analyst-multiuser-edge",
+  "options": [
+    {
+      "id": "lww",
+      "label": "Last write wins per field, no locks",
+      "wins_when": [
+        {"scenario": "Mike renames tasks.#c3 while an agent sets done on tasks.#c7 or adds a child under #c9.", "why": "Different fields and different #id members never touch, so nobody waits and no badge is needed. Figma's rule is the same: different properties never conflict."},
+        {"scenario": "An agent session sends 40 item-tool writes to one session page in a minute while Mike watches.", "why": "No lock round trip before each write, so the agent never stalls and needs no retry logic. Every other option adds that cost."},
+        {"scenario": "Mike edits offline on a train, reconnects, and an agent has meanwhile written other fields of the same page.", "why": "Nothing is refused for being locked on reconnect; only a malformed line is rejected, and the edits merge field by field."},
+        {"scenario": "A page is used by one person or one agent at a time, which is the common case so far.", "why": "Electric and Linear both describe write conflicts as rare, so the simplest rule costs least in the usual case."}
+      ],
+      "fails_when": [
+        {"scenario": "Mike types into content.p9 while an agent rewrites p9 from a read taken before his first keystroke, or the reverse.", "severity": 4, "recoverable": true, "why": "Strings are whole values, so one side's paragraph replaces the other's in full and the screen shows only the winner. Both lines stay in page.jsonl, but nothing shows the lost text until undo from 'was' (planned for phase 3)."},
+        {"scenario": "Two people drag tasks in the same list at once.", "severity": 3, "recoverable": true, "why": "The stale-move race is reproduced: tab B shows d,b,c while the file says b,c,d until reload. Nothing is lost."},
+        {"scenario": "Mike moves task c1 from todo to done while a tab that has not caught up renames c1.", "severity": 4, "recoverable": true, "why": "Without the unknown-member refusal (design/fixes.md item 7), the rename becomes a field named c1 on the todo list and the title vanishes from the view. The line is still in the log."},
+        {"scenario": "Two tabs of one person both react to the same replayed line and each write the same auto-complete or Ref re-path.", "severity": 4, "recoverable": true, "why": "The log gets duplicate lines (three per event, with different ran_ms). A missing source tag causes it (design/fixes.md item 10), so it fails under every option and is not a lock argument."}
+      ],
+      "precedent": [
+        {"tool": "Figma", "how": "Property-level last-writer-wins; incoming server updates that conflict with unacknowledged local changes are discarded to avoid flicker", "src": "persistence-sync/notes/collab_app_architectures.md:19-21"},
+        {"tool": "Linear", "how": "'Naive last-write-wins, no conflict detection, no OT, no CRDT' for structured data; conflicts described as uncommon", "src": "persistence-sync/notes/collab_app_architectures.md:50-51"},
+        {"tool": "Actual Budget", "how": "Field-level LWW messages of (dataset, row, column, value, timestamp)", "src": "persistence-sync/notes/collab_app_architectures.md:100"},
+        {"tool": "Colyseus", "how": "Last write wins per field, one op per field per tick", "src": "persistence-sync/tools/colyseus.md:45"}
+      ]
+    },
+    {
+      "id": "soft-lock",
+      "label": "Soft lock: presence badge, warn on write, last write wins",
+      "wins_when": [
+        {"scenario": "Mike is typing in content.p9; Ana opens the page and sees 'Mike is editing' on that paragraph before she types.", "why": "The clash becomes a visible choice before any write. Nobody is blocked, so no takeover button is needed."},
+        {"scenario": "Mike's laptop lid closes mid-sentence, or his Wi-Fi drops.", "why": "Presence is not a lease. The badge clears on socket close, or after the 30 s awareness timeout when the socket is half-open, and no one waits on it. Here soft beats hard."},
+        {"scenario": "An agent edits task c3's title while Mike works in another task on the same page.", "why": "The check runs on the exact path being written, so the agent's edit lands with no badge, and Mike sees it live in a field he is not touching."}
+      ],
+      "fails_when": [
+        {"scenario": "An agent writes content.p9 while Mike is typing there. The warning rides in the agent's ack and the agent ignores it.", "severity": 4, "recoverable": true, "why": "The write lands and Mike's paragraph is replaced whole. A tool result is advisory and agents do not reliably stop, so the warning does not prevent the clobber; the log keeps the overwritten line."},
+        {"scenario": "An agent replaces the whole content list, an ancestor of content.p9, while Mike holds content.p9.", "severity": 4, "recoverable": true, "why": "A check that compares paths exactly never trips, because content is not content.p9. The check must test ancestors and descendants: a lock on content.p9 conflicts with writes to content and to content.p9.*."},
+        {"scenario": "Two people really type in the same paragraph, and the second one ignores the badge.", "severity": 4, "recoverable": true, "why": "Soft-lock names the first writer but does not stop the second. For this case it behaves like lww; the option buys a warning, not prevention."},
+        {"scenario": "A tab sits focused in a field with no keystrokes for 20 minutes, and its presence heartbeat keeps running.", "severity": 2, "recoverable": true, "why": "'Mike is editing' stays on while the tab is alive, so the badge lies about activity. An idle timeout (no keystroke for about 2 minutes clears the lock) is needed; this is my suggestion, not in the decision text."},
+        {"scenario": "Mike has two tabs open on the same session page.", "severity": 2, "recoverable": true, "why": "Tab 2 shows 'Mike is editing' because of tab 1. Presence should key on person plus page and show 'open in another tab' instead of a clash."}
+      ],
+      "precedent": [
+        {"tool": "Yjs awareness (y-protocols)", "how": "Presence is a separate, never-stored channel: each client refreshes its entry every 3 s, remote entries are dropped after 30 s, and a leave is sent as null", "src": "persistence-sync/lessons/sync-protocol.md:301-309"},
+        {"tool": "tldraw sync", "how": "Presence rides on push.presence, is never stored, and is removed when the session goes", "src": "persistence-sync/lessons/sync-protocol.md:114"},
+        {"tool": "Automerge-repo", "how": "Presence as ephemeral envelopes that carry a session id and a sequence count", "src": "persistence-sync/tools/automerge-repo.md:18"},
+        {"tool": "Obsidian Sync", "how": "Offers a per-device 'Create conflict file' setting instead of silently picking one side of a collision", "src": "persistence-sync/notes/collab_app_architectures.md:76"}
+      ]
+    },
+    {
+      "id": "hard-lock",
+      "label": "Hard lock: first editor holds a lease, others read-only",
+      "wins_when": [
+        {"scenario": "SessionConsolidate or a migration rewrites a page an agent is still appending to.", "why": "Today a rewrite loses 305 of 3,000 appends when a write lands during it (design/fixes.md item 9). A lease over the file for that window removes the race; the storage plan names the same thing exclusive(key)."},
+        {"scenario": "Two agents both call start() on task c3 in the same second.", "why": "The first claim wins and the second is refused, so the task never runs twice. A start is a claim, not an edit, and a refusal is the right answer."},
+        {"scenario": "Mike wants nobody else to change content.p9 while he does a careful final wording pass.", "why": "A lease is the only option that promises no one else writes that field during the hold. Soft-lock can only warn."}
+      ],
+      "fails_when": [
+        {"scenario": "Mike pauses 35 s mid-sentence in content.p9; the 30 s lease expires while his cursor is still there, and his next keystroke is refused.", "severity": 5, "recoverable": false, "why": "A refused write never reaches the log, and pending writes live only in memory (persistence-sync/report.md:444). If he reloads while blocked, the words are gone for good. A lease must renew on focus and keystrokes, not run on a bare timer."},
+        {"scenario": "Mike reloads his tab. The new tab has a new client id, but the old tab's lease still holds content.p9 for up to 30 s.", "severity": 2, "recoverable": true, "why": "He is blocked by his own lease. The new tab should reclaim leases by person and page, not by client id."},
+        {"scenario": "Mike opens a second tab on the same session page while tab 1 holds the lease.", "severity": 2, "recoverable": true, "why": "Two tabs on one session page is normal (persistence-sync/lessons/object-model.md:438). Tab 2 would be a read-only field with no reason shown, unless the lease is keyed by person."},
+        {"scenario": "Mike's laptop goes offline with an edit in progress; Ana's agent takes the lease while he is away; he reconnects.", "severity": 4, "recoverable": true, "why": "The Room refuses his pending write on reconnect. It stays on screen while the tab is open, but it is not in the log, and a reload loses it."},
+        {"scenario": "The Servex process restarts (or the page's Room is recycled later), dropping every lease.", "severity": 4, "recoverable": true, "why": "Locks are in memory and presence is never logged, so a restart releases every lease at once. Whoever reconnects first takes the field, and the other holder is refused with the same loss path as the offline case."},
+        {"scenario": "An agent holds a lease across a multi-minute think, then writes; a rejected agent that retries in a loop floods the Room.", "severity": 2, "recoverable": true, "why": "Mike's fields stay read-only for the whole think. Leases must be per write, held for milliseconds, never per session; the reject needs a backoff hint and the holder's name and expiry in the tool result."},
+        {"scenario": "Mike's edit to the page title is blocked because a whole-page lease is held by an agent working on tasks.#c3.", "severity": 2, "recoverable": true, "why": "A whole-page lease freezes unrelated work. Granularity has to be a field or an item; a page-wide lease is only right for a rewrite."}
+      ],
+      "precedent": [
+        {"tool": "Figma", "how": "A lock table ensures a single writer per file journal", "src": "persistence-sync/notes/collab_app_architectures.md:151"},
+        {"tool": "Notion (web client)", "how": "Only one active tab writes its SQLite cache, and Web Locks detect tab close, so the lock releases itself when the tab goes", "src": "persistence-sync/notes/collab_app_architectures.md:38"},
+        {"tool": "Lew42 storage plan", "how": "exclusive(key) for compaction and migrations, under a per-file lock (page.jsonl.lock) that is stale after about 10 s", "src": "persistence-sync/lessons/storage-compaction.md:317"},
+        {"tool": "Lew42 R9 probe", "how": "A paused server socket left the tab showing 'connected' for 12 s, so a lease on a half-open holder lasts at least that long", "src": "persistence-sync/lessons/sync-protocol.md:577-580"},
+        {"tool": "Figma offline reconnect", "how": "Re-downloads a fresh copy and reapplies the offline edits on top, instead of refusing them", "src": "persistence-sync/notes/collab_app_architectures.md:24"}
+      ]
+    },
+    {
+      "id": "crdt-text",
+      "label": "CRDT (Yjs) only inside rich-text fields",
+      "wins_when": [
+        {"scenario": "Mike and Ana both edit the same paragraph at once, or Mike types on a phone while the laptop is still offline.", "why": "This is the one case where last write wins loses words; the report's own lift trigger is two people typing in the same paragraph. Yjs merges both without a lock or a refusal."},
+        {"scenario": "A long note is edited on two devices and reconnects in either order.", "why": "CRDT updates merge in any order and applying one twice does nothing, so there is no reject path to fail on reconnect."},
+        {"scenario": "Mike sees Ana's cursor inside the paragraph next to her 'editing' badge.", "why": "Yjs awareness is already the presence channel (3 s refresh, 30 s drop), so the badge and the cursors come from one mechanism."}
+      ],
+      "fails_when": [
+        {"scenario": "An agent writes the same text field through the item tool as a plain string.", "severity": 4, "recoverable": true, "why": "The field then has two owners, the Yjs state and the JSONL line, and one silently wins (Loro's rule is one owner per field). Both lines stay in the log, but the screen can show the loser until reload."},
+        {"scenario": "A compaction or migration snapshots the paragraph as a plain string and drops the Yjs history; an offline device then reconnects with old updates.", "severity": 4, "recoverable": true, "why": "Recovery depends on the archive keeping the old updates, which the never-delete rule requires. Without that archive the merge can re-insert text, as Obsidian's text merge can duplicate it (my inference from the precedent, not tested)."},
+        {"scenario": "Every keystroke is stored as a binary Yjs update inside a JSONL line.", "severity": 2, "recoverable": true, "why": "Binary updates become base64 in the line, and logs already reach 2.7 to 7.6 MB. Loads slow down; no data is lost. It needs merge-on-read compaction, as y-leveldb does, before it is safe at scale."},
+        {"scenario": "A status or due-date field on the same item still needs a lock policy.", "severity": 2, "recoverable": true, "why": "crdt-text adds a second model next to LWW: text reads through a Yjs binding, other fields through item.prop. The lock question stays for every non-text field, so the option adds to the decision rather than replacing it."}
+      ],
+      "precedent": [
+        {"tool": "Yjs", "how": "Offline updates merge after reconnect; sync and awareness run as separate channels", "src": "persistence-sync/tools/yjs.md:46 and persistence-sync/lessons/sync-protocol.md:284-301"},
+        {"tool": "Notion offline", "how": "Offline pages are migrated to a CRDT model for rich-text conflict resolution, which the team names as a hard problem", "src": "persistence-sync/notes/collab_app_architectures.md:41 and :208"},
+        {"tool": "Linear", "how": "CRDT used only for issue descriptions; structured data stays last-write-wins", "src": "persistence-sync/notes/collab_app_architectures.md:51"},
+        {"tool": "AFFiNE", "how": "One Yjs doc per page, stored as a snapshot plus an update queue, squashed under a lock", "src": "persistence-sync/notes/collab_app_architectures.md:90"}
+      ]
+    }
+  ],
+  "recommended": "soft-lock",
+  "confidence": 4,
+  "surprise": "Locks exist only in the Room's memory and presence is never logged, so a Servex restart releases every lock at once; pending writes are memory-only too, so under hard-lock a restart plus a reconnect race turns a refused write into lost text.",
+  "notes": "Soft-lock is the only option whose worst failure is a warning: presence is never a lease, so it blocks no one, while hard-lock and crdt-text each create a loss path (a refused write that a reload erases, or a second owner for the text). Two changes to the decision text: a write by an agent into a field a person is typing in should be refused for one op, because agents do not reliably act on warnings, and presence must key on person plus page so a second tab is not a self-lock. Whatever the choice, the lock check must test ancestors and descendants of the path, so a write to content trips a lock on content.p9."
+}

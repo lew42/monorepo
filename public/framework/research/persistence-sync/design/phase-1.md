@@ -1,7 +1,7 @@
 # Phase 1 design: Item, List, Page, sync
 
 1. **Keep the core.** Every saved thing is an `Item`. One `set(delta)` changes it, and that delta is also the saved line.
-2. **Keep the line.** A line is nested names down to a target, then one verb. `get()` resolves each name; a `List` resolves a member by id.
+2. **Keep the line, with the decided spelling (D13).** A line is nested names down to a target. A plain key is data (or a step into a child), `name()` calls a method, `#id` picks a list item. No trailing `set`.
 3. **Keep the classes.** `List extends Item`; `Page extends Item` and adds a url; `Ref` points at an item somewhere else. No renames.
 4. **NEW:** every line gets `seq` (set by the server) and `client` + `n` (set by the writer). The sender gets an `ack`, not an echo.
 5. **NEW:** one `Room` per page, written once as plain JS. A `Journal` (your storage.md word) is passed in: JSONL now, a SQLite file next, a Durable Object later.
@@ -13,7 +13,7 @@
 
 Legend: no mark = works this way today at [`9ba46ee`](https://github.com/lew42/monorepo/tree/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895). `// NEW` = added. `// CHANGED` = behaviour changes. Each mark has a one-line reason. Ids like T3 or R1 are failing-test specs in the lessons files. The open calls are in [decisions.json](decisions.json).
 
-Sections: 1 Classes · 2 Item · 3 List · 4 Page · 5 Ref · 6 Lines · 7 Store and Journal · 8 Room · 9 Binding · 10 Placement · 11 Typing · 12 Locks · 13 Agent tool · 14 Item or stream · 15 Servers · 16 Phases
+Sections: 1 Classes · 2 Item (2.1 how a change is saved today) · 3 List · 4 Page · 5 Ref · 6 The line and its verbs · 7 Store and Journal · 8 Room · 9 Binding · 10 Placement · 11 Typing · 12 Locks · 13 Agent tool · 14 Item or stream · 15 Servers · 16 Phases
 
 ---
 
@@ -45,20 +45,30 @@ Room     // NEW  one per page: seq, ack, locks
 ```js
 class Item extends Events(Object) {
   id       // Item.short_id(): 8 chars
-  data     // null-prototype bag
+  data     // the parsed JSON object, kept as-is
+           // (owner, 2026-10-30: no copy, for speed).
+           // Built-in names (constructor, toString…)
+           // are not data names: document them, and
+           // read with Object.hasOwn(data, key).
   parent   // the Item that holds me
            // (never the List itself)
   _slot    // my property name, when adopted
   static fields = []  // accessors over data
 
   set(delta)       // or set(key, value)
-  // for each key, in order:
-  //  a method name -> call it (a verb)
+  // TODAY, for each key, in order:
+  //  a method name -> call it
   //  get(key) has .set -> hand the rest down
   //  else data: put, emit change + delta
+  // CHANGED (D13): the key's spelling decides:
+  //  "name()" -> call the method `name`
+  //  "#id"    -> the list item with that id
+  //  "name"   -> data, or step into a child
+  // Why: today a data field named like a
+  // method (add, move) can never be stored.
   get(key)
   // own prop -> data -> named List -> "a.b"
-  act(verb, args)  // records only {verb: args}
+  act(verb, args)  // records only the call (§2.1, D14)
   remove() · move_to(list | {url, path})
   root() · walk(fn) · find(id) · lists()
   toJSON()  // {type, id, data, <list>: […]}
@@ -72,7 +82,7 @@ class Item extends Events(Object) {
   // Why: one direct call; a child with its own
   // file needs no owned_below check.
 
-  unset(...keys)  // NEW {"unset":["color"]}
+  unset(...keys)  // NEW {"unset()":["color"]}
   // Why: set({k: undefined}) comes back
   // on reload (T5).
 
@@ -100,26 +110,47 @@ list.on("add" | "remove" | "move" | "order")
 // per open tab (T1).
 ```
 
-**How a change reaches the file**
+### 2.1 How a change is saved today
+
+Checked against the code, 2026-10-30. Three things write lines:
+
+1. **The item tool (agents).** Servex `POST /api/item` applies the line to a live copy of the file's root in Node, and appends only if that worked ([page_tools.js L1094–L1139](https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/Servex/agents/page_tools.js#L1094-L1139)).
+2. **The browser.** `Store.flush()` sends a record file's lines by plain HTTP `POST` to that same `/api/item` endpoint (not MCP; the item tool calls the same function inside Servex) ([Store.js L195–L213](https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Store.js#L195-L213)). Only if Servex is down does it fall back, once and with a console warning, to the dev server's socket `append` (`Append.js`). Whether that fallback has ever fired in real use is unknown.
+3. **About 20 Server/Servex scripts** still append directly, bypassing the one writer (a known gap; decision D8).
+
+Every open tab then gets the new line through the file tail and replays it with `set()`.
+
+**A button can just call the method.**
 
 ```js
-// TODAY: emit("delta") climbs .parent to the
-// root, where Store.attach listens.
+task.start()        // what a button calls
+// start() runs this.set({state: "running", started_at: …})
+// set() emits "delta" -> bubbles to the root -> the store saves:
+//   {"tasks": {"#c3": {"state": "running", "started_at": "…"}}}
+```
 
-// F6 (your 2026-10-29 lean):
+So calling the method already saves, and the line records what changed (the data) ([Task.js L336–L343](https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Task/Task.js#L336-L343)). `act("start")` is an optional extra that records what was asked instead (`{"start()": {}}`) and mutes the data lines ([Item.js L101–L112](https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L101-L112)). You don't like its name or the need for it. Whether a log should hold the call or the change is decision D14.
+
+**Why "bubbling".** `task.set()` emits a `delta` event on the task, then on its parent, up to the root. Only the root has a store, and each level adds its name to the path as the event passes. That is how a change three levels down becomes `{"page": {"content": {"#p9": {…}}}}`.
+
+- Parents don't re-render because of it. Views listen to their own item's `change` event; `delta` is only for saving.
+- The cost: an event at every level for every change, and saving depends on event wiring that is easy to break silently (a tab page stops the event: gap 9).
+
+**F6 (D2): skip the cascade.** The item climbs its own `parent` chain and calls the store directly:
+
+```js
 set_one(key, value){
   // … put; if it changed:
   const src = this.store?.applying ?? "local"
-  this.emit("change", key, value, old, {src})
-  this.store?.change(this,
-    {set: {[key]: value}}, src)
+  this.emit("change", key, value, old, {src})  // views only
+  this.store?.change(this, {[key]: value}, src)
 }
 // Store.change(item, payload, src):
 //   src !== "local" -> write nothing
 //   else queue(wrap(hops(item, host), payload))
 ```
 
-Your F6 note says to measure both before switching ([plan.md F6, michael/dev](https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28-L29)). The line format does not change either way.
+Same lines, explicit, no event cascade. Your F6 note says to measure both before switching ([plan.md F6, michael/dev](https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28-L29)). The line format does not change either way.
 
 ---
 
@@ -164,11 +195,11 @@ class List extends Item {  // decided 2026-10-03
 ### 3.1 How a line finds its target
 
 ```js
-// {"tasks":{"c3":{"set":{"title":"x"}}}}
+// {"tasks":{"#c3":{"title":"x"}}}
 root.set(line)
 // "tasks" -> root.get("tasks")  = a List
-// "c3"    -> list.get("c3") -> find("c3")
-// "set"   -> a method on c3 -> c3.set({title})
+// "#c3"   -> list.find("c3")  (no such id: warn, skip)
+// "title" -> a plain key: data on c3
 // get("tasks.c3.title") walks the same way
 ```
 
@@ -245,9 +276,37 @@ class Ref extends Item {
 
 ## 6. The line and its verbs
 
+**Decided (you, 2026-10-30, D13):** three key shapes, told apart by their spelling.
+
+| Key | Means | Example |
+|---|---|---|
+| `name` | data, or step into a child Item | `{"title": "Hi"}` |
+| `name()` | call the method `name` with the value | `{"add()": {…}}` |
+| `#id` | the list item with that id | `{"#k2x9fq7a": {…}}` |
+
 ```jsonc
-// nested names down to the target, ONE verb
-{"content":{"p9":{"set":{"text":"Draft"}}},
+{"my_list":{"sort":"date"}}              // my_list.data.sort = "date"
+{"my_list":{"#k2x9fq7a":{"done":true}}}  // that item's data.done = true
+{"my_list":{"add()":{"id":"k2x9fq7a","type":"Task",
+                     "data":{"title":"Buy milk"}}}}
+{"my_list":{"move()":{"id":"k2x9fq7a","after":"p3"}}}
+{"my_list":{"remove()":{"id":"k2x9fq7a"}}}
+{"page":{"content":{"#p9":{"text":"Draft","start()":{}}}}}
+// the last one: data and a call in one line
+```
+
+The rules (that is all of them):
+
+1. A plain key sets data. If the current value is an Item, the object is set on that Item instead: that is how a line steps down a tree.
+2. A key ending in `()` calls that method with its value as the one argument. A method with several arguments gets one object.
+3. A `#` key finds the list item with that id. No such id: warn and skip the line (never store it as data: T6).
+4. Data names may not end in `()` or start with `#`; `set()` refuses them. One spelling rule, no list to keep up to date.
+
+Today's `set()` is already this recursive (method, else child, else data: [Item.js L155–L192](https://github.com/lew42/monorepo/blob/9ba46ee87219cb9ac5b99b887f0869a5aa4c6895/public/framework/core/Item/Item.js#L155-L192)), so the trailing `set` verb of the old line is redundant, and the clash exists today: a data field named `add` or `move` can never be stored. Why this spelling: no clash between a data field `add` and the method `add()`, or between data and item ids; no `set` repeated at every level; readable without knowing the class. MongoDB marks `$set` and `$push` the same way; `$` is dropped here because you already use `$name` for views.
+
+```jsonc
+// the whole line: the path above, plus its envelope
+{"content":{"#p9":{"text":"Draft"}},
  "seq":43, "client":"t-19bc", "n":12,
  "by":"mike", "ts":"2026-10-30T10:00:01Z"}
 // seq: NEW, set by the server, per file
@@ -257,25 +316,44 @@ class Ref extends Item {
 ```
 
 ```js
-// Item verbs
-set {k: v, …}          // today
-unset [k, …]           // NEW
-<verb> {…}             // today: start, wait
-moved_to {url, path}   // today: a forward
+// Item methods
+unset() [k, …]          // NEW
+start() · wait() {…}    // today: any method of the class
+moved_to() {url, path}  // today: a forward
 
-// List verbs, always under the list's name
-add {id, type, data, <lists>, after}
-                       // CHANGED envelope
-remove id | {id, was}  // was: NEW
-move {id, after, from?, was?}  // was: NEW
-order [ids] · clear true       // today
-replace {id, with}     // NEW class swap
-reset [envelopes]      // NEW
+// List methods, called under the list's name
+add() {id, type, data, <lists>, after}
+                        // CHANGED envelope
+remove() {id, was?}     // was: NEW
+move() {id, after, from?, was?}  // was: NEW
+order() [ids] · clear() {}       // today
+replace() {id, with}    // NEW class swap
+reset() [envelopes]     // NEW
 
 // File lines
 {"schema": {"Task": 3}}         // NEW, line 1
 {"snapshot": {…}, "seq": 4120}  // NEW, phase 2
 ```
+
+**To settle when building**
+
+- Old logs use an explicit `set` and bare ids. Replay reads both shapes for a while, or a one-time script rewrites the old logs (D16).
+- The envelope names (`seq`, `client`, `n`, `by`, `ts`, `schema`, `snapshot`) sit at the root beside the path. A root data field with one of those names would clash: reserve them, or move them into one `meta` object.
+- Whether a log holds the effects (the data) or the call (`start()`) is D14. This format carries either.
+
+**How to test the line.** One table-driven test, with real classes and a temp file:
+
+```js
+for (const c of cases){             // one case per method: set, unset, add, move, remove…
+  const a = fresh_root(); const lines = capture(a);   // record every line a writes
+  c.run(a)                                            // e.g. a.my_list.move({id, after})
+  expect(lines).toEqual(c.lines)                      // 1. the line shape is exactly right
+  const b = fresh_root(); lines.forEach(l => b.set(l)) // 2. replay into a new root
+  expect(b.to_json()).toEqual(a.to_json())            // 3. same tree after replay
+}
+```
+
+Plus edge cases: a missing `#id` (warn, skip), a data name ending in `()` (refused), a torn last line, two tabs editing one field. `delta-flow.test.mjs` already does a round trip; this widens it to every method.
 
 ---
 
@@ -422,13 +500,13 @@ Property.derive([a, b], fn)  // NEW
 
 ```js
 // 1 embedded (default): in the parent's file
-{"tasks":{"add":{"id":"c3","type":"Task",
+{"tasks":{"add()":{"id":"c3","type":"Task",
   "data":{…}}}}
 // 2 own file: the member names it
-{"tasks":{"add":{"id":"c3","type":"Task",
+{"tasks":{"add()":{"id":"c3","type":"Task",
   "file":"c3.jsonl"}}}
 // 3 own dir: a folder, with its record inside
-{"tasks":{"add":{"id":"c3","type":"Task",
+{"tasks":{"add()":{"id":"c3","type":"Task",
   "file":"c3/"}}}
 
 // TODAY: separate shapes for 2 and 3:
@@ -491,7 +569,7 @@ new List({…, lock: "warn" | "refuse"}) // NEW
 // TODAY: Servex's item tool (run_item)
 item({ path: "/…/session-x/",
        target: "tasks.c3",
-       delta: { start: {} } })
+       delta: { "start()": {} } })
 // Resolves the live root, checks describe(),
 // stamps ids on add, applies, then appends.
 // No delta = read. Query keys = answer only.
@@ -538,7 +616,7 @@ Servex               (no twin)
   item tool -> Room    over HTTP or a socket
 ```
 
-**Rule:** whatever serves a project's files also hosts its Rooms. Servex runs processes and agents; it uses the data but is not where it lives. This follows your F1 lean (the dev server, one per tree, worktrees included). The report chose Servex instead. The Room code is identical either way, so the choice is cheap to reverse (decision D8).
+**Rule:** whatever serves a project's files also hosts its Rooms. Servex runs processes and agents; it uses the data but is not where it lives. This follows your F1 lean (the dev server, one per tree, worktrees included). The report chose Servex instead. Your 2026-10-30 words: Servex stays minimal and robust; the dev server is more in line for a project's item API; sockets over REST because of push (REST only where Cloudflare needs it). The Room code is identical either way, so the choice is cheap to reverse (decision D8).
 
 ---
 
@@ -547,6 +625,7 @@ Servex               (no twin)
 **Phase 0: stop silent losses** (hours each; [fixes.md](fixes.md) 1–5)
 
 **Phase 1: solid streaming, robust data, bindings**
+- The decided line format (D13): plain key, `name()`, `#id`. Replay reads old and new shapes.
 - `seq` + `client` + `n` on every line: resume, dedupe, exactly once.
 - `ack` instead of echo, and pending lines resent on reconnect: no lost edits.
 - `reset` on rewrite (`epoch`), gap check (`prev`), ping: streams heal themselves.

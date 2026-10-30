@@ -776,16 +776,47 @@
     if (byId.has(x)) return `<a class="pill sm" href="${toolHref(x)}">${esc(byId.get(x).name)}</a>`;
     return x ? `<span class="pill sm static">${esc(label || x)}</span>` : '';
   };
+  // Status of a decision (open / leaning / decided), shown as a small pill and used to group the list.
+  const STATUSES = ['open', 'leaning', 'decided'], ST_CLS = { open: 'warn', leaning: 'acc', decided: 'good' };
+  const statusOf = (d) => (STATUSES.includes(d.status) ? d.status : 'open');
+  const statusPill = (d) => `<span class="badge st ${ST_CLS[statusOf(d)]}">${statusOf(d)}</span>`;
+  // The agents' analysis (d.analysis, optional): one banner line, a tiny risk line per option, and a "why" drawer.
+  const asList = (v) => arr(v).map((x) => String(x ?? '').trim()).filter(Boolean);
+  const sevOf = (x) => { const n = Math.round(+x.worst); return n >= 1 ? Math.min(5, n) : Math.max(0, ...asList(x.fails).map((f) => +(f.match(/\(sev (\d)\)\s*$/) || [])[1] || 0)); };
+  const whyId = (d, o) => `why-${decId(d)}-${o.id}`.replace(/[^\w-]/g, '_');
+  function agreeBanner(d) {
+    const a = d.analysis;
+    if (!a || typeof a !== 'object') return '';
+    const recs = asList(a.analysis_recommends).map((x) => `<code>${esc(x)}</code>`), text = String(a.agreement || '').trim();
+    const split = /^split/i.test(text) || recs.length > 1, conf = +a.confidence >= 1 ? ` · confidence ${+a.confidence}/5` : '';
+    const line = !recs.length ? inlLine(text || 'Agents have looked at this') : split ? `Agents split: ${recs.join(' vs ')}` : `Agents: ${/^both/i.test(text) ? 'both pick' : 'pick'} ${recs.join(', ')}${conf}`;
+    const more = [text && inlLine(text), split && +a.confidence >= 1 ? `Confidence ${+a.confidence}/5.` : '', a.notes && inlLine(a.notes)].filter(Boolean);
+    return `<details class="dagree ${split ? 'split' : 'agree'}"><summary><span>${line}</span></summary><div class="dagree-more">${more.map((m) => `<p>${m}</p>`).join('')}</div></details>`;
+  }
+  // The tiny line under an option: worst-failure dots (severity out of 5), "picked by N", and the why toggle.
+  function optMeta(d, o) {
+    const x = d.analysis?.options?.[o.id];
+    if (!x || typeof x !== 'object') return { meta: '', why: '' };
+    const sev = sevOf(x), picked = asList(x.picked_by), wins = asList(x.wins), fails = asList(x.fails), prec = asList(x.precedents), id = whyId(d, o);
+    const bits = [sev ? `<span class="sev sev${sev}" role="img" aria-label="Worst failure: severity ${sev} of 5" title="Worst failure: severity ${sev} of 5">worst fail <span class="dots" aria-hidden="true">${'●'.repeat(sev)}${'○'.repeat(5 - sev)}</span></span>` : '', picked.length ? `<span>picked by ${picked.length}</span>` : ''].filter(Boolean);
+    const has = wins.length || fails.length || prec.length || picked.length;
+    const li = (l) => l.map((t) => `<li>${inlLine(t)}</li>`).join('');
+    const why = has ? `<div class="dwhy" id="${esc(id)}" hidden>${wins.length ? `<ul class="dw win">${li(wins)}</ul>` : ''}${fails.length ? `<ul class="dw fail">${li(fails)}</ul>` : ''}${prec.length ? `<p class="dprec"><span>Seen in</span> ${prec.map((p) => `<span class="tag">${esc(p)}</span>`).join(' ')}</p>` : ''}${picked.length ? `<p class="dprec"><span>Picked by</span> ${picked.map((p) => `<span class="tag">${esc(p)}</span>`).join(' ')}</p>` : ''}</div>` : '';
+    return { meta: bits.length || has ? `<div class="dm">${bits.join('')}${has ? `<button type="button" class="whybtn" data-why aria-expanded="false" aria-controls="${esc(id)}">why ▾</button>` : ''}</div>` : '', why };
+  }
   // The options are div role=button (not <button>) so a code in their text can be a link.
   const decCard = (d) => `<article class="dcard" id="dec-${esc(decId(d))}" data-dec="${esc(decId(d))}">
-      <h3>${esc(d.title || decId(d))}</h3>
+      <h3>${esc(d.title || decId(d))} ${statusPill(d)}</h3>
       ${d.question ? `<div class="dq">${inl(d.question)}</div>` : ''}
+      ${agreeBanner(d)}
       ${d.context ? `<div class="dctx">${inl(d.context)}</div>` : ''}
       ${d.example ? `<div class="prose dex">${codeBlock(d.example)}</div>` : ''}
-      <div class="dopts" role="group" aria-label="${esc(d.title || decId(d))}">${arr(d.options).map((o) => `<div class="dopt" role="button" tabindex="0" data-opt="${esc(o.id)}" aria-pressed="false"><span class="dopt-top"><span>${inlLine(o.label || o.id)}</span>${isRec(d, o) ? '<span class="badge good">recommended</span>' : ''}</span>${o.summary ? `<span class="dopt-sum">${inlLine(o.summary)}</span>` : ''}</div>`).join('')}</div>
+      <div class="dopts" role="group" aria-label="${esc(d.title || decId(d))}">${arr(d.options).map((o) => { const m = optMeta(d, o); return `<div class="dopt-w${m.meta ? ' has-meta' : ''}"><div class="dopt" role="button" tabindex="0" data-opt="${esc(o.id)}" aria-pressed="false"><span class="dopt-top"><span>${inlLine(o.label || o.id)}</span>${isRec(d, o) ? '<span class="badge good">recommended</span>' : ''}${o.added_by === 'analysis' ? '<span class="badge acc" title="Not in the first draft: the agents added this option">added by agents</span>' : ''}</span>${o.summary ? `<span class="dopt-sum">${inlLine(o.summary)}</span>` : ''}</div>${m.meta}${m.why}</div>`; }).join('')}</div>
       <textarea class="dnote" rows="2" placeholder="Note (optional)" aria-label="Note for ${esc(d.title || decId(d))}"></textarea>
       <div class="dstat"><span class="dmsg"></span><button type="button" class="linkbtn" data-clear hidden>Clear</button></div>
+      ${String(d.detail || '').trim() ? '<details class="dfold ddet"><summary>Details</summary><div class="prose ddet-body"></div></details>' : ''}
       ${arr(d.refs).length ? `<div class="drefs">${arr(d.refs).map(refLink).join('')}</div>` : ''}
+      ${asList(d.analysis?.surprises).length ? `<h4 class="label dsurp-h">Found along the way</h4><ul class="dsurp">${asList(d.analysis.surprises).map((t) => `<li>${inlLine(t)}</li>`).join('')}</ul>` : ''}
     </article>`;
   function paintDecision(id) {
     const card = [...document.querySelectorAll('.dcard')].find((c) => c.dataset.dec === id);
@@ -835,7 +866,12 @@
     } catch (e) { if (prev) saved.set(id, prev); saveErr.set(id, e?.message || 'try again'); paintDecision(id); }
   }
   function onDesignClick(e) {
-    const card = e.target.closest('.dcard');
+    const card = e.target.closest('.dcard'), why = e.target.closest('[data-why]');
+    if (why) { // the "why" toggle opens an option's wins, fails and precedents; it never chooses the option
+      const pane = why.closest('.dopt-w').querySelector('.dwhy'), open = pane.hidden;
+      pane.hidden = !open; why.setAttribute('aria-expanded', String(open)); why.textContent = open ? 'hide ▴' : 'why ▾';
+      return;
+    }
     if (!card || canWrite === false || e.target.closest('a')) return;
     const id = card.dataset.dec, b = e.target.closest('.dopt');
     if (b) saveDecision(id, { choice: b.dataset.opt, note: card.querySelector('.dnote').value.trim() });
@@ -901,18 +937,19 @@
   function showDecisions() {
     const decs = DECISIONS || [];
     if (!decs.length) { view.innerHTML = notYet('Decisions'); return; }
-    const calls = decs.filter((d) => d.kind !== 'clear-win'), clear = decs.filter((d) => d.kind === 'clear-win');
-    const rows = (l) => list(l.map((d) => row({ href: decHref(d), title: rowText(`<b class="did">${esc(decId(d))}</b> ${esc(d.title || '')}`), meta: `<span class="dbadge" data-dbadge="${esc(decId(d))}"></span>` })));
+    const meta = (d) => `<span class="dmeta">${statusPill(d)}${d.kind === 'clear-win' ? '<span class="tag">clear win</span>' : ''}<span class="dbadge" data-dbadge="${esc(decId(d))}"></span></span>`;
+    const rows = (l) => list(l.map((d) => row({ href: decHref(d), title: rowText(`<b class="did">${esc(decId(d))}</b> ${esc(d.title || '')}`), meta: meta(d) })));
     view.innerHTML = `<p class="sub"><span id="dec-count"></span> · Tap one to choose.</p>
-      ${calls.length ? countHead(clear.length ? 'Your call' : 'Decisions', calls.length) + rows(calls) : ''}
-      ${clear.length ? countHead('Clear wins', clear.length) + rows(clear) : ''}`;
+      ${STATUSES.map((st) => { const l = decs.filter((d) => statusOf(d) === st); return l.length ? countHead(cap(st), l.length) + rows(l) : ''; }).join('')}`;
     paintDecisions();
   }
 
-  function showDecision(id) {
+  function showDecision(id, ticket) {
     const decs = DECISIONS || [], i = decs.findIndex((d) => decId(d) === id), d = decs[i];
     if (!d) { view.innerHTML = `${head('Not found')}<p class="empty">No decision “${esc(id)}”. <a href="#/design/decisions">Back to the list</a></p>`; return; }
     view.innerHTML = decCard(d) + prevNext(decs, i, decHref, (x) => `<b>${esc(decId(x))}</b> ${esc(x.title || '')}`);
+    const det = view.querySelector('.ddet'); // the Details markdown is rendered the first time it is opened
+    if (det) det.addEventListener('toggle', () => { if (det.open && !det.dataset.done) { det.dataset.done = '1'; renderMd(det.querySelector('.ddet-body'), d.detail, 'design/decisions.json', ticket); } });
     paintDecisions();
   }
 
@@ -949,7 +986,7 @@
     if (kind === 'takeaways') showTakeaways();
     else if (kind === 'takeaway' && id) showTakeaway(id);
     else if (kind === 'decisions') showDecisions();
-    else if (kind === 'decision' && id) showDecision(id);
+    else if (kind === 'decision' && id) showDecision(id, ticket);
     else if (kind === 'phase1' && id) await showPhase1(id, ticket);
     else if (kind === 'phase1') showPhase1List();
     else if (kind === 'fixes') showFixes();

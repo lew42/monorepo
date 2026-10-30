@@ -4,7 +4,7 @@
     "group": "Keep",
     "line": "item.set(delta) is the one API, and the delta is the saved line",
     "detail": "You change an Item with one call. The same object, wrapped in the path down to the item, is what gets saved.",
-    "code": "task.set({ title: \"Ship it\" })\n// the line saved to page.jsonl is the same delta,\n// wrapped in the names down to the task:\n// {\"tasks\":{\"c3\":{\"set\":{\"title\":\"Ship it\"}}}}",
+    "code": "task.set({ title: \"Ship it\" })\n// the line saved to page.jsonl is the same delta,\n// wrapped in the names down to the task:\n// {\"tasks\":{\"#c3\":{\"title\":\"Ship it\"}}}",
     "see": [
       "2",
       "6"
@@ -13,9 +13,9 @@
   {
     "id": "T-keep-2",
     "group": "Keep",
-    "line": "Nested names down to the target, then one verb; members found by id",
-    "detail": "A line walks down by name, and a List finds its member by id. An index would point at a different item after someone inserts above it.",
-    "code": "// {\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}\nroot.get(\"content\")       // a List\nroot.get(\"content.p9\")    // List.get(\"p9\") -> find(\"p9\"), one Map lookup\nroot.get(\"content.p9\").set({ text: \"Draft\" })  // the one verb\n// never content[2]: the 2 changes when a part is added above it",
+    "line": "Nested names down to the target; the key's spelling says what it does (D13)",
+    "detail": "A line walks down by name. A plain key is data (or a step into a child), `name()` calls a method, and `#id` picks a list item. An index would point at a different item after someone inserts above it.",
+    "code": "// {\"content\":{\"#p9\":{\"text\":\"Draft\"}}}\nroot.get(\"content\")       // a List\nroot.get(\"content.p9\")    // List.get(\"p9\") -> find(\"p9\"), one Map lookup\nroot.get(\"content.p9\").set({ text: \"Draft\" })  // same change in code\n// {\"content\":{\"#p9\":{\"start()\":{}}}}  // \"name()\" calls a method\n// never content[2]: the 2 changes when a part is added above it",
     "see": [
       "3.1",
       "6"
@@ -52,7 +52,7 @@
     "group": "Change",
     "line": "Every line gets seq, client and n; the sender gets an ack",
     "detail": "The server numbers each line (seq). The writer adds client and n, so a retry is saved once. The sender hears an ack instead of its own echo.",
-    "code": "// a tab sends:\n{\"client\":\"t-19bc\",\"n\":12,\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}\n// the Room appends it and tells the sender:\n{\"ack\":{\"client\":\"t-19bc\",\"n\":12,\"seq\":43}}\n// everyone else gets the line with its seq:\n{\"op\":{\"seq\":43,\"client\":\"t-19bc\",\"n\":12,\"line\":{\"content\":{\"p9\":{\"set\":{\"text\":\"Draft\"}}}}}}",
+    "code": "// a tab sends:\n{\"client\":\"t-19bc\",\"n\":12,\"content\":{\"#p9\":{\"text\":\"Draft\"}}}\n// the Room appends it and tells the sender:\n{\"ack\":{\"client\":\"t-19bc\",\"n\":12,\"seq\":43}}\n// everyone else gets the line with its seq:\n{\"op\":{\"seq\":43,\"client\":\"t-19bc\",\"n\":12,\"line\":{\"content\":{\"#p9\":{\"text\":\"Draft\"}}}}}",
     "see": [
       "D4",
       "6",
@@ -64,7 +64,7 @@
     "group": "Change",
     "line": "Changes save through this.store.change(); events are for views only",
     "detail": "Your F6. A change calls the nearest store directly, so a tab page with no bubbling still saves. The change event stays for views.",
-    "code": "set_one(key, value){\n  // … put the value; if it changed:\n  this.emit(\"change\", key, value, old)   // views listen; does not bubble\n  this.store?.change(this,               // saving: one direct call\n    { set: { [key]: value } }, \"local\")\n}\nget store(){ return this._store ?? this.parent?.store }  // nearest store up the chain",
+    "code": "set_one(key, value){\n  // … put the value; if it changed:\n  this.emit(\"change\", key, value, old)   // views listen; does not bubble\n  this.store?.change(this,               // saving: one direct call\n    { [key]: value }, \"local\")\n}\nget store(){ return this._store ?? this.parent?.store }  // nearest store up the chain",
     "see": [
       "D2",
       "2",
@@ -76,7 +76,7 @@
     "group": "Change",
     "line": "add writes the whole item; adding an owned item makes a Ref",
     "detail": "The add line carries the full envelope (id, type, data, child lists), so a replay gives back exactly what you built. Your F7: an item that already has a parent is added as a Ref.",
-    "code": "const c3 = tasks.add({ type: \"Task\", data: { title: \"x\" } })\n// {\"tasks\":{\"add\":{\"id\":\"c3\",\"type\":\"Task\",\"data\":{\"title\":\"x\"}}}}\nconst ref = other.add(c3)    // c3 already has a parent\n// {\"other\":{\"add\":{\"type\":\"Ref\",\"path\":\"tasks.c3\"}}}\nc3.move_to(other)            // the only way to move",
+    "code": "const c3 = tasks.add({ type: \"Task\", data: { title: \"x\" } })\n// {\"tasks\":{\"add()\":{\"id\":\"c3\",\"type\":\"Task\",\"data\":{\"title\":\"x\"}}}}\nconst ref = other.add(c3)    // c3 already has a parent\n// {\"other\":{\"add()\":{\"type\":\"Ref\",\"path\":\"tasks.c3\"}}}\nc3.move_to(other)            // the only way to move",
     "see": [
       "D3",
       "3"

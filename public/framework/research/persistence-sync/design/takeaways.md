@@ -2,7 +2,7 @@
 
 **Keep**
 - `item.set(delta)` as the one API, where the delta is also the saved line.
-- Nested names down to the target, then one verb. List members are found by id, never by index.
+- Nested names down to the target. A plain key is data, `name()` calls a method, `#id` picks a list item (D13). List members are found by id, never by index.
 - `List extends Item`, `Page extends Item` + url, and `Ref` with `moved_to` forwards.
 - One writer per file, and one home per page (no two-way sync).
 

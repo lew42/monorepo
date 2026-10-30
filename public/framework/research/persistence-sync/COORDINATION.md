@@ -69,6 +69,10 @@ A change to the lew42 framework is only worth making if a test shows it fails to
 
 Order of work when a fix is built later: commit the failing test first, then the fix in a separate commit, so the history shows the before and after.
 
+## Converge, don't sprawl (owner's rule)
+
+Amend the existing document a topic belongs to; don't create a new markdown file for each note or idea. Design work lives in: `design/phase-1.md` (architecture), `design/decisions.json` (every open or settled dilemma, with its options and analysis), `design/decisions-log.md` (the owner's own words and choices, dated), `design/fixes.md`, `design/takeaways.json`. Raw agent analysis goes in `design/analysis/` as JSON data, not prose.
+
 ## Work until the task is done
 
 Don't stop after a first pass. Keep working through your whole brief until every deliverable is finished, saving to your files as you go. If you're blocked, write down why in your file and in your final report, then finish everything else. Don't spawn other agents.

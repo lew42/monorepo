@@ -4,21 +4,30 @@
 
 **Keep your Item / List / Page core. Fix it, don't replace it.** Figma, Linear and tldraw run the same design. Borrow their protocols; adopt libraries only at the edges (Yjs for shared text, SQLite search, Cloudflare voice).
 
-## Your turn: the Design tab
+## For you today: Design → Decisions
 
-- **Takeaways:** 12 one-liners (keep / change / adopt / avoid).
-- **12 decisions** to tap: 9 are your call (naming, binding, locks, where the Room lives…), 3 are clear wins. Your F6 and F7 choices from `michael/dev` are in (D2, D3), both recommended.
-- **Phase 1 pseudocode:** your classes as they are today, with each proposed change marked.
-- **Fixes:** 12 clear-win fixes ranked, each with its failing test.
+16 decisions, grouped open / leaning / decided. Seven were scored overnight by two independent agents each: one listed where every option wins and fails (with severity), one checked how the closest tools do it.
 
-## Done today
+**Agents agree:**
+- **D7 binding:** a one-line `bind` helper that also unbinds; signals later, only for derived values.
+- **D11 typing:** stream every keystroke live, save the latest value every 0.5–5 s.
+- **D15 list order:** fractional position keys, as Figma and tldraw do.
+- **D16 class versions:** upgrade old lines as they're read, with a version on every line.
 
-- `integration/data-shapes-2` **is an upgrade** and nearly ready to merge (one flaky test; check F6/F7 first). `persistence-sync/lew42/branch-assessment.md`.
-- Categories: 12 categories, 46 subcategories, every tool placed.
-- Research snapshot saved on monorepo branch `research/persistence-sync`.
+**Agents split, or disagree with your lean:**
+- **D2 save path:** direct call (your lean) vs each item holding a store reference. Both drop bubbling for saving.
+- **D10 two editors:** soft lock (your lean) vs last-writer-wins plus a "who's editing" badge.
+- **D14 log the call or the change:** neither picks calls (your lean). One says "both in one line, replay applies changes", the other "changes only".
 
-- Tool profiles by cheap Haiku agents: automerge-repo, Colyseus, Loro, Yjs, Backbone (Tools tab).
+**Bugs found along the way** (each on its decision page):
+- A view listener that throws stops the save; the edit stays on screen only.
+- Pages may save `act()` twice (two save paths).
+- Replaying `child_changed` re-runs `complete()`; a task's running timer is memory-only.
 
-## Now
+## Done
 
-**Reorganizing the app for you:** one header with a dropdown instead of the tab row; Design split into four short pages (Takeaways, Decisions, Phase 1 classes, Fixes); one page per class section; a small code example behind every takeaway and decision. Usage is back under pace (97% at 03:10 UTC). Parked ideas: `ideas/backburner.md`.
+- `integration/data-shapes-2` is an upgrade and nearly ready to merge (`persistence-sync/lew42/branch-assessment.md`).
+- Design docs consolidated: `phase-1.md`, `decisions.json`, `decisions-log.md`.
+- Research snapshot on monorepo branch `research/persistence-sync`.
+
+Usage: 94% of weekly pace at 07:50 UTC; work stopped for the night after this update. Parked ideas: `ideas/backburner.md`.
