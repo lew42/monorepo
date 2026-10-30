@@ -30,3 +30,8 @@
 {"tool_call":{"at":"2026-10-30T01:53:14.294Z","tool":"send_to_agent","args_hash":"cdfadd959a10","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-30T01:53:16.906Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
 {"log":{"at":"2026-10-29T21:02:28-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-29T21:12:28-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-29T21:17:28-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-29T21:22:28-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-10-30T02:28:21.378Z","tool":"send_to_agent","args_hash":"cdfadd959a10","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T02:28:24.430Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
