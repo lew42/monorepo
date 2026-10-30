@@ -1,0 +1,345 @@
+{"op": "set", "id": "agents-sdk", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "agents-sdk", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "alcalzone-jsonl-db", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/node_storage_orms.md"}
+{"op": "set", "id": "alcalzone-jsonl-db", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/node_storage_orms.md"}
+{"op": "set", "id": "alien-signals", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "alien-signals", "key": "subcategory", "value": "signals", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "angular", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "angular", "key": "subcategory", "value": "component-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "appwrite", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "appwrite", "key": "subcategory", "value": "baas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "arrowjs", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "arrowjs", "key": "subcategory", "value": "template-binding", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "astro", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "astro", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "automerge", "key": "category", "value": "crdt", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "automerge", "key": "subcategory", "value": "crdt-core", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "automerge-repo", "key": "category", "value": "crdt", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "automerge-repo", "key": "subcategory", "value": "crdt-adapter", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "backbone", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "backbone", "key": "subcategory", "value": "model-tree", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "backbone", "key": "status", "value": {"id": "stale", "date": "2025-04-01", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "better-sqlite3", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "better-sqlite3", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "blocksuite", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "blocksuite", "key": "subcategory", "value": "rich-text", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "castore", "key": "category", "value": "event-log", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "castore", "key": "subcategory", "value": "event-sourcing", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "castore", "key": "status", "value": {"id": "stale", "date": "2025-04-18", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "classic-level", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "classic-level", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "classic-level", "key": "status", "value": {"id": "stale", "date": "2025-04-20", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "cloudflare-d1", "key": "name", "value": "Cloudflare D1", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-d1", "key": "kind", "value": "platform", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-d1", "key": "blurb", "value": "Cloudflare's managed SQLite databases: 10 GB each, many per account, read replicas and 30-day Time Travel.", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-d1", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-d1", "key": "subcategory", "value": "managed-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-durable-objects", "key": "name", "value": "Cloudflare Durable Objects", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-durable-objects", "key": "kind", "value": "platform", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-durable-objects", "key": "blurb", "value": "Single-threaded stateful actors, each with its own SQLite (10 GB), WebSockets with hibernation and alarms; the native one-room-per-document unit.", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-durable-objects", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-durable-objects", "key": "subcategory", "value": "cloud-platform", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-r2", "key": "name", "value": "Cloudflare R2", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-r2", "key": "kind", "value": "platform", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-r2", "key": "blurb", "value": "S3-compatible object storage with zero egress fees and conditional writes.", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-r2", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-r2", "key": "subcategory", "value": "object-storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-workers", "key": "name", "value": "Cloudflare Workers", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-workers", "key": "kind", "value": "platform", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-workers", "key": "blurb", "value": "Cloudflare's serverless JavaScript runtime at the edge; the entry point that binds Durable Objects, D1, R2, KV and Queues.", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-workers", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "cloudflare-workers", "key": "subcategory", "value": "cloud-platform", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/cloudflare_vs_postgres_platforms.md"}
+{"op": "set", "id": "colyseus", "key": "category", "value": "realtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "colyseus", "key": "subcategory", "value": "game-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "convex", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "convex", "key": "subcategory", "value": "baas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "craft-js", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "craft-js", "key": "subcategory", "value": "page-builder", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "craft-js", "key": "status", "value": {"id": "stale", "date": "2025-02-14", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "devalue", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "devalue", "key": "subcategory", "value": "serialization", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "dexie-js", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "dexie-js", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "drizzle-orm", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "drizzle-orm", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "duckdb-node", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "duckdb-node", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "duckdb-node", "key": "status", "value": {"id": "maintenance", "date": "2026-01-30", "note": "superseded by @duckdb/node-api"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "duckdb-node-neo", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "duckdb-node-neo", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "durable-streams", "key": "name", "value": "Durable Streams (Electric)", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "durable-streams", "key": "kind", "value": "protocol", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "durable-streams", "key": "blurb", "value": "HTTP protocol for an append-only log per URL: POST appends, clients resume from an opaque monotonic offset; NDJSON framing.", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "durable-streams", "key": "category", "value": "event-log", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "durable-streams", "key": "subcategory", "value": "event-store", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "electricsql", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "electricsql", "key": "subcategory", "value": "sync-engine", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "electricsql", "key": "status", "value": {"id": "active", "date": "2026-09-09", "note": "Electric joined Databricks 2026-08-11; Electric Cloud winding down, open source kept"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "emmett", "key": "category", "value": "event-log", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "emmett", "key": "subcategory", "value": "event-sourcing", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "excalidraw", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "excalidraw", "key": "subcategory", "value": "canvas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "fast-json-patch", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "fast-json-patch", "key": "subcategory", "value": "delta-format", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "fast-json-patch", "key": "status", "value": {"id": "stale", "date": "2022-03-24", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "faster-whisper", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "faster-whisper", "key": "subcategory", "value": "speech-ai", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "firebase-js-sdk", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "firebase-js-sdk", "key": "subcategory", "value": "baas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "fractional-indexing", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "fractional-indexing", "key": "subcategory", "value": "delta-format", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "geckos-io", "key": "category", "value": "realtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "geckos-io", "key": "subcategory", "value": "socket-library", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "grapesjs", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "grapesjs", "key": "subcategory", "value": "page-builder", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "gun", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "gun", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "gun", "key": "status", "value": {"id": "stale", "date": "2025-07-01", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "hocuspocus", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "hocuspocus", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "hotwire-turbo", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "hotwire-turbo", "key": "subcategory", "value": "server-driven", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "htmx", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "htmx", "key": "subcategory", "value": "server-driven", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "idiomorph", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "idiomorph", "key": "subcategory", "value": "dom-diff", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "immer", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "immer", "key": "subcategory", "value": "delta-format", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "instantdb", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "instantdb", "key": "subcategory", "value": "baas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "instantdb", "key": "status", "value": {"id": "shut-down", "date": "2027-08-31", "note": "team joined OpenAI 2026-08-22; Instant Cloud runs until this date; code open source, self-host on JVM"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "janus-gateway", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "janus-gateway", "key": "subcategory", "value": "sfu", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "jazz", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "jazz", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "jazz", "key": "status", "value": {"id": "preview", "date": "2026-10-04", "note": "2.0 alpha with a new relational API"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "jazz-classic", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "jazz-classic", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "jazz-classic", "key": "status", "value": {"id": "maintenance", "date": "2026-07-03", "note": "security and blocking fixes only after Jazz 2"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "jotai", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "jotai", "key": "subcategory", "value": "state-store", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "keyv", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "keyv", "key": "subcategory", "value": "storage-abstraction", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "knockout", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "knockout", "key": "subcategory", "value": "template-binding", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kokoro-tts", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kokoro-tts", "key": "subcategory", "value": "speech-ai", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kokoro-tts", "key": "status", "value": {"id": "stale", "date": "2025-04-05", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kurrentdb-node-client", "key": "category", "value": "event-log", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kurrentdb-node-client", "key": "subcategory", "value": "event-store", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kurrentdb-server", "key": "category", "value": "event-log", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kurrentdb-server", "key": "subcategory", "value": "event-store", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kysely", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "kysely", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lew42-framework", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/lew42/overview.md"}
+{"op": "set", "id": "lew42-framework", "key": "subcategory", "value": "live-data-stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/lew42/overview.md"}
+{"op": "set", "id": "lexical", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lexical", "key": "subcategory", "value": "rich-text", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "libsql", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "libsql", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lit", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lit", "key": "subcategory", "value": "component-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "liveblocks", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "liveblocks", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-agents", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-agents", "key": "subcategory", "value": "voice-agent", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-agents-js", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-agents-js", "key": "subcategory", "value": "voice-agent", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-client-sdk-js", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-client-sdk-js", "key": "subcategory", "value": "media-sdk", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-server", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livekit-server", "key": "subcategory", "value": "sfu", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livestore", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livestore", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livestore", "key": "status", "value": {"id": "preview", "date": "2026-10-15", "note": "beta; no 1.0 timeline; eventlog compaction not built"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "livewire", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "livewire", "key": "subcategory", "value": "server-driven", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lmdb-js", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lmdb-js", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lokijs", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lokijs", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lokijs", "key": "status", "value": {"id": "stale", "date": "2021-04-20", "note": "no release since 1.5.12; still pulled in transitively"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/node_storage_orms.md"}
+{"op": "set", "id": "loro", "key": "category", "value": "crdt", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "loro", "key": "subcategory", "value": "crdt-core", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lowdb", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lowdb", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "lowdb", "key": "status", "value": {"id": "stale", "date": "2023-12-26", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mediasoup", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mediasoup", "key": "subcategory", "value": "sfu", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "meteor", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "meteor", "key": "subcategory", "value": "live-data-stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mikroorm", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mikroorm", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "miniflare", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "miniflare", "key": "subcategory", "value": "js-runtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "miniflare", "key": "status", "value": {"id": "moved", "date": "2025-03-13", "note": "standalone repo archived; developed inside cloudflare/workers-sdk"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "mobx", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mobx", "key": "subcategory", "value": "signals", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mobx-keystone", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mobx-keystone", "key": "subcategory", "value": "model-tree", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mobx-state-tree", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "mobx-state-tree", "key": "subcategory", "value": "model-tree", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "morphdom", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "morphdom", "key": "subcategory", "value": "dom-diff", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nakama", "key": "category", "value": "realtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nakama", "key": "subcategory", "value": "game-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nedb", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nedb", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nedb", "key": "status", "value": {"id": "stale", "date": "2025-07-07", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nestjs-cqrs", "key": "category", "value": "event-log", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nestjs-cqrs", "key": "subcategory", "value": "event-sourcing", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "next-js", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "next-js", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nuxt", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "nuxt", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "objection-js", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "objection-js", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "objection-js", "key": "status", "value": {"id": "moved", "date": "2026-10-26", "note": "development continues at ditojs/objection under the same npm name"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/node_storage_orms.md"}
+{"op": "set", "id": "orbitdb", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "orbitdb", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "parse-server", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "parse-server", "key": "subcategory", "value": "self-hosted-backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "partykit", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "partykit", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "partykit", "key": "status", "value": {"id": "moved", "date": "2025-05-21", "note": "Cloudflare acquired PartyKit (2024); work continues as PartyServer in cloudflare/partykit"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "partyserver-partysocket", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "partyserver-partysocket", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pglite", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pglite", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "phoenix-liveview", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "phoenix-liveview", "key": "subcategory", "value": "server-driven", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pion-webrtc", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pion-webrtc", "key": "subcategory", "value": "sfu", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pipecat", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pipecat", "key": "subcategory", "value": "voice-agent", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "piper", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "piper", "key": "subcategory", "value": "speech-ai", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "piper", "key": "status", "value": {"id": "moved", "date": "2025-08-26", "note": "archived; continued as OHF-Voice/piper1-gpl (GPL-3.0)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "piper1", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "piper1", "key": "subcategory", "value": "speech-ai", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "plasmic", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "plasmic", "key": "subcategory", "value": "page-builder", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pocketbase", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pocketbase", "key": "subcategory", "value": "self-hosted-backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pocketbase", "key": "status", "value": {"id": "moved", "date": "2026-10-26", "note": "GitHub repo and js-sdk archived; releases to move to the author's own site"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/fullstack_framework_data_paths.md"}
+{"op": "set", "id": "postgres", "key": "name", "value": "PostgreSQL", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "postgres", "key": "kind", "value": "tool", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "postgres", "key": "blurb", "value": "Relational database server; the store of record behind most sync engines and BaaS products.", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "postgres", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "postgres", "key": "subcategory", "value": "database-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "pouchdb", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pouchdb", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "pouchdb", "key": "status", "value": {"id": "stale", "date": "2024-06-21", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "powersync-js", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "powersync-js", "key": "subcategory", "value": "sync-engine", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "preact-signals", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "preact-signals", "key": "subcategory", "value": "signals", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "prisma", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "prisma", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "prosemirror", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "prosemirror", "key": "subcategory", "value": "rich-text", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "prosemirror", "key": "status", "value": {"id": "moved", "date": "2026-04-01", "note": "GitHub repo archived; development moved to code.haverbeke.berlin; packages still released"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.md"}
+{"op": "set", "id": "puck", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "puck", "key": "subcategory", "value": "page-builder", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "qwik", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "qwik", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "react", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "react", "key": "subcategory", "value": "component-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "react-router", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "react-router", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "redis", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adopters_and_pairings.md"}
+{"op": "set", "id": "redis", "key": "subcategory", "value": "database-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adopters_and_pairings.md"}
+{"op": "set", "id": "remix", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "remix", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "replicache", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "replicache", "key": "subcategory", "value": "sync-engine", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "replicache", "key": "status", "value": {"id": "maintenance", "date": "2025-07-02", "note": "maintenance mode; users told to migrate to Zero"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "rxdb", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "rxdb", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "sequelize", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "sequelize", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "seroval", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "seroval", "key": "subcategory", "value": "serialization", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "signal-polyfill", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "signal-polyfill", "key": "subcategory", "value": "signals", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "signal-polyfill", "key": "status", "value": {"id": "stale", "date": "2025-01-17", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "socket-io", "key": "category", "value": "realtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "socket-io", "key": "subcategory", "value": "socket-library", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "solid", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "solid", "key": "subcategory", "value": "component-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "solidstart", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "solidstart", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "supabase", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "supabase", "key": "subcategory", "value": "baas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "superjson", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "superjson", "key": "subcategory", "value": "serialization", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "svelte", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "svelte", "key": "subcategory", "value": "component-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "sveltekit", "key": "category", "value": "stack", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "sveltekit", "key": "subcategory", "value": "meta-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tanstack-db", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tanstack-db", "key": "subcategory", "value": "client-data-layer", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tanstack-db", "key": "status", "value": {"id": "preview", "date": "2026-10-29", "note": "1.0.0-rc.1"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/fullstack_framework_data_paths.md"}
+{"op": "set", "id": "tanstack-query", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tanstack-query", "key": "subcategory", "value": "client-data-layer", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tinybase", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tinybase", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tiptap", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tiptap", "key": "subcategory", "value": "rich-text", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tldraw", "key": "category", "value": "editor", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "tldraw", "key": "subcategory", "value": "canvas", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "triplit", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "triplit", "key": "subcategory", "value": "local-first-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "triplit", "key": "status", "value": {"id": "stale", "date": "2025-07-31", "note": "team joined Supabase 2025-10-08; community-maintained"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "turso", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "turso", "key": "subcategory", "value": "embedded-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "turso", "key": "status", "value": {"id": "preview", "date": "2026-10-12", "note": "pre-1.0; MVCC concurrent writes still in beta"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/node_storage_orms.md"}
+{"op": "set", "id": "typeorm", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "typeorm", "key": "subcategory", "value": "orm", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "udomdiff", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "udomdiff", "key": "subcategory", "value": "dom-diff", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "udomdiff", "key": "status", "value": {"id": "stale", "date": "2024-11-27", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "uhtml", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "uhtml", "key": "subcategory", "value": "template-binding", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "uhtml", "key": "status", "value": {"id": "stale", "date": "2025-08-06", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "unstorage", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "unstorage", "key": "subcategory", "value": "storage-abstraction", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "uwebsockets-js", "key": "category", "value": "realtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "uwebsockets-js", "key": "subcategory", "value": "socket-library", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "valtio", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "valtio", "key": "subcategory", "value": "state-store", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "vue", "key": "category", "value": "ui", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "vue", "key": "subcategory", "value": "component-framework", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "vue-reactivity", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "vue-reactivity", "key": "subcategory", "value": "signals", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "warpdrive-ember-data", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "warpdrive-ember-data", "key": "subcategory", "value": "client-data-layer", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "whisper", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "whisper", "key": "subcategory", "value": "speech-ai", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "whisper", "key": "status", "value": {"id": "stale", "date": "2025-06-26", "note": "no release for 12+ months (CSV flag NO_RELEASE_12MO)"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "whisper-cpp", "key": "category", "value": "media", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "whisper-cpp", "key": "subcategory", "value": "speech-ai", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "workerd", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "workerd", "key": "subcategory", "value": "js-runtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "workers-sdk", "key": "category", "value": "backend", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "workers-sdk", "key": "subcategory", "value": "js-runtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "ws", "key": "category", "value": "realtime", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "ws", "key": "subcategory", "value": "socket-library", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "y-leveldb", "key": "category", "value": "crdt", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "y-leveldb", "key": "subcategory", "value": "crdt-adapter", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "y-leveldb", "key": "status", "value": {"id": "archived", "date": "2026-03-07", "note": "repo archived and deprecated"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/collab_app_architectures.md"}
+{"op": "set", "id": "y-sweet", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "y-sweet", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "y-sweet", "key": "status", "value": {"id": "stale", "date": "2025-09-16", "note": "last npm release 0.9.1; Jamsocket joined Modal 2025-07-10"}, "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/delta_logs_build_vs_buy.md"}
+{"op": "set", "id": "y-websocket", "key": "category", "value": "crdt", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "y-websocket", "key": "subcategory", "value": "crdt-adapter", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "yjs", "key": "category", "value": "crdt", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "yjs", "key": "subcategory", "value": "crdt-core", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "zero", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "zero", "key": "subcategory", "value": "sync-engine", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "zodb", "key": "category", "value": "storage", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/object_dbs_file_layouts.md"}
+{"op": "set", "id": "zodb", "key": "subcategory", "value": "object-db", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/object_dbs_file_layouts.md"}
+{"op": "set", "id": "zustand", "key": "category", "value": "state", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "zustand", "key": "subcategory", "value": "state-store", "by": "taxonomy", "at": "2026-10-30T02:16:22Z", "src": "persistence-sync/notes/adoption_metrics.csv"}
+{"op": "set", "id": "automerge-repo-sync-server", "key": "category", "value": "sync", "by": "taxonomy", "at": "2026-10-30T02:17:39Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
+{"op": "set", "id": "automerge-repo-sync-server", "key": "subcategory", "value": "room-server", "by": "taxonomy", "at": "2026-10-30T02:17:39Z", "src": "persistence-sync/notes/sync_engines_crdts.md"}
