@@ -1,0 +1,8 @@
+{"session":{"id":"cloud-voice-app-20261030","kind":"cloud-voice-agent","caller":"voice-app","at":1793344686675}}
+{"tool_call":{"at":"2026-10-30T07:18:06.676Z","tool":"send_to_agent","args_hash":"cdfadd959a10","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T07:18:07.233Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T07:18:10.055Z","tool":"send_to_agent","args_hash":"390462cb9c2f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T07:18:10.989Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T07:27:01.190Z","tool":"send_to_agent","args_hash":"390462cb9c2f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-30T07:27:06.926Z","tool":"wait_for_agent","args_hash":"624634787eaf","caller":"voice-app"}}
+{"log":{"at":"2026-10-30T02:32:28-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
