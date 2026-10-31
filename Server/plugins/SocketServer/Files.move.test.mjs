@@ -242,6 +242,180 @@ try {
 			t.ok(fs.existsSync(path.join(repo, "public", "a", "kid", "k.js")) && fs.readFileSync(path.join(repo, "public", "b", "use.js"), "utf8") === 'import "/a/kid/k.js";\nimport "/a/kid/k.js";\n', "undo without git moves it back and restores the links");
 		} finally { fs.rmSync(repo, { recursive: true, force: true }); }
 	}
+
+	// ---- the second review's findings (review-2.md): each section is one finding ----
+	const temp_repo = files => {
+		const repo = fs.mkdtempSync(path.join(os.tmpdir(), "module-move-"));
+		for (const [p, text] of Object.entries(files)){ const full = path.join(repo, p); fs.mkdirSync(path.dirname(full), { recursive: true }); fs.writeFileSync(full, text); }
+		return repo;
+	};
+	const rd = (repo, p) => fs.readFileSync(path.join(repo, p), "utf8");
+	const has = (repo, p) => fs.existsSync(path.join(repo, p));
+	const attempt = fn => { try { return { value: fn() }; } catch (e){ return { error: e }; } };
+	const TRIP = { "public/notes/Base.js": "export default 1;\n", "public/notes/trip/Trip.js": 'import Base from "../Base.js";\nexport default Base;\n', "public/other/page.js": 'import Trip from "/notes/trip/Trip.js";\nexport default Trip;\n' };
+
+	// 8. (finding 1) A move that fails half-way puts every file back; an undo that fails half-way does too
+	{
+		const repo = temp_repo(TRIP);
+		try {
+			class Locked extends ModuleMove { relocate(){ const e = new Error("EBUSY: resource busy or locked"); e.code = "EBUSY"; throw e; } }   // a file in the folder is open in another program (Windows); cannot be made to happen on this disk
+			const manifest = path.join(repo, "m.json");
+			const failed = attempt(() => new Locked(repo, "public/notes/trip", "public/notes/journey").apply(manifest));
+			t.ok(failed.error && /EBUSY/.test(failed.error.message), "a folder that cannot move makes apply throw: " + failed.error?.message);
+			t.eq(rd(repo, "public/other/page.js"), TRIP["public/other/page.js"], "and the link in the other file is back as it was");
+			t.eq(rd(repo, "public/notes/trip/Trip.js"), TRIP["public/notes/trip/Trip.js"], "and so is the moved folder's own import");
+			t.ok(has(repo, "public/notes/trip/Trip.js") && !has(repo, "public/notes/journey"), "and the folder stayed where it was");
+			const m = has(repo, "m.json") ? JSON.parse(rd(repo, "m.json")) : {};
+			t.eq(m.status, "rolled_back", "the manifest says the move was rolled back, so nobody tries to undo it");
+
+			const good = path.join(repo, "good.json");
+			new ModuleMove(repo, "public/notes/trip", "public/notes/journey").apply(good);
+			t.eq(JSON.parse(rd(repo, "good.json")).status, "done", "a move that worked is marked done");
+			const after = rd(repo, "public/other/page.js");
+			const undo_failed = attempt(() => Locked.undo(repo, good));
+			t.ok(undo_failed.error, "an undo whose folder cannot move back throws");
+			t.eq(rd(repo, "public/other/page.js"), after, "and leaves the links as the move had them, not half undone");
+			t.ok(has(repo, "public/notes/journey/Trip.js"), "and the folder where the move put it");
+		} finally { fs.rmSync(repo, { recursive: true, force: true }); }
+	}
+
+	// 9. (finding 2) Renaming or moving a FILE relinks it too, with the same plan and undo
+	{
+		fs.writeFileSync(abs("base.js"), "export default 1;\n");
+		fs.writeFileSync(abs("user.js"), `import b from "./base.js";\nimport c from "${URL}base.js";\n`);
+		fs.writeFileSync(abs("about.md"), `See [the base](${URL}base.js).\n`);
+		const before = snapshot(DIR);
+		const plan = await rpc("move_plan", URL, "base.js", URL, "core.js");
+		t.ok(plan.ok && plan.kind === "file" && plan.paths >= 3 && plan.links >= 3, "the plan for a file counts the links to it (two imports and a markdown link): " + JSON.stringify(plan).slice(0, 300));
+		t.eq(snapshot(DIR), before, "and writes nothing");
+		const done = await rpc("move_apply", URL, "base.js", URL, "core.js");
+		t.ok(done.ok && done.manifest, "apply answers ok: " + JSON.stringify(done).slice(0, 200));
+		t.ok(fs.existsSync(abs("core.js")) && !fs.existsSync(abs("base.js")), "the file has its new name");
+		t.eq(read("user.js"), `import b from "./core.js";\nimport c from "${URL}core.js";\n`, "both imports follow it");
+		t.eq(read("about.md"), `See [the base](${URL}core.js).\n`, "and so does the markdown link");
+		const undone = await rpc("move_undo", done.manifest);
+		t.ok(undone.ok, "undo answers ok: " + JSON.stringify(undone));
+		t.eq(snapshot(DIR), before, "and puts every byte back, links included");
+		const old = { ok: true };   // a manifest written before this change had no `files`; it must still undo
+		fs.writeFileSync(abs("old.txt"), "o\n");
+		fs.renameSync(abs("old.txt"), abs("older.txt"));
+		const rel = p => path.relative(ROOT, abs(p)).split(path.sep).join("/");
+		fs.writeFileSync(path.join(MOVES, "old-file-move.json"), JSON.stringify({ at: "x", kind: "file", from: rel("old.txt"), to: rel("older.txt"), extra: {} }));
+		const old_undo = await rpc("move_undo", "old-file-move.json");
+		t.ok(old_undo.ok === old.ok && fs.existsSync(abs("old.txt")), "an older file-move manifest (no `files` list) still undoes: " + JSON.stringify(old_undo));
+	}
+
+	// 10. (finding 3a) "class" links in .jsonl pages are relinked and counted; history logs and other keys are not touched
+	{
+		const repo = temp_repo({ ...TRIP,
+			"public/other/page.jsonl": '{"title":"Other"}\n{"class":"/notes/trip/Trip.js","title":"x"}\n{"title":"see /notes/trip/Trip.js"}\n',
+			"public/framework/ai/sessions/2026/10/01/s1/page.jsonl": '{"class":"/notes/trip/Trip.js"}\n' });
+		try {
+			const mover = new ModuleMove(repo, "public/notes/trip", "public/notes/journey");
+			const summary = mover.summary();
+			t.eq(summary.data_links, 1, "the plan counts the one class link in a .jsonl page (data_links)");
+			mover.apply(path.join(repo, "m.json"));
+			t.eq(rd(repo, "public/other/page.jsonl"), '{"title":"Other"}\n{"class":"/notes/journey/Trip.js","title":"x"}\n{"title":"see /notes/trip/Trip.js"}\n', "the class value changed; other text in the .jsonl did not");
+			t.eq(rd(repo, "public/framework/ai/sessions/2026/10/01/s1/page.jsonl"), '{"class":"/notes/trip/Trip.js"}\n', "a dated record keeps what it says");
+			ModuleMove.undo(repo, path.join(repo, "m.json"));
+			t.ok(rd(repo, "public/other/page.jsonl").includes('"/notes/trip/Trip.js","title"'), "undo restores the class link");
+		} finally { fs.rmSync(repo, { recursive: true, force: true }); }
+	}
+
+	// 11. (finding 3b) a parent's `children: ["a", "b"]` array names the page, so the plan refuses, like the legacy string
+	{
+		fs.mkdirSync(abs("arr"));
+		fs.writeFileSync(abs("arr", "page.js"), 'export default { children: ["alpha", "beta"] };\n');
+		fs.mkdirSync(abs("arr", "alpha"));
+		fs.writeFileSync(abs("arr", "alpha", "page.js"), "export default {};\n");
+		const before = snapshot(DIR);
+		const plan = await rpc("move_plan", URL + "arr/", "alpha", URL + "arr/", "gamma");
+		t.ok(plan.ok === false && /children/.test(plan.reason) && /page\.js/.test(plan.reason), "the plan refuses and names the children list in page.js: " + plan.reason);
+		t.eq(snapshot(DIR), before, "and nothing moved");
+		fs.writeFileSync(abs("arr", "page.js"), 'export default { children: ["beta"] };\n');
+		const fine = await rpc("move_plan", URL + "arr/", "alpha", URL + "arr/", "gamma");
+		t.ok(fine.ok, "a child the array does not name can be moved (it just has to be added to the list by hand): " + fine.reason);
+	}
+
+	// 12. (finding 4) Only real site urls, repo paths and imports that resolve to the moved path are rewritten
+	{
+		const repo = temp_repo({ ...TRIP,
+			"public/other/prose.md": "docs live in Servex/notes/trip/readme and https://example.com/notes/trip/ and /home/me/notes/trip\n",
+			"public/other/real.md": "[a](/notes/trip/) [b](http://localhost:8123/notes/trip/Trip.js) [c](public/notes/trip/Trip.js) notes/trip/Trip.js\n",
+			"public/other/ghost.md": "notes/trip/ghost.js is gone\n" });
+		try {
+			new ModuleMove(repo, "public/notes/trip", "public/notes/journey").apply(path.join(repo, "m.json"));
+			t.eq(rd(repo, "public/other/prose.md"), "docs live in Servex/notes/trip/readme and https://example.com/notes/trip/ and /home/me/notes/trip\n", "the three look-alikes (Servex/…, another site, a home folder) are untouched");
+			t.eq(rd(repo, "public/other/real.md"), "[a](/notes/journey/) [b](http://localhost:8123/notes/journey/Trip.js) [c](public/notes/journey/Trip.js) notes/journey/Trip.js\n", "the site url, the local url, the repo path and the real bare name are rewritten");
+			t.eq(rd(repo, "public/other/ghost.md"), "notes/trip/ghost.js is gone\n", "a bare name that is not a real file is left alone");
+			t.eq(rd(repo, "public/other/page.js"), 'import Trip from "/notes/journey/Trip.js";\nexport default Trip;\n', "and the import still follows");
+		} finally { fs.rmSync(repo, { recursive: true, force: true }); }
+	}
+
+	// 13. (finding 5) A move that worked is reported as worked when the list catch-up throws; the Undo is still offered
+	{
+		const real = PageFiles.settle_folder;
+		PageFiles.settle_folder = () => { throw Object.assign(new Error("EPERM: operation not permitted"), { code: "EPERM" }); };   // Windows holding a list file; cannot be made to happen on this disk
+		try {
+			const done = await rpc("move_apply", URL, "trip", URL, "journey2");
+			t.ok(done.ok && done.manifest, "apply answers ok even though the catch-up threw: " + JSON.stringify(done).slice(0, 300));
+			t.ok(Array.isArray(done.warnings) && /EPERM/.test(done.warnings.join(" ")), "and says what went wrong as a warning");
+			t.ok(fs.existsSync(abs("journey2")) && !fs.existsSync(abs("trip")), "the folder did move");
+			const undone = await rpc("move_undo", done.manifest);
+			t.ok(undone.ok && fs.existsSync(abs("trip")) && Array.isArray(undone.warnings), "and the undo works, with its own warning: " + JSON.stringify(undone).slice(0, 200));
+		} finally { PageFiles.settle_folder = real; }
+	}
+
+	// 14. (finding 6) A case-only rename goes through a temp name, and the plan agrees with apply
+	{
+		const repo = temp_repo({ "public/notes/Trip/Trip.js": "export default 1;\n", "public/other/page.js": 'import Trip from "/notes/Trip/Trip.js";\n' });
+		try {
+			// A disk that does not tell Trip from trip (Windows, macOS): exists() says yes to either. Linux cannot do that for real, so exists() is made to fold case.
+			class Folding extends ModuleMove { exists(r){ const full = path.join(this.repo, r); try { return fs.readdirSync(path.dirname(full)).some(n => n.toLowerCase() === path.basename(full).toLowerCase()); } catch { return false; } } }
+			const mover = new Folding(repo, "public/notes/Trip", "public/notes/trip");
+			const checked = attempt(() => mover.check());
+			t.ok(!checked.error, "the check (the plan asks it) lets a case-only rename through: " + checked.error?.message);
+			const done = attempt(() => mover.apply(path.join(repo, "m.json")));
+			t.ok(!done.error, "and apply does not refuse it: " + done.error?.message);
+			t.eq(fs.readdirSync(path.join(repo, "public", "notes")), ["trip"], "the folder is now called trip and no temp folder is left");
+			t.eq(rd(repo, "public/other/page.js"), 'import Trip from "/notes/trip/Trip.js";\n', "and the link follows");
+			const clash = new ModuleMove(repo, "public/notes/trip", "public/notes/other");
+			fs.mkdirSync(path.join(repo, "public", "notes", "other"));
+			t.ok(attempt(() => clash.check()).error, "a real clash is still refused by the check");
+		} finally { fs.rmSync(repo, { recursive: true, force: true }); }
+	}
+
+	// 15. (finding 6) An undo is not stopped by an unrelated edit in a touched file; one that destroyed the link is refused with a clear sentence
+	{
+		const repo = temp_repo(TRIP);
+		try {
+			const manifest = path.join(repo, "m.json");
+			new ModuleMove(repo, "public/notes/trip", "public/notes/journey").apply(manifest);
+			fs.writeFileSync(path.join(repo, "public/other/page.js"), "// a header someone added\n" + rd(repo, "public/other/page.js"));
+			const undone = attempt(() => ModuleMove.undo(repo, manifest));
+			t.ok(!undone.error, "a line added above the link does not stop the undo: " + undone.error?.message);
+			t.eq(rd(repo, "public/other/page.js"), "// a header someone added\n" + TRIP["public/other/page.js"], "the link is back and the new header is kept");
+			if (!has(repo, "public/notes/trip")) fs.renameSync(path.join(repo, "public/notes/journey"), path.join(repo, "public/notes/trip"));   // so this part runs even while the undo above fails
+			new ModuleMove(repo, "public/notes/trip", "public/notes/journey").apply(manifest);
+			fs.writeFileSync(path.join(repo, "public/other/page.js"), "// the import was deleted\n");
+			const refused = attempt(() => ModuleMove.undo(repo, manifest));
+			t.ok(refused.error && /page\.js/.test(refused.error.message) && /\/notes\/journey\/Trip\.js/.test(refused.error.message), "an undo whose link is gone names the file and the link: " + refused.error?.message);
+			t.ok(has(repo, "public/notes/journey/Trip.js"), "and moves nothing");
+		} finally { fs.rmSync(repo, { recursive: true, force: true }); }
+	}
+
+	// 16. (finding 8) One scan per move_apply, not two
+	{
+		const real = ModuleMove.prototype.plan;
+		let scans = 0;
+		ModuleMove.prototype.plan = function(...a){ scans++; return real.apply(this, a); };
+		try {
+			const done = await rpc("move_apply", URL, "trip", URL, "journey3");
+			t.ok(done.ok, "set up: the move worked: " + JSON.stringify(done).slice(0, 200));
+			t.eq(scans, 1, "and the repo was scanned once");
+			await rpc("move_undo", done.manifest);
+		} finally { ModuleMove.prototype.plan = real; }
+	}
 } finally {
 	unwatch();
 	ws.close();
