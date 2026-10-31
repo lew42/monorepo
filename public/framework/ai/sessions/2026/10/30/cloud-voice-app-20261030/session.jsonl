@@ -66,3 +66,8 @@
 {"tool_call":{"at":"2026-10-31T00:35:58.673Z","tool":"shell","args_hash":"a7932fd3cb3d","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-31T00:36:05.028Z","tool":"shell","args_hash":"23e81a783be5","caller":"voice-app"}}
 {"tool_call":{"at":"2026-10-31T00:36:16.258Z","tool":"send_to_agent","args_hash":"cdfc4c9173d9","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-31T00:38:14.518Z","tool":"updates","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"log":{"at":"2026-10-30T19:47:30-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-10-30T19:52:30-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-10-30T19:57:30-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-10-30T20:02:30-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
