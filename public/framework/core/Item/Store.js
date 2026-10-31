@@ -81,6 +81,9 @@ export class Store {
 	// a second stream that would replay every line twice.
 	open(){
 		if (this.opening) return this.opening;
+		// On the dev server, bring in the outbox now: loading it is what sends the lines a reloaded tab left unsent (Outbox.js), so a
+		// page that only looks at an item still delivers them. Not awaited, and a failure here must never stop the open.
+		if (Store.local()) import("./Outbox.js").catch(() => {});
 		const opening = !Store.local() ? this.moved().then(() => this.load())
 			: this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
 		opening.catch(() => { if (this.opening === opening) this.opening = null; });   // a failed open (server restarting) is not kept: the next open tries again
