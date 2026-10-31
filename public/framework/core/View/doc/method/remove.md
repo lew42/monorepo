@@ -11,3 +11,5 @@ points at the old parent, and the parent has no child list to update, so nothing
 goes stale. That is a property of View having no tree of its own, and it is why
 there is no `detach`/`destroy` pair.
 
+
+**It also lets go of bindings.** `remove()` unbinds this view and every view inside it ([../bind.md](../bind.md)); `empty()` does the same for the views inside.

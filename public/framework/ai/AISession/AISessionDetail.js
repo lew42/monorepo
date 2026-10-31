@@ -391,15 +391,15 @@ export default class AISessionDetail extends Page {
 					div.c("flex gap-50 v-center", () => {
 						span.c("sessions-tag sessions-tag-" + row.source, src.label);
 						span.c("sessions-row-title", row.tab_title || row.id);
-						// Model, effort and cost are bound to the live session (Property.of), so a new turn redraws them: doc/binding.md
+						// Model, effort and cost are bound to the live session (view.bind of a Property.of), so a new turn redraws them: core/View/doc/bind.md
 						this.live_off?.();
 						const live = AISessionDetail.live_item(row.session_id ?? id, row), el = small.c("muted", ""), draw = () => {
 							const model = live.item.get("model"), effort = live.item.get("effort"), usd = live.item.get("usd");
 							el.el.textContent = [model, effort && !String(model).includes(effort) ? effort : null, usd != null && "$" + (+usd).toFixed(2)].filter(Boolean).join(" · ");
 						};
 						el.el.classList.add("session-live");
-						const offs = ["model", "effort", "usd"].map(k => Property.of(live.item, k).bind(draw));
-						this.live_off = () => { offs.forEach(off => off()); live.off(); };
+						["model", "effort", "usd"].forEach(k => el.bind(Property.of(live.item, k), draw));   // el.bind lets go when this box is emptied
+						this.live_off = () => { el.unbind_all(); live.off(); };
 					});
 				}
 			});

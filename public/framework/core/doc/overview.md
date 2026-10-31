@@ -167,6 +167,18 @@ class Property extends Events(Object)
 
 More: [Property](../Property/readme.md).
 
+## View: stay in step with an Item
+
+`view.bind` keeps one view up to date with one key of an Item (or with a Property), and lets go when the view is removed.
+
+```js
+view.bind(item, "title", v => view.text(v))   // runs now, then once per animation frame in which "title" changed
+view.bind(item, "title")                      // no function: the view's text is the value
+view.bind(Property.of(item, "title"), fn)     // a Property works too, saved or not
+```
+
+It returns the unbind; `view.remove()` and `view.empty()` run it for you. More: [View](../View/readme.md), [doc/bind.md](../View/doc/bind.md).
+
 ## Store: one file for one Item
 
 A `Store` is the link between one `.jsonl` file and one root Item. It replays the file into the Item, then writes every new change back as one line, and on the dev server it tails the file so other tabs' lines arrive too.

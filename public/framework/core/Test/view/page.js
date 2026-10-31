@@ -10,7 +10,7 @@ import task from "../../Task/Task.steps.js";
    drawn live here. ?test=Item|List|Task picks one; ?step waits for Next and pauses DevTools after each step.
    ?file=core/Item/act.test.mjs runs a test file written with test("name", fn) instead: one block per test (TestBlocks.js).
    One page for both: they are the same job, watching a test run, and one URL is easier to remember than two. */
-const FILES = ["core/Item/act.test.mjs", "core/Item/replay.test.mjs", "core/Item/line-format.test.mjs", "core/Item/hooks.test.mjs", "core/Item/call.test.mjs", "core/Item/item-core.test.mjs"];   // test files that run in a browser; add one when you convert it
+const FILES = ["core/Item/act.test.mjs", "core/Item/replay.test.mjs", "core/Item/line-format.test.mjs", "core/Item/hooks.test.mjs", "core/Item/call.test.mjs", "core/Item/item-core.test.mjs", "core/View/bind.test.mjs"];   // test files that run in a browser; add one when you convert it
 export default new Page({
 	meta: import.meta,
 	title: "Watch a test run",

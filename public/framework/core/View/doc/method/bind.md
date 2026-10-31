@@ -1,0 +1,1 @@
+`bind(item, key, fn)` / `bind(item, key)` / `bind(property, fn)` returns the unbind. Keeps a view in step with one key; draws at most once per animation frame; `remove()` and `empty()` release it. The whole page: [../bind.md](../bind.md).

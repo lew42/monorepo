@@ -97,6 +97,7 @@ Each test file below opens as a page: one block per test, its checks as green/re
 - [hooks.test.mjs](/framework/core/Test/view/?file=core/Item/hooks.test.mjs) — `set_<key>` hooks (D17)
 - [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
 - [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
+- [bind.test.mjs](/framework/core/Test/view/?file=core/View/bind.test.mjs) — `view.bind(item, key, fn)`: binds now and on change, one draw per frame, unbinds on remove (D7, built; in `core/View`)
 
 ## Snapshots (Wave 2 E, 2026-10-31)
 
