@@ -153,3 +153,46 @@ test.node("Dropped.read, DatedFiles and TaskMigrate read marked lines like bare 
 		t.eq(parsed(bare.map(mark).map(show).join("\n")), parsed(bare.map(show).join("\n")), "TaskMigrate.parse hands back the bare spelling");
 	} finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+// ---- the switch on: the main flows with Store.marked_lines = true ---------------------------------------------------------
+
+test.node("with Store.marked_lines ON: a browser-style write, the item tool, a Task's verbs and a replay all agree", async t => {
+	const { default: fs } = await import("node:fs"), { default: path } = await import("node:path"), { fileURLToPath } = await import("node:url");
+	const { default: Task } = await import("../Task/Task.js");
+	const { default: AIIndex } = await import("../../../../Server/AIIndex.mjs");
+	const { run_item } = await import("../../../../Servex/agents/page_tools.js");
+	const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
+	const REL = "public/framework/ai/sessions/2026/10/22/.line-readers-" + process.pid, DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl");
+	const read = () => fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
+	Store.marked_lines = true;
+	try {
+		// 1. a browser-style write: a Session in a Store; the child's verb is saved marked, and a fresh Session replays it to the same state
+		const session = new Session({ id: "s" }), lines = [];
+		const store = new Store({ url: "/x/" + Math.random() + ".jsonl" }); store.append = line => lines.push(line); store.attach(session);
+		session.set({ tasks: { add: { id: "c3", type: "Task", title: "T" } } });
+		const child = session._tasks.find("c3");
+		child.act("start");
+		t.eq(lines.at(-1), { tasks: { "#c3": { "start()": {} } } }, "the browser writes the marked line");
+		const again = new Session({ id: "s" }); lines.forEach(l => again.replay_line(l));
+		t.eq(again._tasks.find("c3").state, "running", "a fresh Session replays it: running");
+
+		// 2. a Task's verbs: start then complete are saved marked, and Task.replay and AIIndex.fold both end complete
+		const task = new Task({ data: { title: "T" } }), saved = [{ assign: { title: "T" } }];
+		const own = new Store({ url: "/x/" + Math.random() + ".jsonl" }); own.append = line => saved.push(line); own.attach(task);
+		task.act("start");
+		task.act("complete", finish);
+		t.ok(saved.some(l => "start()" in l) && saved.some(l => "complete()" in l), "the verbs are saved as start() and complete(): " + show(saved.slice(1)));
+		t.eq(Task.replay(saved).state, "complete", "Task.replay: complete");
+		t.eq(AIIndex.fold(saved).state, "complete", "AIIndex.fold: complete");
+
+		// 3. the item tool: it takes a marked delta and writes the bare spelling; a replay of the file is running
+		fs.mkdirSync(DIR, { recursive: true });
+		fs.writeFileSync(FILE, show({ assign: { slug: "lr", title: "LR" } }) + "\n");
+		const r = await run_item({ path: "/" + REL.slice("public/".length) + "/", delta: { "start()": {} } }, { caller: "owner" });
+		t.ok(r.ok, "run_item accepts start(): " + show(r.why));
+		const file_lines = read();
+		t.ok(file_lines.some(l => l.start) && !file_lines.some(l => "start()" in l), "and writes it bare: " + show(file_lines.at(-1)));
+		t.eq(Task.replay(file_lines).state, "running", "a replay of the file is running");
+		t.eq(AIIndex.fold(file_lines).state, "running", "AIIndex.fold agrees");
+	} finally { Store.marked_lines = false; fs.rmSync(DIR, { recursive: true, force: true }); }
+});

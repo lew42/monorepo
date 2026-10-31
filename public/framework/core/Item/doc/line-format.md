@@ -1,6 +1,6 @@
 # The line format: data, `name()` and `#id` (D13)
 
-A saved line tells three things apart by how a key is spelled. The owner decided this on 2026-10-30 (research `design/decisions.json` D13). Test: `node public/framework/core/Item/line-format.test.mjs`.
+A saved line tells three things apart by how a key is spelled. The owner decided this on 2026-10-30 (research `design/decisions.json` D13). Tests: `line-format.test.mjs` (Item reads and writes both), `line-readers.test.mjs` (every other reader).
 
 | Key | Means | Example |
 |---|---|---|
@@ -26,12 +26,34 @@ One switch, **`Item.Store.marked_lines`** (`Store.js`), is `false` today:
 | a plain field change (`set_one`) | `{"set": {"title": "x"}}` | the same (the `set` wrapper stays: see below) |
 | a list verb (`List.announce`) | `{"add": {…}}`, `remove`, `move`, `order`, `clear` | the same (not changed) |
 
-**Why the switch is off.** The writers are cheap to flip; the readers are not. These read only the bare spelling today, so a marked line would be misread (a task shown as not started, a dashboard missing a completion, a hook not fired). Update them first, then flip the switch:
+## Switching it on
 
-- `Servex/agents/page_tools.js`: the item tool checks verb names and ids bare, and fires `body.complete` / `body.approve` hooks (`tell_parent_caveats`, `hooks.approved`). **Updated now:** `unmark_delta` strips the marks at the door (`run_item_now`), so a tab's `{"start()": {}}` is accepted and written bare. So even with the switch on, a record file (task, session) still gets the bare spelling from the tool; raw appends (`page.jsonl`, the fallback `FsFile.send`) get the marked one.
-- `core/Session/Session.js` `apply_line`, `core/Task/Process.js`, `core/Task/Prompt.js`: read through `Task.replay_line` / `Item.unmark` for the top level. Updated.
-- Not updated, bare only: `ext/Chat/v3/ChatV3.js` (`line.start`, `line.stop`, `line.tasks`), `ext/Chat/v2/ChatV2Model.js`, `ai/AISession/SessionTimelineRows.js`, `Server/PromptRecords.mjs`, `Server/CloseoutWalk.mjs`, `Server/UndoneAsks.mjs`, `Server/AIIndex.mjs`, `Server/DatedFiles.mjs`, `Servex/Dropped.js`, `Servex/TaskLoop.js`, `Server/TaskMigrate.mjs`, `Server/PromptsToSession.mjs`. About a dozen files: "stop at the reader side" (the brief's rule), so they are listed, not edited.
-- Scripts that append lines (`Server/*.mjs`, `Servex/agents/*`: `StaleClose`, `TaskMigrate`, `PromptsToSession`, `SessionConsolidate`, `TaskMove`, the item tool's own `write_line`) write the bare spelling and keep doing so; the readers take it.
+**Why it is still off.** Nothing blocks it any more: every reader below now reads both spellings, and the test runs the main flows with the switch on. It stays off by default so that today's logs keep one spelling until the owner decides.
+
+**To switch on:** set `Item.Store.marked_lines = true` (`Store.js`, one line). Check first: `node public/framework/core/Item/line-readers.test.mjs` (all PASS, including its "with Store.marked_lines ON" test), `node Servex/agents/item_tool.test.mjs`, and `node public/framework/core/Test/TestRunner.mjs public/framework/core`. Then open a session page and a task page in the browser, press Start on a task, and check the new line in its `.jsonl` reads `{"tasks": {"#c3": {"start()": {}}}}` and the board still shows it running.
+
+**The helper.** [`LineKey.js`](../LineKey.js) takes the marks off a line: `LineKey.bare(key)`, `LineKey.unmark(line)` (top level, what `Item.unmark` calls), `LineKey.deep(line)` (every level; returns the same object when nothing is marked). It imports nothing, so a server script and a browser view share it. A reader that looks up verbs or ids by bare name calls `LineKey.deep` once, where it parses a line.
+
+| Reader | How it reads both | Test |
+|---|---|---|
+| `Servex/agents/page_tools.js` (the item tool) | `unmark_delta` strips the marks at the door, so it writes bare even with the switch on | `item_tool.test.mjs`, `line-readers.test.mjs` |
+| `core/Session/Session.js`, `core/Task/Task.js` (`replay_line`), `Process.js`, `Prompt.js` | `Item.unmark` for the top level; `set()` for the rest | `line-format.test.mjs` |
+| `ext/Chat/v3/ChatV3.js` | `LineKey.deep` on each line before `wanted` / `replay_line` | `ChatV3.test.mjs` (browser, check "a marked line") |
+| `ext/Chat/v2/ChatV2Model.js` | `LineKey.deep` in `apply` | `line-readers.test.mjs` |
+| `ai/AISession/SessionTimelineRows.js` | `LineKey.deep` in `row` and `titles` | `line-readers.test.mjs` |
+| `Server/AIIndex.mjs` | `LineKey.deep` in `parse` (so `SessionIndex`, `ProposalTriage`, `StaleClose`, the walk follow) and in `fold` | `line-readers.test.mjs` |
+| `Server/PromptAudit.mjs` `read` | `LineKey.deep`; so `PromptRecords` (`tasks`, `task_state`, `parent_for`) | `line-readers.test.mjs` |
+| `Server/UndoneAsks.mjs` `task_state` | `LineKey.deep` per line | `line-readers.test.mjs` |
+| `Server/DatedFiles.mjs` `lines` | `LineKey.deep` | `line-readers.test.mjs` |
+| `Server/TaskMigrate.mjs` `parse` | `LineKey.deep` (old task logs are bare; kept so a new one cannot be misread) | `line-readers.test.mjs` |
+| `Servex/TaskLoop.js` `read_task` | `LineKey.deep` (`approved_by` looked for `l.approve`) | `line-readers.test.mjs` |
+| `Server/CloseoutWalk.mjs`, `Servex/Dropped.js` | already correct: they decide through `Task.replay`, which reads marks. Tested, unchanged | `line-readers.test.mjs` |
+| `Server/PromptsToSession.mjs` | reads only `tasks.add` (a list verb, never marked). Unchanged | |
+| `Server/Steps.mjs` | reads only `assign` and `log` lines. Unchanged | |
+
+**Writers that stay bare** (`Server/*.mjs`, `Servex/agents/*`: `StaleClose`, `TaskMigrate`, `PromptsToSession`, `SessionConsolidate`, `TaskMove`, the item tool's own `write_line`): they write the bare spelling and keep doing so; every reader takes it.
+
+**Not checked.** `AskFold` and the asks readers (`ai/asks/`, `ai/rail/Needs.js`, `inbox.js`) read ask records (`asks.jsonl`, `inbox.jsonl`), plain data lines that `act()` and list hops never write; `ChatV2Model` still ignores a browser write shaped `{"tasks": {"c3": …}}` in both spellings (it only reads the older `{"c3": …}` shape).
 
 ## Alternatives not taken
 

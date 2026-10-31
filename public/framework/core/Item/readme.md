@@ -84,7 +84,7 @@ new RefView({ ref });         // a row: "child › task", redrawn when either ch
 
 ## The line, hooks and calls (Wave 1 B, 2026-10-31)
 
-- **A key's spelling says what it does (D13):** `name` is data or a step into a child, `name()` calls a method, `#id` picks a list item. Old bare shapes still replay. `Store.marked_lines` (off) switches what `act` and list-item changes write; the readers that need updating first are listed in [doc/line-format.md](./doc/line-format.md). Test: `line-format.test.mjs`.
+- **A key's spelling says what it does (D13):** `name` is data or a step into a child, `name()` calls a method, `#id` picks a list item. Old bare shapes still replay. `Store.marked_lines` (off) switches what `act` and list-item changes write; every reader now reads both spellings ([doc/line-format.md](./doc/line-format.md), helper `LineKey.js`), so it can be switched on. Tests: `line-format.test.mjs`, `line-readers.test.mjs`.
 - **`set_<key>(value)` is a hook (D17):** `set()` calls it for that key, it stores with `this.put`, and a direct call saves too; it runs live, from another tab and on replay: [doc/hooks.md](./doc/hooks.md). Test: `hooks.test.mjs`.
 - **`as_call(name, [args], body)` saves a method as one line (D14),** outermost only, never on replay: [doc/call.md](./doc/call.md). Test: `call.test.mjs`.
 - **While any store replays, no store saves** (`Store.replay_depth`); `set()` refuses a function, DOM node or cycle; a throwing view listener cannot stop a save; a running task's `ran_since` is saved data: [doc/core-fixes.md](./doc/core-fixes.md). Test: `item-core.test.mjs`.
@@ -94,6 +94,7 @@ Each test file below opens as a page: one block per test, its checks as green/re
 - [act.test.mjs](/framework/core/Test/view/?file=core/Item/act.test.mjs) — a button saves its verb once
 - [replay.test.mjs](/framework/core/Test/view/?file=core/Item/replay.test.mjs) — what replay runs again: change lines against act() lines (the replay lab's facts)
 - [line-format.test.mjs](/framework/core/Test/view/?file=core/Item/line-format.test.mjs) — `name`, `name()`, `#id` read and written (D13)
+- [line-readers.test.mjs](/framework/core/Test/view/?file=core/Item/line-readers.test.mjs) — every other reader of a line takes the marked spelling; the main flows with `marked_lines` on
 - [hooks.test.mjs](/framework/core/Test/view/?file=core/Item/hooks.test.mjs) — `set_<key>` hooks (D17)
 - [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
 - [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
