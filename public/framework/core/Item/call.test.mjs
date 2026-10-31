@@ -93,7 +93,7 @@ test.optional("edge: the mute covers this item's tree only; an unrelated item st
 	const poker = new Pokes({ id: "p" }), poker_lines = record(poker).lines;
 	const target = new Item({ id: "t" }), target_lines = record(target).lines;
 	poker.poke(target);
-	t.eq(poker_lines, [{ "poke()": {} }], "tree: the call is one line");
+	t.eq(poker_lines, [{ "poke()": { $args: [] } }], "tree: the call is one line (no arguments: an empty $args list)");
 	t.eq(target_lines, [{ set: { b: 2 } }], "tree: an unrelated item's write during the body is still saved");
 	t.view(target, "the unrelated item");
 	return table;

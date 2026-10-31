@@ -154,7 +154,7 @@ export class Item extends Events(Object) {
 	/* D14, a method saved as ONE call. The method wraps its body, so a caller never has to remember act():
 	       sort_by(key){ return this.as_call("sort_by", [key], () => { …the work… }); }
 	   While the body runs, saving is muted for this item and what sits under it (Store.mute); when it is done ONE line is saved,
-	   `{"sort_by()": "title"}`: the call, with its argument as the line's value (D13 rule 2: one argument; several go in one object).
+	   `{"sort_by()": "title"}`: the call, with its argument as the line's value (any other argument list is wrapped, see call_value).
 	   Only the OUTERMOST call saves: a call made inside the body (or inside any muted tree) just runs. While a line is replayed
 	   nothing is saved either: the body runs and its changes come back by themselves. No change, no line. A body that throws
 	   saves no line and the error goes on to the caller. act() keeps working beside it. Doc: core/Item/doc/call.md. */
@@ -166,8 +166,31 @@ export class Item extends Events(Object) {
 		Store.mute(this);
 		let result;
 		try { result = body(); } finally { Store.unmute(this); this.off("delta", count); }
-		if (changed) this.emit("delta", { [name + "()"]: args.length === 0 ? {} : args.length === 1 ? args[0] : args }, this);
+		if (changed) this.emit("delta", { [name + "()"]: Item.call_value(args) }, this);
 		return result;
+	}
+
+	/* HOW AN ARGUMENT LIST IS SAVED IN A LINE, and read back (doc/call.md). Exactly one plain argument is the line's value as it is
+	   (`{"sort_by()": "title"}`). Any other list goes in a small wrapper, so the method gets the same arguments on replay:
+	       none           {"$args": []}
+	       two            {"$args": [1, 2]}
+	       a hole         {"$args": ["a", null, "c"], "$undefined": [1]}      (JSON has no undefined; the listed places are put back)
+	   Trailing undefined arguments are dropped (a method sees "no argument" and "undefined" alike). One argument that is itself an
+	   object with an `$args` key is wrapped too, so it is never mistaken for the wrapper. */
+	static call_value(args){
+		const list = [...args];
+		while (list.length && list.at(-1) === undefined) list.pop();
+		if (list.length === 1 && !(is_plain(list[0]) && "$args" in list[0])) return list[0];
+		const holes = list.flatMap((arg, i) => arg === undefined ? [i] : []);
+		return { $args: list.map(arg => arg === undefined ? null : arg), ...(holes.length ? { $undefined: holes } : {}) };
+	}
+
+	// The reverse: a line's value -> the list of arguments to call the method with. A value that is not the wrapper is the one argument.
+	static call_args(value){
+		if (!is_plain(value) || !Array.isArray(value.$args) || !Object.keys(value).every(key => key === "$args" || key === "$undefined")) return [value];
+		const args = [...value.$args];
+		for (const i of Array.isArray(value.$undefined) ? value.$undefined : []) if (i in args) args[i] = undefined;
+		return args;
 	}
 
 	// The one rule, key by key, IN KEY ORDER:
@@ -225,7 +248,7 @@ export class Item extends Events(Object) {
 		// An OLD line named a method bare (`{"start":{}}`): still called, until the old logs are migrated (Item.bare_calls = false
 		// reads a bare name as data, the D13 rule, and lets a field be named like a method).
 		const here = this[key];
-		if (typeof here === "function" && Item.bare_calls) return void here.call(this, value);
+		if (typeof here === "function" && Item.bare_calls) return void here.apply(this, Item.call_args(value));
 
 		const target = this.get(key);
 		if (routes(target)) return void target.set(value);
@@ -304,14 +327,14 @@ export class Item extends Events(Object) {
 		else this.put(key, value);
 	}
 
-	// `name()` in a line: call the method `name` with the value as its one argument (several arguments: one object).
+	// `name()` in a line: call the method `name` with the value as its one argument, or with the list the `$args` wrapper holds (Item.call_value).
 	call_marked(key, value){
 		const name = key.slice(0, -2);
 		if (skipped(name) || typeof this[name] !== "function"){
 			warn(`a line called ${key}, but ${this.constructor.name} has no method ${name}() — that part of the line is ignored (a "()" name is never stored as data)`, `call:${this.constructor.name}.${name}`);
 			return;
 		}
-		this[name](value);
+		this[name](...Item.call_args(value));
 	}
 
 	// `#id` in a line: the list item with that id (one of my lists, or my own members when I am a List); the value goes to it.
