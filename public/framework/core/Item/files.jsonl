@@ -32,3 +32,6 @@
 {"file":"replay.test.mjs"}
 {"file":"transport.tab.mjs"}
 {"file":"transport.test.mjs"}
+{"file":"transport.browser.mjs"}
+{"file":"hooks.test.mjs"}
+{"file":"call.test.mjs"}
