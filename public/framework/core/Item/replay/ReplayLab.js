@@ -15,14 +15,14 @@ export default class ReplayLab extends View {
 
 	// The rules the examples add up to, corrected by what the real classes do (the first sketch is replay-lab.html's text).
 	static rules = [
-		"**Save the changes by default.** Reload puts the values back, so no method runs twice and old history keeps its meaning. One catch the real `Task` shows: anything a class keeps in a plain field instead of a saved value, like its running clock, does not come back.",
-		"**The screen should follow saved values.** A task that is running looks running after a click, after another tab's change and after a reload, as long as everything on screen is a saved value or computed from one. `Task.duration()` is not: it reads two plain fields.",
+		"**Save the changes by default.** Reload puts the values back, so no method runs twice and old history keeps its meaning. The real `Task` shows it: its running clock is two saved values, `ran_since` and `ran_ms`, so the time comes back. Anything a class keeps in a plain field outside `data` does not come back.",
+		"**The screen should follow saved values.** A task that is running looks running after a click, after another tab's change and after a reload, as long as everything on screen is a saved value or computed from one. `Task.duration()` is: it adds up the saved `ran_ms` and the saved `ran_since`.",
 		"**Outside effects run once, where someone acted** (spawn an agent, ask an AI), and their result is saved as a value (`agent_id`, the summary text).",
 		"**Save what the person meant.** A visibility button means “hide it”, so save `visible: false`, not `toggle()`. A +1 button means “add one”, so save the call, `increment()`.",
 	];
 
 	static table = [
-		["Start a task that spawns an agent", "right, except the running time reads 0:00", "spawns again; the time is right", "a replay runs the method again; a Task reads its clock from the saved line's time"],
+		["Start a task that spawns an agent", "right, the running time comes back too", "spawns again; the time is right", "a replay of the call runs the method again; the saved values (`ran_since`, `ran_ms`) keep the time either way"],
 		["Toggle visibility in two tabs at once", "right", "flips back, live tabs too", "both people meant “hide”; two toggles cancel out"],
 		["Drag a layer", "up to 2 lines per mouse move", "1 line per mouse move", "both rebuild the position; both are noisy, and one lost line drifts"],
 		["+1 in two tabs at once", "loses a click", "right", "both tabs computed “old value + 1”; the calls keep both intents"],
@@ -32,9 +32,9 @@ export default class ReplayLab extends View {
 	// Where the real classes are not what the first sketch said. Tests: ../replay.test.mjs (they pass) and ../replay-vs-open.test.mjs (it fails).
 	static differences = [
 		"**Replaying a saved call does run the method.** A `Task` reads `{start:{}}` through its verb lines, a plain `Item` through the rule that a key naming a method calls it. So a reload of the calls log runs `start()` again, and the lab's `start()` spawns again.",
-		"**There is no replaying flag on the item.** A page load sets `Store.replaying` on the store while it replays; `Item.replay`, the node twin, has no store and so no flag; a `Task` sets a private `_applying`. The “replaying flag” box uses `Store.replaying`.",
-		"**A running Task keeps its clock in plain fields.** `_ran_since` and `_ran_ms` are never saved, and the saved fields `started_at` and `ran_ms` do not set them, so replaying change lines gives a running task the time 0:00. Replaying the call runs `start()`, which sets them.",
-		"**The time survives a replayed call.** The real writer stamps every line with `ts`, and a replayed `Task` reads its clock from the line. The first sketch said the timer restarts; it does only when a line has no `ts` (untick the stamp box).",
+		"**There is no replaying flag on the item.** A page load sets `Store.replaying` on that store while it replays (the “replaying flag” box uses it); while any store or `Item.replay` replays, the global counter `Store.replay_depth` is above 0 and nothing is saved; a `Task` also sets a private `_applying`. None of these is a field on the item.",
+		"**A running Task's clock is saved data.** `start()` saves `ran_since` (when the open span began) in the same `set` as the state, and `pause`, `stop` and `complete` save `ran_ms` (the banked time), so replaying change lines gives a running task its time back, and so does replaying the call. A line from before this has no `ran_since`; such a task loads with only its banked time.",
+		"**The time survives a replayed call.** The real writer stamps every line with `ts`, and a replayed `Task` reads its clock from the line, so `start()` makes the same `ran_since` again. The first sketch said the timer restarts; it does only when a line has no `ts` (untick the stamp box).",
 		"**Task.start() already has a guard.** It refuses a task that is running. A rebuilt task begins idle, so the guard lets the replayed call through.",
 		"**A drag is not one line.** The Store saves one line for every field that changes, so a change log gets up to two lines per mouse move, not one per drag.",
 		"**Item.replay and Item.open disagree about a plain Item's first line.** The failing test `replay-vs-open.test.mjs` records it; nothing was fixed.",

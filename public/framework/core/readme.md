@@ -1,5 +1,7 @@
 # Core — the eight classes under every page (listed under More): four are elements, one owns the url, three are the DOM-free data tier
 
+**New here? Read [doc/overview.md](./doc/overview.md) first:** the whole core API as short pseudo-classes, and one change followed from click to reload.
+
 ## Index
 
 - [App](./App/) — boot and the one container pages mount into; you construct it once in `/app.js`

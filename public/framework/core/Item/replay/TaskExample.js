@@ -10,7 +10,7 @@ export default class TaskExample extends LabExample {
 	static id = "task";
 	static tab = "Start a task";
 	static title = "Start a task that spawns an agent";
-	static look = "Press **Start**, wait a few seconds, then **Reload the page**. After a reload it should look running, keep its time, and not spawn a second agent.";
+	static look = "Press **Start**, wait a few seconds, then **Reload the page**. After a reload it should look running, keep its time, and not spawn a second agent. (The time comes back in both columns: `ran_since` is saved.)";
 	static hint = "The real Task already refuses to start a task that is running. A reload begins with an idle task, so that guard cannot help.";
 	static Class = LabTask;
 	static counts = ["agents"];
@@ -42,10 +42,8 @@ export default class TaskExample extends LabExample {
 	}
 
 	why(kind){
-		const { fx } = this.columns[kind].after, wrong_time = this.diffs(kind).some(d => d.startsWith("time"));
-		if (kind === "changes") return "The saved values were put back and no method ran, so no agent was spawned." + (wrong_time
-			? " But the time is wrong: `Task.duration()` adds up two plain fields, `_ran_since` and `_ran_ms`, and a field line never sets them. Only state, started_at and agent_id came back, so a running task reads 0:00 and does not tick."
-			: "");
+		const { fx } = this.columns[kind].after;
+		if (kind === "changes") return "The saved values were put back and no method ran, so no agent was spawned. The time is right too: `start()` saved `ran_since` with the state, and `Task.duration()` reads it.";
 		if (fx.agents) return "`start()` ran again and spawned another agent. " + (this.options.stamp
 			? "The time is right: every saved line carries its time (`ts`), and a replayed Task reads its clock from the line, not from the wall clock."
 			: "The start time is the reload time: these lines carry no `ts`, so the replay falls back to the wall clock.");

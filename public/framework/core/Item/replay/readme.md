@@ -29,8 +29,8 @@ replay.css           styles, every class `core-item-replay-*`
 ## What it found (the page lists these; the tests pin them)
 
 - Replaying a saved call runs the method again, so the lab's `start()` spawns again. Replaying change lines never calls a method.
-- No replaying flag sits on the item. `Store.replaying` is true only on the page-load path; the node twin `Item.replay` has none; `Task` sets a private `_applying`.
-- A running `Task` keeps its clock in plain fields (`_ran_since`, `_ran_ms`) that change lines never set, so it reads 0:00 after a replay of change lines. A replayed call keeps the time, because a replayed Task reads its clock from the line's `ts`.
+- No replaying flag sits on the item. `Store.replaying` is true on that store while it replays (page load); `Store.replay_depth` is above 0 while any store or `Item.replay` replays, and nothing is saved then; `Task` also sets a private `_applying`.
+- A running `Task`'s clock is saved data: `start()` saves `ran_since` with the state and `pause`/`stop`/`complete` save `ran_ms`, so change lines and replayed calls both keep the time. A line saved before `ran_since` existed has no `ran_since`: the task loads with its banked time only.
 - Two tabs through `act()` cancel out on a toggle and keep both clicks on +1; through `set` it is the other way round.
 - `Item.replay(lines)` and `Item.open(url)` build a plain Item differently: `replay-vs-open.test.mjs` fails on purpose, nothing is fixed.
 
