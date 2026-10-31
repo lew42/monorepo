@@ -173,7 +173,7 @@ export default class PageFilesTab {
 
 	// ---- rename and move ----
 
-	// The row, in place, while its name is being edited. Enter asks, Escape cancels. A file is renamed at once (and can be undone); a folder shows its plan first.
+	// The row, in place, while its name is being edited. Enter asks, Escape cancels. A file and a folder both show their plan first (how many links change), and can be undone.
 	rename_row(name, kind){
 		const $row = div.c("page-files-renamerow flex v-center", () => {
 			icon(kind === "page" ? "article" : kind === "folder" ? "folder" : "description").ac("item-icon");
@@ -191,11 +191,10 @@ export default class PageFilesTab {
 		}
 	}
 
-	// Rename or move `name` into the folder `to_url` as `to_name`. A file just goes (with Undo); a folder asks the server for a dry run first.
+	// Rename or move `name` into the folder `to_url` as `to_name`. A file and a folder both ask the server for a dry run first (links to them change).
 	async propose(name, kind, to_url, to_name = name){
 		this.close_panels();
-		if (kind === "file") return this.apply_move({ name, kind, to_url, to_name });
-		this.say(`Checking what ${name}/ touches…`);
+		this.say(`Checking what ${name}${kind === "file" ? "" : "/"} touches…`);
 		const plan = await this.ask("move_plan", name, to_url, to_name);
 		if (!plan.ok) return this.say(plan.reason, { bad: true });
 		this.plan = { name, to_url, to_name, ...plan };
@@ -205,7 +204,7 @@ export default class PageFilesTab {
 
 	// The inline plan: what moves, how many links in other files change, a few examples, then Move or Cancel.
 	plan_row(){
-		const plan = this.plan, rename = plan.to.replace(/[^/]+\/$/, "") === plan.from.replace(/[^/]+\/$/, "");
+		const plan = this.plan, rename = plan.to.replace(/[^/]+\/?$/, "") === plan.from.replace(/[^/]+\/?$/, "");
 		div.c("page-files-plan flex v", () => {
 			const links = plan.links === 1 ? "1 link" : `${plan.links} links`, files = plan.outside_files === 1 ? "1 other file" : `${plan.outside_files} other files`;
 			p.c("page-files-plantext", `${rename ? "Rename" : "Move"} ${plan.from} to ${plan.to}? ` + (plan.links
@@ -224,14 +223,14 @@ export default class PageFilesTab {
 		if (this.plan){ this.plan.working = true; this.draw(); }
 		const done = await this.ask("move_apply", name, to_url, to_name);
 		this.plan = null;
-		const shown = done.ok ? `${done.from} is now ${done.to}.` : done.reason;
+		const shown = done.ok ? [`${done.from} is now ${done.to}.`, ...(done.warnings ?? [])].join(" ") : done.reason;   // a warning means the move worked; Undo stays
 		this.say(shown, done.ok ? { undo: done.manifest } : { bad: true });
 		this.draw();
 	}
 
 	async undo_move(manifest){
 		const done = await this.send("move_undo", manifest);
-		this.say(done.ok ? `Put it back: ${done.to}` : done.reason, done.ok ? {} : { bad: true });
+		this.say(done.ok ? [`Put it back: ${done.to}`, ...(done.warnings ?? [])].join(" ") : done.reason, done.ok ? {} : { bad: true });
 	}
 
 	// "Move to…": a small browser of folders, starting here. Click a folder to look inside it; "Move here" picks the one you are looking at.
