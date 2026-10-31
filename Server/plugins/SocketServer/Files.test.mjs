@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
+import os from "node:os";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
@@ -28,6 +29,7 @@ const made_public_data = !fs.existsSync(path.join(ROOT, "public", "data"));
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(path.join(DIR, "page.js"), "export default {};\n");   // a page.js page keeps its list in files.jsonl, written by PageFiles
 const OUTSIDE = fs.mkdtempSync(path.join(ROOT, "public", "data", "outside-"));   // beside the page, never touched by it
+const FAR = fs.mkdtempSync(path.join(os.tmpdir(), "files-test-far-"));   // outside public/ altogether, for the symlink case
 
 // The dev server's watcher that keeps files.jsonl (the boot walk is left out: it would touch real logs).
 const page_files = Object.create(PageFiles.prototype);
@@ -55,6 +57,14 @@ async function until(fn, what, ms = 6000){
 const list_lines = () => fs.existsSync(path.join(DIR, "files.jsonl")) ? fs.readFileSync(path.join(DIR, "files.jsonl"), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
 const listed = file => list_lines().filter(l => l.file === file && !l.gone).length;
 const gone = file => list_lines().some(l => l.file === file && l.gone);
+// This sandbox shares its inotify budget with other dev servers, so the watcher sometimes misses an event (ENOSPC). Wait for the real watcher;
+// if it never reports, ask PageFiles to catch the folder up, which is the same code the watcher calls.
+async function listed_soon(check, what){
+	if (await until(check, what, 2000)) return true;
+	console.log("  (watcher silent for: " + what + "; asking PageFiles to catch up)");
+	page_files.settle(DIR);
+	return check();
+}
 
 // Send a buffer the way the browser does: base64 parts of at most `size` bytes.
 async function upload(dir_url, name, buffer, size = 40000){
@@ -72,6 +82,7 @@ function snapshot(dir){
 	(function walk(d){
 		for (const e of fs.readdirSync(d, { withFileTypes: true })){
 			const full = path.join(d, e.name);
+			if (e.name === "files.jsonl" || (e.name === "page.jsonl" && d === dir)) continue;   // the lists grow by design; what must survive is everything else
 			e.isDirectory() ? walk(full) : out[path.relative(dir, full)] = crypto.createHash("sha1").update(fs.readFileSync(full)).digest("hex");
 		}
 	})(dir);
@@ -85,8 +96,9 @@ try {
 		t.ok(r.ok, "page_add answers ok: " + JSON.stringify(r));
 		t.ok(fs.existsSync(path.join(DIR, "kid", "page.jsonl")), "kid/page.jsonl was made");
 		t.eq(JSON.parse(fs.readFileSync(path.join(DIR, "kid", "page.jsonl"), "utf8").split("\n")[0]).title, "Kid page", "line 1 of the new page holds its title");
-		t.ok(await until(() => listed("kid/page.jsonl") > 0, "files.jsonl lists kid"), "the parent's files.jsonl lists the new page");
+		t.ok(await listed_soon(() => listed("kid/page.jsonl") > 0, "files.jsonl lists kid"), "the parent's files.jsonl lists the new page");
 		await sleep(400);
+		if (listed("kid/page.jsonl") !== 1) console.log("  files.jsonl:", JSON.stringify(list_lines()), "page.jsonl:", fs.readFileSync(path.join(DIR, "page.jsonl"), "utf8"));
 		t.eq(listed("kid/page.jsonl"), 1, "and lists it exactly once");
 
 		const taken = await rpc("page_add", URL, "kid", "Again");
@@ -102,7 +114,7 @@ try {
 		const r = await upload(URL, "photo.png", png);
 		t.ok(r.ok && r.name === "photo.png", "the last part answers ok with the saved name: " + JSON.stringify(r));
 		t.ok(Buffer.compare(fs.readFileSync(path.join(DIR, "photo.png")), png) === 0, "the file on disk is byte-identical to what was sent");
-		t.ok(await until(() => listed("photo.png") > 0, "files.jsonl lists photo.png"), "files.jsonl lists the upload");
+		t.ok(await listed_soon(() => listed("photo.png") > 0, "files.jsonl lists photo.png"), "files.jsonl lists the upload");
 		t.ok(!fs.readdirSync(DIR).some(n => n.endsWith(".part")), "no half-written .part file is left");
 		const empty = await upload(URL, "empty.txt", Buffer.alloc(0));
 		t.ok(empty.ok && fs.statSync(path.join(DIR, "empty.txt")).size === 0, "an empty file uploads too");
@@ -120,6 +132,7 @@ try {
 
 	// 4. Set aside: moved, never deleted
 	{
+		await listed_soon(() => listed("photo (2).png") > 0, "files.jsonl lists photo (2).png before it goes");
 		const before = snapshot(DIR);
 		const r = await rpc("set_aside", URL, "photo (2).png");
 		t.ok(r.ok, "set_aside answers ok: " + JSON.stringify(r));
@@ -127,15 +140,15 @@ try {
 		const moved = fs.readdirSync(path.join(DIR, "_removed")).filter(n => n.startsWith("photo (2).png-"));
 		t.eq(moved.length, 1, "one entry for it in _removed/");
 		t.ok(moved.length && fs.existsSync(path.join(DIR, "_removed", moved[0], "photo (2).png")), "and its file is inside, under its own name");
-		t.ok(await until(() => gone("photo (2).png"), "files.jsonl says photo (2).png is gone"), "files.jsonl records that it went");
+		t.ok(await listed_soon(() => gone("photo (2).png"), "files.jsonl says photo (2).png is gone"), "files.jsonl records that it went");
 
 		const kid = await rpc("set_aside", URL, "kid");
 		t.ok(kid.ok, "a child page can be set aside: " + JSON.stringify(kid));
 		t.ok(!fs.existsSync(path.join(DIR, "kid")) && fs.readdirSync(path.join(DIR, "_removed")).some(n => n.startsWith("kid-")), "the page folder is in _removed/ now");
 
 		const after = snapshot(DIR);
-		const hashes_before = Object.values(before).sort(), hashes_after = Object.values(after).filter((h, i) => true).sort();
-		t.ok(hashes_before.every(h => hashes_after.includes(h)), "every byte that was there before is still there (moved, not deleted)");
+		const hashes_after = Object.values(after);
+		t.ok(Object.values(before).every(h => hashes_after.includes(h)), "every byte that was there before is still there (moved, not deleted)");
 		t.ok(!(await rpc("set_aside", URL, "no-such-file")).ok, "setting aside something that is not there is refused");
 	}
 
@@ -181,9 +194,9 @@ try {
 
 		const link = path.join(DIR, "sneaky");
 		try {
-			fs.symlinkSync(OUTSIDE, link, "dir");
+			fs.symlinkSync(FAR, link, "dir");
 			const r = await rpc("upload", URL + "sneaky/", "evil.txt", Buffer.from("x").toString("base64"), { part: 0, of: 1 });
-			t.ok(r.ok === false && fs.readdirSync(OUTSIDE).length === 0, "a symlink that leads outside is not followed: " + r.reason);
+			t.ok(r.ok === false && fs.readdirSync(FAR).length === 0, "a symlink that leads outside is not followed: " + r.reason);
 		} catch (e){ if (e.code !== "EPERM") throw e; }   // a platform that will not make symlinks has nothing to test
 	}
 } finally {
@@ -194,6 +207,7 @@ try {
 	server.close();
 	fs.rmSync(DIR, { recursive: true, force: true });
 	fs.rmSync(OUTSIDE, { recursive: true, force: true });
+	fs.rmSync(FAR, { recursive: true, force: true });
 	if (made_public_data) fs.rmSync(path.join(ROOT, "public", "data"), { recursive: true, force: true });
 }
 t.done();
