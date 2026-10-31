@@ -1,8 +1,12 @@
 # Cloudflare Workers static assets: files listed here are not uploaded (20,000-file cap on Free).
 # Gitignore syntax. Count with: node Server/deploy-count.mjs. Plan: framework/ai/doc/repo-size.md
 
-# The AI log (sessions, tasks, cards) is dev-only: it needs Servex, so production cannot use it.
-framework/ai/sessions/
+# The AI log's records (dated session folders, old uuid session folders) are dev-only: they need Servex,
+# so production cannot use them. The sessions module's own code (page.js, v/, doc/) IS uploaded, because
+# ai/AISession imports it; a module left out here is answered with index.html and the app stops (blank page).
+# Checked by Server/deploy-imports.test.mjs.
+framework/ai/sessions/20*/
+framework/ai/sessions/*-*-*-*-*/
 
 # Bulk screenshot folders anywhere (also gitignored, never needed by the live site).
 shots/
