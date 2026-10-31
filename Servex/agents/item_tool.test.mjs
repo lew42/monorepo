@@ -21,6 +21,9 @@ const call = async (name, args, caller = "t1") => { const r = JSON.parse(await t
 const lines = () => fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
 // A test must never write to a real record: the real moves ledger must be byte-identical after the run.
 const REAL_MOVES = path.join(ROOT, "public/framework/ai/sessions/task-moves.jsonl"), moves_before = fs.readFileSync(REAL_MOVES);
+// Every task move in this file writes its ledger line to a scratch file, never the real one (ledgers is settable in page_tools.js).
+(await import("./page_tools.js")).ledgers.task_moves = DIR + "-ledger/task-moves.jsonl";
+fs.mkdirSync(DIR + "-ledger", { recursive: true });
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 
@@ -434,4 +437,4 @@ try {
 
 	ok(Buffer.compare(fs.readFileSync(REAL_MOVES), moves_before) === 0, "the test left the real task-moves.jsonl byte-identical");
 	console.log(`item_tool: ${n} checks passed`);
-} finally { fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-homes", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
+} finally { fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-homes", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-ledger", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
