@@ -1,0 +1,16 @@
+# The core's small safety fixes (Wave 1 B, 2026-10-31)
+
+Each is a failing test commit, then the fix. Tests: `node public/framework/core/Item/item-core.test.mjs`, `replay-vs-open.test.mjs`, `replay.test.mjs`.
+
+| Fix | What now | Alternative not taken |
+|---|---|---|
+| **A throwing view listener stopped the save.** `set_one` emitted `change` before `delta`. | `delta` (the save) first; `change` through `Item.emit_safely`, which reports a throwing listener on `console.error`, naming the event and the item. | Catch inside `Events.emit` (every class, but `core/Events` is not in this wave's fence, and a listener error is usually the caller's to see). |
+| **`act()` muted globally** (`Store.muted++`). | `Store.mute(item)` / `unmute` / `muted_at(node)`: only that item's tree is muted. `Store.muted` stays as a read-only count for old readers. `Page/Reader.js` and `Ref.js` now ask `muted_at`. | One flag plus a "who is acting" id: the same thing with a worse name. |
+| **`set()` took values a line cannot hold.** | A function, a DOM node or a cycle (found in plain objects and arrays) is refused with a warning naming the key; nothing is stored or saved. Items and Lists carry their own shape and are not looked into. | Throw (a bad value from a view would break the page); strip the bad part and store the rest (hides the bug). |
+| **`Item.replay` and `Item.open` built different Items.** | Both use `root_from`. Line 1 is the item's own fields **only when it has a string `id`**; a first line that is a change (`{"cards":{"add":…}}`) starts an empty item and replays every line. | Make every first line its fields (breaks Board/Dated.Index logs whose line 1 is a change). |
+| **A replayed child change made the parent write its completion again** (`Task.child_changed` in every tab that read the child's own file). Confirmed by the test. | `Store.replay_depth`: while any store (or `Item.replay`) replays, no store saves. The parent still derives its completion (old logs rely on it), it is just not written again. | Stop `child_changed` while replaying: old logs whose parent completion was never written (it was muted) would never complete. |
+| **A running task's open span was memory-only.** | `ran_since` (ISO) and `ran_ms` are saved data, written by `start/resume/pause/stop/wait/complete/verdict` in the same `set()` as the state; `_ran_since` and `_ran_ms` are now getters over them. An old line without `ran_since` loads with no open span. | Keep the memory fields and also write the data (two truths). |
+
+Side effect to know: with the mute scoped, a parent's auto-completion lines made during a child's `act("complete")` are now **saved** (before, the global mute dropped them and the replay re-derived them). Replay does both, harmlessly.
+
+The Replay Lab (`replay/`, not edited here) now shows the right time in its "changes" column; its static texts (`ReplayLab.js` line 36, `TaskExample.js`, `replay/readme.md`) still say the time reads 0:00.

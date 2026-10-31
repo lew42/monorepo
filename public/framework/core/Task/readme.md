@@ -94,9 +94,9 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **Every transition is one `set()` call**, so it's one replayable delta line and
   fires the same `change`/`delta` events `Item.set_one()` already does — nothing
   hand-rolls a second emit path.
-- **`duration()` counts running time only.** Time spent paused never counts; the
-  open running span lives in memory (`_ran_since`), not in the saved data, so a
-  reload mid-run loses only that open span's few seconds, never the banked total.
+- **`duration()` counts running time only.** Time spent paused never counts. Both parts are saved data: `ran_ms` is the banked time and `ran_since` (an ISO time, `null` when no span is open) is when the open span began, written by `start`, `resume`, `pause`, `stop`, `wait`, `complete` and the verdicts in the same `set()` as the state. A reload keeps the time; an old log without `ran_since` loads with no open span. Test: `core/Item/item-core.test.mjs` (1f).
+- **A replayed child change never writes the parent's completion again.** The parent still derives it (`child_changed`), but while any store replays, nothing is saved (`Item.Store.replay_depth`).
+- **A Task replays its fields through `set_<key>` hooks and reads `{"start()":{}}` / `{"#c3":{…}}` like the bare spellings** (`Item.take`, `Item.unmark`): [core/Item/doc/line-format.md](../Item/doc/line-format.md).
 - **`progress()` is always computed**, never a stored number (CLAUDE.md law 7). No
   subtasks yet reads as `{done: 0, total: 1}` (or `1/1` once complete), so a progress
   bar still means something before the first subtask exists.
