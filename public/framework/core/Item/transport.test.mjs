@@ -6,8 +6,8 @@
 //   2. the socket dies with the line on the wire -> after the reconnect the line is in the file exactly once
 //   3. the line is appended but its ack is lost -> the tab sends it again -> still exactly once
 //   4. tab B is offline while A writes 3 lines -> B reconnects and gets exactly those 3
-//   5. a task.jsonl line goes through the socket, not the Servex /api/item door, and is stamped by/ts
-//   6. (optional) Store.channel = "item_api" still posts to Servex first, and falls back to the socket when Servex is down
+//   5. a task.jsonl line goes to Servex /api/item first (its hooks run); if Servex does not take it, through the socket, stamped by/ts
+//   6. Store.channel = "socket" skips Servex: the line goes straight through the socket
 //   8. a line queued while the socket is down survives a reload of the tab (same tab id and storage, new process): the reloaded page
 //      sends it as soon as it opens a store, without writing anything itself, and it is written once
 //   9. a socket that stays open but stops answering is noticed by the outbox's ping, and the batch is sent again on a new socket
@@ -32,6 +32,7 @@ const REL = "framework/core/Item/.transport-test-" + process.pid;
 const DIR = path.join(ROOT, "public", REL);
 fs.mkdirSync(path.join(DIR, "rec"), { recursive: true });
 fs.mkdirSync(path.join(DIR, "rec2"), { recursive: true });
+fs.mkdirSync(path.join(DIR, "rec3"), { recursive: true });
 const url = name => "/" + REL + "/" + name;
 const read = file => fs.existsSync(path.join(DIR, file)) ? fs.readFileSync(path.join(DIR, file), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -145,22 +146,36 @@ try {
 	await sleep(500);
 	t.eq(B.lines.slice(heard).map(l => l.n), [10, 11, 12], "tab B gets exactly the 3 lines it missed, in order, once each");
 
-	// 5. A task.jsonl line goes through the socket, not through Servex's door.
-	const C = new Tab("C"); await C.ready(); await C.open("rec/task.jsonl");
-	C.send({ cmd: "append", line: { start: {} } });
-	t.ok(await until(() => read("rec/task.jsonl").length > 0, "the task line is in the file"), "a task line reaches its file through the socket");
-	t.eq(C.events.filter(e => e.ev === "entry_post").length, 0, "nothing was posted to Servex /api/item");
-	const task_line = read("rec/task.jsonl")[0] ?? {};
-	t.ok(task_line.by === "owner" && /\.\d{3}Z$/.test(task_line.ts ?? ""), "the line is stamped by: owner and a millisecond ts, as the item tool stamps it");
-	C.exit();
+	// 5. A task.jsonl line goes to Servex /api/item first (its hooks start the agent on Approve, tell an agent its question was
+	// answered), and only when Servex does not take it does it go through the socket.
+	{
+		const C = new Tab("C"); await C.ready(); await C.open("rec/task.jsonl");   // Servex is "down" (its door refuses)
+		C.send({ cmd: "append", line: { start: {} } });
+		t.ok(await until(() => read("rec/task.jsonl").length > 0, "the task line is in the file"), "Servex down: a task line still reaches its file, through the socket");
+		t.eq(C.events.filter(e => e.ev === "entry_post").length, 1, "Servex down: it asked Servex /api/item first");
+		const task_line = read("rec/task.jsonl")[0] ?? {};
+		t.ok(task_line.by === "owner" && /\.\d{3}Z$/.test(task_line.ts ?? ""), "the line is stamped by: owner and a millisecond ts, as the item tool stamps it");
+		C.exit();
 
-	// 6. The old channel, switched on: Servex is "down" here, so its POST fails and the line goes through the socket as before.
+		const U = new Tab("U"); await U.ready(); await U.open("rec3/task.jsonl");   // Servex answers
+		U.send({ cmd: "servex", up: true });
+		U.send({ cmd: "append", line: { start: {} } });
+		t.ok(await until(() => U.events.some(e => e.ev === "entry_post"), "U posted"), "Servex up: the line is posted to Servex /api/item");
+		await sleep(600);
+		t.eq(read("rec3/task.jsonl").length, 0, "Servex up: nothing goes through the socket as well (Servex is the writer; the stand-in wrote nothing)");
+		t.eq((await U.state()).pending, 0, "Servex up: and nothing is left pending");
+		U.exit();
+
+		t.eq(A.events.filter(e => e.ev === "entry_post").length, 0, "a file that is not a record (x.jsonl) never asks Servex: it goes through the socket");
+	}
+
+	// 6. The switch: Store.channel = "socket" sends a record file's lines through the socket and never asks Servex.
 	{
 		const D = new Tab("D"); await D.ready(); await D.open("rec2/task.jsonl");
-		D.send({ cmd: "channel", value: "item_api" });
+		D.send({ cmd: "channel", value: "socket" });
 		D.send({ cmd: "append", line: { start: {} } });
-		t.ok(await until(() => read("rec2/task.jsonl").length > 0, "the line reaches the file"), "channel item_api: the line still reaches the file when Servex is down");
-		t.eq(D.events.filter(e => e.ev === "entry_post").length, 1, "channel item_api: it tried Servex /api/item first");
+		t.ok(await until(() => read("rec2/task.jsonl").length > 0, "the line reaches the file"), "channel socket: the line reaches the file");
+		t.eq(D.events.filter(e => e.ev === "entry_post").length, 0, "channel socket: Servex /api/item was not asked");
 		D.exit();
 	}
 
