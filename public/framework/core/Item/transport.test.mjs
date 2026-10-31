@@ -61,7 +61,18 @@ SocketServer.Socket.use(Append);
 const server = http.createServer();
 await new Promise(r => server.listen(0, "127.0.0.1", r));
 const socket_server = new SocketServer({ server: { http: server } });
-const watcher = fs.watch(DIR, { recursive: true }, (_, name) => { if (name?.endsWith(".jsonl")) Tail.changed(path.join(DIR, name)); });
+// The server.js watcher, as a poll: fs.watch(recursive) needs an inotify watch per file, and a machine that is out of them (many dev
+// servers on one box: ENOSPC) never tells Tail anything. Every 20 ms: any .jsonl whose size changed is announced, as the watcher would.
+const sizes = new Map();
+const poll = setInterval(() => {
+	for (const name of fs.readdirSync(DIR, { recursive: true })){
+		if (!String(name).endsWith(".jsonl")) continue;
+		const file = path.join(DIR, String(name));
+		let size; try { size = fs.statSync(file).size; } catch { continue; }
+		if (sizes.get(file) !== size){ sizes.set(file, size); Tail.changed(file); }
+	}
+}, 20);
+const watcher = { close(){ clearInterval(poll); } };
 
 
 class Tab {
