@@ -8,7 +8,8 @@
 //   4. tab B is offline while A writes 3 lines -> B reconnects and gets exactly those 3
 //   5. a task.jsonl line goes through the socket, not the Servex /api/item door, and is stamped by/ts
 //   6. (optional) Store.channel = "item_api" still posts to Servex first, and falls back to the socket when Servex is down
-//   8. a line queued while the socket is down survives a reload of the tab (same tab id and storage, new process) and is written once
+//   8. a line queued while the socket is down survives a reload of the tab (same tab id and storage, new process): the reloaded page
+//      sends it as soon as it opens a store, without writing anything itself, and it is written once
 //   9. a socket that stays open but stops answering is noticed by the outbox's ping, and the batch is sent again on a new socket
 //   7. while the socket is down the line stays queued and the tab can see it (store.pending)
 import fs from "node:fs";
@@ -187,7 +188,8 @@ try {
 		E.child.kill("SIGKILL");   // the tab is gone, not asked to leave
 		await sleep(200);
 		t.eq(read("reload.jsonl").length, 0, "the unsent line is not in the file when the tab dies");
-		const E2 = new Tab("E2", storage_file); await E2.ready();   // the reloaded page: it opens nothing and appends nothing
+		const E2 = new Tab("E2", storage_file); await E2.ready();   // the reloaded page: it only LOOKS (opens a store) and appends nothing
+		await E2.open("reload.jsonl");
 		t.ok(await until(() => read("reload.jsonl").some(l => l.n === 30), "n:30 reaches the file"), "a line queued before a reload is sent by the reloaded page");
 		await sleep(500);
 		t.eq(read("reload.jsonl").filter(l => l.n === 30).length, 1, "and it is in the file exactly once");

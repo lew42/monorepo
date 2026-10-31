@@ -48,7 +48,7 @@ globalThis.fetch = (resource, ...rest) => /\/api\/item/.test(String(resource?.ur
 
 const { default: Socket } = await import("../../dev/Socket/Socket.js");
 const { default: Store } = await import("./Store.js");
-const { default: Outbox } = await import("./Outbox.js");
+// Outbox.js is NOT imported here: a real page does not import it either, so the tab shows whether the Store brings it in (review finding 4).
 await import("../../ext/JSONL/live.js");   // installs Socket.prototype.jsonl: how a streamed frame reaches Store.read
 
 const socket = Socket.singleton();
@@ -66,7 +66,7 @@ const host = { on(){}, emit(){}, replay_line: line => out({ ev: "line", line }) 
 const commands = {
 	async open({ url }){ store = new Store({ url }); store.attach(host); await store.open(); out({ ev: "opened" }); },
 	append({ line }){ store.append(line); },
-	heartbeat({ every, wait }){ Outbox.heartbeat = { every, wait }; },
+	async heartbeat({ every, wait }){ (await import("./Outbox.js")).default.heartbeat = { every, wait }; },
 	channel({ value }){ Store.channel = value; },
 	offline(){ held = true; socket.ws.close(); },
 	online(){ held = false; },
