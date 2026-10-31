@@ -195,7 +195,7 @@ Replaying the **changes** runs only 1 and 2, so nothing is repeated and no guard
 
 **1. Start a task that spawns an agent.** `start()` sets `state: "running"` and `started_at: "10:00"`, spawns an agent and saves `agent_id: "a7"`.
 - Changes saved: `{"state":"running","started_at":"10:00","agent_id":"a7"}`. On reload the values are assigned, the view bound to `state` shows "running", and the elapsed time is counted from 10:00. No agent is spawned. ✔
-- Call saved: `{"start()":{}}`. On reload `start()` runs again: `started_at` becomes the reload time, so the timer shows 0:00 ✘, and a second agent is spawned ✘✘.
+- Call saved: `{"start()":{}}`. On reload `start()` runs again and a second agent is spawned ✘✘. In a naive method `started_at` also becomes the reload time; Lew42's real `Task` avoids that because it reads the clock from the replayed line's `ts` (seen in the real-class Replay Lab, `core/Item/replay/`).
 - Third way, for the agent: a level-triggered worker. The server notices "running, but no `agent_id`", spawns one and saves its id. A reload, a missed message or a server restart is harmless, because it looks at the state, not at the event (Kubernetes controllers work this way: [golinuxcloud](https://www.golinuxcloud.com/desired-state-vs-actual-state-kubernetes/)). With one writer (Servex), it can't spawn twice.
 
 **2. A running timer.** Save `started_at`; the clock on screen ticks from it. On reload it shows the true elapsed time. Saving the elapsed time every second fills the log and is wrong after a reload.

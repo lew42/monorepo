@@ -1,5 +1,29 @@
 # Status
 
+## Built tonight: the Item MVP (branch `claude/replay-tests` in your monorepo)
+
+You said "go build". Branch `claude/replay-tests` is off `integration/data-shapes-2`, about 80 commits, every behavior change with its failing test committed first. Cloudflare preview: `claude-replay-tests-monorepo.lew42.workers.dev` (static: pages render; saving needs your dev server). Verified at the end: 39 of 41 core test files pass (the other 2 need the live site); Files 70 checks, Files move 64, item tool 116. Plan, progress and open calls: `public/framework/ai/sessions/2026/10/31/session-e3fd9043/item-mvp/plan.md` on the branch.
+
+**Click through** (on your dev server or the preview):
+- `/framework/core/Item/replay/`: the Replay Lab on your real classes.
+- `/framework/core/Test/view/?file=core/Item/replay.test.mjs` (also `line-format`, `hooks`, `call`, `item-core`, `act`): tests as demos, a block per test, every object expandable.
+- `<any page>/files/`: the page's folder, live; on the dev server also + Page, upload or drop, rename, move (picker or drag, with a dry run and Undo), set aside.
+- `/framework/core/md/doc/overview/`: the core API as pseudo-classes.
+
+**What changed in the Item system:**
+- The save no longer depends on view listeners; `act()` mutes only its own item (and its parents' automatic completion); `set()` refuses functions, DOM nodes and cycles.
+- A running task keeps its time after a reload (`ran_since` is saved).
+- `name()` / `#id` lines are read everywhere; writing them is one switch (`Store.marked_lines`), off for you to flip.
+- `set_<key>` hooks (your old pattern) and `as_call` (a method saved as one call, its body wrapped; no remembering `act`).
+- `view.bind(item, key, fn)`: one draw per frame, released when the view is removed.
+- Every line is numbered, acked and re-sent after a reconnect or a reload, never written twice; a heartbeat finds a dead socket. Record files still go to Servex first so Approve starts agents; the socket is the fallback.
+- Snapshots: `task.snapshot.json` beside the log (the log is never touched); an 8,360-line session loads in ~40 ms instead of ~400 ms.
+- An independent Opus review found 8 real bugs in the first version; all fixed, each with a test.
+
+**Also on michael/dev:** `ext/Chat/md.js` imports `ext/Markdown` but the folder is `ext/markdown`, so the app doesn't load on a case-sensitive host. Fixed on the branch.
+
+**Your calls:** 9 small ones at the end of the plan; each has a recommended answer that the work already follows.
+
 ## Answer so far
 
 **Keep your Item / List / Page core. Fix it, don't replace it.** Figma, Linear and tldraw run the same design. Borrow their protocols; adopt libraries only at the edges (Yjs for shared text, SQLite search, Cloudflare voice).

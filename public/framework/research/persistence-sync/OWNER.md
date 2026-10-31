@@ -7,6 +7,8 @@ Decisions only you can make. The coordinator keeps this short and removes items 
 1. **Phase 1 design: the core classes and their APIs.** Open the **Design** page in the app. Each decision has a recommendation and buttons; tap your choice (or add a note). Nothing gets built until you've weighed in on the opinionated ones.
 2. **Calls vs changes (D14, D17, D18).** Try the [Replay Lab](https://claude.ai/artifact/1Tj59c1Bz6Y8iq89CiDCT5), then pick in D14 (what a line saves), D17 (how code reacts: your `set_<key>` hook, and whether to call it `set_state` or `on_state`) and D18 (which UI values are saved).
 
+3. **Item MVP, 7 small calls.** Listed at the end of the plan on branch `claude/replay-tests`: `public/framework/ai/sessions/2026/10/31/session-e3fd9043/item-mvp/plan.md`. Each has a recommended answer that work already follows. Biggest: when to turn on the new `name()` / `#id` line writing, and whether the socket should be the default save path on your PC (Servex's live copy).
+
 ## Answered
 
 - Five agent-ops / git decisions (2026-10-30): moved to the back burner (`ideas/backburner.md`). Slim `CLAUDE.md` via `@AGENTS.md` is OK in principle, to do together with the branch strategy.
