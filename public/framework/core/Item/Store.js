@@ -110,6 +110,11 @@ export class Store {
 				console.warn(`Item.Store: ${Snapshot.url_for(this.url)} does not match ${this.url} (the log was rewritten or cut before byte ${found.bytes}): snapshot ignored, replaying the whole log.`);
 				return null;
 			}
+			const stale = found.stale_reason((await import("./Item.js")).default);   // dynamic: Item.js imports this file
+			if (stale){
+				console.warn(`Item.Store: ${Snapshot.url_for(this.url)} is ignored, replaying the whole log: ${stale}.`);
+				return null;
+			}
 			this.snapshot = found;
 			this.snapshot_tail = Store.local() ? undefined : tail;
 			this.count = found.lines;

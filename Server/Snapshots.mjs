@@ -91,7 +91,7 @@ export default class Snapshots {
 
 			const text = JSON.stringify(proved.snapshot);
 			const existing = fs.existsSync(sidecar) ? (() => { try { return JSON.parse(fs.readFileSync(sidecar, "utf8")); } catch { return null; } })() : null;
-			const current = !!existing && existing.bytes === bytes && existing.anchor === proved.snapshot.anchor;
+			const current = !!existing && existing.snapshot === Snapshot.VERSION && existing.code === proved.snapshot.code && existing.bytes === bytes && existing.anchor === proved.snapshot.anchor;   // same log AND same replay code
 			const out = { ...result, ok: true, lines, bytes, snapshot_bytes: text.length, current, ms: Math.round(performance.now() - started) };
 			if (write && !current){
 				const tmp = sidecar + ".tmp-" + process.pid;   // written whole, then renamed: a reader never sees half a snapshot
