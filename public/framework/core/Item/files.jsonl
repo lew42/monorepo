@@ -24,3 +24,11 @@
 {"file":"Item.life.js"}
 {"file":"methods/"}
 {"file":"methods/","gone":true}
+{"file":"Outbox.js"}
+{"file":"item-core.test.mjs"}
+{"file":"line-format.test.mjs"}
+{"file":"replay/page.js"}
+{"file":"replay-vs-open.test.mjs"}
+{"file":"replay.test.mjs"}
+{"file":"transport.tab.mjs"}
+{"file":"transport.test.mjs"}
