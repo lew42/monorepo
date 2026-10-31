@@ -7,7 +7,8 @@
 //   3. the line is appended but its ack is lost -> the tab sends it again -> still exactly once
 //   4. tab B is offline while A writes 3 lines -> B reconnects and gets exactly those 3
 //   5. a task.jsonl line goes through the socket, not the Servex /api/item door, and is stamped by/ts
-//   6. while the socket is down the line stays queued and the tab can see it (store.pending)
+//   6. (optional) Store.channel = "item_api" still posts to Servex first, and falls back to the socket when Servex is down
+//   7. while the socket is down the line stays queued and the tab can see it (store.pending)
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -25,8 +26,9 @@ const { default: Append } = await import("../../../../Server/plugins/SocketServe
 
 const t = new Test("core/Item transport: lines through the socket");
 const REL = "framework/core/Item/.transport-test-" + process.pid;
-const DIR = path.join(ROOT, "public", REL), REC_DIR = path.join(DIR, "rec");
-fs.mkdirSync(REC_DIR, { recursive: true });
+const DIR = path.join(ROOT, "public", REL);
+fs.mkdirSync(path.join(DIR, "rec"), { recursive: true });
+fs.mkdirSync(path.join(DIR, "rec2"), { recursive: true });
 const url = name => "/" + REL + "/" + name;
 const read = file => fs.existsSync(path.join(DIR, file)) ? fs.readFileSync(path.join(DIR, file), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l)) : [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -134,7 +136,17 @@ try {
 	t.ok(task_line.by === "owner" && /\.\d{3}Z$/.test(task_line.ts ?? ""), "the line is stamped by: owner and a millisecond ts, as the item tool stamps it");
 	C.exit();
 
-	// 6. While the socket is down the line waits in the queue, in plain sight.
+	// 6. The old channel, switched on: Servex is "down" here, so its POST fails and the line goes through the socket as before.
+	{
+		const D = new Tab("D"); await D.ready(); await D.open("rec2/task.jsonl");
+		D.send({ cmd: "channel", value: "item_api" });
+		D.send({ cmd: "append", line: { start: {} } });
+		t.ok(await until(() => read("rec2/task.jsonl").length > 0, "the line reaches the file"), "channel item_api: the line still reaches the file when Servex is down");
+		t.eq(D.events.filter(e => e.ev === "entry_post").length, 1, "channel item_api: it tried Servex /api/item first");
+		D.exit();
+	}
+
+	// 7. While the socket is down the line waits in the queue, in plain sight.
 	A.send({ cmd: "offline" });
 	t.ok(await until(async () => (await A.state()).connected === false, "A is offline"), "tab A is offline");
 	A.send({ cmd: "append", line: { n: 20 } });

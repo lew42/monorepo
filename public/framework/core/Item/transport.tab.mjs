@@ -7,6 +7,7 @@
 //   {"cmd":"open","url":"/framework/…/x.jsonl"}   open a Store on it (subscribe, replay) -> {"ev":"opened"}
 //   {"cmd":"append","line":{…}}                   store.append(line), as an Item's change would
 //   {"cmd":"offline"} / {"cmd":"online"}          cut the socket and keep it cut / let it reconnect
+//   {"cmd":"channel","value":"item_api"}          switch Store.channel (default "socket")
 //   {"cmd":"state"}                               -> {"ev":"state","pending":…,"connected":…,"offset":…}
 //   {"cmd":"exit"}
 //   events: {"ev":"entry_post"}  the tab tried to post to Servex /api/item (it is "down" here)
@@ -55,6 +56,7 @@ const host = { on(){}, emit(){}, replay_line: line => out({ ev: "line", line }) 
 const commands = {
 	async open({ url }){ store = new Store({ url }); store.attach(host); await store.open(); out({ ev: "opened" }); },
 	append({ line }){ store.append(line); },
+	channel({ value }){ Store.channel = value; },
 	offline(){ held = true; socket.ws.close(); },
 	online(){ held = false; },
 	state(){ out({ ev: "state", pending: store?.pending, connected: socket.connected && socket.ws?.readyState === 1, offset: store?.offset }); },
