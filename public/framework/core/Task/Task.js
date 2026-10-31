@@ -523,7 +523,7 @@ export class Task extends Item {
 
 	// Time comes from the lines (`at`, else the item tool's `ts`, `assign.at|landed_at|requested_at`), never the wall clock. Server/doc/state.md
 	replay_line(line){
-		line = Item.dots(line);
+		line = Item.unmark(Item.dots(line));   // {"start()":{}} and {"#c3":{…}} read like {"start":{}} and {"c3":{…}} below (D13)
 		const rp = this._rp ??= { at: null, explicit: false };
 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;

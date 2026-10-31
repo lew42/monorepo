@@ -124,7 +124,7 @@ export class Item extends Events(Object) {
 		this.on("delta", count);
 		Store.mute(this);
 		try { this[verb](args); } finally { Store.unmute(this); this.off("delta", count); }
-		if (changed) this.emit("delta", { [verb]: args ?? {} }, this);
+		if (changed) this.emit("delta", { [verb + (Store.marked_lines ? "()" : "")]: args ?? {} }, this);
 		return this;
 	}
 
@@ -169,14 +169,21 @@ export class Item extends Events(Object) {
 	}
 
 	set_one(key, value){
+		// D13, the spelling says what a key does: `name()` calls the method, `#id` names a list item, a plain `name` is data (or a
+		// step into a child). Never stored as data, whatever they name: a call with no method and a hop with no item are refused.
+		if (key.length > 2 && key.endsWith("()")) return void this.call_marked(key, value);
+		if (key.charCodeAt(0) === 35) return void this.hop_marked(key, value);
+
 		// A dotted key is a path: `{"tasks.ui.tasks.c3": v}` is `{"tasks": {"ui.tasks.c3": v}}`, and the next level's own
 		// set() takes the rest (ids-and-paths.md, DECIDED). A key that already names something here as it is wins.
 		const dot = key.indexOf(".");
 		if (dot > 0 && dot < key.length - 1 && !(key in this) && this.get_one(key) === undefined)
 			return void this.set_one(key.slice(0, dot), { [key.slice(dot + 1)]: value });
 
+		// An OLD line named a method bare (`{"start":{}}`): still called, until the old logs are migrated (Item.bare_calls = false
+		// reads a bare name as data, the D13 rule, and lets a field be named like a method).
 		const here = this[key];
-		if (typeof here === "function") return void here.call(this, value);
+		if (typeof here === "function" && Item.bare_calls) return void here.call(this, value);
 
 		const target = this.get(key);
 		if (routes(target)) return void target.set(value);
@@ -211,6 +218,26 @@ export class Item extends Events(Object) {
 			this.emit("delta", { set: { [key]: value } }, this);
 			this.emit_safely("change", key, value, old);
 		}
+	}
+
+	// `name()` in a line: call the method `name` with the value as its one argument (several arguments: one object).
+	call_marked(key, value){
+		const name = key.slice(0, -2);
+		if (skipped(name) || typeof this[name] !== "function"){
+			warn(`a line called ${key}, but ${this.constructor.name} has no method ${name}() — that part of the line is ignored (a "()" name is never stored as data)`, `call:${this.constructor.name}.${name}`);
+			return;
+		}
+		this[name](value);
+	}
+
+	// `#id` in a line: the list item with that id (one of my lists, or my own members when I am a List); the value goes to it.
+	hop_marked(key, value){
+		const kid = this.member(key.slice(1));
+		if (!routes(kid)){
+			warn(`a line named the list item ${key}, but ${this.constructor.name} "${this.id}" has no such item — that part of the line is ignored (a "#" name is never stored as data)`, `hop:${this.id}.${key}`);
+			return;
+		}
+		kid.set(value);
 	}
 
 	// emit(), but a throwing listener is reported on console (naming the event and this item) instead of reaching the caller.
@@ -525,6 +552,21 @@ export class Item extends Events(Object) {
 		return out ?? line;
 	}
 
+	// A line's top-level marks undone, for a replay_line that reads its keys by their bare names (Task, Session): `{"start()":{}}`
+	// reads as `{"start":{}}` and `{"#c3":{…}}` as `{"c3":{…}}`. Both shapes of a line therefore read the same there.
+	static unmark(line){
+		if (!is_plain(line)) return line;
+		let out = null;
+		for (const key of Object.keys(line)){
+			const bare = key.length > 2 && key.endsWith("()") ? key.slice(0, -2) : key.length > 1 && key.charCodeAt(0) === 35 ? key.slice(1) : null;
+			if (bare === null) continue;
+			out ??= { ...line };
+			delete out[key];
+			if (!(bare in out)) out[bare] = line[key];
+		}
+		return out ?? line;
+	}
+
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.
 	static async open(src){
@@ -583,6 +625,7 @@ const warn = (message, key = message) => {
 
 Item.types = new Map();
 Item._clock = null;
+Item.bare_calls = true;   // D13: a bare key that names a method still calls it (old lines). false = a bare key is always data.
 Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them
 Item.generation = 0;   // bumped by every List change: find()'s index is rebuilt only after one
 Item.names = new Map();

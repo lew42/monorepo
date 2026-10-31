@@ -41,6 +41,12 @@ export class Store {
 	   its own file) makes its parent derive a consequence (Task.child_changed completes the parent); the parent has its own store,
 	   which is not "replaying", and used to write that line again, in every tab that read the child's file (item-core.test.mjs, 1e). */
 	static replay_depth = 0;
+
+	/* THE LINE SPELLING THE WRITERS USE (D13, core/Item/doc/line-format.md). false (today): a list member's change names it by its
+	   bare id (`{"tasks":{"c3":{…}}}`) and act() saves the bare verb (`{"start":{}}`). true: `#c3` and `start()`. Every reader in
+	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
+	   off until they are updated. */
+	static marked_lines = false;
 	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
 	static get muted(){ return Store.muting.size; }
 
@@ -185,7 +191,7 @@ export class Store {
 			? { move: { ...line.move, from: address(from, host) ?? "" } }
 			: line;
 
-		return wrap(hops(origin, host), resolved);
+		return wrap(hops(origin, host, Store.marked_lines), resolved);
 	}
 
 	// Queues; one microtask later the whole tick's lines go in ONE call, as an array
@@ -282,6 +288,9 @@ function owned_below(node, host){
 	return false;
 }
 
+// A list member's hop: its id, or `#id` when the marked line shape is on (D13, Store.marked_lines).
+const member = (id, marked) => marked ? "#" + id : id;
+
 /* The chain of NAMES from `host` down to `node`, one per level, and EVERY hop names
    its list (2026-10-28, ids-and-paths.md §3): a member is its list's name, then its
    id (`{"tasks":{"c3":{…}}}`), so a reader walks one `get()` per name and never
@@ -289,7 +298,7 @@ function owned_below(node, host){
    Before, a member's hop was its id alone and the reader searched every list for it
    (`{"c3":{…}}`; two lists with one id misrouted, seat a E2); old lines still replay
    (Item.set_one). `[]` means `node` IS `host`. */
-function hops(node, host){
+function hops(node, host, marked = false){
 	if (!node || node === host) return [];
 
 	// A List IS the origin when the change is one of ITS OWN verbs (add/remove/
@@ -300,28 +309,28 @@ function hops(node, host){
 	// landed on the PAGE itself instead and silently misreplayed (2026-10-03, the
 	// owner: drags onto the Now card wrote top-level `{"move": {...}}` lines).
 	// Mirrors `address()`'s own list branch just above, which already did this.
-	if (is_list(node)) return [...hops(node.owner, host), node.name];
+	if (is_list(node)) return [...hops(node.owner, host, marked), node.name];
 
 	const parent = node.parent;
 	if (!parent) return [];   // detached from host — best effort, should not happen
 
 	// A member of a list with no owner: its parent IS the list (List.adopt), so the hop is its id alone. Before, it found no
 	// list here and was written flat, so a member's change replayed onto the list itself (the persistence matrix found it).
-	if (is_list(parent)){ const key = parent.key(node); if (key != null && parent.find(key) === node) return [...hops(parent, host), key]; }
+	if (is_list(parent)){ const key = parent.key(node); if (key != null && parent.find(key) === node) return [...hops(parent, host, marked), member(key, marked)]; }
 
 	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
 		const key = list.key(node);
 		if (key == null || list.find(key) !== node) continue;
 		const named = list_name(parent, name, list);
-		return named ? [...hops(parent, host), named, key] : [...hops(parent, host), key];
+		return named ? [...hops(parent, host, marked), named, member(key, marked)] : [...hops(parent, host, marked), member(key, marked)];
 	}
 
-	if (node._slot != null && parent.get?.(node._slot) === node) return [...hops(parent, host), node._slot];
+	if (node._slot != null && parent.get?.(node._slot) === node) return [...hops(parent, host, marked), node._slot];
 	// A child given its parent by hand and held in a plain property (`parent.kid = child`): that property's name, when the
 	// parent's get() finds it there (seat g, B4: it was written flat, as the parent's own field).
-	for (const key of Object.keys(parent)) if (key !== "parent" && !key.startsWith("_") && parent[key] === node && parent.get?.(key) === node) return [...hops(parent, host), key];
+	for (const key of Object.keys(parent)) if (key !== "parent" && !key.startsWith("_") && parent[key] === node && parent.get?.(key) === node) return [...hops(parent, host, marked), key];
 
-	return hops(parent, host);
+	return hops(parent, host, marked);
 }
 
 // The name a reader's `get()` finds `list` under on `owner`: the list's own name, else the key `lists()` gave it.

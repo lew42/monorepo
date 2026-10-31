@@ -44,7 +44,8 @@ Item.register(Board, "Board");
 	t.eq(b.cards.find("c1").get("title"), "un", "an Item reads #id as a member of one of its lists");
 	b.set({ cards: { "add()": { id: "c2", title: "two" } } });
 	t.ok(b.cards.find("c2"), "a list item added by name(): {cards: {add(): {...}}}");
-	b.set({ cards: { "#c2": { "bump()": 1, title: "deux" } } });   // data and a call in one line; Item has no bump, so it is refused but the data lands
+	quiet(() => b.set({ cards: { "#c2": { "bump()": 1, title: "deux" } } }));   // data and a call in one line; an Item has no bump(), so the call is refused and the data lands
+	t.eq(b.cards.find("c2").get("title"), "deux", "data and a refused call in one line: the data still lands");
 	const said2 = quiet(() => b.set({ cards: { "#zz": { title: "x" } } }));
 	t.eq(b.get("#zz"), undefined, "#id with no such list item is not stored as data");
 	t.ok(said2.some(s => s.includes("#zz")), "and a warning names it");

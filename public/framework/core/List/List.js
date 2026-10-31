@@ -176,6 +176,9 @@ export class List extends Item {
 	// name instead — set as an instance option (`new List({ key: x => x.name })`).
 	key(x){ return x?.id; }
 
+	// A list's members are found by id, in this list only (Item.member searches the lists an Item owns; a List owns none).
+	member(id){ return this.find(id); }
+
 	// By ID, never an index: one Map lookup (index() above).
 	find(id){
 		if (id == null) return this.items.find(x => this.key(x) === id);

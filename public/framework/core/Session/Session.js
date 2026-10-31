@@ -69,7 +69,7 @@ export default class Session extends Task {
 	   through Task.replay_line whole, so the same lines give the same state, completion and fields they gave as a Task, and the Session
 	   adds only its class (children, cost). A Session built some other way (new Session(id), then lines) reads as the record shape. */
 	replay_line(line){
-		line = Item.dots(line);
+		line = Item.unmark(Item.dots(line));   // D13 marks read as the bare names below
 		this._shape ??= line?.assign ? "task" : "record";
 		if (this._shape === "task"){
 			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
