@@ -36,7 +36,7 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	}
 	const { changes, calls } = saved;
 
-	t.eq(changes.tape.lines.length - 1, 3, "start() through the method saves 3 change lines (state, started_at, agent_id)");
+	t.eq(changes.tape.lines.length - 1, 4, "start() through the method saves 4 change lines (state, ran_since, started_at, agent_id)");
 	t.eq(Object.keys(calls.tape.lines.at(-1)).filter(k => k !== "by" && k !== "ts"), ["start"], "start() through act() saves one line, the verb");
 	t.eq(calls.tape.lines.at(-1).start, {}, "the act() line is {start:{}} (plus the writer's by and ts)");
 
@@ -48,9 +48,9 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	const twice = await reload(calls.tape, LabTask);
 	t.eq(twice.fx.agents, 1, "every reload of an act() log spawns once more (replay is not idempotent for outside effects)");
 
-	// The clock. A running Task reads its time from two plain fields, `_ran_since` and `_ran_ms`, which are not data.
+	// The clock. A running Task reads its time from two saved values, `ran_since` (when the open span began) and `ran_ms` (banked time).
 	t.ok(changes.you.duration() >= 30, "before the reload the running task has run for a while");
-	t.eq(changes.item.duration(), 0, "a value kept in a plain field is lost after replay: change lines restore state and started_at, but duration() reads 0");
+	t.ok(changes.item.duration() >= 30, "the open span is saved data (ran_since), so change lines keep the time: the reloaded task has run as long (core/Item/item-core.test.mjs, 1f)");
 	t.ok(calls.item.duration() >= 30, "act() lines keep the time: Task.replay_line pins its clock to the line's ts, so the replayed task has run as long");
 	t.eq(calls.item.data.started_at, calls.tape.lines.at(-1).ts, "the replayed started_at is the saved line's ts, not the time of the reload");
 }
@@ -67,7 +67,7 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	t.ok(again.item.duration() < you.duration(), "and the time since start is smaller than before the reload");
 }
 
-// Stopping banks the time in data (ran_ms), but the field duration() reads (_ran_ms) is built before the lines arrive.
+// Stopping banks the time in data (ran_ms), and duration() reads it from there.
 {
 	const { tape, you } = await tab(LabTask, task_first);
 	you.start();
@@ -76,7 +76,7 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	await LabTape.tick();
 	const again = await reload(tape, LabTask);
 	t.ok(again.item.data.ran_ms >= 30, "a stopped task's ran_ms is saved as data and replays");
-	t.eq(again.item.duration(), 0, "but duration() still reads 0 from the plain field _ran_ms");
+	t.eq(again.item.duration(), again.item.data.ran_ms, "and duration() of the reloaded task is that banked time");
 }
 
 // ---- Is any replaying flag set? ----

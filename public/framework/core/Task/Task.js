@@ -36,17 +36,14 @@ const VERDICTS = new Set(["approve", "improve", "reject"]);
 
 export class Task extends Item {
 
-	constructor(...args){
-		super(...args);
-		// Running-time bookkeeping: `_ran_ms` is time already banked (from past
-		// running spans, replayed from `data.ran_ms`); `_ran_since` is a plain
-		// Date.now() marking a CURRENTLY open span, kept in memory only — it is not
-		// itself a saved fact, just "is the clock running right now", reset to null
-		// on load. A reload mid-run loses only the open span's few seconds, never
-		// the banked total; fixing that fully means persisting `_ran_since` too,
-		// left for later (Law 1: fastest working version first).
-		this._ran_ms = this.data.ran_ms ?? 0;
-		this._ran_since = null;
+	/* Running time is SAVED data, so a reload (or another tab) reads it back (D18): `ran_ms` is the time banked by earlier running
+	   spans, and `ran_since` (an ISO time, or null) is when the span that is open right now began. Both are written by the verbs
+	   below in the same set() as the state, so a change line carries them and a verb line makes them again. Old lines have no
+	   `ran_since`: such a task loads with no open span (its time reads the banked part only). */
+	get _ran_ms(){ return this.data.ran_ms ?? 0; }
+	get _ran_since(){
+		const at = this.data.ran_since, ms = typeof at === "string" ? Date.parse(at) : NaN;
+		return Number.isNaN(ms) ? null : ms;
 	}
 
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
@@ -336,8 +333,7 @@ export class Task extends Item {
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
 		const reopen = this.state === "complete";
-		this._ran_since = this.ms();
-		this.set({ state: "running", started_at: this.data.started_at ?? this.stamp(), ...(reopen ? { reopened_at: this.stamp(), reopen_count: (this.data.reopen_count ?? 0) + 1 } : {}) });
+		this.set({ state: "running", ran_since: this.stamp(), started_at: this.data.started_at ?? this.stamp(), ...(reopen ? { reopened_at: this.stamp(), reopen_count: (this.data.reopen_count ?? 0) + 1 } : {}) });
 		this.start_children();
 		return this;
 	}
@@ -345,25 +341,20 @@ export class Task extends Item {
 	pause(){
 		if (!CAN.pause.has(this.state)) return this.warn(`pause(): can't pause from "${this.state}"`);
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
-		this.set({ state: "paused", ran_ms });
+		this.set({ state: "paused", ran_ms, ran_since: null });
 		return this;
 	}
 
 	resume(){
 		if (!CAN.resume.has(this.state)) return this.warn(`resume(): can't resume from "${this.state}"`);
-		this._ran_since = this.ms();
-		this.set({ state: "running" });
+		this.set({ state: "running", ran_since: this.stamp() });
 		return this;
 	}
 
 	stop(why){
 		if (!CAN.stop.has(this.state)) return this.warn(`stop(): can't stop from "${this.state}"`);
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
-		this.set({ state: "stopped", stopped_at: this.stamp(), ran_ms, why: why ?? null });
+		this.set({ state: "stopped", stopped_at: this.stamp(), ran_ms, ran_since: null, why: why ?? null });
 		return this;
 	}
 
@@ -373,10 +364,8 @@ export class Task extends Item {
 	wait({ on, what, decide_by, deferred } = {}){
 		if (!CAN.wait.has(this.state)) return this.warn(`wait(): can't wait from "${this.state}"`);
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
 		const defer = deferred || decide_by ? { deferred: true, decide_by: decide_by ?? null } : { deferred: null, decide_by: null };
-		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms, ...defer });
+		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms, ran_since: null, ...defer });
 		return this;
 	}
 
@@ -385,10 +374,8 @@ export class Task extends Item {
 		if (!CAN[is].has(this.state)) return this.warn(`${is}(): can't ${is} from "${this.state}"`);
 		const { by, note } = typeof arg === "object" && arg ? arg : { note: arg };
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = state === "running" ? this.ms() : null;
 		this.put("verdict", { is, note: note ?? null, by: by ?? null });
-		this.set({ waiting_on: null, ...extra, ran_ms, state });
+		this.set({ waiting_on: null, ...extra, ran_ms, ran_since: state === "running" ? this.stamp() : null, state });
 		return this;
 	}
 	// approve: the task is ACCEPTED (waiting -> idle: worth doing, queued, nobody on it yet). The agent's own start() begins it
@@ -436,11 +423,9 @@ export class Task extends Item {
 		}
 
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
 		const c = completion ?? complete;
 		const claim = evidence === undefined ? {} : { evidence: [].concat(evidence), confidence: confidence ?? "medium", caveats: [].concat(caveats ?? []) };
-		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), ...claim, state: "complete" });
+		this.set({ completed_at: this.stamp(), ran_ms, ran_since: null, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), ...claim, state: "complete" });
 		return this;
 	}
 
