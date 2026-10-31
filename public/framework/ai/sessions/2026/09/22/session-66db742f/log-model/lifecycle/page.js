@@ -1,5 +1,5 @@
 import { Page, p, h2, h3, div, small, ol, li, ui } from "/app.js";
-import { fold, parse } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
+import { fold, parse } from "/framework/ai/log/fold.js";
 
 /* FROM WHAT YOU SAID TO WHAT GOT BUILT — the five stages of a prompt, drawn from the
  * real sample log so the citations resolve live rather than being described.
