@@ -37,6 +37,10 @@ export class Store {
 		for (let n = node; n; n = n.parent) if (Store.muting.has(n)) return true;
 		return false;
 	}
+	/* REPLAYING is global too: while ANY store replays a line, nothing is saved by any store. A replayed child's line (read from
+	   its own file) makes its parent derive a consequence (Task.child_changed completes the parent); the parent has its own store,
+	   which is not "replaying", and used to write that line again, in every tab that read the child's file (item-core.test.mjs, 1e). */
+	static replay_depth = 0;
 	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
 	static get muted(){ return Store.muting.size; }
 
@@ -120,7 +124,8 @@ export class Store {
 
 			if (this.host){
 				this.replaying = true;
-				try { this.host.replay_line(entry); } finally { this.replaying = false; }
+				Store.replay_depth++;
+				try { this.host.replay_line(entry); } finally { Store.replay_depth--; this.replaying = false; }
 				replayed.push(entry);
 			} else {
 				this.entries.push(entry);
@@ -150,7 +155,7 @@ export class Store {
 		host.store = this;
 
 		host.on("delta", (line, origin) => {
-			if (this.replaying || Store.muted_at(origin) || owned_below(origin, host)) return;
+			if (this.replaying || Store.replay_depth > 0 || Store.muted_at(origin) || owned_below(origin, host)) return;
 			this.append(this.line_for(line, origin, host));
 		});
 
