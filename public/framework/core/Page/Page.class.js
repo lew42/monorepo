@@ -6,6 +6,7 @@ import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
 import PageWork from "./ai/PageWork.js";
 import PageInbox from "./PageInbox.js";
+import PageFilesTab from "./FilesTab.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
@@ -384,6 +385,8 @@ export class Page extends Item {
 			if (page) return this.add(name, page).load_all_children(levels);
 		}
 
+		if (name === "files" && known === undefined && !this.no_files && !listing?.folder(name)) return this.add(name, PageFilesTab.route(this)).load_all_children(levels);   // <path>/files/: this folder's file list; a real files/ folder or page wins (doc/files.md)
+
 		if (name === "ai" && known === undefined && !kind && !this.no_ai) return this.add(name, await this.ai_page()).load_all_children(levels);   // <path>/ai/: the Sheet about this page; a real ai/ page wins (ext/drawer/doc/sheet.md)
 
 		if (name === "tasks" && kind !== "js") return this.add(name, await this.tasks_folder()).load_all_children(levels);   // a tasks/ with no page.js of its own: no import probe, no 404 (core/Task/readme.md)
@@ -574,6 +577,8 @@ export class Page extends Item {
 
 		if (this.title && this.url && !this.no_inbox) this.view.append(() => { span.c("page-inbox-chip").append(PageInbox.chip(this)); });
 
+		if (this.title && this.url && !this.no_files) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
+
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);
 		return this.view;
@@ -700,6 +705,8 @@ Page.Previews = PagePreviews;
 Page.Columns = PageColumns;
 Page.Links = PageLinks;
 Page.Inbox = PageInbox;
+Page.FilesTab = PageFilesTab;
+PageFilesTab.Page = Page;
 
 track(Page);
 

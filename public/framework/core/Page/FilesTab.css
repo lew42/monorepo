@@ -1,0 +1,10 @@
+/* The Files tab (core/Page/FilesTab.js): a plain list of this folder's names. */
+@layer theme {
+	.page-files { gap: 0.6em; max-width: 60em; padding-block: 1em; }
+	.page-files-head { gap: 1em; justify-content: space-between; font-weight: 600; flex-wrap: wrap; }
+	.page-files-code { font-weight: 400; }
+	.page-files-list { gap: 0; }
+	.page-files-removed { opacity: 0.55; }
+	.page-files-said { color: var(--danger, #b42318); }
+	.page-files-chip { margin-inline-start: 0.8em; }
+}
