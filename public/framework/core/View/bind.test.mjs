@@ -19,6 +19,7 @@ class FakeEl {
 	getAttribute(n){ return this.attrs[n] ?? null; }
 	set innerHTML(v){ this.kids.forEach(k => k.parentNode = null); this.kids = []; this._text = ""; }
 	get innerHTML(){ return this._text; }
+	get children(){ return this.kids; }
 }
 if (typeof document === "undefined") globalThis.document = { createElement: tag => new FakeEl(tag), head: new FakeEl("head") };
 
@@ -64,7 +65,7 @@ test("bind with no fn writes the value as the view's text", t => with_frames(fra
 }));
 
 test("removing the view leaves zero listeners and stops the drawing", t => with_frames(frames => {
-	const item = make_item(), seen = [], start = listeners(item);
+	const item = make_item(), seen = [], start = listeners(item), bound_before = View.bound_count;
 	const host = new View(), view = new View().append_to(host);
 	view.bind(item, "title", v => seen.push(v));
 	t.eq(listeners(item), start + 1, "binding added one listener");
@@ -73,7 +74,7 @@ test("removing the view leaves zero listeners and stops the drawing", t => with_
 	t.eq(listeners(item), start, "listener count is back to the start");
 	frames.flush();
 	t.eq(seen, ["one"], "the queued draw did not run after the view left");
-	t.eq(View.bound.size, 0, "the view is not kept in the live-bindings set");
+	t.eq(View.bound_count, bound_before, "the live-bindings count is back to the start");
 }));
 
 test("emptying a parent releases the bindings of the views inside it", t => with_frames(frames => {
