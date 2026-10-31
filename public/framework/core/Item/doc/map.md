@@ -20,7 +20,7 @@ An **item** is a thing kept as one JSONL log: line 1 says what it is, later line
 | Piece | File | Job |
 |---|---|---|
 | **Item.Store** | `core/Item/Store.js` | replays, appends and tails one JSONL file; `Item.Store.for(file)` is the one cached root per file in node, re-read when the file changes |
-| **RecordWriter** | `core/Item/RecordWriter.js` | the caller's side of the one writer: a line bound for a `session`, `task`, `page` or `improvements.jsonl` is posted to `POST /api/item` (`record_lines` or `run_item`), which applies it to the live root, then appends; when that is down, an append that skips a line already in the file. Used by `Store.flush`, the hooks and `append.mjs` ([one-writer.md](one-writer.md)) |
+| **RecordWriter** | `core/Item/RecordWriter.js` | the caller's side of the one writer for a `session`, `task`, `page` or `improvements.jsonl` line. In the browser the default road is now the dev server socket (`Store.channel = "socket"`: numbered, acked, resent, [transport.md](transport.md)); `Store.channel = "item_api"` posts to Servex's `POST /api/item` (`record_lines` or `run_item`), which applies it to the live root, then appends. Node callers (the hooks, `append.mjs`) still post to `/api/item` ([one-writer.md](one-writer.md)) |
 | **FsFile** | `ext/filesystem/FsFile.js` | the browser's one file API (`FsFile.send`): the store's write for a file that is not a record, and its fallback for one that is |
 | **LogLine** | `Server/LogLine.mjs` | the one node writer of a JSONL line: validated against `.claude/hooks/jsonl-schema.mjs`, stamped, appended. Callers: `append.mjs` (CLI), the `log` tool, `dir_log`. In Servex a record file's line goes through `LogLine.writer` = `record_lines`; `LogLine.raw` is Servex's own whole lines (alerts, worktree assigns) by the same road |
 | **SessionRecord** | `Server/SessionRecord.mjs` | which file is a folder's record (`session.jsonl` or old `task.jsonl`), the tag verbs, the move script |
@@ -47,7 +47,7 @@ An **item** is a thing kept as one JSONL log: line 1 says what it is, later line
 
 ## How a change is saved: the browser and the item tool
 
-Both now reach one entry point in Servex, `POST /api/item` ([one-writer.md](one-writer.md)); the browser's old road (`FsFile.send` → `Append.js`) is only its fallback when Servex is down. The task [ui-actions-as-deltas](../tasks/ui-actions-as-deltas/requirements.md) made a click send the verb.
+The browser's default road is the dev server socket: `Store.flush` → `Outbox` (`{client, n}`, ack, resend) → `Append.js` ([transport.md](transport.md)). `Store.channel = "item_api"` sends it to Servex's `POST /api/item` instead, the entry point the item tool uses ([one-writer.md](one-writer.md)). The task [ui-actions-as-deltas](../tasks/ui-actions-as-deltas/requirements.md) made a click send the verb.
 
 | | Browser (a click on a page) | Item tool (an agent) |
 |---|---|---|
