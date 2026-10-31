@@ -179,3 +179,14 @@ Tests run: `node public/framework/core/Test/TestRunner.mjs public/framework/core
 - **6** fixed in a5cd349f0 (failing test ad7c51fc8): `restore` runs every data value through `adopt_slot`; the fingerprint now counts slot Items; the proof writes one probe line into every slot Item and compares again.
 - **7** fixed in cf9366446 (failing test 7727ad180): the snapshot stores `classes` and `code` (a hash of the classes' source, `Item.Store` and `Snapshot`, plus a hand-bumped `Snapshot.REPLAY`); `Store.use_snapshot` ignores a mismatch and `Snapshots.mjs` rewrites instead of saying "current". Format version is now 2.
 - **Files, Windows names** fixed in 50a671412 (failing test e9430ea47): protected names compared in lower case; device names (`CON`, `nul.txt`, `COM1`...) refused; the no-hard-link case (FAT/exFAT) now falls back to an exclusive copy.
+
+## Fixed
+
+Each as a failing-test commit, then the fix (builder X1).
+
+- **1** fixed in 3bbd1dcf0 (test af10b4d6f): `Store.channel` defaults to `"item_api"`, so record files go to Servex first (its hooks run) and use the socket only as the fallback; `"socket"` skips Servex.
+- **2** fixed in 217179854 (test e0c0ccca6): `Store.mute` also mutes the ancestors' own derived changes (`Store.muting_up`).
+- **3** fixed in 336fa3622 (test 12ae38c33): an `append failed` batch is kept and sent again after `Outbox.retry_after`.
+- **4** fixed in fe10251af (test 45b3df825): `Store.open()` loads the outbox on the dev server.
+- **5** fixed in 55a25cb8a (test 0d067268e): the per-file schema is skipped only for a batch that says `item: true` (`Store.deliver`), not for every numbered batch.
+- **8** fixed in 424ca8b32 (test d7489511e): `Item.call_value` / `Item.call_args` write and read the `$args` wrapper, so every argument list replays to the same arguments (bare and marked spellings).
