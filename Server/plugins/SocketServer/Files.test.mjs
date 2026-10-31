@@ -186,11 +186,15 @@ try {
 			t.ok(r.ok === false && /part of the page/.test(r.reason), `set_aside ${name} is refused as the page's own file, in any capitals (${r.reason})`);
 		}
 		const bytes = Buffer.from("x").toString("base64"), one = { part: 0, of: 1 };
-		for (const name of ["CON", "nul.txt", "COM1.log", "lpt9", "Aux.tar.gz", "prn."]){
+		for (const name of ["CON", "nul.txt", "COM1.log", "lpt9", "Aux.tar.gz"]){
 			for (const [verb, go] of [["upload", () => rpc("upload", URL, name, bytes, one)], ["set_aside", () => rpc("set_aside", URL, name)]]){
 				const r = await go();
 				t.ok(r.ok === false && /Windows|reserved/i.test(r.reason), `${verb} ${name} is refused as a Windows device name (${r.reason})`);
 			}
+		}
+		for (const name of ["prn.", "notes "]){
+			const r = await rpc("upload", URL, name, bytes, one);
+			t.ok(r.ok === false && /cannot be a file name/.test(r.reason), `a trailing dot or space is refused too: "${name}"`);
 		}
 		for (const name of ["console.txt", "comet", "aux2.txt", "com10.txt", "nullable"]){
 			const r = await rpc("upload", URL, name, bytes, one);

@@ -18,7 +18,8 @@ const PUBLIC = path.resolve("public");
 export default class Files {
 
 	static MAX_BYTES = 25 * 1024 * 1024;   // one upload; the doc's recommended cap (files.md, question 2)
-	static RESERVED = new Set(["page.js", "page.jsonl", "files.jsonl", "_removed"]);   // set_aside refuses these: they are the page itself
+	static RESERVED = new Set(["page.js", "page.jsonl", "files.jsonl", "_removed"]);   // set_aside refuses these (any capitals: NTFS and macOS do not tell them apart): they are the page itself
+	static DEVICE = /^(con|prn|aux|nul|com\d|lpt\d)(\..*)?$/i;   // Windows device names, also with an extension (nul.txt): a file cannot be made under them
 
 	static setup(socket){ new Files(socket); }
 
@@ -85,7 +86,7 @@ export default class Files {
 	set_aside(folder_url, name){
 		const folder = this.folder(folder_url);
 		this.check_name(name);
-		if (this.constructor.RESERVED.has(name)) throw this.refuse(`${name} is part of the page and cannot be set aside here`);
+		if (this.constructor.RESERVED.has(name.toLowerCase())) throw this.refuse(`${name} is part of the page and cannot be set aside here`);
 		const from = path.join(folder, name);
 		if (!fs.existsSync(from)) throw this.refuse(`nothing named ${name} in this folder`);
 
@@ -116,21 +117,28 @@ export default class Files {
 		return full;
 	}
 
-	// One file name, never a path: no slashes, no leading dot (PageFiles ignores those), nothing Windows cannot save.
+	// One file name, never a path: no slashes, no leading dot (PageFiles ignores those), nothing Windows cannot save (no : * ? " < > |,
+	// no trailing dot or space, no device names like CON or nul.txt).
 	check_name(name){
 		if (typeof name !== "string" || !name.trim() || name.length > 150) throw this.refuse("a file name is needed, up to 150 characters");
 		if (/[\\/:*?"<>|\0-\x1f]/.test(name) || name.startsWith(".") || /[. ]$/.test(name)) throw this.refuse(`"${name}" cannot be a file name here: no slashes, no : * ? " < > |, and it cannot start with a dot or end with a dot or space`);
+		if (this.constructor.DEVICE.test(name)) throw this.refuse(`"${name}" is a reserved Windows device name (CON, PRN, AUX, NUL, COM1-9, LPT1-9, with or without an extension) and cannot be a file name here`);
 	}
 
 	// ---- small helpers ----
 
 	// The name to save as: `name`, else `name (2).ext`, `name (3).ext`. A hard link fails if the name exists, so a file is never overwritten.
+	// A disk that cannot link (FAT, exFAT, some network drives) gets a copy that also fails if the name exists (COPYFILE_EXCL).
 	finish(tmp, folder, name){
 		const { name: stem, ext } = path.parse(name);
 		for (let n = 1; ; n++){
 			const candidate = n === 1 ? name : `${stem} (${n}).${ext.slice(1)}`.replace(/\.$/, "");
 			try { fs.linkSync(tmp, path.join(folder, candidate)); fs.unlinkSync(tmp); return candidate; }
-			catch (e){ if (e.code !== "EEXIST") { this.drop(tmp); throw this.refuse(`could not save ${name}: ${e.message}`); } }
+			catch (e){
+				if (e.code === "EEXIST") continue;
+				try { fs.copyFileSync(tmp, path.join(folder, candidate), fs.constants.COPYFILE_EXCL); this.drop(tmp); return candidate; }
+				catch (c){ if (c.code !== "EEXIST") { this.drop(tmp); throw this.refuse(`could not save ${name}: ${c.message}`); } }
+			}
 		}
 	}
 
