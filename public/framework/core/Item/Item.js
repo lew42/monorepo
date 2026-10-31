@@ -634,6 +634,8 @@ export class Item extends Events(Object) {
 			const mine = this.get(name) ?? (this[name] = Item.makeList({ owner: this, name }));
 			for (const kid of [...list]) mine.insert(kid);
 		}
+		// A saved slot Item is `{type, id, data}` in the state; a full replay made it an Item held in that slot (adopt_slot), so do the same on every item.
+		this.walk(item => { for (const key of Object.keys(item.data)) item.data[key] = item.adopt_slot(key, item.data[key]); });
 		Snapshot.apply_memory(this, memory);
 		this.walk(item => { for (const key of Object.keys(item.data)) if (item.hook_for(key)) item.take(key, item.data[key]); });
 		return this;

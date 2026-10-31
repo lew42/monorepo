@@ -36,31 +36,45 @@ export default class Snapshot {
 
 	// ---- making one (the script, in node) ----
 
-	// The in-memory `_` fields of every item under `host`, as [[walk index, {_key: value}], …] (only items that have any).
+	// Every item under `host` in a fixed order: the item, then (in each list) its members, and every Item held in a data slot
+	// (`item.data.box` that is an Item whose `parent` is the item and `_slot` is "box": what adopt_slot makes), each followed by what is under it.
+	static items(host){
+		const out = [];
+		const visit = item => item.walk(one => {
+			out.push(one);
+			for (const key of Object.keys(one.data ?? {})){ const value = one.data[key]; if (value && typeof value.walk === "function" && value.parent === one && value._slot === key) visit(value); }
+		});
+		visit(host);
+		return out;
+	}
+
+	// Every data slot that holds an Item, as [index of its owner in items(), key].
+	static slots(host){
+		return Snapshot.items(host).flatMap((item, index) => Object.keys(item.data ?? {}).filter(key => item.data[key]?.parent === item && item.data[key]._slot === key && typeof item.data[key].walk === "function").map(key => [index, key]));
+	}
+
+	// The in-memory `_` fields of every item under `host` (lists' members and slot Items too, see items()), as [[index, {_key: value}], …] (only items that have any).
 	static memory_of(host){
 		const out = [];
-		let index = 0;
-		host.walk(item => {
+		Snapshot.items(host).forEach((item, index) => {
 			const props = {};
 			for (const key of Object.keys(item).sort()) if (key.startsWith("_") && item[key] !== undefined && plain(item[key])) props[key] = JSON.parse(JSON.stringify(item[key]));
 			if (Object.keys(props).length) out.push([index, props]);
-			index++;
 		});
 		return out;
 	}
 
-	// Put memory back onto `host`'s items, by walk index.
+	// Put memory back onto `host`'s items, by index in items().
 	static apply_memory(host, memory = []){
 		const by_index = new Map(memory);
-		let index = 0;
-		host.walk(item => { const props = by_index.get(index++); if (props) Object.assign(item, JSON.parse(JSON.stringify(props))); });
+		Snapshot.items(host).forEach((item, index) => { const props = by_index.get(index); if (props) Object.assign(item, JSON.parse(JSON.stringify(props))); });
 	}
 
-	// What two items must share to be "the same": the saved shape, each item's class, id and state, and the in-memory fields above.
+	// What two items must share to be "the same": the saved shape, each item's class, id and state (slot Items included), and the in-memory fields above.
 	// `root_id: false` leaves the root's own id out: an item whose log never named one gets a fresh random id on every replay.
 	static fingerprint(host, { root_id = true } = {}){
-		const rows = [], json = host.toJSON();
-		host.walk(item => rows.push([item.constructor.name, item === host && !root_id ? null : item.id, item.get_one?.("state") ?? null]));
+		const json = host.toJSON();
+		const rows = Snapshot.items(host).map(item => [item.constructor.name, item === host && !root_id ? null : item.id, item.get_one?.("state") ?? null]);
 		return JSON.stringify([root_id ? json : { ...json, id: null }, rows, Snapshot.memory_of(host)]);
 	}
 

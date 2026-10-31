@@ -125,6 +125,8 @@ export default class Snapshots {
 
 			const wrong = same(Class.replay([], snapshot), "at the end of the log");
 			if (wrong) return { why: wrong };
+			const probed = Snapshots.probe_slots(Class, entries, snapshot);
+			if (probed) return { why: probed };
 			for (const cut of new Set([Math.floor(entries.length / 2), entries.length - 1])){
 				if (cut < 1) continue;
 				const prefix = Class.replay(entries.slice(0, cut));
@@ -135,6 +137,22 @@ export default class Snapshots {
 			}
 			return { snapshot };
 		} finally { console.warn = quiet; }
+	}
+
+	/* One more line, written into every Item held in a data slot (`{"box": {"snapshot_probe": 1}}`, what a later log line would do):
+	   the full replay and the one from the snapshot must still match. A restore that turns a slot Item into plain data replaces
+	   it here instead of writing into it, and the two differ. Answers a reason or null. */
+	static probe_slots(Class, entries, snapshot){
+		const truth = Class.replay(entries), rebuilt = Class.replay([], snapshot);
+		const wanted = Snapshot.slots(truth);   // [[index of the owner in Snapshot.items, key], …]
+		if (!wanted.length) return null;
+		for (const host of [truth, rebuilt]){
+			const items = Snapshot.items(host);
+			Item.Store.replay_depth++;   // a probe is never saved
+			try { for (const [index, key] of wanted) items[index]?.set({ [key]: { snapshot_probe: 1 } }); } finally { Item.Store.replay_depth--; }
+		}
+		const a = Snapshot.fingerprint(truth, { root_id: false }), b = Snapshot.fingerprint(rebuilt, { root_id: false });
+		return a === b ? null : `a line written into a slot Item gives a different item after loading from a snapshot (${Snapshots.first_difference(a, b)})`;
 	}
 
 	// A short pointer to where two fingerprints first differ.
