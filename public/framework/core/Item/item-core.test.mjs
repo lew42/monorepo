@@ -71,4 +71,22 @@ const record = host => { const lines = []; const store = new Store({ url: "/x/" 
 	t.ok(item.get("child") === child, "1c: an Item as a value is still adopted");
 }
 
+// 1e. A child's line replayed from its OWN file lets the parent derive its completion (old logs rely on it), but a replay never
+// saves anything: before, the parent's store wrote the derived line again, in every tab that read the child's file.
+{
+	const parent = new Task({ id: "p", title: "parent" });
+	const parent_lines = record(parent);
+	parent.start();
+	const kid = parent.tasks.add(new Task({ id: "k", title: "kid" }));
+	parent_lines.length = 0;   // only what happens from here counts
+	kid._own_file = "/x/k/";   // a child living in its own file (Task.from_ref sets this)
+	const kid_store = new Store({ url: "/x/k/task.jsonl" });
+	kid_store.append = () => {};
+	kid_store.attach(kid);
+	quiet(() => kid_store.read([{ start: {} }, { complete: { evidence: ["a test"], outcome: "done" } }]));
+	t.eq(kid.state, "complete", "1e: the child's own file replayed (the child is complete)");
+	t.eq(parent.state, "complete", "1e: the parent still derives its completion from the replayed child (old logs rely on it)");
+	t.eq(parent_lines, [], "1e: but the parent's store saved nothing: a replay writes no line");
+}
+
 t.done();
