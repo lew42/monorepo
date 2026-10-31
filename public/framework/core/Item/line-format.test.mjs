@@ -4,17 +4,13 @@
 //   #id        the list item with that id          {"cards": {"#c1": {...}}}
 // Old lines (bare method names, bare ids) still replay; new keys are read always. What act() and a list-item change WRITE is
 // switched by Store.marked_lines (off by default until the readers named in doc/line-format.md are updated); both are tested.
-import Test from "../Test/Test.js";
+import { test } from "../Test/Test.js";
 import Item from "./Item.js";
 import List from "../List/List.js";
 import Store from "./Store.js";
 import Task from "../Task/Task.js";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { run_item } from "../../../../Servex/agents/page_tools.js";
 
-const t = new Test("core/Item: the line format reads name, name() and #id, and writes the marked shape when switched on");
+// Page: /framework/core/Test/view/?file=core/Item/line-format.test.mjs (the tool test needs node and is only listed there).
 const quiet = fn => { const w = console.warn, said = []; console.warn = (...a) => said.push(a.join(" ")); try { fn(); } finally { console.warn = w; } return said; };
 const record = host => { const lines = []; const store = new Store({ url: "/x/" + Math.random() + ".jsonl" }); store.append = line => lines.push(line); store.attach(host); return lines; };
 
@@ -29,7 +25,7 @@ Item.register(Counter, "Counter");
 Item.register(Board, "Board");
 
 // ---- reading the new keys ----
-{
+test("name() calls a method and #id picks a list item, and a wrong one is refused with a warning", t => {
 	const c = new Counter({ id: "c" });
 	c.set({ "bump()": 2 });
 	t.eq(c.bumped, [2], "name() calls the method with the value");
@@ -54,10 +50,12 @@ Item.register(Board, "Board");
 	t.eq(b.get("#zz"), undefined, "#id with no such list item is not stored as data");
 	t.ok(said2.some(s => s.includes("#zz")), "and a warning names it");
 	t.eq(b.cards.length, 2, "and no member appeared");
-}
+	t.view(c, "the Counter");
+	return b;
+});
 
 // ---- reading the old shapes ----
-{
+test.optional("edge: old lines (a bare method name, a bare id) still replay", t => {
 	const c = new Counter({ id: "c" });
 	c.set({ bump: 3 });
 	t.eq(c.bumped, [3], "old: a bare method name is still called");
@@ -71,10 +69,11 @@ Item.register(Board, "Board");
 	t.eq(Item.old_hops.get("cards.c1"), 1, "old: and Item.old_hops counts it");
 	b.cards.set({ c1: { set: { title: "um" } } });
 	t.eq(b.cards.find("c1").get("title"), "um", "old: {id: {set: {...}}} on the list still works");
-}
+	return b;
+});
 
 // ---- strict reading: a bare key is always data (for after the old logs are migrated) ----
-{
+test.optional("edge: strict reading makes a bare key always data", t => {
 	const was = Item.bare_calls;
 	Item.bare_calls = false;
 	try {
@@ -86,7 +85,7 @@ Item.register(Board, "Board");
 		t.eq(c.bumped, [4], "strict: name() still calls");
 	} finally { Item.bare_calls = was; }
 	t.eq(was, true, "by default old bare method names are still read as calls");
-}
+});
 
 // ---- writing: off by default (the old shape), on with Store.marked_lines ----
 const written = (marked) => {
@@ -105,7 +104,7 @@ const written = (marked) => {
 		return { root, kid, changed, acted: lines.splice(0) };
 	} finally { Store.marked_lines = was; }
 };
-{
+test("act() and a list-item change save the bare shape by default and the marked shape when switched on, and both replay", t => {
 	const old = written(false);
 	t.eq(old.changed, [{ tasks: { c3: { set: { title: "renamed" } } } }], "written (default): a list item's change names its id bare");
 	t.eq(old.acted, [{ tasks: { c3: { start: {} } } }], "written (default): act() saves the bare verb");
@@ -124,10 +123,16 @@ const written = (marked) => {
 	t.eq(Task.replay([{ id: "x", title: "x" }, { "start()": {} }]).state, "running", "a Task replays a marked verb line {start(): {}}");
 	const nested = Task.replay([{ id: "x", title: "x" }, { tasks: { "add()": { id: "k", title: "k" } } }, { tasks: { "#k": { "start()": {} } } }]);
 	t.eq(nested.tasks.find("k")?.state, "running", "a Task replays {tasks: {#k: {start(): {}}}}");
-}
+	t.view({ "written, default": [...old.changed, ...old.acted], "written, marked": [...marked.changed, ...marked.acted] }, "the saved lines, both shapes");
+	return nested;
+});
 
 // ---- the item tool (Servex/agents/page_tools.js) takes the marks at its door and writes the bare spelling ----
-{
+test.node("the item tool takes the marks at its door and writes the bare spelling", async t => {
+	const { default: fs } = await import("node:fs");
+	const { default: path } = await import("node:path");
+	const { fileURLToPath } = await import("node:url");
+	const { run_item } = await import("../../../../Servex/agents/page_tools.js");
 	const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
 	const REL = "public/framework/ai/sessions/2026/10/22/.line-format-test-" + process.pid;
 	const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl"), url = "/" + REL.slice("public/".length) + "/";
@@ -145,6 +150,4 @@ const written = (marked) => {
 		const again = Task.replay(lines);
 		t.eq([again.state, again.tasks.find("k1")?.state], ["running", "running"], "a fresh replay of that file has both running");
 	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
-}
-
-t.done();
+});

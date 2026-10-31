@@ -1,9 +1,9 @@
 // What replay really does today, as tests that pass: the facts the replay lab page (core/Item/replay/) shows live.
-//   node public/framework/core/Item/replay.test.mjs
+//   node public/framework/core/Item/replay.test.mjs      page: /framework/core/Test/view/?file=core/Item/replay.test.mjs
 // Real components only: Item, Task, Store.attach / Store.read / Item.act and Item.open, through subclasses in replay/ (LabTask,
 // LabLayer, LabCounter, LabDoc). The only fakes are the outside world (LabWorld: spawning an agent, asking an AI) and the disk
 // (LabTape.Store: the real Store, opened from and flushed into memory). Nothing here is a mock of Item, Task or Store.
-import Test from "../Test/Test.js";
+import { test } from "../Test/Test.js";
 import LabTape from "./replay/LabTape.js";
 import LabWorld from "./replay/LabWorld.js";
 import LabTask from "./replay/LabTask.js";
@@ -11,7 +11,6 @@ import LabLayer from "./replay/LabLayer.js";
 import LabCounter from "./replay/LabCounter.js";
 import LabDoc from "./replay/LabDoc.js";
 
-const t = new Test("core/Item: what replay does today (the replay lab's facts)");
 const world = LabTask.world = LabDoc.world = new LabWorld();
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -24,7 +23,7 @@ const task_first = { id: "weekly", title: "Write the weekly report" };
 const reload = async (tape, Class) => { const mark = world.mark(); const item = await tape.open(Class); return { item, fx: world.since(mark) }; };
 
 // ---- Start a task that spawns an agent ----
-{
+test("replaying change lines never calls the method, but replaying an act() line runs it again", async t => {
 	const saved = {};
 	for (const kind of ["changes", "calls"]){
 		const { tape, you } = await tab(LabTask, task_first);
@@ -35,6 +34,9 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 		saved[kind] = { tape, you, ...again };
 	}
 	const { changes, calls } = saved;
+	t.view({ "saved by calling the method (change lines)": changes.tape.lines, "saved by act() (one verb line)": calls.tape.lines }, "the two saved logs");
+	t.view(changes.item, "reloaded from change lines");
+	t.view(calls.item, "reloaded from the act() line (spawned a second agent)");
 
 	t.eq(changes.tape.lines.length - 1, 4, "start() through the method saves 4 change lines (state, ran_since, started_at, agent_id)");
 	t.eq(Object.keys(calls.tape.lines.at(-1)).filter(k => k !== "by" && k !== "ts"), ["start"], "start() through act() saves one line, the verb");
@@ -53,10 +55,10 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	t.ok(changes.item.duration() >= 30, "the open span is saved data (ran_since), so change lines keep the time: the reloaded task has run as long (core/Item/item-core.test.mjs, 1f)");
 	t.ok(calls.item.duration() >= 30, "act() lines keep the time: Task.replay_line pins its clock to the line's ts, so the replayed task has run as long");
 	t.eq(calls.item.data.started_at, calls.tape.lines.at(-1).ts, "the replayed started_at is the saved line's ts, not the time of the reload");
-}
+});
 
 // Without a ts on the line the replayed Task has nothing to pin to, so it reads the wall clock.
-{
+test.optional("edge: an act() line with no ts restarts the clock on reload", async t => {
 	const { tape, you } = await tab(LabTask, task_first, { stamp: false });
 	you.act("start");
 	await LabTape.tick();
@@ -65,10 +67,11 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	t.ok(!("ts" in tape.lines.at(-1)), "this tape does not stamp its lines");
 	t.ok(again.item.data.started_at > you.data.started_at, "an act() line with no ts restarts the clock: started_at is the reload time");
 	t.ok(again.item.duration() < you.duration(), "and the time since start is smaller than before the reload");
-}
+	t.view(again.item, "the reloaded task");
+});
 
 // Stopping banks the time in data (ran_ms), and duration() reads it from there.
-{
+test.optional("edge: stopping banks the time as data, and duration() reads it back", async t => {
 	const { tape, you } = await tab(LabTask, task_first);
 	you.start();
 	await sleep(40);
@@ -77,10 +80,11 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	const again = await reload(tape, LabTask);
 	t.ok(again.item.data.ran_ms >= 30, "a stopped task's ran_ms is saved as data and replays");
 	t.eq(again.item.duration(), again.item.data.ran_ms, "and duration() of the reloaded task is that banked time");
-}
+	t.view(again.item, "the reloaded task");
+});
 
 // ---- Is any replaying flag set? ----
-{
+test.optional("edge: which replaying flags a method can see (live, Item.open, Item.replay)", async t => {
 	const seen = [];
 	class SpyTask extends LabTask {
 		start(){ seen.push({ store_replaying: this.store?.replaying, has_store: !!this.store, applying: this._applying }); return super.start(); }
@@ -105,7 +109,9 @@ const reload = async (tape, Class) => { const mark = world.mark(); const item = 
 	LabTask.skip_when_replaying = false;
 	t.eq(flagged.fx.agents, 0, "a method that skips outside effects while Store.replaying is set does not spawn on reload");
 	t.ok(flagged.item.state === "running" && flagged.item.data.agent_id === undefined, "but the reloaded task is running with no agent: the result was never saved");
-}
+	t.view({ seen }, "what the method saw each time it ran");
+	t.view(flagged.item, "reloaded by a method that skips outside effects");
+});
 
 // ---- Two tabs press the same button at the same moment ----
 // The second tab has loaded the file as it is now. Both press, then each tab hears the other's saved line (Store.read, the live tail).
@@ -119,7 +125,7 @@ async function both(kind, Class, first, verb){
 	you.store.read(JSON.parse(JSON.stringify(tape.entries.slice(before).filter(e => e.tab === "tab B").map(e => e.line))));
 	return { tape, you, other, after: (await tape.open(Class)) };
 }
-{
+test("two tabs pressing one button: set lines agree, act() lines keep both clicks", async t => {
 	const first = { id: "layer", visible: true, x: 24, y: 40 };
 	const changes = await both("changes", LabLayer, first, "toggle");
 	const calls = await both("calls", LabLayer, first, "toggle");
@@ -134,10 +140,13 @@ async function both(kind, Class, first, verb){
 	t.eq([c_changes.tape.lines[1].set, c_changes.tape.lines[2].set], [{ count: 1 }, { count: 1 }], "two tabs incrementing through set: both save count:1");
 	t.eq([c_changes.you.count, c_changes.after.count], [1, 1], "change lines lose a click: 1 live, 1 after a reload, though two people pressed");
 	t.eq([c_calls.you.count, c_calls.after.count], [2, 2], "act() lines keep both clicks: 2 live, 2 after a reload");
-}
+	t.view({ "counter, set lines": c_changes.tape.lines, "counter, act() lines": c_calls.tape.lines }, "the saved logs");
+	t.view(c_changes.after, "counter reloaded from set lines (one click lost)");
+	t.view(c_calls.after, "counter reloaded from act() lines (both clicks)");
+});
 
 // ---- Ask an AI ----
-{
+test("asking an AI: a set line saves the text, an act() line saves only the verb and asks (and pays) again", async t => {
 	const doc = { id: "notes", title: "Q3 planning notes", summary: "" };
 	const results = {};
 	for (const kind of ["changes", "calls"]){
@@ -152,10 +161,13 @@ async function both(kind, Class, first, verb){
 	t.eq([results.calls.fx.ai, results.calls.fx.cost], [1, LabWorld.PRICE], "replaying the verb asks the AI again and pays again");
 	t.ok(results.calls.item.summary !== results.calls.you.summary, "and the new text differs from the one the person saw");
 	t.ok(LabDoc.prototype.summarize.toString().includes("if (this.summary) return"), "the method has a guard (already summarized?), which does not help: a rebuilt document starts empty");
-}
+	t.view({ "set lines": results.changes.tape.lines, "act() lines": results.calls.tape.lines }, "the saved logs");
+	t.view(results.changes.item, "reloaded from the set line");
+	t.view(results.calls.item, "reloaded from the verb line (new text)");
+});
 
 // ---- Drag a layer ----
-{
+test("a drag saves 5 change lines or 3 act() lines, and both rebuild to the same place", async t => {
 	const first = { id: "layer", visible: true, x: 24, y: 40 };
 	const moves = [{ dx: 3, dy: 1 }, { dx: 4, dy: 0 }, { dx: 2, dy: 2 }];
 	const drag = {};
@@ -168,16 +180,18 @@ async function both(kind, Class, first, verb){
 	t.eq(drag.changes.tape.lines.length - 1, 5, "a drag of 3 moves saves 5 change lines (one per field that changed)");
 	t.eq(drag.calls.tape.lines.length - 1, 3, "a drag of 3 moves saves 3 act() lines (one per move)");
 	for (const kind of ["changes", "calls"]) t.eq([drag[kind].after.x, drag[kind].after.y], [33, 43], `a dragged layer rebuilds to the same place from the ${kind} log`);
-}
+	t.view({ "change lines": drag.changes.tape.lines, "act() lines": drag.calls.tape.lines }, "the saved logs");
+	t.view(drag.calls.after, "the layer rebuilt from the act() log");
+});
 
 // ---- What a replayed line is, by class ----
-{
+test.optional("edge: a plain Item's act() line is {hide:{}} and replays through set()", async t => {
 	const { tape, you } = await tab(LabLayer, { id: "layer", visible: true, x: 24, y: 40 });
 	you.act("hide");
 	await LabTape.tick();
 	const line = tape.lines.at(-1);
 	t.ok(line.hide && !("set" in line), "a plain Item's act() line is {hide:{}}: replay reaches the method through set()'s rule that a key naming a method calls it");
 	t.eq((await tape.open(LabLayer)).visible, false, "and the reloaded layer is hidden");
-}
+	t.view({ lines: tape.lines }, "the saved log");
+});
 
-t.done();

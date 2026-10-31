@@ -2,12 +2,12 @@
 // The method wraps its body: `sort_by(key){ return this.as_call("sort_by", [key], () => { … }); }`. While the body runs, saving is
 // muted for this item's tree; one line `{"sort_by()": "title"}` is saved (the value is the one argument, D13 rule 2), only for the
 // outermost call, and never while a line is being replayed.
-import Test from "../Test/Test.js";
+import { test } from "../Test/Test.js";
 import Item from "./Item.js";
 import List from "../List/List.js";
 import Store from "./Store.js";
 
-const t = new Test("core/Item: as_call saves a method as one line, outermost only, never on replay");
+// Page: /framework/core/Test/view/?file=core/Item/call.test.mjs
 const record = host => { const lines = []; const store = new Store({ url: "/x/" + Math.random() + ".jsonl" }); store.append = line => lines.push(line); store.attach(host); return { lines, store }; };
 
 class Table extends Item {
@@ -40,15 +40,17 @@ const fresh = () => {
 };
 
 // one call, one line
-{
+test("a method wrapped in as_call saves ONE line: the call with its argument", t => {
 	const { table, lines } = fresh();
 	table.sort_by("title");
 	t.eq(table.order_of(), ["r2", "r3", "r1"], "the body ran: sorted by title");
 	t.eq(lines, [{ "sort_by()": "title" }], "and ONE line was saved: the call with its argument, not the order and set lines it made");
-}
+	t.view({ saved_lines: lines }, "the lines saved");
+	return table;
+});
 
 // replay gives the same order and saves nothing
-{
+test("replaying the call line gives the same order, and a tab that reads it saves nothing", t => {
 	const { table, lines } = fresh();
 	const adds = [{ rows: { add: { id: "r1", title: "pear" } } }, { rows: { add: { id: "r2", title: "apple" } } }, { rows: { add: { id: "r3", title: "fig" } } }];
 	table.sort_by("title");
@@ -62,18 +64,22 @@ const fresh = () => {
 	tab.store.read([...adds, ...lines]);
 	t.eq(other.order_of(), ["r2", "r3", "r1"], "another tab: reading the line ran the call");
 	t.eq(tab.lines, [], "another tab: and saved nothing");
-}
+	t.view(table, "the live table");
+	t.view(again, "a fresh replay of the call line");
+	return other;
+});
 
 // nested: only the outermost call saves
-{
+test.optional("edge: nested calls save only the outermost line", t => {
 	const { table, lines } = fresh();
 	table.sort_both({ first: "title", second: "id" });
 	t.eq(lines, [{ "sort_both()": { first: "title", second: "id" } }], "nested: one line for the outer call, none for the two inside it");
 	t.eq(table.order_of(), ["r1", "r2", "r3"], "nested: both inner calls ran (last sort: by id)");
-}
+	return table;
+});
 
 // mute is for this item's tree only
-{
+test.optional("edge: the mute covers this item's tree only; an unrelated item still saves", t => {
 	const { table, lines } = fresh();
 	const stranger = new Item({ id: "stranger" });
 	const theirs = record(stranger);
@@ -89,10 +95,12 @@ const fresh = () => {
 	poker.poke(target);
 	t.eq(poker_lines, [{ "poke()": {} }], "tree: the call is one line");
 	t.eq(target_lines, [{ set: { b: 2 } }], "tree: an unrelated item's write during the body is still saved");
-}
+	t.view(target, "the unrelated item");
+	return table;
+});
 
 // no change, no line; a throwing body: no line, mute released
-{
+test.optional("edge: no change saves no line; a throwing body saves none and releases the mute", t => {
 	const { table, lines } = fresh();
 	table.nothing();
 	t.eq(lines, [], "a body that changed nothing saves nothing");
@@ -102,15 +110,15 @@ const fresh = () => {
 	t.eq(lines, [], "and saves no line (the half-done change is not in the log)");
 	table.set({ after: 1 });
 	t.eq(lines.at(-1), { set: { after: 1 } }, "and the mute is released: the next write is saved");
-}
+	return table;
+});
 
 // act() keeps working, also around an as_call method
-{
+test.optional("edge: act() still saves its one verb line around an as_call method, and it replays", t => {
 	const { table, lines } = fresh();
 	table.act("sort_by", "title");
 	t.eq(lines, [{ sort_by: "title" }], "act(): still one line, the verb (written bare unless Store.marked_lines)");
 	const again = Table.replay([{ rows: { add: { id: "r1", title: "pear" } } }, { rows: { add: { id: "r2", title: "apple" } } }, ...lines]);
 	t.eq(again.order_of(), ["r2", "r1"], "act(): and its line replays (the bare spelling too)");
-}
-
-t.done();
+	return again;
+});

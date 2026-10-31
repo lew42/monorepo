@@ -2,12 +2,12 @@
 // `node public/framework/core/Item/hooks.test.mjs`
 // The hook stores with this.put(key, value) and may do anything else (keep a cache, set a volatile value). It runs for a live
 // write, a direct call (which saves too), a line another tab sent and a replayed line alike.
-import Test from "../Test/Test.js";
+import { test } from "../Test/Test.js";
 import Item from "./Item.js";
 import Store from "./Store.js";
 import Task from "../Task/Task.js";
 
-const t = new Test("core/Item: set_<key> hooks (D17) run live, directly, from another tab and on replay");
+// Page: /framework/core/Test/view/?file=core/Item/hooks.test.mjs
 const quiet = fn => { const w = console.warn, said = []; console.warn = (...a) => said.push(a.join(" ")); try { fn(); } finally { console.warn = w; } return said; };
 const record = host => { const lines = []; const store = new Store({ url: "/x/" + Math.random() + ".jsonl" }); store.append = line => lines.push(line); store.attach(host); return { lines, store }; };
 
@@ -22,7 +22,7 @@ class Cart extends Item {
 Item.register(Cart, "Cart");
 
 // live: set() calls the hook, the cache follows, the line is the ordinary one
-{
+test("set() calls a set_<key> hook: the value is stored, the cache follows, the ordinary line is saved", t => {
 	const cart = new Cart({ id: "c" });
 	const { lines } = record(cart);
 	const changes = [];
@@ -43,40 +43,40 @@ Item.register(Cart, "Cart");
 	cart.set({ hover: true });
 	t.eq([cart.hovered, cart.get("hover")], [true, undefined], "volatile: the hook kept its value off the data");
 	t.eq(lines.length, 2, "volatile: and nothing was saved");
-}
+	t.view({ saved_lines: lines }, "the lines saved");
+	return cart;
+});
 
 // another tab: a line read from the file calls the hook, and saves nothing
-{
+test("a line read from another tab and a replayed line both call the hook; the tab saves nothing", t => {
 	const cart = new Cart({ id: "c" });
 	const { lines, store } = record(cart);
 	store.read([{ set: { qty: 7 } }]);
 	t.eq([cart.get("qty"), cart.total], [7, 14], "another tab: a line read from the file ran the hook");
 	t.eq(lines, [], "another tab: and it saved nothing (it is not our write)");
-}
-
-// replay: every line shape calls the hook; line 1's own fields too
-{
+	t.view(cart, "the cart that read the other tab's line");
+	// replay: every line shape calls the hook; line 1's own fields too
 	const again = Cart.replay([{ id: "c", qty: 1 }, { set: { qty: 5 } }, { qty: 6 }]);
 	t.eq([again.get("qty"), again.total], [6, 12], "replay: the last line wins and the cache follows");
 	t.ok(again.calls >= 3, "replay: the hook ran for line 1's fields and for both later lines (ran " + again.calls + " times)");
-}
+	return again;
+});
 
 // a hook calling set() on its own key would loop for ever: refused with a warning
-{
+test.optional("edge: a hook that sets its own key warns instead of looping", t => {
 	class Loop extends Item { set_n(value){ this.set({ n: value + 1 }); } }
 	const item = new Loop({ id: "l" });
 	const said = quiet(() => item.set({ n: 1 }));
 	t.ok(said.some(s => s.includes("set_n")), "re-entry: a hook that sets its own key warns and does not loop: " + JSON.stringify(said));
-}
+});
 
 // Task replays its fields through hooks too (Task.replay_line reads set lines and plain field lines itself)
-{
+test.optional("edge: a Task replays its set lines and plain field lines through hooks too", t => {
   class Titled extends Task { shout = ""; set_title(value){ this.put("title", value); this.shout = String(value).toUpperCase(); } }
   Item.register(Titled, "Titled");
   const task = Titled.replay([{ id: "t", title: "first" }, { set: { title: "second" } }]);
   t.eq([task.get("title"), task.shout], ["second", "SECOND"], "Task: a replayed set line runs the hook");
   const plain_field = Titled.replay([{ id: "t" }, { title: "third" }]);
   t.eq(plain_field.shout, "THIRD", "Task: a replayed plain field line runs the hook");
-}
-
-t.done();
+  return plain_field;
+});

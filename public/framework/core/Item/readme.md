@@ -89,6 +89,15 @@ new RefView({ ref });         // a row: "child › task", redrawn when either ch
 - **`as_call(name, [args], body)` saves a method as one line (D14),** outermost only, never on replay: [doc/call.md](./doc/call.md). Test: `call.test.mjs`.
 - **While any store replays, no store saves** (`Store.replay_depth`); `set()` refuses a function, DOM node or cycle; a throwing view listener cannot stop a save; a running task's `ran_since` is saved data: [doc/core-fixes.md](./doc/core-fixes.md). Test: `item-core.test.mjs`.
 
+## Click-through tests
+Each test file below opens as a page: one block per test, its checks as green/red lines, the instances and saved logs drawn open. Edge cases are closed "edge case" blocks; a node-only test is listed, not run. Same files run with `node <file>`.
+- [act.test.mjs](/framework/core/Test/view/?file=core/Item/act.test.mjs) — a button saves its verb once
+- [replay.test.mjs](/framework/core/Test/view/?file=core/Item/replay.test.mjs) — what replay runs again: change lines against act() lines (the replay lab's facts)
+- [line-format.test.mjs](/framework/core/Test/view/?file=core/Item/line-format.test.mjs) — `name`, `name()`, `#id` read and written (D13)
+- [hooks.test.mjs](/framework/core/Test/view/?file=core/Item/hooks.test.mjs) — `set_<key>` hooks (D17)
+- [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
+- [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
+
 ## Where an item saves (the rule, 2026-10-20)
 
 An item added to a parent logs its deltas to the parent's store. Not every item needs a file. An item breaks out by need: first it lives inside the parent's file, then in its own `thing.jsonl`, then in its own `thing/` directory once a real file must sit beside it.
