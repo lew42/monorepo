@@ -62,13 +62,24 @@ export default class Socket {
 		clearTimeout(this.retry);
 		this.retry = null;
 
-		this.ws = new WebSocket(this.protocol + "://" + window.location.host);
-		this.ws.addEventListener("open", () => this.open());
-		this.ws.addEventListener("message", res => this.message(res));
+		const ws = this.ws = new WebSocket(this.protocol + "://" + window.location.host);
+		// A socket that `restart()` set aside may still say something late: only the current one counts.
+		ws.addEventListener("open", () => ws === this.ws && this.open());
+		ws.addEventListener("message", res => ws === this.ws && this.message(res));
 
 		// ⚠ Failed connect fires "error" AND THEN "close" — reconnect only on "close"
-		this.ws.addEventListener("close", () => this.reconnect());
-		this.ws.addEventListener("error", () => {});
+		ws.addEventListener("close", () => ws === this.ws && this.reconnect());
+		ws.addEventListener("error", () => {});
+	}
+
+	// Throw the current connection away and open a new one now. For a socket that looks open but is dead (a half-open connection:
+	// the browser has no close to report). core/Item/Outbox.js calls it when its ping gets no answer.
+	restart() {
+		if (this.disabled) return;
+		const old = this.ws;
+		if (this.connected) { this.connected = false; this.ready = promise(); }
+		try { old?.close(); } catch {}
+		this.connect();
 	}
 	open() {
 		console.log("%cSocket connected.", "color: green; font-weight: bold;");

@@ -58,7 +58,11 @@ export default class Append {
 	constructor(socket){
 		this.socket = socket;
 		socket.on("rpc:append", (args = [], index) => this.append(args[0], args[1], index, args[2]));
+		socket.on("rpc:ping", (args, index) => this.ping(args, index));
 	}
+
+	// The heartbeat: a tab with unacked batches asks "are you there?" (core/Item/Outbox.js) and a live server says so.
+	ping(args, index){ this.socket.send({ index, response: "pong" }); }
 
 	// The ack already given for this batch, or null.
 	static recall(meta){ return Append.seen.get(meta.client)?.get(meta.n) ?? null; }

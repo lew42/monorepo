@@ -15,14 +15,61 @@ import { Events } from "../Events/Events.js";
    - Unacked batch: sent again on every reconnect, in order, until acked.
    - Refused batch (the server read it and said no): dropped with a warning; sending it again would be refused again.
 
+   Two more things keep a batch from being lost:
+   - Reload: every unacked batch is also kept in `localStorage` (`outbox:<client>:<path>` -> [{n, lines}]), and dropped when acked. The
+     next load of the same tab (same `sessionStorage` tab id) finds the keys that start with its tab id, queues those batches with
+     their OLD client and n, and sends them: if the server had already written one, it answers `dup`. Storage can be missing or full:
+     every read and write is in a try/catch, and without it the outbox simply stays in memory.
+   - Heartbeat: while batches wait on a connected socket, a ping goes out every `heartbeat.every` ms and must be answered within
+     `heartbeat.wait` ms (worst case about 20 s). No answer: the socket is dead without the browser knowing, so it is restarted,
+     and the new connection's "open" sends the batches again.
+
    This file imports no UI, so a plain node process can be a tab (core/Item/transport.test.mjs). */
 export class Outbox extends Events(Object) {
 
-	waiting = [];   // batches not acked yet, oldest first: { n, path, lines, ws, done }
+	waiting = [];   // batches not acked yet, oldest first: { client, n, path, lines, ws, done }
 	counter = 0;
+	static heartbeat = { every: 10000, wait: 10000 };   // ms between pings while something waits, and how long a pong may take
 
 	// The one outbox of this page. FsFile.send and Item.Store both use it.
-	static shared(){ return this._shared ??= new this(); }
+	static shared(){
+		if (this._shared) return this._shared;
+		this._shared = new this();
+		if (this._shared.stored()) this._shared.drain();   // lines left by a page that was reloaded: bring them back and send
+		return this._shared;
+	}
+
+	// Is there an outbox left in storage? (a cheap look; no socket needed)
+	stored(){
+		try { for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i).startsWith("outbox:")) return true; } catch {}
+		return false;
+	}
+
+	// Write this batch's file-and-client group to storage (or remove the key when nothing of it waits any more).
+	save(batch){
+		try {
+			const key = `outbox:${batch.client}:${batch.path}`;
+			const group = this.waiting.filter(b => b.client === batch.client && b.path === batch.path);
+			if (group.length) localStorage.setItem(key, JSON.stringify(group.map(b => ({ n: b.n, lines: b.lines }))));
+			else localStorage.removeItem(key);
+		} catch {}
+	}
+
+	// Take back what an earlier load of THIS tab left in storage (tab id = the part of the client id before the dot).
+	restore(){
+		try {
+			const mine = `outbox:${this.tab_id}.`;
+			const keys = [];
+			for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i).startsWith(mine)) keys.push(localStorage.key(i));
+			const old = [];
+			for (const key of keys){
+				const [, client, ...rest] = key.split(":");
+				const path = rest.join(":");
+				for (const { n, lines } of JSON.parse(localStorage.getItem(key))) old.push({ client, n, path, lines, ws: null, done: () => {}, saved: true });
+			}
+			this.waiting.unshift(...old.sort((a, b) => a.n - b.n));
+		} catch {}
+	}
 
 	constructor(...args){ super(); Object.assign(this, ...args); }
 
@@ -33,7 +80,7 @@ export class Outbox extends Events(Object) {
 	// or there is no socket at all (a static host).
 	send(path, lines){
 		return new Promise(done => {
-			this.waiting.push({ n: ++this.counter, path, lines, ws: null, done });
+			this.waiting.push({ client: null, n: ++this.counter, path, lines, ws: null, done });
 			this.emit("change", this);
 			this.drain();
 		});
@@ -44,7 +91,9 @@ export class Outbox extends Events(Object) {
 		if (this._socket) return this._socket;
 		const { default: Socket } = await import("../../dev/Socket/Socket.js");
 		const socket = Socket.singleton();
-		this.client ??= socket.tab() + "." + Math.random().toString(36).slice(2, 6);
+		this.tab_id = socket.tab();
+		this.client ??= this.tab_id + "." + Math.random().toString(36).slice(2, 6);
+		this.restore();
 		socket.on("open", () => this.drain());
 		return this._socket = socket;
 	}
@@ -54,13 +103,39 @@ export class Outbox extends Events(Object) {
 	async drain(){
 		const socket = await this.socket();
 		if (socket.disabled) return this.give_up();
+		for (const batch of this.waiting){
+			batch.client ??= this.client;
+			if (!batch.saved){ batch.saved = true; this.save(batch); }
+		}
 		for (const batch of this.waiting.slice()){
 			if (!socket.connected || socket.ws?.readyState !== WebSocket.OPEN) return;
 			if (batch.ws === socket.ws) continue;
 			batch.ws = socket.ws;
-			const frame = { method: "append", args: [batch.path, batch.lines, { client: this.client, n: batch.n }] };
+			const frame = { method: "append", args: [batch.path, batch.lines, { client: batch.client, n: batch.n }] };
 			socket.request(frame).then(reply => reply && this.acked(batch, reply));
 		}
+		this.beat();
+	}
+
+	// The heartbeat (see the top): one timer, alive only while something waits.
+	beat(){
+		if (this.timer || !this.waiting.length) return;
+		this.timer = setTimeout(() => { this.timer = null; this.ping(); }, Outbox.heartbeat.every);
+	}
+
+	async ping(){
+		const socket = this._socket;
+		if (!this.waiting.length) return;
+		if (socket.connected && socket.ws?.readyState === WebSocket.OPEN){
+			const ws = socket.ws;
+			const silence = Symbol();
+			const reply = await Promise.race([socket.request({ method: "ping", args: [] }), new Promise(r => setTimeout(r, Outbox.heartbeat.wait, silence))]);
+			if (reply === silence && socket.ws === ws && this.waiting.length){
+				console.warn("Outbox: the server stopped answering; opening a new connection.");
+				socket.restart();
+			}
+		}
+		this.beat();
 	}
 
 	acked(batch, reply){
@@ -68,6 +143,7 @@ export class Outbox extends Events(Object) {
 		if (i === -1) return;   // a second ack for a batch sent twice
 		const ok = reply.response === "append successful" || reply.response === "append empty";
 		this.waiting.splice(i, 1);
+		this.save(batch);
 		if (!ok) console.warn(`Outbox: the server refused ${batch.lines.length} line(s) for ${batch.path} (${reply.response}).`);
 		this.emit("change", this);
 		batch.done(ok);
@@ -76,9 +152,12 @@ export class Outbox extends Events(Object) {
 	// No socket will ever come (a static host, or a refused peer): there is nowhere to send to, so say so once and let go.
 	give_up(){
 		if (!Outbox.warned){ Outbox.warned = true; console.warn("Outbox: no dev socket, so nothing is being written."); }
-		for (const batch of this.waiting.splice(0)) batch.done(false);
+		for (const batch of this.waiting.splice(0)){ this.save(batch); batch.done(false); }
 		this.emit("change", this);
 	}
 }
+
+// Loading this file is the page load: if a reloaded tab left lines behind, bring them back and send them now (a no-op otherwise).
+try { if (typeof localStorage !== "undefined") Outbox.shared(); } catch {}
 
 export default Outbox;
