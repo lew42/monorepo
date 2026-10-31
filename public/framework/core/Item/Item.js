@@ -17,6 +17,21 @@ const skipped = key => key === "constructor" || key === "__proto__" || key.start
 // Duck-typed list check: items array + find(): doc/item-notes.md
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
+// Why a value cannot be written to a .jsonl line (a function, a DOM node, a cycle), found inside plain objects and arrays; null when it can.
+// An Item or List carries its own saved shape (toJSON) and is not looked into. `path` is where in the value the problem is.
+const unsavable = (value, path = "", seen = new Set()) => {
+	if (typeof value === "function") return `a function${path}`;
+	if (!value || typeof value !== "object") return null;
+	if (typeof Node !== "undefined" && value instanceof Node || (typeof value.nodeType === "number" && typeof value.nodeName === "string")) return `a DOM node${path}`;
+	if (!Array.isArray(value) && !is_plain(value) && value.constructor !== undefined) return null;   // Item, List, Date, Map...: their own shape
+	if (seen.has(value)) return `a cycle (it contains itself)${path}`;
+	seen.add(value);
+	try {
+		for (const key of Object.keys(value)){ const why = unsavable(value[key], `${path} at "${key}"`, seen); if (why) return why; }
+	} finally { seen.delete(value); }
+	return null;
+};
+
 const building = new WeakSet();   // Items inside their own constructor (see constructor())
 
 // Can a key's value take the rest of a delta? (an Item or List; a Map has a set() too, but it is data)
@@ -183,6 +198,9 @@ export class Item extends Events(Object) {
 				return void kid.set(value);
 			}
 		}
+
+		const refused = unsavable(value);
+		if (refused){ warn(`set("${key}") refused: the value is ${refused}, which a saved line cannot hold`, `unsavable:${this.constructor.name}.${key}`); return; }
 
 		const old = target;
 		value = this.adopt_slot(key, value, old);
