@@ -32,7 +32,7 @@ export default class PageFilesTab {
 	// The built-in `files/` route every Page answers to (Page.child): a config for `add()`.
 	static route(page){
 		const tab = page.files_tab ??= new this({ page });
-		return { title: "Files", no_inbox: true, no_files: true, render(){ return this.view ??= div.c("page standard page--files", () => tab.view()); } };
+		return { title: "Files", no_inbox: true, no_files: true, render(){ return this.view ??= div.c("page standard page--folder-files", () => tab.view()); } };
 	}
 
 	// A small "Files · N" link for the end of a page, only when the folder lists something; undefined otherwise.
@@ -64,7 +64,7 @@ export default class PageFilesTab {
 	rows(){
 		const url = this.page.url, here = url.replace(/^\/+/, "");
 		div.c("page-files-head flex v-center", () => {
-			span.c("page-files-count", this.live ? `${this.constructor.count(this.live.listing)} in this folder` : "Loading…");
+			span.c("page-files-count", this.live ? `Files in ${url} · ${this.constructor.count(this.live.listing)}` : "Loading…");
 			a.c("page-files-code", "Open as code browser").href(url + "fs/");
 		});
 		if (this.said) return void small.c("page-files-said", this.said);

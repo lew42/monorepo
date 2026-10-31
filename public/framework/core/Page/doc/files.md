@@ -1,6 +1,6 @@
 # Files and pages: one system (design, 2026-10-31)
 
-**Status: design, nothing built yet.** Ask (the owner, 2026-10-31, decisions-log): a page is a path, the UI should work like a file explorer (create, move, rename, delete, drop a file in), and items, pages and plain files should feel like one Notion-like system that uses the real file system. This doc says how, using what already exists (law 6). Written for a coder who has not seen the rest.
+**Status: phase 1 built (2026-10-31); phases 2 and 3 are still design.** Phase 1 is `core/Page/FilesTab.js` + `PageListing.live` (`Listing.js`), tested by `Listing.test.mjs`; it is the only part that exists. Ask (the owner, 2026-10-31, decisions-log): a page is a path, the UI should work like a file explorer (create, move, rename, delete, drop a file in), and items, pages and plain files should feel like one Notion-like system that uses the real file system. This doc says how, using what already exists (law 6). Written for a coder who has not seen the rest.
 
 Read first: [../readme.md](../readme.md) (what a page is on disk), [subpages.md](subpages.md) (how a child is declared), [streaming.md](streaming.md) (how a line reaches the screen).
 
@@ -116,7 +116,7 @@ The drag UI is `ux/Tree` with `holds()` returning true, exactly as `real.js` alr
 
 | Phase | What | Size | Done when |
 |---|---|---|---|
-| **1. Read-only Files tab on every page** (the smallest useful step) | `files/` route + `PageFilesTab` + `PageListing.live` + the `Files · N` link; no writes, so it also works on Cloudflare | about a day | open any page's `files/`, add a file in the editor, the row appears with no reload; static site shows the committed list |
+| **1. Read-only Files tab on every page — DONE 2026-10-31** (the smallest useful step) | `files/` route + `PageFilesTab` + `PageListing.live` + the `Files · N` link; no writes, so it also works on Cloudflare | about a day | open any page's `files/`, add a file in the editor, the row appears with no reload; static site shows the committed list |
 | **2. Create, upload, set aside** | `Files.js` plugin: `page_add`, `upload` (chunked base64), `trash`; "+ Page" button, drag-and-drop zone, trash button; test with a real temp dir and a real ws server | 2 to 3 days | drop a PNG in one tab, it lists in a second tab; trash moves it to `_removed/`; nothing is deleted |
 | **3. Rename, move, nest** | `move_plan` / `move_apply` through `ModuleMove` with `Server/moves/` manifests; drag rows in `ux/Tree`; D9 `file:` field and `move_to` so an item can become a page | 3 to 5 days | drag a page into another; the confirm row counts the links; Undo restores; both parents' lists are right |
 
@@ -136,3 +136,11 @@ Later, not planned here: insert a file into page content as a part; folders with
 ## Names checked (law 8)
 
 `PageFiles` already means two different classes (`Server/plugins/PageFiles.js`, the list writer; `ext/files/fs.js`, the `fs/` browser), so the new view is `PageFilesTab` in `core/Page/FilesTab.js`, and the server plugin is `Files` in `Server/plugins/SocketServer/Files.js`. If the owner prefers other words, only these two names change.
+
+## Phase 1 as built (2026-10-31)
+
+- Rows are `ui/item` links; file rows use `file_link()`, page rows link to the page, plain folders are not links (they have no page). Names only, as decided in question 5.
+- `PageListing.live(P, url, changed)` returns `{ listing, reader, close() }`: its own `Reader` on the log `Page.listing` found (`files.jsonl`, or `page.jsonl`), never attached to a page. The tab is a config for `add()` (`PageFilesTab.route`), the same shape as `PageInbox.route`, not a `Page` subclass: less code, one pattern.
+- **Doc pages are not covered.** `ext/Doc` declares its own `files` tab (the module's source files), and a declared child wins in `Page.child()`, so `core/Item/files/` shows that browser, not this list. The doc's idea of "one link from the Doc Files section" cannot work at the same url; a Doc page needs a different route name (or the Doc section grows a folder list) once the owner decides.
+- The chip is added to every page render, ancestors included, like the Inbox chip.
+- Checked on the dev server (a file made and deleted with `fs`, rows appeared and went with no reload, for a `page.js` page and a jsonl page) and on a static server under a non-localhost host name (committed list, no tail).
