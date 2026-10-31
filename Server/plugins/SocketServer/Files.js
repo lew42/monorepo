@@ -3,6 +3,8 @@ import path from "path";
 import crypto from "crypto";
 import Subpages from "../../../Servex/agents/Subpages.js";
 import ModuleMove from "../../ModuleMove.mjs";
+import PageFiles from "../PageFiles.js";
+import Tail from "./Tail.js";
 
 const PUBLIC = path.resolve("public");
 
@@ -146,6 +148,7 @@ export default class Files {
 			catch (e){ throw this.refuse(`could not move ${move.from_url}: ${e.message}`); }
 			if (move.declared) this.declare(move, true);
 		}
+		this.catch_up(move.from_parent, move.to_parent);
 		return { ok: true, kind: move.kind, from: move.from_url, to: move.to_url, manifest, ...(counts.paths === undefined ? {} : { files: counts.files, paths: counts.paths, links: counts.links }) };
 	}
 
@@ -163,7 +166,9 @@ export default class Files {
 			else ModuleMove.undo(repo, file);
 		} catch (e){ throw this.refuse(`could not undo: ${e.message}`); }
 		if (m.extra?.declared) this.declare({ from_parent: path.join(repo, m.extra.from_parent), to_parent: path.join(repo, m.extra.to_parent), name: m.extra.name, to_name: m.extra.to_name }, false);
-		return { ok: true, kind: m.kind === "file" ? "file" : "page", from: this.url_of(to), to: this.url_of(from) };
+		const url = p => m.kind === "file" ? this.url_of(p).slice(0, -1) : this.url_of(p);
+		if (m.extra) this.catch_up(path.join(repo, m.extra.from_parent), path.join(repo, m.extra.to_parent));
+		return { ok: true, kind: m.kind === "file" ? "file" : "page", from: url(to), to: url(from) };
 	}
 
 	// Every check for one rename or move, in the order a person would hit them. Returns what the three verbs need; throws a sentence.
@@ -199,6 +204,16 @@ export default class Files {
 		move.declared = Subpages.listed(path.join(from_parent, "page.jsonl")).includes(name);
 		move.mover = new ModuleMove(path.dirname(PUBLIC), this.repo_path(from), this.repo_path(to));
 		return move;
+	}
+
+	// The two parents' file lists, up to date now, and every open tab told. The disk watcher would get there too, but not always (Linux can run out of
+	// watches, Windows drops events in a burst), and a rename that does not show in the tab is a rename that looks like it failed. PageFiles compares first, so a
+	// line is never doubled; Tail remembers how far each tab has read, so telling it twice sends nothing twice.
+	catch_up(...folders){
+		for (const dir of new Set(folders)){
+			PageFiles.settle_folder(dir);
+			for (const log of ["files.jsonl", "page.jsonl"]) if (fs.existsSync(path.join(dir, log))) Tail.changed(path.join(dir, log));
+		}
 	}
 
 	// The words of a legacy `children: "a b c"` string in a folder's page.js (page/kid forms reduced to the folder name), or null.

@@ -6,7 +6,8 @@ View.stylesheet(import.meta, "FilesTab.css");
 /* PAGEFILESTAB — one page's Files tab: this folder's own entries, one level, names only.
  * Data: Page.Listing.live (the folder's files.jsonl, or page.jsonl for a jsonl page). On the dev server the list is tailed
  * through the socket, so a file made in an editor appears with no reload; on a static host it is the committed list, read once.
- * Writes (dev server only): "+ Page", drop or choose files, set a row aside. Each is one socket message to Server/plugins/SocketServer/Files.js;
+ * Writes (dev server only): "+ Page", drop or choose files, set a row aside, rename a row, move a row ("Move to…" picker, or drag it onto a folder row).
+ * Each is one socket message to Server/plugins/SocketServer/Files.js;
  * the tab never edits its own list: the disk changes, PageFiles writes the list line, and the tail redraws every open tab.
  * Design, the phases and what is not built yet: core/Page/doc/files.md. */
 export default class PageFilesTab {
@@ -15,9 +16,10 @@ export default class PageFilesTab {
 	static Page = null;
 
 	static MAX_BYTES = 25 * 1024 * 1024;   // the server's cap too (Files.MAX_BYTES)
+	static DRAG = "application/x-lew42-files-row";   // what a dragged row carries (a desktop file drag carries "Files")
 	static CHUNK = 192 * 1024;            // raw bytes per socket message (a multiple of 3, so every part is clean base64)
 
-	constructor(...args){ this.assign({ rows_shown: 0, adding: false, draft: "", confirming: null, result: null }, ...args); }
+	constructor(...args){ this.assign({ rows_shown: 0, adding: false, draft: "", confirming: null, result: null, renaming: null, plan: null, picking: null }, ...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
 	// Page-folders first, then plain folders, then files; `_removed/` (set aside by the UI later) always last.
@@ -91,12 +93,17 @@ export default class PageFilesTab {
 
 		div.c("page-files-list flex v", () => {
 			entries.forEach(({ name, kind, removed }) => {
-				const item = this.item, end = Reader.dev && !removed ? () => this.set_aside_button(name) : undefined;
+				if (this.renaming === name) return this.rename_row(name, kind);
+				const item = this.item, end = Reader.dev && !removed ? () => this.row_buttons(name, kind) : undefined;
 				const row = kind === "page" ? item({ icon: "article", name: name + "/", href: url + name + "/", end })
 					: kind === "folder" ? item({ icon: "folder", name: name + "/", end })
 					: item({ icon: "description", name, href: this.file_link(here + name), end });
 				row.ac("page-files-row").ac(removed && "page-files-removed");
+				if (Reader.dev && !removed) this.make_draggable(row, name, kind);
+				if (Reader.dev && !removed && kind !== "file") this.make_drop_target(row, name);
 				if (this.confirming === name) this.confirm_row(name, kind);
+				if (this.plan?.name === name) this.plan_row();
+				if (this.picking?.name === name) this.picker();
 			});
 		});
 
@@ -119,9 +126,10 @@ export default class PageFilesTab {
 			button.c("page-files-choose", "Choose files").attr("type", "button").click(() => $pick.el.click());
 			small.c("muted", "up to 25 MB each");
 		});
-		if (this.result) div.c("page-files-result" + (this.result.bad ? " page-files-bad" : ""), () => {
+		if (this.result?.text) div.c("page-files-result" + (this.result.bad ? " page-files-bad" : ""), () => {
 			span(this.result.text + " ");
 			if (this.result.href) a(this.result.label ?? this.result.href).href(this.result.href);
+			if (this.result.undo) button.c("page-files-undo", "Undo").attr("type", "button").click(() => this.undo_move(this.result.undo));
 		}).attr("role", "status");
 	}
 
@@ -141,13 +149,18 @@ export default class PageFilesTab {
 
 	slug_line(){ const name = this.constructor.slug(this.draft); return name ? `It will be the folder ${name}/` : "Type a name; the folder name is made from it."; }
 
-	// The row's set-aside button; a click only asks, the confirm row below it does the move.
-	set_aside_button(name){
-		div.c("item-end", () => {
-			button.c("ui-icon-btn", () => icon("archive")).attr("type", "button").attr("title", "Set aside").attr("aria-label", `Set aside ${name}`)
-				.click(e => { e.preventDefault(); e.stopPropagation(); this.confirming = name; this.draw(); });
+	// The row's buttons: rename, move to…, set aside. A click only opens the inline panel under (or in place of) the row.
+	row_buttons(name, kind){
+		div.c("item-end page-files-rowbtns", () => {
+			const btn = (glyph, label, run) => button.c("ui-icon-btn", () => icon(glyph)).attr("type", "button").attr("title", label).attr("aria-label", `${label} ${name}`)
+				.click(e => { e.preventDefault(); e.stopPropagation(); this.close_panels(); run(); this.draw(); });
+			btn("edit", "Rename", () => { this.renaming = name; this.focus_rename = true; });
+			btn("drive_file_move", "Move", () => this.start_picking(name, kind));
+			btn("archive", "Set aside", () => { this.confirming = name; });
 		});
 	}
+
+	close_panels(){ this.confirming = this.renaming = this.plan = this.picking = null; }
 
 	confirm_row(name, kind){
 		div.c("page-files-confirm flex v-center", () => {
@@ -157,13 +170,146 @@ export default class PageFilesTab {
 		});
 	}
 
+
+	// ---- rename and move ----
+
+	// The row, in place, while its name is being edited. Enter asks, Escape cancels. A file is renamed at once (and can be undone); a folder shows its plan first.
+	rename_row(name, kind){
+		const $row = div.c("page-files-renamerow flex v-center", () => {
+			icon(kind === "page" ? "article" : kind === "folder" ? "folder" : "description").ac("item-icon");
+			const $name = input.c("page-files-rename").attr("type", "text").attr("aria-label", `New name for ${name}`).attr("autocomplete", "off");
+			$name.el.value = name;
+			$name.on("keydown", e => { if (e.key === "Enter") go(); if (e.key === "Escape") { this.renaming = null; this.draw(); } });
+			const go = () => { const to = $name.el.value.trim(); this.renaming = null; if (!to || to === name) return this.draw(); this.propose(name, kind, this.page.url, to); };
+			button.c("page-files-yes", "Rename").attr("type", "button").click(go);
+			button.c("page-files-no", "Cancel").attr("type", "button").click(() => { this.renaming = null; this.draw(); });
+		});
+		if (this.focus_rename){
+			this.focus_rename = false;
+			const el = $row.el.querySelector(".page-files-rename");
+			setTimeout(() => { el?.focus(); el?.setSelectionRange(0, kind === "file" && name.lastIndexOf(".") > 0 ? name.lastIndexOf(".") : name.length); });
+		}
+	}
+
+	// Rename or move `name` into the folder `to_url` as `to_name`. A file just goes (with Undo); a folder asks the server for a dry run first.
+	async propose(name, kind, to_url, to_name = name){
+		this.close_panels();
+		if (kind === "file") return this.apply_move({ name, kind, to_url, to_name });
+		this.say(`Checking what ${name}/ touches…`);
+		const plan = await this.ask("move_plan", name, to_url, to_name);
+		if (!plan.ok) return this.say(plan.reason, { bad: true });
+		this.plan = { name, to_url, to_name, ...plan };
+		this.say("");
+		this.draw();
+	}
+
+	// The inline plan: what moves, how many links in other files change, a few examples, then Move or Cancel.
+	plan_row(){
+		const plan = this.plan, rename = plan.to.replace(/[^/]+\/$/, "") === plan.from.replace(/[^/]+\/$/, "");
+		div.c("page-files-plan flex v", () => {
+			const links = plan.links === 1 ? "1 link" : `${plan.links} links`, files = plan.outside_files === 1 ? "1 other file" : `${plan.outside_files} other files`;
+			p.c("page-files-plantext", `${rename ? "Rename" : "Move"} ${plan.from} to ${plan.to}? ` + (plan.links
+				? `${links} in ${files} will be updated so they keep working.`
+				: "No links to it need changing.") + " You can undo it.");
+			if (plan.note) small.c("muted", plan.note);
+			if (plan.sample?.length) div.c("page-files-sample flex v", () => plan.sample.slice(0, 4).forEach(s => small.c("muted", `${s.file}: ${s.from} → ${s.to}`)));
+			div.c("flex v-center page-files-formrow", () => {
+				button.c("page-files-yes", plan.working ? "Working…" : rename ? "Rename" : "Move").attr("type", "button").attr("disabled", plan.working ? "" : null).click(() => this.apply_move({ ...plan, working: true }));
+				button.c("page-files-no", "Cancel").attr("type", "button").click(() => { this.plan = null; this.draw(); });
+			});
+		});
+	}
+
+	async apply_move({ name, kind, to_url, to_name }){
+		if (this.plan){ this.plan.working = true; this.draw(); }
+		const done = await this.ask("move_apply", name, to_url, to_name);
+		this.plan = null;
+		const shown = done.ok ? `${done.from} is now ${done.to}.` : done.reason;
+		this.say(shown, done.ok ? { undo: done.manifest } : { bad: true });
+		this.draw();
+	}
+
+	async undo_move(manifest){
+		const done = await this.send("move_undo", manifest);
+		this.say(done.ok ? `Put it back: ${done.to}` : done.reason, done.ok ? {} : { bad: true });
+	}
+
+	// "Move to…": a small browser of folders, starting here. Click a folder to look inside it; "Move here" picks the one you are looking at.
+	async start_picking(name, kind){
+		this.picking = { name, kind, url: this.page.url, folders: null };
+		await this.look_in(this.page.url);
+	}
+
+	async look_in(url){
+		const picking = this.picking;
+		if (!picking) return;
+		picking.url = url; picking.folders = null; this.draw();
+		const there = await this.send("list_folders", url);
+		if (this.picking !== picking) return;
+		if (!there.ok){ this.picking = null; this.say(there.reason, { bad: true }); return this.draw(); }
+		Object.assign(picking, { url: there.url, page: there.page, folders: there.folders.filter(f => !(there.url === this.page.url && f.name === picking.name)) });
+		this.draw();
+	}
+
+	picker(){
+		const pick = this.picking, up = pick.url.replace(/[^/]+\/$/, "");
+		div.c("page-files-picker flex v", () => {
+			div.c("flex v-center page-files-formrow", () => {
+				button.c("ui-icon-btn", () => icon("arrow_upward")).attr("type", "button").attr("title", "Up one folder").attr("aria-label", "Up one folder").attr("disabled", pick.url === "/" ? "" : null).click(() => this.look_in(up || "/"));
+				span.c("page-files-picked", `Move ${pick.name}${pick.kind === "file" ? "" : "/"} into ${pick.url}`);
+			});
+			if (!pick.folders) return void small.c("muted", "Looking…");
+			div.c("page-files-pick-list flex v", () => {
+				if (!pick.folders.length) small.c("muted", "No folders in here.");
+				pick.folders.forEach(f => button.c("page-files-pick-folder" + (f.page ? "" : " muted"), () => { icon(f.page ? "article" : "folder"); span(f.name + "/"); })
+					.attr("type", "button").click(() => this.look_in(pick.url + f.name + "/")));
+			});
+			const here = pick.url === this.page.url, blocked = pick.url === "/" || here || pick.url.startsWith(this.page.url + pick.name + "/");
+			div.c("flex v-center page-files-formrow", () => {
+				button.c("page-files-yes", "Move here").attr("type", "button").attr("disabled", blocked || !pick.folders ? "" : null)
+					.attr("title", pick.url === "/" ? "Pick a folder first" : here ? "It is already in this folder" : null).click(() => this.propose(pick.name, pick.kind, pick.url));
+				button.c("page-files-no", "Cancel").attr("type", "button").click(() => { this.picking = null; this.draw(); });
+			});
+		});
+	}
+
+	// Desktop: drag a row onto a folder row. The row carries its name in its own data type, so the tab's file-drop zone (which only wants "Files") ignores it.
+	make_draggable(row, name, kind){
+		row.el.setAttribute("draggable", "true");
+		row.el.addEventListener("dragstart", e => {
+			e.dataTransfer.clearData();
+			e.dataTransfer.setData(this.constructor.DRAG, JSON.stringify({ name, kind, from: this.page.url }));
+			e.dataTransfer.effectAllowed = "move";
+			this.dragging = { name, kind };
+			row.el.dataset.dragging = "";
+		});
+		row.el.addEventListener("dragend", () => { this.dragging = null; delete row.el.dataset.dragging; });
+	}
+
+	make_drop_target(row, target){
+		const el = row.el, mine = e => [...(e.dataTransfer?.types ?? [])].includes(this.constructor.DRAG) && this.dragging && this.dragging.name !== target;
+		let depth = 0;
+		el.addEventListener("dragenter", e => { if (mine(e)) depth++; });
+		el.addEventListener("dragover", e => { if (!mine(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = "move"; el.dataset.drop = ""; });
+		el.addEventListener("dragleave", e => { if (mine(e) && --depth <= 0) { depth = 0; delete el.dataset.drop; } });
+		el.addEventListener("drop", e => {
+			if (!mine(e)) return;
+			e.preventDefault(); e.stopPropagation(); depth = 0; delete el.dataset.drop;
+			const { name, kind } = this.dragging;
+			this.propose(name, kind, this.page.url + target + "/");
+		});
+	}
+
 	say(text, extra = {}){ this.result = { text, ...extra }; this.draw_bar?.(); }
 
-	// One socket message; always answers { ok, … } (a sentence in `reason` when not ok), never throws.
-	async ask(method, ...args){
+	// One socket message about THIS folder (its url goes first); always answers { ok, … } (a sentence in `reason` when not ok), never throws.
+	ask(method, ...args){ return this.send(method, this.page.url, ...args); }
+
+	// The same without the folder url first.
+	async send(method, ...args){
 		try {
 			const { default: Socket } = await import("../../dev/Socket/Socket.js");
-			const reply = await Socket.singleton().async_rpc(method, this.page.url, ...args);
+			const reply = await Socket.singleton().async_rpc(method, ...args);
 			if (!reply) return { ok: false, reason: "The dev server is not reachable, so nothing was changed." };
 			if (reply.method === "refused") return { ok: false, reason: "The dev server only takes changes from the computer it runs on." };
 			return reply.response ?? { ok: false, reason: "The dev server did not understand that." };

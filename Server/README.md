@@ -24,6 +24,8 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
 
 - `node Server/Snapshots.mjs <file-or-folder> [--write]` — writes `task.snapshot.json` beside a `task.jsonl` / `session.jsonl` (the item's final state and how far into the log it covers) after proving it loads the same as a full replay; dry run unless `--write`; doc `public/framework/core/Item/doc/snapshots.md`.
+- `Server/moves/` — one JSON manifest per rename or move made from the Files tab (`<time>-<name>-<hex>.json`: every old to new path, and every link edit with its line and column). Written by `Files.js` through `ModuleMove.mjs`, read by `move_undo` and by `node Server/ModuleMove.mjs --undo <manifest>`; committed on purpose, they are the undo. Folder is made by the first move. Design: [`core/Page/doc/files.md`](../public/framework/core/Page/doc/files.md).
+- `node Server/ModuleMove.mjs <from> <to>` — dry run of moving one folder and relinking every path into it; `--apply --manifest <file>`; `--undo <manifest>`. Falls back to a plain rename when git does not track the folder; an undo checks every file before it writes any.
 - `node Server/ModuleLog.mjs <path>` — one folder's work log, graded against git; beside `PastWork.mjs`.
 - `node Server/Deprecated.mjs` — the deprecation census: every `DEPRECATED (` mark in live code with its live caller count (dry run by default; `--json`, `--write <file>`); test `Deprecated.test.mjs`. The rule: [framework/doc/rules.md](/framework/doc/rules.md).
 - `node Server/health.mjs` — optional watcher that headless-checks a page after a file that could break it changes ([health readme](/framework/ai/health/)).

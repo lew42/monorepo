@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Server/ModuleMove.mjs — move one module folder to a new home and relink every path that points into it.
-// Dry run by default: prints the plan and writes the manifest only with --apply. Undo replays the manifest backwards.
+// Dry run by default: prints the plan and writes the manifest only with --apply. Undo replays the manifest backwards (it checks every file first, then writes).
+// `git mv` is used when git tracks the folder; otherwise (a new or git-ignored folder, or no repository) a plain rename. Also used by the dev server's Files tab (Server/plugins/SocketServer/Files.js), which stores its manifests in Server/moves/.
 // Why and the rule for which folders get rewritten: public/framework/ai/doc/module-homes.md.
 //
 //   node Server/ModuleMove.mjs <from> <to> [--repo <path>]                      dry run: what would change, per file

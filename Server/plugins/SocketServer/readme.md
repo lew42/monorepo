@@ -12,7 +12,7 @@ One websocket per browser tab, opened on `server.js`'s own http port. This folde
 | `Append.js` | `append`: one batch of lines added to a `.jsonl`, validated, written once, acked |
 | `LiveReload.js` | the file watcher: `.jsonl` changes go to `Tail`, everything else becomes a `changed` frame |
 | `Runtime.js` | `write`, `ls`, `rm`, `move`, `cmd` |
-| `Files.js` | `page_add`, `upload`, `set_aside`: what the Files tab does to a page folder (below) |
+| `Files.js` | `page_add`, `upload`, `set_aside`, `move_plan`, `move_apply`, `move_undo`, `list_folders`: what the Files tab does to a page folder (below) |
 | `Tab.js` | which page each tab is on, and `eval` into it |
 
 Wired in `Server/run.js` with `DevSocket.Socket.use(Tail)`, `use(Append)`, and so on.
@@ -29,17 +29,19 @@ Without the third argument it behaves as it always did: schema check, tail check
 
 How the tab sends, retries and catches up, the exact shapes, and what Servex's `/api/item` did that this path does not: [`core/Item/doc/transport.md`](/framework/core/Item/doc/transport.md).
 
-## `Files`: make a page, upload a file, set one aside (2026-10-31)
+## `Files`: make a page, upload a file, set one aside, rename, move (2026-10-31)
 
 `{"method":"page_add","args":[folder_url, name, title]}`, `{"method":"upload","args":[folder_url, name, base64, {part, of}]}`, `{"method":"set_aside","args":[folder_url, name]}`. Each is answered `{index, response: {ok: true, …}}` or `{ok: false, reason: "a sentence"}`.
 
 - **Who sends:** the Files tab (`core/Page/FilesTab.js`), dev server only; a LAN peer is refused by `Socket.js`.
 - **What it writes:** `page_add` makes `<name>/page.jsonl` and links it through `Servex/agents/Subpages.js`; `upload` writes a dot `.part` file and links it to its name on the last part (a name that exists becomes `name (2).ext`, nothing is overwritten; cap `Files.MAX_BYTES` = 25 MB); `set_aside` moves into `<folder>/_removed/<name>-<time>/` and never deletes. It never writes a list line: `PageFiles` sees the disk change and the tail does the rest.
+- **Rename and move** (phase 3): `{"method":"move_plan","args":[folder_url, name, to_folder_url, to_name]}` is a dry run (for a folder: how many files and links change), `move_apply` with the same arguments does it, `move_undo` takes the manifest name `move_apply` answered with, and `list_folders(folder_url)` lists the folders in one folder (the only message that accepts `/`). A rename is a move inside the same folder. A file is a plain rename; a folder goes through [`Server/ModuleMove.mjs`](/Server/ModuleMove.mjs), which rewrites the links into it and keeps the manifest. **Manifests are written to `Server/moves/<time>-<name>-<hex>.json`** (`Files.MOVES`, committed on purpose: they are the undo; a test points it at a temp folder). After a move the server brings both parents' lists up to date itself and tells the open tabs (`Files.catch_up`), so it does not depend on the file watcher. A name clash, a target outside `public/`, a folder into itself and a parent that still names the page in a legacy `children: "…"` string are refused with a sentence and nothing moves. Details: [`core/Page/doc/files.md`](/framework/core/Page/doc/files.md), "Phase 3 as built".
 - **Checks:** every folder url must resolve (symlinks too) inside `public/`, with no `..`, dot segment or `node_modules`; a name is one plain file name. Design and the alternatives: [`core/Page/doc/files.md`](/framework/core/Page/doc/files.md).
 
 ## Tests
 
 - `node Server/plugins/SocketServer/Files.test.mjs`: the three messages over a real ws server and a real folder, with the real `PageFiles` watcher
+- `node Server/plugins/SocketServer/Files.move.test.mjs`: rename and move over the same real server, real folders and the real `ModuleMove`: the dry run, the manifest, undo byte for byte, and every refusal
 
 - `node Server/plugins/SocketServer/Tail.test.mjs` — one offset per socket, no line lost, none applied twice
 - `node Server/plugins/SocketServer/Stream.test.mjs` — a file append reaches a Page
