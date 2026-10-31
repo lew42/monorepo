@@ -226,3 +226,41 @@ test.optional("edge: the script refuses a log with an unreadable line in the mid
 	t.ok(!refused[0].ok && /page/i.test(refused[0].why), "a page.jsonl: refused (it loads through Page.Reader): " + J(refused[0]));
 	close();
 });
+
+// ---- 5. review finding 6: an Item held in a data slot must still be an Item after a snapshot ----
+// (review.md, item-mvp: a full replay turns {"box": {type, id, data}} into an adopted child Item; restore() kept it as plain data.)
+const { default: Snapshot } = await import("./Snapshot.js");
+const slot_head = [{ id: "root", title: "r" }, { box: { type: "Item", id: "k", data: { x: 1 } } }];
+const covering = (lines, bytes = 10) => ({ log: "a.jsonl", lines, bytes, covered_end: new Uint8Array([1, 2, 3]), made_at: "x" });
+
+test.node("an Item held in a data slot is still an Item (same id, same parent) when restored from a snapshot, and a later line reaches it", async t => {
+	const full = Item.replay(slot_head);
+	t.ok(full.get_one("box") instanceof Item, "(a full replay makes the slot an Item)");
+	const snap = Snapshot.of(full, covering(2));
+	const later = [{ box: { x: 2 } }];
+	const a = Item.replay([...slot_head, ...later]);
+	const b = Item.replay(later, snap);
+	const box = b.get_one("box");
+	t.ok(box instanceof Item, "from a snapshot the slot is an Item too, not a plain object");
+	t.eq([box?.id, box?.parent === b, box?._slot], ["k", true, "box"], "with its id, its parent and its slot name");
+	t.eq(b.get_one("box")?.get_one("x"), 2, "and the later line wrote into it (x is 2), instead of replacing it");
+	t.eq(J(b.toJSON()), J(a.toJSON()), "the saved shape equals the full replay's");
+});
+
+test.node("the proof compares slot Items too: a restore that turns a slot into plain data makes the script refuse the log", async t => {
+	// A class whose restore has the review's bug on purpose: after the normal restore, every slot Item becomes the plain object it saves as.
+	class Leaky extends Item {
+		restore(state, memory){
+			super.restore(state, memory);
+			for (const key of Object.keys(this.data)) if (this.data[key] instanceof Item) this.data[key] = JSON.parse(J(this.data[key]));
+			return this;
+		}
+	}
+	Item.register(Leaky, "Leaky");
+	// Two lines only: nothing after the cut points writes into the slot, so only a probe of the slot itself can see the loss.
+	const entries = [{ type: "Leaky", id: "root" }, { box: { type: "Item", id: "k", data: { x: 1 } } }];
+	const bad = Snapshots.prove(entries, { log: "leaky.jsonl", lines: 2, bytes: 10, covered: new Uint8Array([1, 2, 3]), made_at: "x" });
+	t.ok(bad.why && /different item/.test(bad.why), "the proof refuses it: " + J(bad));
+	const good = Snapshots.prove([{ type: "Item", id: "root" }, entries[1]], { log: "ok.jsonl", lines: 2, bytes: 10, covered: new Uint8Array([1, 2, 3]), made_at: "x" });
+	t.ok(good.snapshot && !good.why, "and passes the same log on a class that restores properly: " + J(good.why));
+});
