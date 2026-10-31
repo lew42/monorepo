@@ -113,35 +113,57 @@ class ModuleMove {
 		return changes;
 	}
 
-	git(...args){ return execFileSync("git", args, { cwd: this.repo, encoding: "utf8", windowsHide: true }); }
+	git(...args){ return execFileSync("git", args, { cwd: this.repo, encoding: "utf8", windowsHide: true, stdio: ["ignore", "pipe", "pipe"] }); }
 
-	apply(manifestFile){
+	// Move a folder: `git mv` when git tracks it (so the rename shows in the index), else a plain rename. `git mv` fails on a folder git does
+	// not know yet (a page made a minute ago, anything git-ignored) and outside a repository, so that is not an error here. Returns "git" or "rename".
+	relocate(from, to){
+		fs.mkdirSync(path.dirname(path.join(this.repo, to)), { recursive: true });
+		try { this.git("mv", from, to); return "git"; }
+		catch { fs.renameSync(path.join(this.repo, from), path.join(this.repo, to)); return "rename"; }
+	}
+
+	// What a person is shown before agreeing: how many files and paths change, how many of them are links in OTHER files, and a few examples.
+	summary(changes = this.plan()){
+		const all = changes.flatMap(c => c.edits.map(e => ({ file: c.file, outside: !c.moved, ...e })));
+		return { files: changes.length, paths: all.length, links: all.filter(e => e.outside).length,
+			outside_files: new Set(all.filter(e => e.outside).map(e => e.file)).size,
+			sample: all.slice(0, 6).map(({ file, from, to }) => ({ file, from, to })) };
+	}
+
+	// `extra` is stored in the manifest as it is (the caller's own notes for its undo). Writes the manifest BEFORE moving the folder, so a crash
+	// half-way still leaves the record of every old path.
+	apply(manifestFile, extra){
 		if (!this.exists(this.from)) throw new Error(`${this.from} does not exist`);
 		if (this.exists(this.to)) throw new Error(`${this.to} already exists (Windows folds case: check a lower-case twin too)`);
 		const changes = this.plan();
-		for (const c of changes) fs.writeFileSync(path.join(this.repo, c.file), c.text);
-		fs.mkdirSync(path.dirname(path.join(this.repo, this.to)), { recursive: true });
-		this.git("mv", this.from, this.to);
 		const manifest = { at: new Date().toISOString(), from: this.from, to: this.to,
 			files: changes.map(c => ({ file: c.file, now: c.moved ? this.to + c.file.slice(this.from.length) : c.file, edits: c.edits.map(({ line, col, from, to }) => ({ line, col, from, to })) })) };
+		if (extra) manifest.extra = extra;
 		fs.mkdirSync(path.dirname(manifestFile), { recursive: true });
+		fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, "\t") + "\n");
+		for (const c of changes) fs.writeFileSync(path.join(this.repo, c.file), c.text);
+		manifest.how = this.relocate(this.from, this.to);
 		fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, "\t") + "\n");
 		return manifest;
 	}
 
+	// Two passes: first work out every restored file and stop if any edit no longer reads as the move left it, then write. A changed file
+	// therefore stops the undo before anything is touched.
 	static undo(repo, manifestFile){
 		const m = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
 		const mover = new ModuleMove(repo, m.from, m.to);
-		for (const f of m.files){
+		const restored = m.files.map(f => {
 			const abs = path.join(repo, f.now), lines = fs.readFileSync(abs, "utf8").split("\n");
 			for (const e of [...f.edits].reverse()){   // right to left, so each col is still where the forward pass put it
 				const i = e.col;
-				if (lines[e.line].slice(i, i + e.to.length) !== e.to) throw new Error(`${f.now}:${e.line + 1}:${i} no longer holds ${e.to}`);
+				if (lines[e.line]?.slice(i, i + e.to.length) !== e.to) throw new Error(`${f.now}:${e.line + 1}:${i} no longer holds ${e.to}, so the move was not undone`);
 				lines[e.line] = lines[e.line].slice(0, i) + e.from + lines[e.line].slice(i + e.to.length);
 			}
-			fs.writeFileSync(abs, lines.join("\n"));
-		}
-		mover.git("mv", m.to, m.from);
+			return [abs, lines.join("\n")];
+		});
+		for (const [abs, text] of restored) fs.writeFileSync(abs, text);
+		mover.relocate(m.to, m.from);
 		return m;
 	}
 
