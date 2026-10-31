@@ -8,7 +8,7 @@ Should Lew42 keep building its own persistence / sync / streaming layer (Item, L
 
 - **Browse it:** the research app (phone-friendly) is hosted at https://claude.ai/artifact/JwAL71fvKRDUTHYyz1LJLx. Locally, open `persistence-sync/app/index.html`.
 - `STATUS.md`: current state and next steps. `OWNER.md`: decisions waiting on the owner.
-- `design/`: Phase 1 class design (pseudocode), decisions, clear-win fixes, takeaways.
+- `design/`: Phase 1 class design (pseudocode), decisions (D1–D18), clear-win fixes, takeaways, and `replay-lab.html`, a demo of saving changes vs method calls (hosted: https://claude.ai/artifact/1Tj59c1Bz6Y8iq89CiDCT5).
 - `persistence-sync/report.md`: the full build-vs-buy report and fix plan (M1–M6).
 - `persistence-sync/lew42/`: how the current code works (`overview.md`) and whether `integration/data-shapes-2` is an upgrade (`branch-assessment.md`).
 - `persistence-sync/lessons/`: code lessons from proven libraries, each with failing-test specs.

@@ -152,6 +152,89 @@ set_one(key, value){
 
 Same lines, explicit, no event cascade. Your F6 note says to measure both before switching ([plan.md F6, michael/dev](https://github.com/lew42/monorepo/blob/ecd1459919067b9438f8125791397dee66628aa0/public/framework/core/Session/tasks/data-shapes/plan.md#L28-L29)). The line format does not change either way.
 
+### 2.2 Four kinds of value, four kinds of code
+
+**Methods decide, data records, everything else reacts.** A page reloading, another tab and an agent all deliver data, never a method call. So anything that must happen when a value changes reacts to the value, not to the method that set it (D17).
+
+| Kind of value | Where it lives | Saved? | Example |
+|---|---|---|---|
+| Saved, shared | `data`, via `get` / `set` | yes, in the page's log | `title`, `state`, `started_at` |
+| Saved, one person | that person's own file | yes, not shared | open tabs, column widths (D18) |
+| Volatile | a plain `Property` field, outside `data` | never | selection, hover, drag in progress, the clock's interval |
+| Derived | a getter, or a cache a hook rebuilds | never | `elapsed`, `done_count` |
+
+| Kind of code | Runs when | May write saved data? |
+|---|---|---|
+| Method (`start()`) | once, where someone acted | yes; also the only code that touches the outside world |
+| Hook (`set_state(v, old)`) | after every change of that key: live, remote, after load | no: every tab would write it again |
+| View (`view.bind`) | after a change of a key it shows | no; only its own DOM |
+| Getter (`elapsed`) | when read | no |
+
+```js
+class Task extends Item {
+  start(){ this.set({ state: "running", started_at: new Date().toISOString() }) }
+  get elapsed(){ const t = this.get("started_at"); return t ? Date.now() - Date.parse(t) : 0 }
+  set_state(state, old){ this.parent?.recount?.() }   // name open: set_state / on_state
+}
+```
+
+Loading replays changes (D14), from a snapshot plus the tail, so each hook runs once per key.
+
+### 2.3 What happens on reload: worked examples
+
+Try it: **[Replay Lab](https://claude.ai/artifact/1Tj59c1Bz6Y8iq89CiDCT5)** (source `design/replay-lab.html`). Press Start, wait, press Reload, and compare the two logs.
+
+**The key idea: a method can do three kinds of thing, and none of them needs the method to run again on reload.**
+1. **Change data**, its own or another object's. Saved as changes; a reload assigns them.
+2. **Keep something going in this tab** (the screen, a ticking clock, watching an agent's output). Never saved. It depends only on the current values, so it starts from the state ("running? tick") after a click, after another tab's change and after a reload. React calls this *render*.
+3. **Act on the outside world** (spawn an agent, send a message, ask an AI). It happens because someone acted, so it runs once, inside the method, and its result is saved as data (`agent_id`). React's rule: "If this logic is caused by a particular interaction, keep it in the event handler." Its example: an "added to cart" notification put in an Effect "will keep appearing every time you refresh that product's page" ([react.dev](https://hu.react.dev/learn/you-might-not-need-an-effect)). Respawning an agent on reload is the same bug.
+
+Replaying the **changes** runs only 1 and 2, so nothing is repeated and no guard is needed. Replaying the **calls** runs all three again, so every method with an outside effect needs a guard, and the guard "already running? don't spawn" doesn't work: a reload starts from an empty task, so it is never "already running" when the first `start()` replays (the lab shows this). Side effects are the reason *not* to re-run a method. The one real trap: a value kept in a plain field instead of `set()` (today's `_ran_since`) is lost on reload.
+
+**Snapshots answer the same question.** Nearly everyone loads a snapshot plus the changes after it: Figma (a checkpoint every 30–60 s plus a journal every ~0.5 s), Linear (bootstrap plus sync actions by `lastSyncId`), Notion (record values plus small set / insert / remove operations), tldraw (snapshot plus a change chain in R2). Their changes are all values, never method calls, because a snapshot *is* the changes collapsed to the last value of each key; calls can't be collapsed. Undo, a scrub bar and version history read the log separately. Sources: `persistence-sync/notes/collab_app_architectures.md`.
+
+**1. Start a task that spawns an agent.** `start()` sets `state: "running"` and `started_at: "10:00"`, spawns an agent and saves `agent_id: "a7"`.
+- Changes saved: `{"state":"running","started_at":"10:00","agent_id":"a7"}`. On reload the values are assigned, the view bound to `state` shows "running", and the elapsed time is counted from 10:00. No agent is spawned. ✔
+- Call saved: `{"start()":{}}`. On reload `start()` runs again: `started_at` becomes the reload time, so the timer shows 0:00 ✘, and a second agent is spawned ✘✘.
+- Third way, for the agent: a level-triggered worker. The server notices "running, but no `agent_id`", spawns one and saves its id. A reload, a missed message or a server restart is harmless, because it looks at the state, not at the event (Kubernetes controllers work this way: [golinuxcloud](https://www.golinuxcloud.com/desired-state-vs-actual-state-kubernetes/)). With one writer (Servex), it can't spawn twice.
+
+**2. A running timer.** Save `started_at`; the clock on screen ticks from it. On reload it shows the true elapsed time. Saving the elapsed time every second fills the log and is wrong after a reload.
+
+**3. Show, hide or toggle a layer.**
+- `show()`, `hide()` or `set({visible: false})` give the same result either way, and doing one twice is the same as doing it once.
+- `toggle()` saved as a call: two tabs toggle at the same moment, so it flips twice and is visible again, though both people hid it. A line sent twice after a network retry flips it again. ✘
+- `toggle()` saved as its result `{"visible": false}`: both tabs say "hidden", so it's hidden; a repeated line changes nothing. ✔ A toggle should save its result.
+
+**4. Drag a layer.** A drag makes about 60 moves a second.
+- Calls with relative moves, `move(2, 1)`: 600 lines for a 10-second drag, and one lost line leaves the layer off by that much for good. ✘
+- Changes with absolute positions, `{x: 120, y: 80}`: the next line corrects a lost one, and the whole drag can be saved as one line (its final position). Undo returns to where the drag started. ✔
+
+**5. Selection.** Click A, then B, then A. If it's saved in the page's log, your selection jumps around on everyone else's screen. So it's either volatile (gone on reload), saved for you alone (back on reload), or presence (others see your highlight live; never saved). Loading needs only the last value; undo can bring it back with each step (D18).
+
+**6. A counter that two tabs increment.** Both show 5; both click +1.
+- Changes: both send `count: 6`, so the result is 6 and one click is lost. ✘
+- Calls: both send `increment()`, the server applies both, and the result is 7. ✔ Here the call wins, because it keeps both intents. Lew42 version: the server (the one writer) runs `increment()` and saves the call with its result, `{"increment()":{},"count":7}`. Replay applies 7.
+
+**7. Sort 500 rows.** Saving the changes means 500 new positions; the call is one line, `sort_by("title")`. The call wins on size, but only if the sort gives the same order every time and its code never changes. A snapshot after it protects old history.
+
+**8. A game: `player.jump()`.** The positions of everything, 60 times a second, are huge; the inputs ("jump at frame 120") are tiny. Lockstep games save the inputs and re-run the simulation. That needs no clock reads, a seeded random and the same code version: Factorio replays only work on the version that made them.
+
+**9. `summarize()` asks an AI.** Saved as a call, every reload asks the model again: different text, and it costs money each time ✘✘. Saved as a change, the summary text is simply there ✔. Anything with an outside answer (AI, network, time, random) must save its result.
+
+**Which way does it lean?**
+
+| Situation | Save | Why |
+|---|---|---|
+| Most edits: rename, set a color, show / hide, move to x, y | changes (a call gives the same result) | doing it twice is harmless; the result is small |
+| Reads the clock, random, the network or an AI | changes | replay would get a different answer |
+| Does something to the world (spawn, send, pay) | changes; the effect runs only in the method or a worker | replay must never repeat it |
+| Toggle, relative move | the result | a repeated or simultaneous call flips or drifts |
+| Two people changing one value (counter, adding to a list) | the call, run by the server, plus its result | both intents count |
+| Bulk actions (sort, import) | the call, if it is deterministic | one line instead of hundreds |
+| A deterministic simulation (a game) | the inputs (calls) | the state is too big; the simulation repeats exactly |
+
+**Does React's re-rendering solve it?** Half of it. "The screen is a function of the values" is the "looks" half, and it is why a reloaded page looks right. A virtual DOM is one way to do it (redraw everything, then apply the differences); `view.bind` is another (update only the bound spots). Neither touches the "does" half: React still needs the effect in the event handler, where it runs once.
+
 ---
 
 ## 3. List
@@ -493,6 +576,8 @@ Property.derive([a, b], fn)  // NEW
 // it never writes back. Only people, agents
 // and verbs write.
 ```
+
+**Both kinds of value already exist** in `core/Property` (2026-10-12): a key in `data` is saved and bindable; a plain `new Property(v)` field is bindable and never saved; `Property.of(item, key)` is a live handle on a saved key. So `view.bind` takes an item and a key, or a Property. Never put a Property inside `data`. Your clone-swap idea for big DOM rebuilds, with its caveats, is in D7.
 
 ---
 
