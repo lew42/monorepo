@@ -73,7 +73,7 @@ Also here: [audit/](audit/) (every page layout in use, most-used first) · [make
 
 ## More
 
-Reference: [doc/words.md](doc/words.md) (the six page words) · [doc/api.md](doc/api.md) · [doc/jsonl.md](doc/jsonl.md) · [doc/watch-out.md](doc/watch-out.md) (traps) · [doc/migration-children-to-pages.md](doc/migration-children-to-pages.md) (the deprecated `page.children`, and how to move to `page.pages`) · [doc/architecture.md](doc/architecture.md) · [doc/start-here.md](doc/start-here.md) (working on this module: inbox, log, tests). The readme as it stood before this rewrite, with the split-out sections and dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+Reference: [doc/files.md](doc/files.md) (design: pages as folders, the Files tab, create/drop/move from the UI), [doc/words.md](doc/words.md) (the six page words) · [doc/api.md](doc/api.md) · [doc/jsonl.md](doc/jsonl.md) · [doc/watch-out.md](doc/watch-out.md) (traps) · [doc/migration-children-to-pages.md](doc/migration-children-to-pages.md) (the deprecated `page.children`, and how to move to `page.pages`) · [doc/architecture.md](doc/architecture.md) · [doc/start-here.md](doc/start-here.md) (working on this module: inbox, log, tests). The readme as it stood before this rewrite, with the split-out sections and dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
 
 ## Notes from your asks
 
