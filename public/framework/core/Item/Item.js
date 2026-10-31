@@ -487,11 +487,13 @@ export class Item extends Events(Object) {
 	// `replay_line` per entry). A subclass overrides `replay_new` (what line 1 builds), `replay_line`
 	// (its legacy line shapes) and `replay_end` (anything inferred once all lines are in).
 	static replay_new(lines){ return new this(); }
+	// The root is built the way Item.open builds it (root_from below): a plain Item IS its line 1 (id and fields), the other
+	// lines replay onto it; a class with its own replay_new (Task, Session) builds from all the lines and replays them all.
 	static replay(lines){
-		const item = this.replay_new(lines);
-		for (const line of lines) if (line && typeof line === "object") item.replay_line(line);
-		item.replay_end?.();
-		return item;
+		const { host, rest } = this.root_from(lines);
+		for (const line of rest) if (line && typeof line === "object") host.replay_line(line);
+		host.replay_end?.();
+		return host;
 	}
 	// `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while
 	// it applies (a Task stamps its verbs with it), for every Item. Before, a plain Item kept them as fields (seat a).
@@ -565,8 +567,11 @@ export class Item extends Events(Object) {
 	// rest replayed; a class with its own replay_new (Task, Session) builds its root from all the lines and replays them all.
 	static root_from(entries){
 		if (this.replay_new !== Item.replay_new) return { host: this.replay_new(entries), rest: entries };
-		const [first, ...rest] = entries;
-		return { host: new this(first ?? {}), rest };
+		const first = entries[0];
+		// Line 1 is the item's own fields only when it carries the item's id (`{"id":"layer","x":24}`). A first line that is a change
+		// (`{"cards":{"add":…}}`, a Dated index row) has no id: the item starts empty and every line replays, as Item.replay does.
+		if (!(is_plain(first) && typeof first.id === "string")) return { host: new this(), rest: entries };
+		return { host: new this(first), rest: entries.slice(1) };
 	}
 }
 
