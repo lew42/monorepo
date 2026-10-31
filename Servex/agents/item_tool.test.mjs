@@ -19,6 +19,8 @@ const tools = Object.fromEntries(page_tools().map(t => [t.name, t]));
 const read_back = async (r, url, caller) => r?.ok && r.line && r.state === undefined && url ? { ...r, state: JSON.parse(JSON.stringify(await run_item({ path: url }, { caller }))).state } : r;
 const call = async (name, args, caller = "t1") => { const r = JSON.parse(await tools[name].handler(args, { caller })); return name === "item" && args.delta !== undefined ? read_back(r, args.path ?? URL, caller) : r; };
 const lines = () => fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
+// A test must never write to a real record: the real moves ledger must be byte-identical after the run.
+const REAL_MOVES = path.join(ROOT, "public/framework/ai/sessions/task-moves.jsonl"), moves_before = fs.readFileSync(REAL_MOVES);
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; };
 
@@ -430,5 +432,6 @@ try {
 		ok(r.ok && !JSON.stringify(r).includes("qq1"), "once read it leaves the unread list");
 	}
 
+	ok(Buffer.compare(fs.readFileSync(REAL_MOVES), moves_before) === 0, "the test left the real task-moves.jsonl byte-identical");
 	console.log(`item_tool: ${n} checks passed`);
 } finally { fs.rmSync(DIR, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); fs.rmSync(DIR + "-homes", { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); }
