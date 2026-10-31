@@ -78,6 +78,7 @@ export default class Socket {
 		this.hide_reconnecting();
 		this.ready.resolve();
 		this.rpc("hello", window.location.pathname, this.tab());
+		this.emit("open");   // core/Item/Outbox.js sends again whatever the server has not acked
 	}
 
 	tab() {

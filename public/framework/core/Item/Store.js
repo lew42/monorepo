@@ -44,6 +44,11 @@ export class Store {
 	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
 	static get muted(){ return Store.muting.size; }
 
+	// Where a record file's lines go (core/Item/doc/transport.md). "socket" (the default): the dev server's socket, like every other
+	// .jsonl. "item_api": the old way, a POST to Servex /api/item first (it also applies the line to Servex's live copy), the socket
+	// only for what Servex did not take.
+	static channel = "socket";
+
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
@@ -210,11 +215,12 @@ export class Store {
 
 		lines.forEach(one => (this.sent ??= []).push(JSON.stringify(one)));
 
-		// The ONE file API: the file itself sends the lines (ext/filesystem/FsFile.js).
-		// Imported here, not at the top — FsFile imports Item, which imports this file.
+		// ONE CHANNEL (doc/transport.md): every line goes out over the dev server's socket, numbered, and stays queued until the server
+		// acks it (core/Item/Outbox.js, the wire half of ext/filesystem/FsFile.js). A record file's line is stamped here, as the item
+		// tool would have: `by: "owner"` and a `ts` (a Task reads its times from it).
 		const path = new URL(this.url, "http://localhost").pathname;
-		const send = async rest => { const { default: FsFile } = await import("../../ext/filesystem/FsFile.js"); await new FsFile({ path }).send(rest); };
-		if (!this.via_tool) return send(lines);
+		if (!this.via_tool || Store.channel === "socket")
+			return this.deliver(path, this.via_tool ? lines.map(l => ({ ...l, by: l.by ?? "owner", ts: l.ts ?? RecordWriter.stamp() })) : lines);
 
 		// ONE WRITER (data-shapes 1d): a record's lines go to the one entry point (RecordWriter.js), which applies each to the file's
 		// live root and appends it. A page's lines go raw; a task's or session's are item-tool verbs (validated, stamped, hooks fire).
@@ -228,8 +234,24 @@ export class Store {
 		}
 		if (!rest.length) return;
 		if (down && !Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — the entry point (Servex /api/item) did not take the lines: appending them through the dev server, once."); }
-		await send(rest);
+		await this.deliver(path, rest);
 	}
+
+	// Hand lines to the outbox and wait for the server's ack. The outbox keeps them, and sends them again after a reconnect, until
+	// the server has them. If the server refuses them, no echo will come, so forget the ones this store was waiting to skip.
+	async deliver(path, lines){
+		this.unacked = (this.unacked ?? 0) + lines.length;
+		try {
+			const { default: Outbox } = await import("./Outbox.js");   // imported here, not at the top: it is browser-side wire code
+			const ok = await Outbox.shared().send(path, lines);
+			if (!ok) for (const { by, ts, ...bare } of lines){ const j = (this.sent ?? []).indexOf(JSON.stringify(bare)); if (j !== -1) this.sent.splice(j, 1); }
+			return ok;
+		} finally { this.unacked -= lines.length; }
+	}
+
+	// Lines this store has made that the server has not acked: still queued for the next microtask, or sent and waiting. Not 0 while
+	// the socket is down, so a page can show "saving…" or "not saved yet".
+	get pending(){ return (this._queue?.length ?? 0) + (this.unacked ?? 0); }
 
 	get via_tool(){ return RecordWriter.is_record(this.url); }
 

@@ -669,7 +669,7 @@ function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shot
 		+ `Make no code edits. One pass, then stop.`;
 }
 
-/* THE ONE FILE API CHECK (2026-10-02). Only ext/filesystem/FsFile.js may call the dev
+/* THE ONE FILE API CHECK (2026-10-02). Only ext/filesystem/FsFile.js (and core/Item/Outbox.js, its wire half for `append`) may call the dev
    socket's `write` or `append` RPC (and dev/Socket/ itself, which defines them). Any
    other `async_rpc("append"|"write"` or `method: "append"|"write"` under public/ (the
    dated task logs ai/20* excepted) is a second writer, and the review refuses it.
@@ -677,7 +677,7 @@ function buildPagePrompt(root, taskDir, cardDir, ownerWordsFiles, diffPath, shot
 const RAW_FILE_CALL = /async_rpc\(\s*["'](append|write)["']|method:\s*["'](append|write)["']/;
 export function rawFileCalls(dir) {
 	const pub = path.join(dir, "public"), hits = [];
-	const allowed = rel => rel === "framework/ext/filesystem/FsFile.js" || rel.startsWith("framework/dev/Socket/") || /^framework\/ai\/(sessions\/)?20/.test(rel);   // task archives: old ai/YYYY-MM-DD folders and the sessions store (ai/doc/task-folders.md)
+	const allowed = rel => rel === "framework/ext/filesystem/FsFile.js" || rel === "framework/core/Item/Outbox.js" || rel.startsWith("framework/dev/Socket/") || /^framework\/ai\/(sessions\/)?20/.test(rel);   // task archives: old ai/YYYY-MM-DD folders and the sessions store (ai/doc/task-folders.md)
 	(function walk(abs) {
 		for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
 			if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
