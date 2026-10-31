@@ -59,7 +59,12 @@ Landed and pushed on `claude/replay-tests` (35 of 37 core test files pass; the 2
 - **Item tests as demos:** replay, line-format, hooks, call, item-core use `test()` / `t.view`; listed under "Click-through tests" in `core/Item/readme.md`.
 - **Files phase 2:** `+ Page`, upload or drop (25 MB cap, a clash keeps both), set aside into `_removed/`, all over the socket (`Server/plugins/SocketServer/Files.js`), live in other tabs.
 
-Running: an independent review of the core changes (Opus), `view.bind` (D7), the item-tool test that writes to the real `task-moves.jsonl`.
+- **Independent review** (Opus, `review.md` in this folder): 8 findings, all fixed, each with a failing test first: Approve starts the agent again (record files go to Servex first, the socket is the fallback); `act()` no longer saves a parent's derived completion; a failed write is retried; a reloaded tab resends its unsaved lines at once; the per-file schema check is back for non-Item writes; `as_call` argument lists round-trip; snapshots keep Items held in data slots and carry a code hash so old snapshots are ignored after a code change; Files refuses `Page.jsonl` in any case and Windows device names.
+- **`view.bind`** (D7): `view.bind(item, key, fn)` / `bind(property, fn)`, one draw per frame, released by `remove()` / `empty()`; worked example on the session detail's cost line.
+- **Test leak fixed:** `Servex/agents/item_tool.test.mjs` no longer writes to the real `task-moves.jsonl`.
+- `Dated.test.mjs` fails in this sandbox at the base commit too (file watchers exhausted by leftover dev servers); not a regression.
+
+Running: every line reader understands `name()` / `#id` (so D13 writing can be switched on); Files phase 3 (rename, move, nest with a dry run and undo).
 
 Not started: switching on `Store.marked_lines` (needs the dozen bare readers updated), Files phase 3 (rename, move, nest), per-person UI state (D18), an Item variant experiment, running `Snapshots.mjs` automatically.
 
@@ -73,6 +78,8 @@ Not started: switching on `Store.marked_lines` (needs the dozen bare readers upd
 6. **Dedupe is in server memory:** a server crash between writing and acking, then a resend, can write a batch twice.
 8. **Snapshots on the static site:** opening a log that has no snapshot costs one extra 404 request. A site-wide list of snapshotted logs would avoid it. Recommended: leave it until it shows up as slow.
 7. **Files design answers taken as defaults:** route `files/`, 25 MB upload cap over the socket, keep both on a name clash, move manifests in `Server/moves/`, names only in phase 1.
+
+9. **`as_call` with no arguments** is saved as `{"name()": {"$args": []}}` so a replay calls it with no arguments (default parameters still apply); trailing `undefined` arguments are dropped.
 
 ## Found along the way
 
