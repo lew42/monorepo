@@ -187,9 +187,18 @@ export class Item extends Events(Object) {
 		value = this.adopt_slot(key, value, old);
 		this.put(key, value);
 		if (old !== value){
-			this.emit("change", key, value, old);
+			// The save comes first and does not wait for any view: a listener that throws (a view that broke) is reported and
+			// skipped, so it can never stop the line from being written (item-core.test.mjs, 1a).
 			this.emit("delta", { set: { [key]: value } }, this);
+			this.emit_safely("change", key, value, old);
 		}
+	}
+
+	// emit(), but a throwing listener is reported on console (naming the event and this item) instead of reaching the caller.
+	emit_safely(event, ...args){
+		try { this.emit(event, ...args); }
+		catch (error){ console.error(`Item — a "${event}" listener threw on ${this.constructor.name} "${this.id}": ${error?.message ?? error}`, error); }
+		return this;
 	}
 
 	/* An Item put in a property is ADOPTED: its parent is me and its slot is the property's name, so its own changes bubble
