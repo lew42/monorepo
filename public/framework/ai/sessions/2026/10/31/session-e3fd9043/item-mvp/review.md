@@ -173,3 +173,9 @@ Tests run: `node public/framework/core/Test/TestRunner.mjs public/framework/core
 - `Files.js`: path checks (see above), the 25 MB cap counted per part, in-order parts, `.part` temp files cleaned up when the
   socket closes, no overwrite (hard link, then `name (2).ext`), set-aside never deletes. Only a loopback peer from a local origin
   reaches it (`SocketServer.js` `local_only`, `Socket.js` `LAN_OK`).
+
+## Fixed (X2: snapshot and Files)
+
+- **6** fixed in a5cd349f0 (failing test ad7c51fc8): `restore` runs every data value through `adopt_slot`; the fingerprint now counts slot Items; the proof writes one probe line into every slot Item and compares again.
+- **7** fixed in cf9366446 (failing test 7727ad180): the snapshot stores `classes` and `code` (a hash of the classes' source, `Item.Store` and `Snapshot`, plus a hand-bumped `Snapshot.REPLAY`); `Store.use_snapshot` ignores a mismatch and `Snapshots.mjs` rewrites instead of saying "current". Format version is now 2.
+- **Files, Windows names** fixed in 50a671412 (failing test e9430ea47): protected names compared in lower case; device names (`CON`, `nul.txt`, `COM1`...) refused; the no-hard-link case (FAT/exFAT) now falls back to an exclusive copy.
