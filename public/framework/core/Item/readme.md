@@ -132,6 +132,7 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - [Overview](/framework/core/Item/) — the page asserts every claim on load; red is a broken framework.
 - [Live list](/framework/core/Item/live/) — the same List, on a real page, saved to a real file: drag, add, sort, reload.
 - [Watch a tree being built](/framework/core/Item/watch/) — step through it: every object in the default view as it is made and changed, every line it saves beside it, then a replay of those lines. Files: `watch/` (`Watch.js`, `Box.js`, `ScratchStore.js`).
+- [Replay lab](/framework/core/Item/replay/) — press a button, reload, and see what the real `Item`, `Task` and `Store` bring back and what they run a second time (four examples, changes against calls). Files: `replay/` (`ReplayLab.js`, `LabTape.js`, `LabTask.js`, `readme.md`); tests `replay.test.mjs` (pass) and `replay-vs-open.test.mjs` (fails on purpose).
 - [doc/envelope.md](./doc/envelope.md) — the envelope, unknown types, what is deliberately excluded.
 - [doc/decisions.md](./doc/decisions.md) — the council ruling, verdicts, traps in full, who uses Item.
 - `doc/method/*.md`, `doc/property/*.md` — one note per verb and field, each with its trap. The [Methods tab](/framework/core/Item/methods/) shows three of them (`set`, `get`, `toJSON`); the rest are read here, and many predate `set()` as a delta.

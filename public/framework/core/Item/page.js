@@ -157,7 +157,7 @@ export default new ClassDoc({
 	// ⚠ Declared after the sections, so "live" never lands before Overview in the rail (2026-10-02).
 	initialize(){
 		ClassDoc.prototype.initialize.call(this);
-		this.declare("live"); this.declare("watch"); this.declare("Dated");
+		this.declare("live"); this.declare("watch"); this.declare("replay"); this.declare("Dated");
 	},
 
 	// Below the drawing: the older checks, folded to one line.
