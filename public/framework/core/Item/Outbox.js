@@ -14,6 +14,8 @@ import { Events } from "../Events/Events.js";
    - Down socket: the batch waits in `waiting` (see `pending`), and goes out when the socket opens again.
    - Unacked batch: sent again on every reconnect, in order, until acked.
    - Refused batch (the server read it and said no): dropped with a warning; sending it again would be refused again.
+   - Failed batch (the server could not write it for now, e.g. a file another program holds open: "append failed"): kept, and sent
+     again after `Outbox.retry_after` ms with the same client and n. The server does not remember a failed write, so the retry is safe.
 
    Two more things keep a batch from being lost:
    - Reload: every unacked batch is also kept in `localStorage` (`outbox:<client>:<path>` -> [{n, lines}]), and dropped when acked. The
@@ -30,6 +32,7 @@ export class Outbox extends Events(Object) {
 	waiting = [];   // batches not acked yet, oldest first: { client, n, path, lines, ws, done }
 	counter = 0;
 	static heartbeat = { every: 10000, wait: 10000 };   // ms between pings while something waits, and how long a pong may take
+	static retry_after = 3000;   // ms before a batch the disk could not take ("append failed") is sent again
 
 	// The one outbox of this page. FsFile.send and Item.Store both use it.
 	static shared(){
@@ -141,6 +144,14 @@ export class Outbox extends Events(Object) {
 	acked(batch, reply){
 		const i = this.waiting.indexOf(batch);
 		if (i === -1) return;   // a second ack for a batch sent twice
+		// "append failed" (the disk said no for now) or no answer text at all: not a verdict on the lines. Keep the batch and try again.
+		if (reply.response === "append failed" || !reply.response){
+			batch.ws = null;
+			console.warn(`Outbox: the server could not write ${batch.lines.length} line(s) for ${batch.path} (${reply.response ?? "no answer"}); trying again in ${Outbox.retry_after / 1000} s.`);
+			clearTimeout(this.retrying);
+			this.retrying = setTimeout(() => this.drain(), Outbox.retry_after);
+			return;
+		}
 		const ok = reply.response === "append successful" || reply.response === "append empty";
 		this.waiting.splice(i, 1);
 		this.save(batch);

@@ -26,6 +26,7 @@ Outbox.heartbeat = { every: 20, wait: 100 };
 Outbox.retry_after = 30;
 
 {   // 1
+	const warn = console.warn; console.warn = () => {};   // the outbox says "trying again"; that is not news here
 	const { box, sent } = outbox_with(["append failed", "append successful"]);
 	let result = "pending";
 	box.send("/x/a.jsonl", [{ a: 1 }]).then(ok => result = ok);
@@ -35,6 +36,7 @@ Outbox.retry_after = 30;
 	t.ok(await until(() => sent.length === 2), "and it is sent again by itself");
 	t.ok(await until(() => result === true), "the second answer is 'append successful': send() answers true");
 	t.eq([sent[1]?.args[2], box.waiting.length, memory.size], [sent[0]?.args[2], 0, 0], "the same client and n both times (so the server's dedupe holds), then nothing waits and storage is empty");
+	console.warn = warn;
 }
 
 {   // 2
