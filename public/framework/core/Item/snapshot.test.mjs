@@ -264,3 +264,38 @@ test.node("the proof compares slot Items too: a restore that turns a slot into p
 	const good = Snapshots.prove([{ type: "Item", id: "root" }, entries[1]], { log: "ok.jsonl", lines: 2, bytes: 10, covered: new Uint8Array([1, 2, 3]), made_at: "x" });
 	t.ok(good.snapshot && !good.why, "and passes the same log on a class that restores properly: " + J(good.why));
 });
+
+// ---- 6. review finding 7: a snapshot is only good for the replay code that made it ----
+const bump = [{ type: "Versioned", id: "v" }, { n: 1 }, { n: 2 }];
+
+test.node("a snapshot made by other replay code is ignored by a reader, and the script rewrites it instead of saying 'current'", async t => {
+	class Versioned extends Item { replay_line(line){ return super.replay_line(line); } }
+	Item.register(Versioned, "Versioned");
+	const { dir, url, close } = await folder();
+	const log = path.join(dir, "versioned.jsonl");
+	fs.writeFileSync(log, text_of(bump));
+	const run = async () => (await Snapshots.run({ paths: [log], write: true, log: () => {} }))[0];
+
+	t.ok((await run()).wrote, "the first run writes a snapshot");
+	const again = await run();
+	t.ok(again.current && !again.wrote, "the same log and the same code: current, nothing written: " + J(again));
+	t.ok(typeof JSON.parse(fs.readFileSync(path.join(dir, "versioned.snapshot.json"), "utf8")).code === "string", "the snapshot file records a code version");
+
+	// The class is changed (any edit to its source counts): the same name now names different replay code.
+	class Versioned2 extends Item { replay_line(line){ return this.set(line.n === undefined ? line : { n: line.n * 10 }); } }
+	Item.register(Versioned2, "Versioned");
+	const after = await run();
+	t.ok(after.wrote && !after.current, "after the class changed the script re-proves and rewrites: " + J(after));
+
+	// A reader holding the new code must not trust a sidecar written for other code.
+	const sidecar = path.join(dir, "versioned.snapshot.json");
+	const file = JSON.parse(fs.readFileSync(sidecar, "utf8"));
+	file.code = "made-by-older-code";
+	file.state.data.n = 999;   // visibly wrong, so a reader that trusted the file would show it
+	fs.writeFileSync(sidecar, J(file));
+	fs.appendFileSync(log, text_of([{ m: 1 }]));
+	const { value: opened, said } = await quiet(() => Item.open(url("versioned.jsonl")));
+	t.eq([opened.get_one("n"), opened.get_one("m")], [20, 1], "a snapshot with another code version is ignored: the whole log replays (n is 2 x 10, not the doctored 999)");
+	t.ok(said.some(s => /snapshot/i.test(s) && /code|version|replay/i.test(s)), "with a warning that says why: " + J(said));
+	close();
+});
