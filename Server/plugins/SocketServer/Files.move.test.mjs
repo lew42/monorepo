@@ -416,6 +416,15 @@ try {
 			await rpc("move_undo", done.manifest);
 		} finally { ModuleMove.prototype.plan = real; }
 	}
+
+	// 17. (review 2, smaller items) upload cannot overwrite the page's own files; a hand-edited manifest cannot aim the parents' lists outside public/
+	{
+		const sent = await rpc("upload", URL, "Page.JS", Buffer.from("x").toString("base64"), { part: 0, of: 1 });
+		t.ok(sent.ok === false && /part of the page/.test(sent.reason) && read("page.js") === "export default {};\n", "upload refuses a file called page.js (in any capitals): " + sent.reason);
+		fs.writeFileSync(path.join(MOVES, "evil.json"), JSON.stringify({ at: "x", kind: "file", from: `public/data/${NAME}/zz.txt`, to: `public/data/${NAME}/yy.txt`, extra: { from_parent: "../outside", to_parent: `public/data/${NAME}` } }));
+		const evil = await rpc("move_undo", "evil.json");
+		t.ok(evil.ok === false && /outside public/.test(evil.reason), "an undo whose manifest names a parent outside public/ is refused: " + evil.reason);
+	}
 } finally {
 	unwatch();
 	ws.close();
