@@ -98,6 +98,10 @@ Each test file below opens as a page: one block per test, its checks as green/re
 - [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
 - [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
 
+## Snapshots (Wave 2 E, 2026-10-31)
+
+`Item.open` can start from `task.snapshot.json` beside the log (the item's saved shape and how far into the log it reaches) and replay only the lines after it; `node Server/Snapshots.mjs <path>` writes them after proving they equal a full replay (dry run by default). The log is never touched, a stale snapshot is ignored with a warning, `page.jsonl` is not covered. 8,360 lines: 400 ms to 30 ms. Where it lives, who writes and reads it, and the alternative not taken: [doc/snapshots.md](./doc/snapshots.md). Test: `snapshot.test.mjs`.
+
 ## Where an item saves (the rule, 2026-10-20)
 
 An item added to a parent logs its deltas to the parent's store. Not every item needs a file. An item breaks out by need: first it lives inside the parent's file, then in its own `thing.jsonl`, then in its own `thing/` directory once a real file must sit beside it.
@@ -156,5 +160,5 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
 - Files that matter: `Item.js` (the class), `Store.js` (persistence, one per file), `RecordWriter.js` (posts a record's lines to the one entry point; the fallback append), `page.js` (live assertions), `../List/List.js` (the ordered, announcing collection), `../Page/` (the one Item subclass with a URL).
 - [doc/map.md](./doc/map.md) — every class, store, tool and writer that makes or saves items.
 - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
-- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — adopt-or-ref ownership, first delta at adopt time, snapshots as compaction (decided or leaning; not built; also what works today and the gap).
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — adopt-or-ref ownership, first delta at adopt time, snapshots as compaction (decided or leaning; snapshots are built, see above; also what works today and the gap).
 - [doc/transport.md](./doc/transport.md) — how a line travels: out, ack, in, catch-up. Every line goes over the dev socket, numbered and kept until acked, also in `localStorage` across a reload, with a ping that finds a dead socket (`Outbox.js`, `store.pending`); `Item.Store.channel = "item_api"` brings back the Servex `/api/item` POST the bullets above describe. Tests: `transport.test.mjs`, `transport.browser.mjs`.

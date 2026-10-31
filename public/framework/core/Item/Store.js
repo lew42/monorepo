@@ -96,6 +96,13 @@ export class Store {
 		this.snapshot = null;
 		try {
 			await this.moved();
+			// On the dev server the folder's listing says whether a sidecar exists, so a log with none costs no request (and no 404 in
+			// the console, which the merge smoke counts). Elsewhere (the static site, node) the sidecar is simply asked for.
+			if (Store.local()){
+				const dir = new URL(this.url, globalThis.location.href).pathname.replace(/[^/]*$/, "");
+				const listed = await (await import("../Router/listing.js")).fetch_names(dir).catch(() => null);
+				if (listed && !listed.includes(Snapshot.url_for(this.url).split("/").pop())) return null;
+			}
 			const found = await Snapshot.fetch(this.url);
 			if (!found) return null;
 			const tail = await found.check(this.url, { tail: !Store.local() });
