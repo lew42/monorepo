@@ -1,4 +1,5 @@
 import PromptLog from "./PromptLog.js";
+import LineKey from "../../core/Item/LineKey.js";
 
 /** The Timeline's rows, built with no DOM so a node test can count them (SessionTimeline.test.mjs). A record line is one row, a prompt of
  *  prompts.jsonl is one row, a landed child session is one row; SessionTimeline draws them. Readme: ai/AISession/readme.md. */
@@ -30,7 +31,7 @@ export default class SessionTimelineRows {
 	/** Every task title the record names (`tasks.add`), id to title: a later line says "done" with only the id. */
 	static titles(lines){
 		const out = new Map();
-		const walk = l => { if (!l || typeof l !== "object") return; for (const x of [].concat(l.tasks?.add ?? [])) if (x?.id && x.title) out.set(x.id, x.title); for (const v of Object.values(l)) if (v && typeof v === "object" && !Array.isArray(v) && v.tasks) walk(v); };
+		const walk = l => { if (!l || typeof l !== "object") return; l = LineKey.deep(l); for (const x of [].concat(l.tasks?.add ?? [])) if (x?.id && x.title) out.set(x.id, x.title); for (const v of Object.values(l)) if (v && typeof v === "object" && !Array.isArray(v) && v.tasks) walk(v); };
 		lines.forEach(walk);
 		return out;
 	}
@@ -59,6 +60,7 @@ export default class SessionTimelineRows {
 
 	/** One record line to one row `{ kind, at, text, more?, children? }`. `children` are the child sessions the row names (linked when drawn). */
 	static row(l, titles){
+		l = LineKey.deep(l);   // `complete()` and `#c3` read as complete and c3 (D13)
 		const at = SessionTimelineRows.time_of(l), clip = SessionTimelineRows.clip, str = v => typeof v === "string" ? v : v?.msg ?? v?.text ?? v?.title ?? v?.about ?? v?.id ?? "";
 		if (l.tasks && typeof l.tasks === "object") return { ...SessionTimelineRows.task_row(l.tasks, titles), at };
 		if (typeof l.task === "string"){

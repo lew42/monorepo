@@ -19,6 +19,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
 import path from "node:path";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import AskIndex from "./AskIndex.mjs";
 
@@ -72,7 +73,8 @@ export default class UndoneAsks {
 	/** A task.jsonl read as the state its own lines say: complete (a `complete` line or a landing), stopped, or open. */
 	static task_state(lines){
 		let st = "open";
-		for (const l of lines){
+		for (const raw of lines){
+			const l = LineKey.deep(raw);   // D13: `complete()` reads as complete
 			if (l.complete || l.set?.state === "complete" || l.set?.landed_at || l.assign?.landed_at) st = "complete";
 			else if (l.stop && st !== "complete") st = "stopped";
 		}

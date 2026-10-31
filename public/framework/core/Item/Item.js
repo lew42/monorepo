@@ -1,5 +1,6 @@
 import Store from "./Store.js";
 import Snapshot from "./Snapshot.js";
+import LineKey from "./LineKey.js";
 import { Events } from "../Events/Events.js";
 
 const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
@@ -696,18 +697,7 @@ export class Item extends Events(Object) {
 
 	// A line's top-level marks undone, for a replay_line that reads its keys by their bare names (Task, Session): `{"start()":{}}`
 	// reads as `{"start":{}}` and `{"#c3":{…}}` as `{"c3":{…}}`. Both shapes of a line therefore read the same there.
-	static unmark(line){
-		if (!is_plain(line)) return line;
-		let out = null;
-		for (const key of Object.keys(line)){
-			const bare = key.length > 2 && key.endsWith("()") ? key.slice(0, -2) : key.length > 1 && key.charCodeAt(0) === 35 ? key.slice(1) : null;
-			if (bare === null) continue;
-			out ??= { ...line };
-			delete out[key];
-			if (!(bare in out)) out[bare] = line[key];
-		}
-		return out ?? line;
-	}
+	static unmark(line){ return LineKey.unmark(line); }
 
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.

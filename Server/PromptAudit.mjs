@@ -14,6 +14,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import RefineQueue from "./RefineQueue.mjs";
@@ -105,7 +106,7 @@ Answer at the end with ONE JSON object and nothing else after it:
 		return [...new Set(text.match(/(?:\/[\w.-]+){2,}\/?|\b[\w-]+\.(?:js|mjs|md|jsonl|json|css)\b/g) ?? [])];
 	}
 
-	static read(file){ return fs.existsSync(file) ? fs.readFileSync(file, "utf8").split("\n").flatMap(r => { try { return [JSON.parse(r)]; } catch { return []; } }) : []; }
+	static read(file){ return fs.existsSync(file) ? fs.readFileSync(file, "utf8").split("\n").flatMap(r => { try { return [LineKey.deep(JSON.parse(r))]; } catch { return []; } }) : []; }   // record lines: D13 marks off
 	static append(file, obj){ fs.appendFileSync(file, JSON.stringify(obj) + "\n"); }
 	static json(text){ const t = String(text ?? ""), a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < a) throw new Error("no JSON object"); return JSON.parse(t.slice(a, b + 1)); }
 
