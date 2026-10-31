@@ -31,7 +31,7 @@ export default class PageLogReader extends Item.Store {
 		this.host = host;
 		host.store = this;
 		host.on("delta", (line, origin) => {
-			if (this.replaying || Item.Store.muted) return;   // muted: a button's act() records its verb once, not the set lines it made (seat g, B9)
+			if (this.replaying || Item.Store.muted_at(origin)) return;   // muted: a button's act() records its verb once, not the set lines it made (seat g, B9)
 			this.append(this.line_for(line, origin, host));
 		});
 

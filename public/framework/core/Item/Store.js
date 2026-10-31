@@ -25,7 +25,20 @@ export class Store {
 
 	entries = [];
 	count = 0;
-	static muted = 0;   // > 0 while Item.act runs its verb locally: the `set` lines it makes are not recorded, the verb is
+	/* MUTING is per item tree (2026-10-31): while Item.act (or Item.as_call) runs a verb, the changes made to THAT item and
+	   anything under it are not recorded (the verb is), but a write to any other item is. `muting` maps an item to how many
+	   mutes it holds (a verb may call a verb). */
+	static muting = new Map();
+	static mute(item){ Store.muting.set(item, (Store.muting.get(item) ?? 0) + 1); }
+	static unmute(item){ const n = (Store.muting.get(item) ?? 1) - 1; n > 0 ? Store.muting.set(item, n) : Store.muting.delete(item); }
+	// Is `node` (the origin of a change: an Item, or a List, whose parent is its owner) inside a muted item's tree?
+	static muted_at(node){
+		if (!Store.muting.size) return false;
+		for (let n = node; n; n = n.parent) if (Store.muting.has(n)) return true;
+		return false;
+	}
+	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
+	static get muted(){ return Store.muting.size; }
 
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
@@ -137,7 +150,7 @@ export class Store {
 		host.store = this;
 
 		host.on("delta", (line, origin) => {
-			if (this.replaying || Store.muted || owned_below(origin, host)) return;
+			if (this.replaying || Store.muted_at(origin) || owned_below(origin, host)) return;
 			this.append(this.line_for(line, origin, host));
 		});
 

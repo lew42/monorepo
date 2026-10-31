@@ -159,7 +159,7 @@ Item.register(Ref, "Ref");
 // A live move to another list (List.move) re-paths the same-file Refs that named the old path, one line each. Not on replay:
 // the file already holds those lines. Only while Ref is loaded: a page with no Refs pays nothing.
 Item.moving = {
-	before: item => item.root?.()?.store?.replaying || Store.muted ? undefined : Store.address(item, item.root()),
+	before: item => item.root?.()?.store?.replaying || Store.muted_at(item) ? undefined : Store.address(item, item.root()),
 	after: (item, old_path) => { if (old_path && Ref.backlinks(item.root()).size) Ref.repath(item, old_path); },
 };
 export default Ref;
