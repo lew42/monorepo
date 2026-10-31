@@ -65,10 +65,12 @@ export class Store {
 	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
 	static get muted(){ return Store.muting.size; }
 
-	// Where a record file's lines go (core/Item/doc/transport.md). "socket" (the default): the dev server's socket, like every other
-	// .jsonl. "item_api": the old way, a POST to Servex /api/item first (it also applies the line to Servex's live copy), the socket
-	// only for what Servex did not take.
-	static channel = "socket";
+	// Where a record file's lines (task, session, page, improvements .jsonl) go (core/Item/doc/transport.md). "item_api" (the
+	// default): Servex's POST /api/item first, so its hooks run (Approve starts the agent, an answered request tells the agent that
+	// asked it, a changed process is picked up); only the lines Servex did not take go through the dev socket, numbered and acked.
+	// "socket": the dev socket for them too, as for every other .jsonl, and Servex's hooks do not run. Every other file always
+	// uses the socket.
+	static channel = "item_api";
 
 	/* SNAPSHOTS (doc/snapshots.md): `Item.open` may start from `<log>.snapshot.json` (the item's saved shape and how far into the log it
 	   reaches) and replay only the lines after it. false = always replay the whole log, as before. */
@@ -290,9 +292,10 @@ export class Store {
 
 		lines.forEach(one => (this.sent ??= []).push(JSON.stringify(one)));
 
-		// ONE CHANNEL (doc/transport.md): every line goes out over the dev server's socket, numbered, and stays queued until the server
-		// acks it (core/Item/Outbox.js, the wire half of ext/filesystem/FsFile.js). A record file's line is stamped here, as the item
-		// tool would have: `by: "owner"` and a `ts` (a Task reads its times from it).
+		// THE SOCKET (doc/transport.md): the lines go out over the dev server's socket, numbered, and stay queued until the server
+		// acks it (core/Item/Outbox.js, the wire half of ext/filesystem/FsFile.js). Every file does this except a record file while
+		// Store.channel is "item_api" (below). A record file's line is stamped here, as the item tool would have: `by: "owner"` and a
+		// `ts` (a Task reads its times from it).
 		const path = new URL(this.url, "http://localhost").pathname;
 		if (!this.via_tool || Store.channel === "socket")
 			return this.deliver(path, this.via_tool ? lines.map(l => ({ ...l, by: l.by ?? "owner", ts: l.ts ?? RecordWriter.stamp() })) : lines);
