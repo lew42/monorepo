@@ -71,3 +71,7 @@
 {"log":{"at":"2026-10-30T19:52:30-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-10-30T19:57:30-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-10-30T20:02:30-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"tool_call":{"at":"2026-10-31T01:22:42.583Z","tool":"send_to_agent","args_hash":"47884b47439c","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-31T01:22:45.665Z","tool":"shell","args_hash":"fa562e101679","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-31T01:30:24.169Z","tool":"shell","args_hash":"fa562e101679","caller":"voice-app"}}
+{"tool_call":{"at":"2026-10-31T01:36:11.120Z","tool":"shell","args_hash":"fa562e101679","caller":"voice-app"}}
