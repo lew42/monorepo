@@ -4,3 +4,4 @@
 {"home":"/framework/servex/tasks/restart-keeps-agents/"}
 {"wait":{"on":"/framework/servex/tasks/restart-keeps-agents/","what":"Never-assigned mastermind-servex task queued with $8 budget; real work (restart survival, mid-turn guard, agent reaping).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:05.091Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/restart-keeps-agents/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:05.092Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/servex/tasks/restart-keeps-agents/ is past its decide-by time (2026-10-31T00:00:00Z)"}}

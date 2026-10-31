@@ -2,3 +2,4 @@
 {"home":"/framework/servex/tasks/spend-shape/"}
 {"wait":{"on":"/framework/servex/tasks/spend-shape/","what":"Never-assigned mastermind-servex task queued with $5 budget; real work (spawn tracking, clarity gating, small-task rule).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:07.396Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/spend-shape/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:07.406Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/servex/tasks/spend-shape/ is past its decide-by time (2026-10-31T00:00:00Z)"}}

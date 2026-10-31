@@ -2,3 +2,5 @@
 {"log":{"at":"2026-10-30T18:27:30-05:00","msg":"task-loop status ask 1: minion-replay-research was stopped on purpose; not woken","ask":1}}
 {"log":{"at":"2026-10-30T18:28:48-05:00","heartbeat":"deliberate","msg":"minion-replay-research its agent is not running: it was stopped on purpose by in-process at 2026-10-30T18:22:49-05:00; not revived."}}
 {"log":{"at":"2026-10-30T18:32:30-05:00","msg":"task-loop status ask 2: minion-replay-research was stopped on purpose; not woken","ask":2}}
+{"log":{"at":"2026-10-30T18:37:30-05:00","msg":"task-loop status ask 3: asked minion-replay-research","ask":3}}
+{"log":{"at":"2026-10-30T18:42:30-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

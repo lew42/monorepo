@@ -8,3 +8,4 @@
 {"home":"/framework/core/Page/tasks/streaming-doc/"}
 {"wait":{"on":"/framework/core/Page/tasks/streaming-doc/","what":"Mastermind-stopped 2026-10-09 before work landed; real work remains.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:10.873Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:10.876Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/core/Page/tasks/streaming-doc/ is past its decide-by time (2026-10-31T00:00:00Z)"}}

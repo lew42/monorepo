@@ -5,9 +5,9 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-30 00:02 UTC, last 24 h)
+## NOW (computed 2026-10-31 00:02 UTC, last 24 h)
 
-**Pace:** Week: 8% used · 13% gone · 64% of pace (room to spend, 6 days 2 hours left)
+**Pace:** Week: 16% used · 27% gone · 60% of pace (room to spend, 5 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
@@ -15,18 +15,18 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 - none
 
 **Open, touched in the window (1):**
-- [Two jobs, for the owner (Mike), relayed by a Claude cloud session that can't see plan usage itself.](/framework/ai/sessions/2026/10/29/spawned/minion-usage-check/) (minion-usage-check)
+- [Research question from the owner (Mike), for his vanilla-JS framework Lew42 (Item/List/Page objects; every cha](/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/) (minion-replay-research)
 
 **Latest commits on this branch:**
 ```
-c063a9f8d ai: requirements for the check_usage task (review finding 1)
-84fc1c026 servex: log sweep (8 files)
-ecd145991 rules: keep GitHub current; merge.mjs pushes michael/dev after each landing
-70e450c0e servex: log sweep (3 files)
-183297fbf servex: log sweep (1 files)
-7ba59673c servex: log sweep (3 files)
-2f69f0621 core/Session: data-shapes forks F6 (direct store call vs evented delta) and F7 (adding an already-parented item)
-a2985706f servex: log sweep (1 files)
+04f4e2867 servex: log sweep (7 files)
+67112d42a servex: log sweep (1 files)
+d966eef03 servex: log sweep (5 files)
+eb3080c53 servex: log sweep (1 files)
+e6ef94cb5 servex: log sweep (5 files)
+b9569b3bd servex: log sweep (1 files)
+a71586c1c servex: log sweep (5 files)
+5c4c20ae5 servex: log sweep (1 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

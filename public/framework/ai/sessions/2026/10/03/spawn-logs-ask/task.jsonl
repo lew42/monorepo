@@ -2,3 +2,4 @@
 {"home":"/framework/servex/tasks/spawn-logs-ask/"}
 {"wait":{"on":"/framework/servex/tasks/spawn-logs-ask/","what":"Never-assigned mastermind-servex task queued with $3 budget; real work (asks ledger auto-written on spawn).","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:06.573Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/spawn-logs-ask/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:06.585Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/servex/tasks/spawn-logs-ask/ is past its decide-by time (2026-10-31T00:00:00Z)"}}

@@ -58,3 +58,4 @@
 {"task":"/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.182Z"}
 {"log":{"at":"2026-10-25T03:20:47-05:00","msg":"dropped: streaming-doc: owner minion-page-streaming-doc is stopped","dropped":"/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/","reason":"owner-stopped"}}
 {"stop":{"at":"2026-10-25T19:00:46-05:00","why":"dropped: owner mastermind-page-system is gone"}}
+{"log":{"at":"2026-10-30T19:02:30-05:00","msg":"dropped: streaming-doc: deferral to /framework/core/Page/tasks/streaming-doc/ is past its decide-by time (2026-10-31T00:00:00Z)","dropped":"/framework/ai/sessions/2026/10/09/session-060cdfff/page-mastermind/streaming-doc/","reason":"deferral-overdue"}}

@@ -3,3 +3,4 @@
 {"home":"/framework/servex/tasks/perf-audit/"}
 {"wait":{"on":"/framework/servex/","what":"Servex infrastructure: find and optimize slowest common path; not started.","decide_by":"2026-10-31T00:00:00Z","deferred":true},"by":"minion-review-stops","ts":"2026-10-25T13:34:00.027Z"}
 {"sessions":[{"id":"minion-review-stops","task":"/framework/ai/sessions/2026/10/03/perf-audit/"}],"by":"minion-review-stops","ts":"2026-10-25T13:34:00.028Z"}
+{"stop":{"at":"2026-10-30T19:02:30-05:00","why":"dropped: deferral to /framework/servex/ is past its decide-by time (2026-10-31T00:00:00Z)"}}
