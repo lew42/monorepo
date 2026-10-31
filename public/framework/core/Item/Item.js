@@ -150,6 +150,25 @@ export class Item extends Events(Object) {
 		return this;
 	}
 
+	/* D14, a method saved as ONE call. The method wraps its body, so a caller never has to remember act():
+	       sort_by(key){ return this.as_call("sort_by", [key], () => { …the work… }); }
+	   While the body runs, saving is muted for this item and what sits under it (Store.mute); when it is done ONE line is saved,
+	   `{"sort_by()": "title"}`: the call, with its argument as the line's value (D13 rule 2: one argument; several go in one object).
+	   Only the OUTERMOST call saves: a call made inside the body (or inside any muted tree) just runs. While a line is replayed
+	   nothing is saved either: the body runs and its changes come back by themselves. No change, no line. A body that throws
+	   saves no line and the error goes on to the caller. act() keeps working beside it. Doc: core/Item/doc/call.md. */
+	as_call(name, args, body){
+		if (Store.muted_at(this) || Store.replay_depth > 0) return body();
+		let changed = 0;
+		const count = () => changed++;
+		this.on("delta", count);
+		Store.mute(this);
+		let result;
+		try { result = body(); } finally { Store.unmute(this); this.off("delta", count); }
+		if (changed) this.emit("delta", { [name + "()"]: args.length === 0 ? {} : args.length === 1 ? args[0] : args }, this);
+		return result;
+	}
+
 	// The one rule, key by key, IN KEY ORDER:
 	//   1. skip `constructor`, `__proto__`, anything starting `_` (never trust a line
 	//      to reach into the prototype chain).
@@ -582,8 +601,11 @@ export class Item extends Events(Object) {
 	// lines replay onto it; a class with its own replay_new (Task, Session) builds from all the lines and replays them all.
 	static replay(lines){
 		const { host, rest } = this.root_from(lines);
-		for (const line of rest) if (line && typeof line === "object") host.replay_line(line);
-		host.replay_end?.();
+		Store.replay_depth++;   // a replay saves nothing, here as when a Store reads (as_call, Store.js)
+		try {
+			for (const line of rest) if (line && typeof line === "object") host.replay_line(line);
+			host.replay_end?.();
+		} finally { Store.replay_depth--; }
 		return host;
 	}
 	// `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while

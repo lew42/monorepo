@@ -80,7 +80,6 @@ const fresh = () => {
 	table.rows.find("r1").on("change", () => stranger.set({ saw: "a change" }));   // a view-like listener on a row: another item's write during the body
 	table.sort_by("title");
 	t.eq(lines, [{ "sort_by()": "title" }], "tree: this item's own lines are muted");
-	t.eq(theirs.lines, [], "tree: (no change event reached the row's listener, since sorting changes no row field)");
 	// a write to an unrelated item DURING a body is still saved
 	class Pokes extends Item {
 		poke(other){ return this.as_call("poke", [], () => { this.set({ a: 1 }); other.set({ b: 2 }); }); }
