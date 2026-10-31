@@ -170,6 +170,7 @@ else reloads.
 | `subscribe` | stream a `.jsonl` from byte offset `from` (`0` = the whole file). Answered immediately with one `jsonl`, then kept streaming | `{"method":"subscribe","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl",0]}` |
 | `unsubscribe` | stop streaming that file. Optional — closing the socket cleans up | `{"method":"unsubscribe","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl"]}` |
 | `ls` · `write` · `rm` | the `Runtime` plugin's file commands, sent via `rpc` / `async_rpc` | see reply shape below |
+| `append` | one batch of lines added to a `.jsonl` (`Append.js`). With a third argument `{client, n}` the batch is numbered: written once, acked `{index, response, client, n, offset}`, answered again with `dup: true` when resent | `{"method":"append","args":["/x/y.jsonl",[{"set":{"a":1}}],{"client":"3e83f2c0.x7q2","n":14}],"index":5}`. Whole story: [core/Item/doc/transport.md](/framework/core/Item/doc/transport.md) |
 
 Those last three are the only frames that use the **`{ index, response }` reply
 shape**. A real `ls` round trip, captured — the browser stamps an `index`, the

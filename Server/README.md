@@ -11,6 +11,7 @@ Slow or crashing again (2026-10-09 first look): [`doc/perf-2026-10-09.md`](./doc
 Dictation failing while the page will not reload: Whisper died with a Servex restart, now fixed, with the loop that reproduces it: [`doc/transcription-crash-2026-10-12.md`](./doc/transcription-crash-2026-10-12.md).
 Clear out landed worktrees, with a plan first and a manifest (`node Server/Worktrees.mjs --plan`): [`doc/worktrees.md`](./doc/worktrees.md).
 Every task log held in memory and queryable (module, landed, text, raw-log paths): [`doc/session-index.md`](./doc/session-index.md).
+The dev socket's server half (`Tail`, `Append`, the numbered append that never writes a line twice): [`plugins/SocketServer/readme.md`](./plugins/SocketServer/readme.md).
 
 The owner-facing server also starts `whisper-server` for dictation on its own —
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
