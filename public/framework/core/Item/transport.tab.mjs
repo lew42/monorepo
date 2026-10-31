@@ -8,6 +8,7 @@
 //   {"cmd":"append","line":{…}}                   store.append(line), as an Item's change would
 //   {"cmd":"offline"} / {"cmd":"online"}          cut the socket and keep it cut / let it reconnect
 //   {"cmd":"channel","value":"item_api"}          switch Store.channel (default "socket")
+//   {"cmd":"heartbeat","every":ms,"wait":ms}      shorten the outbox ping timing
 //   {"cmd":"state"}                               -> {"ev":"state","pending":…,"connected":…,"offset":…}
 //   {"cmd":"exit"}
 //   events: {"ev":"entry_post"}  the tab tried to post to Servex /api/item (it is "down" here)
@@ -22,8 +23,16 @@ register("data:text/javascript," + encodeURIComponent(`export function resolve(s
 const port = process.argv[2];
 globalThis.window = { location: new URL(`http://127.0.0.1:${port}/`) };
 globalThis.location = window.location;
-const memory = new Map();
-globalThis.sessionStorage = { getItem: k => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, String(v)), removeItem: k => memory.delete(k) };
+// sessionStorage and localStorage are Maps. With env TAB_STORAGE=<file> they are kept in that file, so a second process started with
+// the same file is "the same tab after a reload" (same tab id, same unsent lines).
+import fs from "node:fs";
+const saved = process.env.TAB_STORAGE && fs.existsSync(process.env.TAB_STORAGE) ? JSON.parse(fs.readFileSync(process.env.TAB_STORAGE, "utf8")) : {};
+const memory = new Map(Object.entries(saved.session ?? {})), local = new Map(Object.entries(saved.local ?? {}));
+const persist = () => { if (process.env.TAB_STORAGE) fs.writeFileSync(process.env.TAB_STORAGE, JSON.stringify({ session: Object.fromEntries(memory), local: Object.fromEntries(local) })); };
+const storage = map => ({ getItem: k => map.get(k) ?? null, setItem: (k, v) => { map.set(k, String(v)); persist(); }, removeItem: k => { map.delete(k); persist(); },
+	get length(){ return map.size; }, key: i => [...map.keys()][i] ?? null });
+globalThis.sessionStorage = storage(memory);
+globalThis.localStorage = storage(local);
 
 // FsFile.js (what Store.flush sends through) imports Item and, through it, a good part of the page UI, whose modules touch
 // `document` as they load. This tab draws nothing, so `document` is an object that answers every call with itself.
@@ -39,6 +48,7 @@ globalThis.fetch = (resource, ...rest) => /\/api\/item/.test(String(resource?.ur
 
 const { default: Socket } = await import("../../dev/Socket/Socket.js");
 const { default: Store } = await import("./Store.js");
+const { default: Outbox } = await import("./Outbox.js");
 await import("../../ext/JSONL/live.js");   // installs Socket.prototype.jsonl: how a streamed frame reaches Store.read
 
 const socket = Socket.singleton();
@@ -56,6 +66,7 @@ const host = { on(){}, emit(){}, replay_line: line => out({ ev: "line", line }) 
 const commands = {
 	async open({ url }){ store = new Store({ url }); store.attach(host); await store.open(); out({ ev: "opened" }); },
 	append({ line }){ store.append(line); },
+	heartbeat({ every, wait }){ Outbox.heartbeat = { every, wait }; },
 	channel({ value }){ Store.channel = value; },
 	offline(){ held = true; socket.ws.close(); },
 	online(){ held = false; },

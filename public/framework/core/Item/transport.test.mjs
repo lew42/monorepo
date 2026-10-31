@@ -8,6 +8,8 @@
 //   4. tab B is offline while A writes 3 lines -> B reconnects and gets exactly those 3
 //   5. a task.jsonl line goes through the socket, not the Servex /api/item door, and is stamped by/ts
 //   6. (optional) Store.channel = "item_api" still posts to Servex first, and falls back to the socket when Servex is down
+//   8. a line queued while the socket is down survives a reload of the tab (same tab id and storage, new process) and is written once
+//   9. a socket that stays open but stops answering is noticed by the outbox's ping, and the batch is sent again on a new socket
 //   7. while the socket is down the line stays queued and the tab can see it (store.pending)
 import fs from "node:fs";
 import http from "node:http";
@@ -40,9 +42,13 @@ async function until(fn, what, ms = 8000){
 }
 
 // The dev server's socket, as server.js builds it: the same SocketServer, the same two plugins, a watcher that tells Tail a file changed.
-const faults = { lose_line: 0, lose_ack: 0 };
+const faults = { lose_line: 0, lose_ack: 0, deaf: new Set() };   // deaf: sockets that stay open but never answer (a half-open connection)
 const append_real = Append.prototype.append, answer_real = Append.prototype.answer;
-Append.prototype.append = function(...args){   // fault 1: the socket dies while the line is still on the wire (it never reaches the file)
+Append.prototype.ping = function(args, index){   // the heartbeat's pong (a deaf socket stays silent)
+	if (!faults.deaf.has(this.socket.ws)) this.socket.send({ index, response: "pong" });
+};
+Append.prototype.append = function(...args){
+	if (faults.deaf.has(this.socket.ws)) return;   // fault 1: the socket dies while the line is still on the wire (it never reaches the file)
 	if (faults.lose_line > 0){ faults.lose_line--; return this.socket.ws.terminate(); }
 	return append_real.apply(this, args);
 };
@@ -54,16 +60,16 @@ SocketServer.Socket.use(Tail);
 SocketServer.Socket.use(Append);
 const server = http.createServer();
 await new Promise(r => server.listen(0, "127.0.0.1", r));
-new SocketServer({ server: { http: server } });
+const socket_server = new SocketServer({ server: { http: server } });
 const watcher = fs.watch(DIR, { recursive: true }, (_, name) => { if (name?.endsWith(".jsonl")) Tail.changed(path.join(DIR, name)); });
 
 
 class Tab {
 	events = [];
-	constructor(name){
+	constructor(name, storage_file){
 		this.name = name;
 		this.child = spawn(process.execPath, [path.join(HERE, "transport.tab.mjs"), String(server.address().port)], {
-			cwd: ROOT,
+			cwd: ROOT, env: storage_file ? { ...process.env, TAB_STORAGE: storage_file } : process.env,
 		});
 		let buffer = "";
 		this.child.stdout.on("data", chunk => {
@@ -158,6 +164,38 @@ try {
 	await sleep(300);
 	t.eq(read("x.jsonl").filter(l => l.n === 20).length, 1, "exactly once");
 	t.eq((await A.state()).pending, 0, "and nothing is pending any more");
+
+	// 8. Reload: the tab dies with a line still unsent; the next page load (same tab storage) sends it, once.
+	{
+		const storage_file = path.join(DIR, "tab-storage.json");
+		const E = new Tab("E", storage_file); await E.ready(); await E.open("reload.jsonl");
+		E.send({ cmd: "offline" });
+		await until(async () => (await E.state()).connected === false, "E is offline");
+		E.send({ cmd: "append", line: { n: 30 } });
+		await until(async () => (await E.state()).pending === 1, "E has the line pending");
+		E.child.kill("SIGKILL");   // the tab is gone, not asked to leave
+		await sleep(200);
+		t.eq(read("reload.jsonl").length, 0, "the unsent line is not in the file when the tab dies");
+		const E2 = new Tab("E2", storage_file); await E2.ready();   // the reloaded page: it opens nothing and appends nothing
+		t.ok(await until(() => read("reload.jsonl").some(l => l.n === 30), "n:30 reaches the file"), "a line queued before a reload is sent by the reloaded page");
+		await sleep(500);
+		t.eq(read("reload.jsonl").filter(l => l.n === 30).length, 1, "and it is in the file exactly once");
+		t.ok(!/outbox:/.test(fs.readFileSync(storage_file, "utf8")), "once acked, nothing is kept in storage");
+		E2.exit();
+	}
+
+	// 9. Heartbeat: the socket stays open but the server stops answering (a half-open connection). Without a ping the batch
+	// would wait for a close the browser may never report; with it, the outbox drops the dead socket and sends on a new one.
+	{
+		A.send({ cmd: "heartbeat", every: 200, wait: 300 });
+		await A.state();
+		for (const s of socket_server.sockets) faults.deaf.add(s.ws);   // every socket open now goes deaf; a reconnect is a new one
+		A.send({ cmd: "append", line: { n: 40 } });
+		t.ok(await until(() => read("x.jsonl").some(l => l.n === 40), "n:40 reaches the file", 6000), "a deaf socket is noticed by the ping, and the line is sent again on a new one");
+		await sleep(500);
+		t.eq(read("x.jsonl").filter(l => l.n === 40).length, 1, "exactly once");
+		t.eq((await A.state()).pending, 0, "and nothing is pending");
+	}
 } finally {
 	A.exit(); B.exit();
 	watcher.close(); server.close();
