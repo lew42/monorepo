@@ -67,6 +67,8 @@ Landed and pushed on `claude/replay-tests` (35 of 37 core test files pass; the 2
 - **Every line reader takes both spellings** (`core/Item/LineKey.js`, used by Chat v2/v3, the session timeline, AIIndex, PromptAudit, UndoneAsks, DatedFiles, TaskMigrate, TaskLoop). `Store.marked_lines` is still off; switching it on is one line, steps in `core/Item/doc/line-format.md`; a test runs the main flows with it on.
 - **Files phase 3:** rename, move (a folder picker, or drag a row onto a folder), a dry-run plan before a folder moves, Undo; manifests in `Server/moves/`; `ModuleMove` falls back to a plain rename for untracked folders. Not rewritten on a move yet: links inside `.jsonl` records and links to a single file; the scan takes about 1.4 s and blocks the dev server.
 
+- **Second independent review** (`review-2.md`, file moves and line readers): the readers were sound; 6 move findings fixed with tests: a failed move puts every rewritten file back; a file rename or move gets the same plan, apply and undo as a folder; `.jsonl` `"class":"/…"` links are found and counted; a url only matches as a real site path (no false rewrites); a move that worked but couldn't refresh a list reports a warning and keeps Undo; a case-only rename goes through a temp name; undo finds links again by nearest match. Files move tests: 110 checks.
+
 Verified at the end: 39 of 41 core test files pass (the other 2 need the live site); Files 70 checks, Files move 64, item tool 116.
 
 Not started: per-person UI state (D18), an Item variant experiment, running `Snapshots.mjs` automatically.
@@ -83,6 +85,8 @@ Not started: per-person UI state (D18), an Item variant experiment, running `Sna
 7. **Files design answers taken as defaults:** route `files/`, 25 MB upload cap over the socket, keep both on a name clash, move manifests in `Server/moves/`, names only in phase 1.
 
 9. **`as_call` with no arguments** is saved as `{"name()": {"$args": []}}` so a replay calls it with no arguments (default parameters still apply); trailing `undefined` arguments are dropped.
+
+10. **`children: [...]` arrays in `page.js`:** a move that would need to edit such an array is refused (101 pages use arrays), so a child of those pages can't be moved from the Files tab until the list is edited by hand. Alternative: rewrite the array with its own undo. Recommended: build that next if you move pages often.
 
 ## Found along the way
 
