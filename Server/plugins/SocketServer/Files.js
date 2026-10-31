@@ -18,8 +18,9 @@ const PUBLIC = path.resolve("public");
  *   move_undo(manifest)                                        replay a manifest backwards
  *   list_folders(folder_url)                                   the folders inside one folder (for the "Move to…" picker); "/" is allowed here
  *
- * A rename is a move inside the same folder. A file is renamed with a plain rename. A folder (a page or not) goes through
- * Server/ModuleMove.mjs, which rewrites every link into it, in every file it scans, and keeps the manifest that undoes it.
+ * A rename is a move inside the same folder. A file and a folder (a page or not) both go through Server/ModuleMove.mjs, which rewrites every link
+ * into it, in every file it scans, and keeps the manifest that undoes it. All or nothing: a move that fails puts every link back.
+ * A move that worked but could not finish tidying (the parents' lists) still answers ok, with `warnings`, and the Undo stays.
  *
  * Each answers `{ index, response }`, the response being `{ ok: true, … }` or `{ ok: false, reason: "a sentence" }`.
  * Nothing here tells other tabs: the files change on disk, PageFiles (Server/plugins/PageFiles.js) appends the list line,
@@ -63,6 +64,7 @@ export default class Files {
 	upload(folder_url, name, base64, meta = {}){
 		const folder = this.folder(folder_url);
 		this.check_name(name);
+		if (this.constructor.RESERVED.has(name.toLowerCase())) throw this.refuse(`${name} is part of the page, so a file cannot be uploaded under that name`);
 		const { part, of } = meta;
 		if (!Number.isInteger(part) || !Number.isInteger(of) || part < 0 || of < 1 || part >= of) throw this.refuse("upload needs {part, of}: whole numbers, part counted from 0");
 		if (typeof base64 !== "string" || !/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) throw this.refuse("upload part is not base64");
@@ -127,29 +129,23 @@ export default class Files {
 
 	move_plan(...args){
 		const move = this.work_out(...args);
-		if (move.kind === "file") return { ok: true, kind: "file", from: move.from_url, to: move.to_url };
+		try { move.mover.check(); } catch (e){ throw this.refuse(`${e.message}, so nothing would be moved`); }   // the refusals apply would make, said now
 		return { ok: true, kind: move.kind, from: move.from_url, to: move.to_url, ...move.mover.summary(), ...(move.note ? { note: move.note } : {}) };
 	}
 
+	// One scan of the repo (about a second or two, and the server does nothing else meanwhile), shared by the counts and the move.
 	move_apply(...args){
 		const move = this.work_out(...args);
 		const manifest = this.manifest_name(move.name);
 		const extra = { name: move.name, to_name: move.to_name, from_parent: this.repo_path(move.from_parent), to_parent: this.repo_path(move.to_parent), declared: move.declared };
-		const file = path.join(this.constructor.MOVES, manifest);
-		let counts = {};
-		if (move.kind === "file"){
-			fs.mkdirSync(this.constructor.MOVES, { recursive: true });
-			const rel = { from: this.repo_path(move.from), to: this.repo_path(move.to) };
-			fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), kind: "file", ...rel, extra }, null, "\t") + "\n");
-			fs.renameSync(move.from, move.to);
-		} else {
-			counts = move.mover.summary();
-			try { move.mover.apply(file, extra); }
-			catch (e){ throw this.refuse(`could not move ${move.from_url}: ${e.message}`); }
-			if (move.declared) this.declare(move, true);
-		}
-		this.catch_up(move.from_parent, move.to_parent);
-		return { ok: true, kind: move.kind, from: move.from_url, to: move.to_url, manifest, ...(counts.paths === undefined ? {} : { files: counts.files, paths: counts.paths, links: counts.links }) };
+		const changes = move.mover.plan(), counts = move.mover.summary(changes), warnings = [];
+		let done;
+		try { done = move.mover.apply(path.join(this.constructor.MOVES, manifest), extra, changes); }
+		catch (e){ throw this.refuse(`could not move ${move.from_url}: ${e.message}`); }
+		warnings.push(...(done.warnings ?? []));
+		if (move.declared) this.tidy(warnings, "the parent pages' link lines", () => this.declare(move, true));
+		this.catch_up(warnings, move.from_parent, move.to_parent);
+		return { ok: true, kind: move.kind, from: move.from_url, to: move.to_url, manifest, files: counts.files, paths: counts.paths, links: counts.links, ...(warnings.length ? { warnings } : {}) };
 	}
 
 	move_undo(manifest){
@@ -157,18 +153,22 @@ export default class Files {
 		const file = path.join(this.constructor.MOVES, manifest);
 		if (!fs.existsSync(file)) throw this.refuse(`there is no move record named ${manifest}`);
 		let m; try { m = JSON.parse(fs.readFileSync(file, "utf8")); } catch { throw this.refuse(`${manifest} cannot be read`); }
+		if (m.status === "rolled_back") throw this.refuse("that move failed and was rolled back when it happened, so there is nothing to undo");
 		const repo = path.dirname(PUBLIC), [from, to] = [m.from, m.to].map(p => this.inside_public(path.join(repo, String(p))));
 		if (!from || !to) throw this.refuse(`${manifest} names a path outside public/, so it was not undone`);
-		if (!fs.existsSync(to)) throw this.refuse(`cannot undo: ${m.to} is no longer there (it may have been moved again or already undone)`);
-		if (fs.existsSync(from)) throw this.refuse(`cannot undo: something is now at ${m.from}`);
-		try {
-			if (m.kind === "file") fs.renameSync(to, from);
-			else ModuleMove.undo(repo, file);
-		} catch (e){ throw this.refuse(`could not undo: ${e.message}`); }
-		if (m.extra?.declared) this.declare({ from_parent: path.join(repo, m.extra.from_parent), to_parent: path.join(repo, m.extra.to_parent), name: m.extra.name, to_name: m.extra.to_name }, false);
+		const parents = m.extra?.from_parent !== undefined && m.extra?.to_parent !== undefined ? [m.extra.from_parent, m.extra.to_parent].map(p => this.inside_public(path.join(repo, String(p)))) : [];
+		if (parents.some(p => !p)) throw this.refuse(`${manifest} names a parent folder outside public/, so it was not undone`);
+		const mover = new ModuleMove(repo, m.from, m.to);
+		// Normally the new name is there and the old one is not. A move that stopped half-way (status "moving": links rewritten, folder not moved) is the other way round.
+		if (!mover.named(m.to) && !(m.status === "moving" && mover.named(m.from))) throw this.refuse(`cannot undo: ${m.to} is no longer there (it may have been moved again or already undone)`);
+		if (mover.named(m.to) && mover.named(m.from)) throw this.refuse(`cannot undo: something is now at ${m.from}`);
+		const warnings = [];
+		try { ModuleMove.undo(repo, file); }
+		catch (e){ throw this.refuse(`could not undo: ${e.message}`); }
+		if (m.extra?.declared) this.tidy(warnings, "the parent pages' link lines", () => this.declare({ from_parent: parents[0], to_parent: parents[1], name: m.extra.name, to_name: m.extra.to_name }, false));
 		const url = p => m.kind === "file" ? this.url_of(p).slice(0, -1) : this.url_of(p);
-		if (m.extra) this.catch_up(path.join(repo, m.extra.from_parent), path.join(repo, m.extra.to_parent));
-		return { ok: true, kind: m.kind === "file" ? "file" : "page", from: url(to), to: url(from) };
+		if (parents.length) this.catch_up(warnings, ...parents);
+		return { ok: true, kind: m.kind === "file" ? "file" : "page", from: url(to), to: url(from), ...(warnings.length ? { warnings } : {}) };
 	}
 
 	// Every check for one rename or move, in the order a person would hit them. Returns what the three verbs need; throws a sentence.
@@ -193,34 +193,43 @@ export default class Files {
 			throw this.refuse(`${to_name} already exists in ${this.url_of(to_parent)}, so nothing was moved. Rename one of them first.`);
 
 		const move = { kind, name, to_name, from, to, from_parent, to_parent, from_url: this.url_of(from_parent) + name + (is_dir ? "/" : ""), to_url: this.url_of(to_parent) + to_name + (is_dir ? "/" : "") };
+		move.mover = new ModuleMove(path.dirname(PUBLIC), this.repo_path(from), this.repo_path(to));
 		if (!is_dir) return move;
 
-		// A parent's page.js can still name its children in a `children: "a b"` string, which nothing rewrites. Refuse rather than leave it pointing nowhere.
-		const old_names = this.children_string(from_parent), new_names = this.children_string(to_parent);
-		if (old_names?.includes(name)) throw this.refuse(`${this.url_of(from_parent)}page.js names ${name} in its children: "…" list, which is not rewritten by a move. Remove ${name} from that list first (or move it by hand), then try again.`);
-		if (new_names?.includes(to_name)) throw this.refuse(`${this.url_of(to_parent)}page.js already names ${to_name} in its children: "…" list. Remove it from that list first, then try again.`);
+		// A parent's page.js can still name its children in a `children: "a b"` string or a `children: ["a", "b"]` list, which nothing rewrites. Refuse rather than leave it pointing nowhere.
+		const old_names = this.children_list(from_parent), new_names = this.children_list(to_parent);
+		if (old_names?.includes(name)) throw this.refuse(`${this.url_of(from_parent)}page.js names ${name} in its children list, which is not rewritten by a move. Remove ${name} from that list first (or move it by hand), then try again.`);
+		if (new_names?.includes(to_name)) throw this.refuse(`${this.url_of(to_parent)}page.js already names ${to_name} in its children list. Remove it from that list first, then try again.`);
 		if (new_names && !new_names.includes("auto")) move.note = `${this.url_of(to_parent)}page.js lists its children by name, so ${to_name} will not show in its menu until you add it there.`;
 
 		move.declared = Subpages.listed(path.join(from_parent, "page.jsonl")).includes(name);
-		move.mover = new ModuleMove(path.dirname(PUBLIC), this.repo_path(from), this.repo_path(to));
 		return move;
 	}
 
 	// The two parents' file lists, up to date now, and every open tab told. The disk watcher would get there too, but not always (Linux can run out of
 	// watches, Windows drops events in a burst), and a rename that does not show in the tab is a rename that looks like it failed. PageFiles compares first, so a
 	// line is never doubled; Tail remembers how far each tab has read, so telling it twice sends nothing twice.
-	catch_up(...folders){
-		for (const dir of new Set(folders)){
+	// By now the move has worked, so this never throws: what goes wrong is added to `warnings` (and logged), one folder at a time.
+	catch_up(warnings, ...folders){
+		for (const dir of new Set(folders)) this.tidy(warnings, `the file list of ${this.url_of(dir)}`, () => {
 			PageFiles.settle_folder(dir);
 			for (const log of ["files.jsonl", "page.jsonl"]) if (fs.existsSync(path.join(dir, log))) Tail.changed(path.join(dir, log));
-		}
+		});
 	}
 
-	// The words of a legacy `children: "a b c"` string in a folder's page.js (page/kid forms reduced to the folder name), or null.
-	children_string(folder){
+	// Run one after-the-move step; if it throws, say so in `warnings` instead of making the finished move look like a failure.
+	tidy(warnings, what, step){
+		try { step(); }
+		catch (e){ console.error(`Files: ${what}:`, e); warnings.push(`The move worked, but ${what} could not be brought up to date (${e.message}). Reload the page; it catches up on the next change.`); }
+	}
+
+	// The words of a parent's `children: "a b c"` string or `children: ["a", "b"]` list in page.js (page/kid forms reduced to the folder name), or null.
+	children_list(folder){
 		let text; try { text = fs.readFileSync(path.join(folder, "page.js"), "utf8"); } catch { return null; }
-		const m = /\bchildren\s*:\s*(["'`])([^"'`]*)\1/.exec(text);
-		return m ? m[2].trim().split(/\s+/).filter(Boolean).map(w => w.replace(/\/page\.(js|jsonl)$/, "")) : null;
+		const m = /\bchildren\s*:\s*(?:(["'`])([^"'`]*)\1|\[([^\]]*)\])/.exec(text);
+		if (!m) return null;
+		const words = m[3] !== undefined ? [...m[3].matchAll(/(["'`])([^"'`]*)\1/g)].flatMap(w => w[2].trim().split(/\s+/)) : m[2].trim().split(/\s+/);
+		return words.filter(Boolean).map(w => w.replace(/\/page\.(js|jsonl)$/, ""));
 	}
 
 	// The parents' link lines for a page that moves: the old parent forgets it, the new one lists it. Only for a page the old parent declared
