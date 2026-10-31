@@ -65,3 +65,7 @@ Running: Wave 2 D (API overview doc), Wave 2 E (snapshots).
 5. **Servex's live copy:** the socket path doesn't update it; Servex re-reads the file on its next `item()` call. If that matters, `Store.channel = "item_api"`.
 6. **Dedupe is in server memory:** a server crash between writing and acking, then a resend, can write a batch twice.
 7. **Files design answers taken as defaults:** route `files/`, 25 MB upload cap over the socket, keep both on a name clash, move manifests in `Server/moves/`, names only in phase 1.
+
+## Found along the way
+
+- **A test writes to a real log:** a run of the item-tool test (temp module `zz-item-tool-test-<pid>`) appended a line to the real `public/framework/ai/sessions/task-moves.jsonl` (`"by":"test"`). Restored by hand; the test should write its moves log inside its temp folder.
