@@ -35,3 +35,5 @@
 {"file":"transport.browser.mjs"}
 {"file":"hooks.test.mjs"}
 {"file":"call.test.mjs"}
+{"file":"snapshot.test.mjs"}
+{"file":"Snapshot.js"}
