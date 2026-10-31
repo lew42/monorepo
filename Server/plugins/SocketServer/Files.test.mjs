@@ -6,6 +6,7 @@
 //   3. a name clash keeps both: photo.png, photo (2).png, photo (3).png, each with its own bytes
 //   4. set_aside moves a file (and a child page) into _removed/, nothing is deleted, and files.jsonl says it is gone
 //   5. a path that escapes the folder is refused, for every message, and nothing is written outside   (edge cases below it are optional)
+//   6. Windows: the page's own files are protected whatever the capitals, and device names (CON, nul.txt, COM1...) cannot be file names
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -178,6 +179,26 @@ try {
 		t.ok(fs.existsSync(path.join(DIR, "page.js")), "page.js is still where it was");
 	}
 
+	// 6. Windows and the page's own files (review finding "smaller findings": NTFS ignores capitals and has device names)
+	{
+		for (const name of ["Page.jsonl", "PAGE.JS", "Files.JSONL", "_REMOVED"]){
+			const r = await rpc("set_aside", URL, name);
+			t.ok(r.ok === false && /part of the page/.test(r.reason), `set_aside ${name} is refused as the page's own file, in any capitals (${r.reason})`);
+		}
+		const bytes = Buffer.from("x").toString("base64"), one = { part: 0, of: 1 };
+		for (const name of ["CON", "nul.txt", "COM1.log", "lpt9", "Aux.tar.gz", "prn."]){
+			for (const [verb, go] of [["upload", () => rpc("upload", URL, name, bytes, one)], ["set_aside", () => rpc("set_aside", URL, name)]]){
+				const r = await go();
+				t.ok(r.ok === false && /Windows|reserved/i.test(r.reason), `${verb} ${name} is refused as a Windows device name (${r.reason})`);
+			}
+		}
+		for (const name of ["console.txt", "comet", "aux2.txt", "com10.txt", "nullable"]){
+			const r = await rpc("upload", URL, name, bytes, one);
+			t.ok(r.ok === true, `${name} is an ordinary name and uploads (${r.reason ?? "ok"})`);
+		}
+		t.ok(!fs.existsSync(path.join(DIR, "CON")) && !fs.existsSync(path.join(DIR, "nul.txt")), "and no device-named file was made");
+	}
+
 	// Optional edge cases
 	{
 		const old_max = Files.MAX_BYTES;
@@ -191,6 +212,20 @@ try {
 		const skipped = await rpc("upload", URL, "late.txt", Buffer.from("c").toString("base64"), { part: 2, of: 3 });
 		t.ok(a.ok && skipped.ok === false && /order|part/.test(skipped.reason), "a part sent out of order is refused: " + skipped.reason);
 		t.ok(!fs.existsSync(path.join(DIR, "late.txt")), "and no file is made from a broken upload");
+
+		// A disk that cannot make hard links (FAT, exFAT, some network drives): the upload is still saved, and still never overwrites.
+		// Faked: fs.linkSync throws what such a disk throws (the sandbox's disk can link).
+		{
+			const real = fs.linkSync;
+			fs.linkSync = () => { const e = new Error("operation not permitted"); e.code = "EPERM"; throw e; };
+			try {
+				const first = await rpc("upload", URL, "nolinks.txt", Buffer.from("one").toString("base64"), { part: 0, of: 1 });
+				const second = await rpc("upload", URL, "nolinks.txt", Buffer.from("two").toString("base64"), { part: 0, of: 1 });
+				t.ok(first.ok && second.ok && [first.name, second.name].join() === "nolinks.txt,nolinks (2).txt", "without hard links both uploads are saved under their own names: " + JSON.stringify([first, second]));
+				t.ok(fs.existsSync(path.join(DIR, "nolinks.txt")) && fs.readFileSync(path.join(DIR, "nolinks.txt"), "utf8") === "one", "and the first file kept its bytes");
+				t.ok(!fs.readdirSync(DIR).some(n => n.endsWith(".part")), "and no .part file is left");
+			} finally { fs.linkSync = real; }
+		}
 
 		const link = path.join(DIR, "sneaky");
 		try {
