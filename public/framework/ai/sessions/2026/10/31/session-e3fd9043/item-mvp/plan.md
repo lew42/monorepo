@@ -43,3 +43,25 @@
 - One worktree (`/home/claude/build`), separate files per agent. Stage files by path; never `git add -A` (the dev server rewrites `files.jsonl` files and `npm install` touches `package-lock.json`: noise).
 - Sonnet for code and UI, Haiku for audits and scans; the coordinator reviews each diff, runs the tests and pushes the branch (Cloudflare preview `claude-replay-tests-monorepo.lew42.workers.dev`).
 - Usage checked before each wave (`node Server/usage-now.mjs` on the owner's PC through Servex). At 17% of the week, 62% of pace when this started.
+
+## Progress (coordinator, 2026-10-31)
+
+Landed and pushed on `claude/replay-tests` (35 of 37 core test files pass; the 2 others need the live site):
+- **Wave 0** Replay Lab on the real classes: `/framework/core/Item/replay/`.
+- **Wave 1 A** visual tests: `test(name, fn)` with a block per test, `DefaultView` for objects, `test.optional` edge cases; `/framework/core/Test/view/?file=core/Item/act.test.mjs`.
+- **Wave 1 B** Item core: save no longer depends on view listeners; `act` mutes only its own tree; `set()` refuses unsavable values; `Item.replay` = `Item.open`; replay never re-saves derived completion; a running task's span is saved (`ran_since`); D13 reading (`name()`, `#id`, old shapes); D17 `set_<key>` hooks; D14 `as_call`.
+- **Wave 1 C** transport: every line over the socket with `{client, n}`, ack, resend, dedupe; unsent lines survive a reload; heartbeat; `Store.channel = "item_api"` opts back to Servex's POST.
+- **Wave 2 F** files: design `core/Page/doc/files.md`; phase 1 built: `<page>/files/` live read-only list.
+- Fix: `ext/Chat/md.js` imported `ext/Markdown` (folder is `ext/markdown`); the app didn't boot on a case-sensitive host. Same line is on michael/dev.
+
+Running: Wave 2 D (API overview doc), Wave 2 E (snapshots).
+
+## Open for the owner (work continues on the recommended answer)
+
+1. **`files/` on Doc pages:** `ext/Doc` declares its own `files` tab (source files), so a Doc page's `files/` shows that. Rename one route, or give the Doc section a folder list. Recommended: keep Doc's, and name the folder list `folder/` on Doc pages only.
+2. **`Store.marked_lines` is off.** About a dozen readers only read the bare spelling (`core/Item/doc/line-format.md`). Turn it on after those readers are updated.
+3. **`as_call` line shape:** one argument is saved as the value (`{"sort_by()": "title"}`), not an array, because the item tool strips `()`.
+4. **Existing `set_<name>` methods are now hooks** (`core/Item/doc/hooks.md` lists them).
+5. **Servex's live copy:** the socket path doesn't update it; Servex re-reads the file on its next `item()` call. If that matters, `Store.channel = "item_api"`.
+6. **Dedupe is in server memory:** a server crash between writing and acking, then a resend, can write a batch twice.
+7. **Files design answers taken as defaults:** route `files/`, 25 MB upload cap over the socket, keep both on a name clash, move manifests in `Server/moves/`, names only in phase 1.
