@@ -45,4 +45,30 @@ const record = host => { const lines = []; const store = new Store({ url: "/x/" 
 	t.eq(p_lines, [{ touch_child: {} }], "1b: a change below the acting item is muted too (the verb is the one line)");
 }
 
+// 1c. set() refuses a value that cannot be saved (a function, a DOM node, a cycle), and says which key.
+{
+	const item = new Item({ id: "c" });
+	const lines = record(item);
+	const loop = { name: "loop" }; loop.self = loop;
+	const fake_node = { nodeType: 1, nodeName: "DIV" };   // node has no DOM; a real browser Node has these two
+	const said = quiet(() => {
+		item.set({ handler: () => 1 });
+		item.set({ deep: { list: [1, { fn(){} }] } });
+		item.set({ loop });
+		item.set({ el: fake_node });
+	});
+	t.eq(item.get("handler"), undefined, "1c: a function is not stored");
+	t.eq(item.get("deep"), undefined, "1c: a function nested in an object or array is not stored");
+	t.eq(item.get("loop"), undefined, "1c: a cycle is not stored");
+	t.eq(item.get("el"), undefined, "1c: a DOM node is not stored");
+	t.eq(lines, [], "1c: nothing refused reaches the file");
+	for (const key of ["handler", "deep", "loop", "el"]) t.ok(said.some(s => s.includes(`"${key}"`)), `1c: a warning names the key "${key}"`);
+	quiet(() => item.set({ plain: { a: [1, 2, { b: "c" }], n: null } }));
+	t.eq(item.get("plain"), { a: [1, 2, { b: "c" }], n: null }, "1c: plain objects and arrays are fine");
+	t.eq(lines, [{ set: { plain: { a: [1, 2, { b: "c" }], n: null } } }], "1c: and are saved");
+	const child = new Item({ id: "kid" });
+	quiet(() => item.set({ child }));
+	t.ok(item.get("child") === child, "1c: an Item as a value is still adopted");
+}
+
 t.done();
