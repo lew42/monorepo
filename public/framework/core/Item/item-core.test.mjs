@@ -24,4 +24,25 @@ const record = host => { const lines = []; const store = new Store({ url: "/x/" 
 	t.ok(said.some(s => s.includes("change")), "1a: the broken listener is reported by console, naming the event: " + JSON.stringify(said));
 }
 
+// 1b. act() mutes only the item it is called on (and what sits under it), not every Store.
+{
+	class Poker extends Item {
+		poke(){ this.set({ poked: true }); this.other.set({ touched: "by a poke" }); }
+	}
+	const a = new Poker({ id: "a" }), other = new Item({ id: "other" });
+	a.other = other;   // reached by the verb, not an argument (an argument would be the saved line)
+	const a_lines = record(a), other_lines = record(other);
+	a.act("poke");
+	t.eq(a_lines, [{ poke: {} }], "1b: act saves the verb once, not the set lines the verb made");
+	t.eq(other_lines, [{ set: { touched: "by a poke" } }], "1b: an unrelated item's write during act() is still saved");
+	a.set({ after: 1 });
+	t.eq(a_lines.at(-1), { set: { after: 1 } }, "1b: the mute is released after act()");
+	// a child under the acting item is part of its tree: its changes are muted too
+	class Parent extends Item { touch_child(){ this.child.set({ n: 1 }); } }
+	const parent = new Parent({ id: "p" }); parent.child = new Item({ id: "kid" }); parent.child.parent = parent;
+	const p_lines = record(parent);
+	parent.act("touch_child");
+	t.eq(p_lines, [{ touch_child: {} }], "1b: a change below the acting item is muted too (the verb is the one line)");
+}
+
 t.done();
