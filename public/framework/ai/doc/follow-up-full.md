@@ -1,11 +1,12 @@
 # Follow-up: every task of the last 10 days
 
-871 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+839 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) | - | 8de620c5 | sonnet-5 | 10-03 22:04 | 10-23 02:29 | 11/7 | landed | yes | 12 ahead | dormant | unmerged |
-| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | prompt-t | - | 10-23 01:31 | 10-29 23:33 | 0/0 | stale | no | - | unknown | quiet |
+| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | prompt-t | - | 10-23 01:31 | 10-31 00:02 | 0/0 | stale | no | - | unknown | quiet |
+| [cloud-voice-app-20261027](/framework/ai/sessions/2026/10/27/cloud-voice-app-20261027/) | - | - | - | 10-28 04:33 | 10-30 04:52 | 0/0 | stale | no | - | unknown | quiet |
 | [session-174601a8](/framework/ai/sessions/2026/10/26/session-174601a8/) | - | - | - | 10-26 21:07 | 10-29 04:59 | 0/0 | stale | no | - | unknown | quiet |
 | [session-dcd4f3bc](/framework/ai/sessions/2026/10/26/session-dcd4f3bc/) | - | - | - | 10-26 21:06 | 10-29 04:59 | 0/0 | stale | no | - | unknown | quiet |
 | [session-871f4dac](/framework/ai/sessions/2026/10/26/session-871f4dac/) | - | - | - | 10-26 22:01 | 10-29 04:49 | 0/0 | stale | no | - | unknown | quiet |
@@ -195,10 +196,14 @@
 | [ai-system-mastermind](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/) | - | - | - | 10-24 01:26 | 10-24 01:26 | 0/0 | stale | no | - | unknown | quiet |
 | [compact-before-sleep](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/) | - | - | - | 10-24 00:45 | 10-24 00:45 | 0/0 | stale | no | - | unknown | quiet |
 | [asks-to-tasks](/framework/ext/Refine/tasks/asks-to-tasks/) | - | mastermi | - | 10-23 05:33 | 10-23 07:04 | 0/0 | stale | yes | - | unknown | quiet |
-| [cloud-voice-app-20261027](/framework/ai/sessions/2026/10/27/cloud-voice-app-20261027/) | - | - | - | 10-28 04:33 | 10-30 04:52 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261029](/framework/ai/sessions/2026/10/29/cloud-voice-app-20261029/) | - | - | - | 10-29 23:37 | 10-30 04:32 | 0/0 | stale | no | - | unknown | ok |
-| [minion-usage-check](/framework/ai/sessions/2026/10/29/spawned/minion-usage-check/) | - | 10d51243 | haiku-5-5 | 10-29 23:17 | 10-30 04:12 | 0/0 | stale | yes | - | stopped | ok |
-| [minion-usage](/framework/ai/sessions/2026/10/29/spawned/minion-usage/) | - | 7c606504 | haiku-5-5 | 10-30 00:25 | 10-30 04:02 | 0/0 | stale | yes | - | stopped | ok |
+| [minion-replay-research](/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/) | - | 1f880f6b | sonnet-5-5 | 10-30 23:20 | 10-31 04:42 | 0/0 | stale | yes | - | stopped | ok |
+| [cloud-voice-app-20261029](/framework/ai/sessions/2026/10/29/cloud-voice-app-20261029/) | - | - | - | 10-29 23:37 | 10-31 04:32 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261030](/framework/ai/sessions/2026/10/30/cloud-voice-app-20261030/) | - | - | - | 10-30 07:32 | 10-31 04:32 | 0/0 | stale | no | - | unknown | ok |
+| [minion-usage-check](/framework/ai/sessions/2026/10/29/spawned/minion-usage-check/) | - | 10d51243 | haiku-5-5 | 10-29 23:17 | 10-31 04:12 | 0/0 | stale | yes | - | stopped | ok |
+| [deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/) | - | d9c3caec | opus-5-5 | 10-24 00:01 | 10-31 00:02 | 0/0 | waiting | yes | branch gone | dormant | ok |
+| [chat-v2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/) | - | 8d26211f | opus-5-5 | 10-25 07:19 | 10-31 00:02 | 0/0 | landed | yes | - | dormant | ok |
+| [dictation-debug](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/) | - | 3158646c | opus-5-5 | 10-25 06:44 | 10-31 00:02 | 2/5 | waiting | yes | - | dormant | ok |
+| [minion-usage](/framework/ai/sessions/2026/10/29/spawned/minion-usage/) | - | 7c606504 | haiku-5-5 | 10-30 00:25 | 10-30 07:18 | 0/0 | stopped | yes | - | stopped | ok |
 | [sessions-and-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/) | ai-sessions | e00f55c9 | fable-5-1 | 10-20 20:03 | 10-29 23:35 | 0/0 | waiting | yes | - | unknown | ok |
 | [mastermind-ai](/framework/ai/sessions/2026/10/28/spawned/mastermind-ai/) | - | fd5441b2 | sonnet-5-5 | 10-29 03:28 | 10-29 03:31 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-system-map](/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map/) | - | 264f7d21 | sonnet-5-5 | 10-26 22:48 | 10-28 04:53 | 0/0 | landed | yes | - | dormant | ok |
@@ -215,8 +220,6 @@
 | [session-page-overview-clear-the-leftover](/framework/ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover/) | - | session- | - | 10-26 20:25 | 10-26 21:01 | 0/0 | idle | no | - | unknown | ok |
 | [mastermind-page-mobile-layout](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-page-mobile-layout/) | - | b973aef5 | sonnet | 10-26 04:27 | 10-26 05:15 | 0/0 | stopped | yes | - | stopped | ok |
 | [mastermind-session-names](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-names/) | - | dba24f39 | sonnet | 10-26 04:13 | 10-26 05:03 | 0/0 | landed | yes | - | dormant | ok |
-| [dictation-debug](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/) | - | 3158646c | opus-5-5 | 10-25 06:44 | 10-26 05:00 | 2/5 | waiting | yes | - | dormant | ok |
-| [chat-v2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/) | - | 8d26211f | opus-5-5 | 10-25 07:19 | 10-26 05:00 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-session-page-blank](/framework/ai/sessions/2026/10/25/session-5644835c/mastermind-session-page-blank/) | - | 5888f4a2 | sonnet | 10-26 04:25 | 10-26 04:45 | 0/0 | landed | yes | - | dormant | ok |
 | [core-page-the-page-s-cards-are-misaligne](/framework/core/Page/tasks/core-page-the-page-s-cards-are-misaligne/) | - | session- | - | 10-26 04:27 | 10-26 04:27 | 0/0 | idle | no | - | unknown | ok |
 | [mention-voice-session-ids-become-icon-li](/framework/ext/Mention/tasks/mention-voice-session-ids-become-icon-li/) | - | session- | - | 10-26 04:23 | 10-26 04:27 | 0/0 | idle | no | - | unknown | ok |
@@ -268,25 +271,24 @@
 | [steps-3-4](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/steps-3-4/) | - | 10aa0994 | sonnet-5-5 | 10-25 14:17 | 10-25 14:55 | 0/0 | landed | yes | - | dormant | ok |
 | [review-fixes](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/solid/review-fixes/) | - | 41f09ae1 | sonnet-5-5 | 10-25 14:10 | 10-25 14:50 | 0/0 | stopped | yes | - | stopped | ok |
 | [review-stops](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/completion/review-stops/) | - | 22535498 | sonnet-5-5 | 10-25 13:24 | 10-25 14:12 | 0/0 | landed | yes | - | stopped | ok |
-| [in-place](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/in-place/) | - | 5edaa942 | sonnet-5 | 10-25 07:46 | 10-25 14:08 | 0/0 | waiting | yes | - | stopped | ok |
+| [in-place](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/in-place/) | - | 5edaa942 | sonnet-5 | 10-25 07:46 | 10-25 14:08 | 0/0 | stopped | yes | - | stopped | ok |
 | [tab](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/tab/) | - | - | - | 10-25 14:08 | 10-25 14:08 | 0/0 | landed | yes | - | unknown | ok |
-| [writers](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/writers/) | - | e981f24f | sonnet-5 | 10-25 07:47 | 10-25 14:08 | 0/0 | waiting | yes | - | stopped | ok |
+| [writers](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/writers/) | - | e981f24f | sonnet-5 | 10-25 07:47 | 10-25 14:08 | 0/0 | stopped | yes | - | stopped | ok |
 | [tasks](/framework/ai/sessions/tasks/) | - | - | - | 10-23 00:48 | 10-25 13:36 | 0/0 | idle | no | - | unknown | ok |
 | [wire-up-the-session-data-task-data-and-c](/framework/ai/sessions/tasks/wire-up-the-session-data-task-data-and-c/) | - | - | - | 10-23 02:18 | 10-25 13:36 | 0/0 | landed | yes | - | unknown | ok |
 | [completion](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/completion/) | - | 603cf68b | sonnet-5-5 | 10-25 07:30 | 10-25 13:34 | 0/0 | landed | yes | - | dormant | ok |
 | [test-basics](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/test-basics/) | - | f6e3f9e1 | sonnet-5-5 | 10-25 02:18 | 10-25 13:34 | 0/0 | stopped | yes | - | stopped | ok |
 | [session-closeout](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-closeout/) | - | cb53aa0e | sonnet-5-5 | 10-25 02:10 | 10-25 13:34 | 0/0 | stopped | yes | - | dormant | ok |
-| [wake](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/wake/) | - | caeeef45 | sonnet-5-5 | 10-25 06:57 | 10-25 13:34 | 0/0 | waiting | yes | - | stopped | ok |
+| [wake](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/wake/) | - | caeeef45 | sonnet-5-5 | 10-25 06:57 | 10-25 13:34 | 0/0 | stopped | yes | - | stopped | ok |
 | [load-perf](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/load-perf/) | - | 2b701506 | sonnet-5-5 | 10-25 06:53 | 10-25 13:34 | 0/0 | stopped | yes | - | stopped | ok |
 | [prompt-breakdown](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-breakdown/) | - | ai-syste | - | 10-25 03:20 | 10-25 13:34 | 0/0 | stopped | yes | - | unknown | ok |
 | [sessions-shots](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-shots/) | - | c7f6cfbc | sonnet-5-5 | 10-24 03:29 | 10-25 13:34 | 0/0 | stopped | yes | - | dormant | ok |
 | [docs-check](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-entries/docs-check/) | - | 5b6a06d4 | sonnet-5 | 10-25 05:32 | 10-25 13:34 | 0/0 | stopped | yes | - | stopped | ok |
-| [smoke-links](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/smoke-links/) | - | 5d4b5faf | sonnet-5-5 | 10-25 02:52 | 10-25 13:34 | 0/0 | waiting | yes | - | dormant | ok |
+| [smoke-links](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/fast-write/smoke-links/) | - | 5d4b5faf | sonnet-5-5 | 10-25 02:52 | 10-25 13:34 | 0/0 | stopped | yes | - | dormant | ok |
 | [session-feed](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/session-feed/) | - | 4508f9b3 | sonnet-5-5 | 10-25 01:46 | 10-25 13:34 | 0/0 | landed | yes | - | stopped | ok |
 | [nav-links](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/nav-links/) | - | fb13f066 | sonnet-5-5 | 10-24 03:47 | 10-25 13:34 | 0/0 | landed | yes | - | stopped | ok |
 | [merge-latest](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/merge-latest/) | - | ed6aaf84 | sonnet-5-5 | 10-24 03:47 | 10-25 13:34 | 0/0 | landed | yes | - | stopped | ok |
 | [proposals](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/proposals/) | - | 957dbae7 | sonnet-5-5 | 10-24 00:20 | 10-25 13:34 | 0/0 | landed | yes | - | dormant | ok |
-| [deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/) | - | d9c3caec | opus-5-5 | 10-24 00:01 | 10-25 13:34 | 0/0 | waiting | yes | branch gone | dormant | ok |
 | [review-false-pass](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/review-false-pass/) | - | minion-r | - | 10-23 23:29 | 10-25 13:34 | 0/0 | landed | yes | - | stopped | ok |
 | [merge-approvals](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/merge-approvals/) | - | 69fa894f | sonnet-5-5 | 10-23 23:34 | 10-25 13:34 | 0/0 | landed | yes | - | stopped | ok |
 | [tasks-list](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/tasks-list/) | - | 43fe6e64 | sonnet-5-5 | 10-23 23:29 | 10-25 13:34 | 0/0 | landed | yes | - | stopped | ok |
@@ -691,7 +693,7 @@
 | [session-d2954950](/framework/ai/sessions/2026/10/12/session-d2954950/) | - | - | - | 10-23 02:29 | 10-23 02:29 | 0/0 | stopped | no | - | unknown | ok |
 | [page-templates](/framework/ai/sessions/2026/10/12/session-87bec773/page-templates/) | - | 29fadce8 | opus-5-5 | 10-12 20:05 | 10-23 02:29 | 1/0 | landed | yes | - | dormant | ok |
 | [session-ce9b99f2](/framework/ai/sessions/2026/10/12/session-ce9b99f2/) | - | - | - | 10-23 02:29 | 10-23 02:29 | 0/0 | stopped | no | - | unknown | ok |
-| [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) | - | cd792e48 | sonnet-5-5 | 10-12 06:03 | 10-23 02:29 | 1/0 | landed | yes | merged | dormant | ok |
+| [figma-phase2](/framework/ai/sessions/2026/10/12/session-cd792e48/figma-phase2/) | - | cd792e48 | sonnet-5-5 | 10-12 06:03 | 10-23 02:29 | 1/0 | landed | yes | branch gone | dormant | ok |
 | [session-cd792e48](/framework/ai/sessions/2026/10/12/session-cd792e48/) | - | - | - | 10-23 02:29 | 10-23 02:29 | 0/0 | stopped | no | - | unknown | ok |
 | [refine-haiku-live](/framework/ai/sessions/2026/10/12/session-cca8d997/refine-haiku-live/) | - | cca8d997 | opus-5-5 | 10-12 19:25 | 10-23 02:29 | 3/0 | landed | yes | - | dormant | ok |
 | [session-cca8d997](/framework/ai/sessions/2026/10/12/session-cca8d997/) | - | - | - | 10-23 02:29 | 10-23 02:29 | 0/0 | stopped | no | - | unknown | ok |
@@ -841,43 +843,218 @@
 | [cloud-voice-task-system-and-voice-agent-exploration](/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/) | - | - | - | 10-22 05:02 | 10-22 05:02 | 0/0 | stopped | no | - | unknown | ok |
 | [prompt-audit-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/) | - | 12c360cd | opus-5-5 | 10-21 23:42 | 10-22 00:02 | 0/0 | landed | yes | - | dormant | ok |
 | [prompt-audit](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/) | - | 0dbc4c6f | sonnet-5-5 | 10-21 23:21 | 10-21 23:29 | 0/0 | landed | yes | - | dormant | ok |
-| [figma-sessions](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/figma-sessions/) | - | 80191cd3 | opus-5-5 | 10-21 03:53 | 10-21 04:08 | 0/0 | landed | yes | - | dormant | ok |
-| [sessions-views](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-views/) | - | 7c740b9e | opus-5-5 | 10-21 03:21 | 10-21 03:32 | 0/0 | landed | yes | - | dormant | ok |
-| [dictation-map](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/) | - | b66b4c24 | opus-5-5 | 10-21 03:09 | 10-21 03:17 | 0/0 | landed | yes | - | dormant | ok |
-| [task-mastermind-2](/framework/ai/sessions/2026/10/20/session-e4971f1a/task-mastermind-2/) | - | 2f3274ad | sonnet-5-5 | 10-21 02:56 | 10-21 03:16 | 0/0 | landed | yes | - | dormant | ok |
-| [task-mastermind](/framework/ai/sessions/2026/10/20/session-e4971f1a/task-mastermind/) | - | 11a78e1b | sonnet-5-5 | 10-21 02:46 | 10-21 02:53 | 0/0 | landed | yes | - | stopped | ok |
-| [day-page](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/day-page/) | - | 930852eb | sonnet-5-5 | 10-21 02:45 | 10-21 02:52 | 0/0 | landed | yes | - | dormant | ok |
-| [dated-queries](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-queries/) | - | 4098c883 | sonnet-5-5 | 10-21 00:33 | 10-21 00:55 | 0/0 | landed | yes | - | dormant | ok |
-| [amber-badge-when-readme-is-stale](/framework/ext/drawer/tasks/amber-badge-when-readme-is-stale/) | - | session- | - | 10-21 00:47 | 10-21 00:47 | 0/0 | idle | no | - | unknown | ok |
-| [well-asks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/well-asks/) | - | deec6042 | sonnet-5-5 | 10-21 00:35 | 10-21 00:43 | 0/0 | stopped | yes | - | dormant | ok |
-| [v-4lwslx3](/framework/ai/sessions/2026/10/20/v-4lwslx3/) | - | - | - | 10-21 00:32 | 10-21 00:32 | 0/0 | idle | no | - | unknown | ok |
-| [dated-sessions](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-sessions/) | - | 748a3eae | sonnet-5-5 | 10-21 00:24 | 10-21 00:31 | 0/0 | landed | yes | - | dormant | ok |
-| [whisper-demo](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/whisper-demo/) | - | 570d20f5 | opus-5-5 | 10-21 00:12 | 10-21 00:24 | 0/0 | landed | yes | - | dormant | ok |
-| [dated-projects](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/store-index-query/dated-projects/) | - | 610c5637 | sonnet-5-5 | 10-20 23:54 | 10-21 00:11 | 0/0 | landed | yes | - | dormant | ok |
-| [ask-never-lost](/framework/ai/sessions/2026/10/20/voice-20261020/ask-never-lost/) | - | 91b1f69e | sonnet-5-5 | 10-20 23:50 | 10-20 23:52 | 0/0 | landed | yes | - | dormant | ok |
-| [async-ask](/framework/ai/sessions/2026/10/20/voice-20261020/async-ask/) | - | a9e73350 | sonnet-5-5 | 10-20 23:29 | 10-20 23:31 | 1/0 | landed | yes | - | dormant | ok |
-| [updates-tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/updates-tool/) | - | 1f91e156 | sonnet-5-5 | 10-20 23:16 | 10-20 23:20 | 0/0 | landed | yes | - | dormant | ok |
-| [cloud-sessions-listed](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/cloud-sessions-listed/) | - | 431d19fe | sonnet-5-5 | 10-20 22:57 | 10-20 23:00 | 0/0 | landed | yes | - | dormant | ok |
-| [index-record-sessions](/framework/ai/sessions/2026/10/20/voice-20261020/index-record-sessions/) | - | b8884a9f | sonnet-5-5 | 10-20 22:59 | 10-20 23:00 | 0/0 | landed | yes | - | stopped | ok |
-| [named-tunnel](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/named-tunnel/) | - | cbb4577a | sonnet-5-5 | 10-20 22:01 | 10-20 22:03 | 0/0 | landed | yes | - | dormant | ok |
-| [item-page-docs](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/item-page-docs/) | - | 177144ba | sonnet-5-5 | 10-20 21:50 | 10-20 22:01 | 0/0 | landed | yes | - | dormant | ok |
-| [project-move](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/project-move/) | - | a806be6a | sonnet-5-5 | 10-20 21:50 | 10-20 21:58 | 0/0 | landed | yes | - | dormant | ok |
-| [folder-audit](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/folder-audit/) | - | b4b43814 | haiku-5-5 | 10-20 21:22 | 10-20 21:45 | 0/0 | landed | yes | - | stopped | ok |
-| [index-stream](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/index-stream/) | - | 3afa9b3c | sonnet-5-5 | 10-20 21:40 | 10-20 21:45 | 1/0 | landed | yes | - | dormant | ok |
-| [pool-leak](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/pool-leak/) | - | ec650d17 | sonnet-5-5 | 10-20 21:42 | 10-20 21:44 | 0/0 | landed | yes | - | stopped | ok |
-| [skills-audit](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/skills-audit/) | - | 51721af3 | haiku-5-5 | 10-20 21:42 | 10-20 21:44 | 1/0 | landed | yes | - | stopped | ok |
-| [item-storage](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/item-storage/) | - | eb5474e1 | sonnet-5-5 | 10-20 21:40 | 10-20 21:43 | 0/0 | landed | yes | - | stopped | ok |
-| [log-tool](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/log-tool/) | - | fbd2b3a8 | sonnet-5-5 | 10-20 21:27 | 10-20 21:36 | 0/0 | stopped | yes | - | stopped | ok |
-| [jsonl-unsubscribe](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/jsonl-unsubscribe/) | - | ea5f4096 | sonnet-5-5 | 10-20 21:30 | 10-20 21:34 | 0/0 | landed | yes | - | stopped | ok |
-| [session-class-readme](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/session-class-readme/) | - | dae2134f | sonnet-5-5 | 10-20 21:27 | 10-20 21:29 | 0/0 | landed | yes | - | stopped | ok |
-| [ai-index-rename](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/system-architect/ai-index-rename/) | - | 0be6bc3a | sonnet-5-5 | 10-20 21:22 | 10-20 21:28 | 0/0 | landed | yes | - | gone | ok |
-| [tab-session-record](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tab-session-record/) | - | 92f98643 | sonnet-5-5 | 10-20 21:08 | 10-20 21:20 | 0/0 | landed | yes | - | dormant | ok |
-| [probe](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/session-record/probe/) | - | 446f9be1 | haiku-5-5 | 10-20 20:16 | 10-20 20:22 | 0/0 | stopped | yes | - | stopped | ok |
-| [tunnel-keeper](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/tunnel-keeper/) | - | 6cfb0e53 | sonnet-5-5 | 10-20 20:05 | 10-20 20:15 | 1/0 | landed | yes | - | dormant | ok |
-| [task-mastermind-session-detail-page](/framework/ai/sessions/2026/10/19/spawned/task-mastermind-session-detail-page/) | - | 48d6a1bf | deepseek/deepseek-v4.1-flash | 10-20 03:32 | 10-20 06:00 | 0/0 | stopped | yes | - | dormant | ok |
 
 ## Unworked tasks (open, untouched over 7 days)
 
+- [the-review-page-should-be-an-existing-pa](/framework/ai/sessions/tasks/the-review-page-should-be-an-existing-pa/): idle, 2026-10-24
+- [make-miller-column-list-items-more-compa](/framework/core/Page/tasks/make-miller-column-list-items-more-compa/): waiting, 2026-10-24
+- [try-resizing-the-columns-slightly-so-the](/framework/core/Page/tasks/try-resizing-the-columns-slightly-so-the/): waiting, 2026-10-24
+- [check-whether-css-properties-can-be-trac](/framework/ext/tasks/check-whether-css-properties-can-be-trac/): waiting, 2026-10-24
+- [run-the-core-merge-sweep-one-sonnet-mini](/framework/core/tasks/run-the-core-merge-sweep-one-sonnet-mini/): waiting, 2026-10-24
+- [take-screenshots-of-the-sidebar-variants](/framework/ext/Shots/tasks/take-screenshots-of-the-sidebar-variants/): waiting, 2026-10-24
+- [build-an-automated-system-that-takes-scr](/framework/ext/Shots/tasks/build-an-automated-system-that-takes-scr/): waiting, 2026-10-24
+- [consider-a-diff-tool-that-compares-two-s](/framework/ext/Shots/tasks/consider-a-diff-tool-that-compares-two-s/): waiting, 2026-10-24
+- [investigate-how-to-organise-rounds-of-sc](/framework/ext/Shots/tasks/investigate-how-to-organise-rounds-of-sc/): waiting, 2026-10-24
+- [track-what-works-and-what-doesn-t-in-scr](/framework/ext/Shots/tasks/track-what-works-and-what-doesn-t-in-scr/): waiting, 2026-10-24
+- [keep-screenshots-in-a-screenshot-subdire](/framework/ext/Shots/tasks/keep-screenshots-in-a-screenshot-subdire/): waiting, 2026-10-24
+- [explore-whether-the-diff-output-helps-cl](/framework/ext/Shots/tasks/explore-whether-the-diff-output-helps-cl/): waiting, 2026-10-24
+- [build-a-per-region-visual-diff-filter-th](/framework/ext/Shots/tasks/build-a-per-region-visual-diff-filter-th/): waiting, 2026-10-24
+- [decide-whether-the-headless-instance-run](/framework/servex/lifecycle/tasks/decide-whether-the-headless-instance-run/): waiting, 2026-10-24
+- [decide-how-base-updates-propagate-to-ext](/framework/ext/tasks/decide-how-base-updates-propagate-to-ext/): waiting, 2026-10-24
+- [build-rock-solid-data-structures-that-gi](/framework/core/Property/tasks/build-rock-solid-data-structures-that-gi/): waiting, 2026-10-24
+- [verify-that-the-systems-are-tuned-and-wo](/framework/servex/tasks/verify-that-the-systems-are-tuned-and-wo/): idle, 2026-10-24
+- [ui-framework-ui-overhaul-later](/framework/ui/tasks/ui-framework-ui-overhaul-later/): waiting, 2026-10-24
+- [find-out-where-the-assistant-transcripti](/framework/ext/Refine/tasks/find-out-where-the-assistant-transcripti/): waiting, 2026-10-24
+- [decide-whether-templates-are-cloned-and](/framework/core/Page/Template/tasks/decide-whether-templates-are-cloned-and/): waiting, 2026-10-24
+- [page-settings-must-persist-properly](/framework/core/Page/settings/tasks/page-settings-must-persist-properly/): waiting, 2026-10-24
+- [let-inbox-items-be-read-then-archived-or](/framework/core/Page/ext/tasks/let-inbox-items-be-read-then-archived-or/): waiting, 2026-10-24
+- [route-paths-through-the-pages-route-even](/framework/core/Router/tasks/route-paths-through-the-pages-route-even/): waiting, 2026-10-24
+- [work-out-how-to-make-use-of-the-contents](/framework/ai/tasks/work-out-how-to-make-use-of-the-contents/): waiting, 2026-10-24
+- [fix-the-layout-problems-areas-with-colou](/framework/design/layout/tasks/fix-the-layout-problems-areas-with-colou/): waiting, 2026-10-24
+- [check-the-chat-bubble-link-to-refine-hai](/framework/ext/Refine/tasks/check-the-chat-bubble-link-to-refine-hai/): waiting, 2026-10-24
+- [monitor-a-playwright-agent-on-main-templ](/framework/ai/health/tasks/monitor-a-playwright-agent-on-main-templ/): waiting, 2026-10-24
+- [selection-tap-to-select-and-drill-down-o](/framework/dev/mobile/tasks/selection-tap-to-select-and-drill-down-o/): waiting, 2026-10-24
+- [voice-mastermind-answer-within-seconds-e](/framework/ext/Session/tasks/voice-mastermind-answer-within-seconds-e/): waiting, 2026-10-24
+- [lock-in-the-foundational-components-so-t](/framework/library/tasks/lock-in-the-foundational-components-so-t/): waiting, 2026-10-24
+- [create-the-simplest-most-foundational-mo](/framework/design/tasks/create-the-simplest-most-foundational-mo/): waiting, 2026-10-24
+- [move-the-three-worktrees-outside-the-wor](/framework/ai/tasks/move-the-three-worktrees-outside-the-wor/): waiting, 2026-10-24
+- [build-worktree-cleanup-into-the-workflow](/framework/ai/quick-fix/tasks/build-worktree-cleanup-into-the-workflow/): waiting, 2026-10-24
+- [aim-for-a-blank-state-framework-that-can](/framework/start/tasks/aim-for-a-blank-state-framework-that-can/): waiting, 2026-10-24
+- [use-the-right-git-branching-strategy-to](/framework/ai/tasks/use-the-right-git-branching-strategy-to/): waiting, 2026-10-24
+- [keep-a-legacy-branch-so-old-work-is-not](/framework/ai/tasks/keep-a-legacy-branch-so-old-work-is-not/): waiting, 2026-10-24
+- [review-what-is-saved-and-created-and-pla](/framework/ai/tasks/review-what-is-saved-and-created-and-pla/): waiting, 2026-10-24
+- [reduce-repo-size-by-pruning-stale-worktr](/framework/ai/tasks/reduce-repo-size-by-pruning-stale-worktr/): waiting, 2026-10-24
+- [check-the-size-of-one-worktree-then-incl](/framework/ai/tasks/check-the-size-of-one-worktree-then-incl/): waiting, 2026-10-24
+- [find-a-sensible-folder-on-the-e-drive-fo](/framework/ai/tasks/find-a-sensible-folder-on-the-e-drive-fo/): waiting, 2026-10-24
+- [back-up-the-whole-monorepo-full-history](/framework/ai/tasks/back-up-the-whole-monorepo-full-history/): waiting, 2026-10-24
+- [review-the-inbox-and-sessions-together-a](/framework/ai/tasks/review-the-inbox-and-sessions-together-a/): waiting, 2026-10-24
+- [create-an-architecture-md-per-module-ref](/framework/ai/readmes/tasks/create-an-architecture-md-per-module-ref/): idle, 2026-10-24
+- [find-out-why-layout-failures-keep-recurr](/framework/design/layout/tasks/find-out-why-layout-failures-keep-recurr/): waiting, 2026-10-24
+- [make-the-footer-a-minimal-status-rail-wi](/framework/core/Shell/tasks/make-the-footer-a-minimal-status-rail-wi/): waiting, 2026-10-24
+- [add-left-padding-to-the-page](/framework/design/layout/tasks/add-left-padding-to-the-page/): waiting, 2026-10-24
+- [move-the-data-grid-header-up-and-let-the](/framework/ext/DataGrid/tasks/move-the-data-grid-header-up-and-let-the/): waiting, 2026-10-24
+- [build-simple-views-that-show-oo-classes](/framework/code/objects/tasks/build-simple-views-that-show-oo-classes/): waiting, 2026-10-24
+- [consider-one-large-skill-documenting-nam](/framework/code/tasks/consider-one-large-skill-documenting-nam/): idle, 2026-10-24
+- [carefully-review-the-categorisation-proc](/framework/ai/tasks/carefully-review-the-categorisation-proc/): waiting, 2026-10-24
+- [port-everything-to-one-single-data-struc](/framework/ai/tasks/port-everything-to-one-single-data-struc/): waiting, 2026-10-24
+- [audit-the-vs-code-file-tree-and-remove-o](/framework/audit/tasks/audit-the-vs-code-file-tree-and-remove-o/): waiting, 2026-10-24
+- [include-multiple-left-sidebars-a-global](/framework/styles/layouts/sidebar/tasks/include-multiple-left-sidebars-a-global/): waiting, 2026-10-24
+- [include-left-and-right-sidebars-and-a-mi](/framework/styles/layouts/sidebar/tasks/include-left-and-right-sidebars-and-a-mi/): waiting, 2026-10-24
+- [create-a-file-called-lists-if-none-exist](/framework/styles/elements/lists/tasks/create-a-file-called-lists-if-none-exist/): waiting, 2026-10-24
+- [show-examples-of-all-nestings-subheading](/framework/ui/tree/tasks/show-examples-of-all-nestings-subheading/): waiting, 2026-10-24
+- [treat-the-toc-as-a-tree-widget](/framework/ext/toc/tasks/treat-the-toc-as-a-tree-widget/): waiting, 2026-10-24
+- [let-section-titles-carry-icons-larger-th](/framework/styles/elements/text/tasks/let-section-titles-carry-icons-larger-th/): waiting, 2026-10-24
+- [keep-the-table-of-contents-a-narrow-mini](/framework/ext/toc/tasks/keep-the-table-of-contents-a-narrow-mini/): waiting, 2026-10-24
+- [create-a-few-variants-for-lists-built-on](/framework/styles/elements/lists/tasks/create-a-few-variants-for-lists-built-on/): waiting, 2026-10-24
+- [pick-the-best-design-permutations-after](/framework/design/layout/tasks/pick-the-best-design-permutations-after/): waiting, 2026-10-24
+- [design-a-left-sidebar-navigation-for-sin](/framework/styles/layouts/sidebar/tasks/design-a-left-sidebar-navigation-for-sin/): waiting, 2026-10-24
+- [explore-styles-for-h4-and-h3-section-hea](/framework/ext/toc/tasks/explore-styles-for-h4-and-h3-section-hea/): waiting, 2026-10-24
+- [explore-better-table-of-contents-styles](/framework/ext/toc/tasks/explore-better-table-of-contents-styles/): waiting, 2026-10-24
+- [show-a-variant-with-one-card-on-one-side](/framework/styles/layouts/cols/tasks/show-a-variant-with-one-card-on-one-side/): waiting, 2026-10-24
+- [show-a-variant-with-one-side-nested-with](/framework/styles/layouts/cols/tasks/show-a-variant-with-one-side-nested-with/): waiting, 2026-10-24
+- [show-background-colors-for-each-side-of](/framework/styles/layouts/cols/tasks/show-background-colors-for-each-side-of/): waiting, 2026-10-24
+- [for-each-two-column-variant-show-what-go](/framework/styles/layouts/cols/tasks/for-each-two-column-variant-show-what-go/): waiting, 2026-10-24
+- [build-a-dedicated-two-column-layouts-pag](/framework/styles/layouts/cols/tasks/build-a-dedicated-two-column-layouts-pag/): waiting, 2026-10-24
+- [work-out-what-content-goes-into-each-sch](/framework/ext/Figma/tasks/work-out-what-content-goes-into-each-sch/): waiting, 2026-10-24
+- [work-out-how-the-primary-scheme-should-b](/framework/ext/Figma/tasks/work-out-how-the-primary-scheme-should-b/): waiting, 2026-10-24
+- [consider-full-color-sections-with-opaque](/framework/ext/Figma/tasks/consider-full-color-sections-with-opaque/): waiting, 2026-10-24
+- [explore-the-ui-space-in-this-master-and](/framework/ext/Figma/tasks/explore-the-ui-space-in-this-master-and/): waiting, 2026-10-24
+- [build-each-library-s-palette-as-one-mast](/framework/ext/Figma/tasks/build-each-library-s-palette-as-one-mast/): waiting, 2026-10-24
+- [replace-the-lingering-old-blue-layers-on](/framework/ext/Figma/tasks/replace-the-lingering-old-blue-layers-on/): waiting, 2026-10-24
+- [explore-automatic-contrast-ratios-to-fil](/framework/ext/Figma/tasks/explore-automatic-contrast-ratios-to-fil/): waiting, 2026-10-24
+- [include-permutations-such-as-light-mode](/framework/ext/Figma/tasks/include-permutations-such-as-light-mode/): waiting, 2026-10-24
+- [build-a-color-scheme-stack-view-that-run](/framework/ext/Figma/tasks/build-a-color-scheme-stack-view-that-run/): waiting, 2026-10-24
+- [evaluate-whether-lighten-and-darken-mode](/framework/ext/Figma/tasks/evaluate-whether-lighten-and-darken-mode/): waiting, 2026-10-24
+- [investigate-why-the-nesting-layers-are-c](/framework/ext/Figma/tasks/investigate-why-the-nesting-layers-are-c/): waiting, 2026-10-24
+- [determine-whether-colors-can-be-dragged](/framework/ext/Figma/tasks/determine-whether-colors-can-be-dragged/): waiting, 2026-10-24
+- [help-think-through-the-best-way-to-handl](/framework/ext/Figma/tasks/help-think-through-the-best-way-to-handl/): waiting, 2026-10-24
+- [include-flowchart-connectors-and-other-i](/framework/ext/Figma/tasks/include-flowchart-connectors-and-other-i/): waiting, 2026-10-24
+- [include-folder-open-and-folder-closed-ic](/framework/ext/Figma/tasks/include-folder-open-and-folder-closed-ic/): waiting, 2026-10-24
+- [include-a-user-avatar-icon](/framework/ext/Figma/tasks/include-a-user-avatar-icon/): waiting, 2026-10-24
+- [do-not-make-every-icon-a-component-so-th](/framework/ext/Figma/tasks/do-not-make-every-icon-a-component-so-th/): waiting, 2026-10-24
+- [organise-icons-into-3-to-5-categories-wi](/framework/ext/Figma/tasks/organise-icons-into-3-to-5-categories-wi/): waiting, 2026-10-24
+- [confirm-the-material-symbols-font-is-ava](/framework/ui/icon/tasks/confirm-the-material-symbols-font-is-ava/): waiting, 2026-10-24
+- [explore-whether-pages-can-be-sorted](/framework/core/Page/tasks/explore-whether-pages-can-be-sorted/): waiting, 2026-10-24
+- [make-the-table-of-contents-overview-page](/framework/core/Page/tasks/make-the-table-of-contents-overview-page/): waiting, 2026-10-24
+- [get-a-navigation-system-working-with-reu](/framework/ext/System/tasks/get-a-navigation-system-working-with-reu/): waiting, 2026-10-24
+- [explore-layering-slots-and-components-so](/framework/ext/Figma/tasks/explore-layering-slots-and-components-so/): waiting, 2026-10-24
+- [consider-transparent-backgrounds-for-lis](/framework/design/color/tasks/consider-transparent-backgrounds-for-lis/): waiting, 2026-10-24
+- [check-which-pages-are-transparent-and-wh](/framework/design/color/tasks/check-which-pages-are-transparent-and-wh/): waiting, 2026-10-24
+- [establish-a-default-background-contrast](/framework/design/color/tasks/establish-a-default-background-contrast/): waiting, 2026-10-24
+- [decide-whether-the-same-file-change-rule](/framework/ai/tasks/decide-whether-the-same-file-change-rule/): idle, 2026-10-24
+- [before-wrapping-up-clear-the-working-tre](/framework/ai/tasks/before-wrapping-up-clear-the-working-tre/): waiting, 2026-10-24
+- [consider-resizing-the-columns-slightly-t](/framework/styles/layouts/tasks/consider-resizing-the-columns-slightly-t/): waiting, 2026-10-24
+- [add-the-website-s-logo-svg-to-the-top-le](/framework/core/Sidebar/tasks/add-the-website-s-logo-svg-to-the-top-le/): waiting, 2026-10-24
+- [redesign-the-sidebar-so-the-many-icon-it](/framework/core/Sidebar/tasks/redesign-the-sidebar-so-the-many-icon-it/): waiting, 2026-10-24
+- [consider-putting-the-layer-tree-in-a-sma](/framework/ux/Tree/tasks/consider-putting-the-layer-tree-in-a-sma/): waiting, 2026-10-24
+- [explore-more-list-ui-styles-especially-a](/framework/ux/Tree/tasks/explore-more-list-ui-styles-especially-a/): waiting, 2026-10-24
+- [build-a-tree-ui-with-icons-using-the-goo](/framework/ux/Tree/tasks/build-a-tree-ui-with-icons-using-the-goo/): waiting, 2026-10-24
+- [make-the-mobile-design-work-stronger-and](/framework/styles/tasks/make-the-mobile-design-work-stronger-and/): waiting, 2026-10-24
+- [build-a-robust-minimal-set-of-layout-tok](/framework/core/Sidebar/tasks/build-a-robust-minimal-set-of-layout-tok/): waiting, 2026-10-24
+- [build-a-system-that-works-in-both-the-br](/framework/ext/Figma/tasks/build-a-system-that-works-in-both-the-br/): waiting, 2026-10-24
+- [build-a-diff-tool-that-compares-two-scre](/framework/ext/Shots/tasks/build-a-diff-tool-that-compares-two-scre/): waiting, 2026-10-24
+- [harmonise-figma-and-the-browser-into-one](/framework/ext/Figma/tasks/harmonise-figma-and-the-browser-into-one/): waiting, 2026-10-24
+- [create-layouts-that-use-the-harmonized-s](/framework/styles/layouts/tasks/create-layouts-that-use-the-harmonized-s/): waiting, 2026-10-24
+- [use-the-default-pad-x-and-pad-y-tokens-f](/framework/design/layout/tasks/use-the-default-pad-x-and-pad-y-tokens-f/): waiting, 2026-10-24
+- [explore-what-can-go-before-and-after-cer](/framework/styles/layouts/tasks/explore-what-can-go-before-and-after-cer/): waiting, 2026-10-24
+- [lean-into-color-schemes-where-possible-a](/framework/design/color/tasks/lean-into-color-schemes-where-possible-a/): waiting, 2026-10-24
+- [show-the-designs-in-different-color-sche](/framework/design/color/tasks/show-the-designs-in-different-color-sche/): waiting, 2026-10-24
+- [create-layouts-that-use-the-harmonized-s](/framework/styles/layouts/sidebar/tasks/create-layouts-that-use-the-harmonized-s/): waiting, 2026-10-24
+- [explore-what-can-go-before-and-after-cer](/framework/design/layout/tasks/explore-what-can-go-before-and-after-cer/): waiting, 2026-10-24
+- [keep-the-darkened-primary-token-for-cont](/framework/design/color/tasks/keep-the-darkened-primary-token-for-cont/): waiting, 2026-10-24
+- [reduce-overuse-of-the-shaded-primary-col](/framework/design/color/tasks/reduce-overuse-of-the-shaded-primary-col/): waiting, 2026-10-24
+- [refine-css-into-a-much-simpler-component](/framework/styles/tasks/refine-css-into-a-much-simpler-component/): waiting, 2026-10-24
+- [show-components-in-action-not-only-stati](/framework/ui/tasks/show-components-in-action-not-only-stati/): waiting, 2026-10-24
+- [give-some-component-types-e-g](/framework/ui/tasks/give-some-component-types-e-g/): waiting, 2026-10-24
+- [make-unifying-and-simplifying-the-css-th](/framework/styles/tasks/make-unifying-and-simplifying-the-css-th/): waiting, 2026-10-24
+- [reduce-to-a-minimum-set-of-tokens-and-re](/framework/styles/tasks/reduce-to-a-minimum-set-of-tokens-and-re/): waiting, 2026-10-24
+- [migrate-each-usage-systematically-to-the](/framework/styles/tasks/migrate-each-usage-systematically-to-the/): waiting, 2026-10-24
+- [refine-the-css-into-a-much-simpler-set-o](/framework/styles/tasks/refine-the-css-into-a-much-simpler-set-o/): waiting, 2026-10-24
+- [do-a-css-audit-of-the-site](/framework/styles/tasks/do-a-css-audit-of-the-site/): waiting, 2026-10-24
+- [work-out-how-these-layouts-fit-on-mobile](/framework/styles/layouts/tasks/work-out-how-these-layouts-fit-on-mobile/): waiting, 2026-10-24
+- [organize-the-color-and-nesting-examples](/framework/styles/stacks/tasks/organize-the-color-and-nesting-examples/): waiting, 2026-10-24
+- [organize-color-modes-around-the-text-use](/framework/design/color/tasks/organize-color-modes-around-the-text-use/): waiting, 2026-10-24
+- [push-checkboxes-radio-buttons-and-toggle](/framework/ui/controls/tasks/push-checkboxes-radio-buttons-and-toggle/): waiting, 2026-10-24
+- [explore-dropdown-menus-and-the-kinds-of](/framework/ext/Dropdown/tasks/explore-dropdown-menus-and-the-kinds-of/): waiting, 2026-10-24
+- [explore-a-big-icon-with-title-overlaid-o](/framework/ui/background/tasks/explore-a-big-icon-with-title-overlaid-o/): waiting, 2026-10-24
+- [explore-icon-size-matched-to-title-size](/framework/ui/icon/tasks/explore-icon-size-matched-to-title-size/): waiting, 2026-10-24
+- [explore-using-darken-and-lighten-togethe](/framework/design/color/tasks/explore-using-darken-and-lighten-togethe/): waiting, 2026-10-24
+- [explore-higher-contrast-possibly-with-a](/framework/design/color/tasks/explore-higher-contrast-possibly-with-a/): waiting, 2026-10-24
+- [explore-fixed-height-mobile-drop-downs-a](/framework/ext/Dropdown/tasks/explore-fixed-height-mobile-drop-downs-a/): waiting, 2026-10-24
+- [explore-drop-down-menu-variants-and-what](/framework/ext/Dropdown/tasks/explore-drop-down-menu-variants-and-what/): waiting, 2026-10-24
+- [explore-a-right-chevron-on-buttons-to-si](/framework/design/ui/tasks/explore-a-right-chevron-on-buttons-to-si/): waiting, 2026-10-24
+- [explore-icon-sizing-that-matches-the-tit](/framework/ui/icon/tasks/explore-icon-sizing-that-matches-the-tit/): waiting, 2026-10-24
+- [explore-nav-bar-layouts-with-icons-varyi](/framework/design/navigation/tasks/explore-nav-bar-layouts-with-icons-varyi/): waiting, 2026-10-24
+- [explore-a-core-set-of-fundamental-icons](/framework/ui/icon/tasks/explore-a-core-set-of-fundamental-icons/): waiting, 2026-10-24
+- [propose-and-experiment-with-other-ui-des](/framework/design/tasks/propose-and-experiment-with-other-ui-des/): waiting, 2026-10-24
+- [explore-using-charts-graphs-flowcharts-o](/framework/design/tasks/explore-using-charts-graphs-flowcharts-o/): waiting, 2026-10-24
+- [experiment-with-other-ui-designs-that-co](/framework/design/ui/tasks/experiment-with-other-ui-designs-that-co/): waiting, 2026-10-24
+- [build-a-library-of-simple-foundational-l](/framework/styles/layouts/tasks/build-a-library-of-simple-foundational-l/): waiting, 2026-10-24
+- [vary-the-color-schemes-across-the-layout](/framework/design/color/tasks/vary-the-color-schemes-across-the-layout/): waiting, 2026-10-24
+- [take-one-specific-layout-and-show-four-o](/framework/styles/layouts/tasks/take-one-specific-layout-and-show-four-o/): waiting, 2026-10-24
+- [explore-whether-clicking-items-flips-the](/framework/ux/Browse/tasks/explore-whether-clicking-items-flips-the/): waiting, 2026-10-24
+- [play-with-different-color-schemes-for-th](/framework/design/color/tasks/play-with-different-color-schemes-for-th/): waiting, 2026-10-24
+- [build-a-two-column-layout-with-a-title-a](/framework/styles/layouts/tasks/build-a-two-column-layout-with-a-title-a/): waiting, 2026-10-24
+- [email-channels-that-list-an-address-to-r](/framework/ai/tasks/email-channels-that-list-an-address-to-r/): waiting, 2026-10-24
+- [work-out-how-to-discover-footage-from-ot](/framework/ai/tasks/work-out-how-to-discover-footage-from-ot/): waiting, 2026-10-24
+- [develop-a-youtube-content-idea-on-privat](/framework/ai/tasks/develop-a-youtube-content-idea-on-privat/): waiting, 2026-10-24
+- [develop-a-youtube-content-idea-on-big-ho](/framework/ai/tasks/develop-a-youtube-content-idea-on-big-ho/): waiting, 2026-10-24
+- [develop-a-youtube-content-idea-on-luxury](/framework/ai/tasks/develop-a-youtube-content-idea-on-luxury/): waiting, 2026-10-24
+- [develop-a-youtube-content-idea-on-sports](/framework/ai/tasks/develop-a-youtube-content-idea-on-sports/): waiting, 2026-10-24
+- [find-generic-images-through-image-search](/framework/ai/tasks/find-generic-images-through-image-search/): waiting, 2026-10-24
+- [find-out-whether-claude-can-be-linked-in](/framework/ai/tasks/find-out-whether-claude-can-be-linked-in/): waiting, 2026-10-24
+- [work-out-how-the-planning-output-moves-i](/framework/ai/tasks/work-out-how-the-planning-output-moves-i/): waiting, 2026-10-24
+- [plan-how-each-long-form-video-is-re-cut](/framework/ai/tasks/plan-how-each-long-form-video-is-re-cut/): waiting, 2026-10-24
+- [harmonize-the-designs-currently-on-the-s](/framework/styles/tasks/harmonize-the-designs-currently-on-the-s/): waiting, 2026-10-24
+- [redesign-the-sidebar-so-its-many-items-a](/framework/core/Sidebar/tasks/redesign-the-sidebar-so-its-many-items-a/): waiting, 2026-10-24
+- [build-a-layout-system-so-the-pages-use-t](/framework/design/layout/tasks/build-a-layout-system-so-the-pages-use-t/): waiting, 2026-10-24
+- [investigate-why-the-sessions-page-is-lag](/framework/ai/AISession/tasks/investigate-why-the-sessions-page-is-lag/): waiting, 2026-10-24
+- [avoid-wall-of-text-bubbles-from-raw-tran](/framework/ext/Chat/tasks/avoid-wall-of-text-bubbles-from-raw-tran/): waiting, 2026-10-24
+- [chat-bubbles-show-the-clean-transcriptio](/framework/ext/Chat/tasks/chat-bubbles-show-the-clean-transcriptio/): waiting, 2026-10-24
+- [decide-whether-raw-or-cleaned-text-is-se](/framework/ext/Chat/tasks/decide-whether-raw-or-cleaned-text-is-se/): waiting, 2026-10-24
+- [build-prompt-refinement-into-the-transcr](/framework/ux/Dictate/tasks/build-prompt-refinement-into-the-transcr/): waiting, 2026-10-24
+- [use-a-plain-text-input-rather-than-a-gro](/framework/ext/Chat/tasks/use-a-plain-text-input-rather-than-a-gro/): waiting, 2026-10-24
+- [put-raw-transcribed-text-into-the-input](/framework/ext/Chat/tasks/put-raw-transcribed-text-into-the-input/): waiting, 2026-10-24
+- [microphone-icons-run-through-the-prompt](/framework/ux/Dictate/tasks/microphone-icons-run-through-the-prompt/): waiting, 2026-10-24
+- [give-every-chat-area-a-text-input-microp](/framework/ext/Chat/tasks/give-every-chat-area-a-text-input-microp/): waiting, 2026-10-24
+- [decide-whether-the-big-full-width-layout](/framework/styles/layouts/tasks/decide-whether-the-big-full-width-layout/): waiting, 2026-10-24
+- [document-the-palette-page-s-big-full-wid](/framework/styles/layouts/tasks/document-the-palette-page-s-big-full-wid/): waiting, 2026-10-24
+- [support-ui-expressions-written-with-equa](/framework/core/Property/tasks/support-ui-expressions-written-with-equa/): waiting, 2026-10-24
+- [reference-anything-on-screen-by-its-java](/framework/dev/DevBar/tasks/reference-anything-on-screen-by-its-java/): waiting, 2026-10-24
+- [make-sure-the-object-oriented-inheritanc](/framework/code/objects/tasks/make-sure-the-object-oriented-inheritanc/): waiting, 2026-10-24
+- [explore-deltas-a-duplicate-button-or-alt](/framework/ext/Panel/tasks/explore-deltas-a-duplicate-button-or-alt/): waiting, 2026-10-24
+- [make-any-layout-able-to-become-a-templat](/framework/core/Page/Template/tasks/make-any-layout-able-to-become-a-templat/): waiting, 2026-10-24
+- [use-the-default-clamped-padding-token-ev](/framework/styles/tasks/use-the-default-clamped-padding-token-ev/): waiting, 2026-10-24
+- [minimise-the-css-run-a-css-audit-to-get](/framework/styles/tasks/minimise-the-css-run-a-css-audit-to-get/): waiting, 2026-10-24
+- [investigate-whether-ai-can-reliably-visu](/framework/ext/DesignTool/vision/tasks/investigate-whether-ai-can-reliably-visu/): waiting, 2026-10-24
+- [review-the-primary-text-mapping-and-fix](/framework/design/color/tasks/review-the-primary-text-mapping-and-fix/): waiting, 2026-10-24
+- [consolidate-all-previously-built-layout](/framework/library/tasks/consolidate-all-previously-built-layout/): waiting, 2026-10-24
+- [let-filters-select-templates-that-grow-t](/framework/ux/Filter/tasks/let-filters-select-templates-that-grow-t/): waiting, 2026-10-24
+- [inbox-shows-a-live-interaction-about-a-s](/framework/core/Page/ext/tasks/inbox-shows-a-live-interaction-about-a-s/): waiting, 2026-10-24
+- [every-core-module-gets-an-inbox](/framework/core/tasks/every-core-module-gets-an-inbox/): waiting, 2026-10-24
+- [reduce-excess-client-subscriptions-to-se](/framework/code/performance/tasks/reduce-excess-client-subscriptions-to-se/): idle, 2026-10-24
+- [is-querying-in-node-actually-faster-than](/framework/code/performance/tasks/is-querying-in-node-actually-faster-than/): waiting, 2026-10-24
+- [move-querying-and-rendering-work-from-th](/framework/ext/Query/tasks/move-querying-and-rendering-work-from-th/): waiting, 2026-10-24
+- [explore-using-the-server-as-an-in-memory](/framework/ext/Query/tasks/explore-using-the-server-as-an-in-memory/): waiting, 2026-10-24
+- [on-mobile-make-the-rail-a-full-width-pag](/framework/ux/Inbox/tasks/on-mobile-make-the-rail-a-full-width-pag/): waiting, 2026-10-24
+- [work-out-how-the-rail-should-behave-on-m](/framework/ux/Inbox/tasks/work-out-how-the-rail-should-behave-on-m/): waiting, 2026-10-24
+- [give-the-scroll-bar-the-same-background](/framework/ux/Inbox/tasks/give-the-scroll-bar-the-same-background/): waiting, 2026-10-24
+- [make-the-scroll-bar-thin-if-it-is-not-al](/framework/ux/Inbox/tasks/make-the-scroll-bar-thin-if-it-is-not-al/): waiting, 2026-10-24
+- [make-the-rail-scroll-bar-fully-transpare](/framework/ux/Inbox/tasks/make-the-rail-scroll-bar-fully-transpare/): waiting, 2026-10-24
+- [make-the-cards-and-the-rail-s-sticky-hea](/framework/core/Page/ext/tasks/make-the-cards-and-the-rail-s-sticky-hea/): waiting, 2026-10-24
+- [try-the-rail-technique-give-the-inbox-le](/framework/core/Page/ext/tasks/try-the-rail-technique-give-the-inbox-le/): waiting, 2026-10-24
+- [document-all-the-moving-parts-of-the-sys](/framework/ai/system/tasks/document-all-the-moving-parts-of-the-sys/): idle, 2026-10-24
+- [possibly-unify-navigation-so-new-things](/framework/core/Page/navigation/tasks/possibly-unify-navigation-so-new-things/): waiting, 2026-10-24
+- [give-everything-a-url-and-tags-so-it-can](/framework/library/tasks/give-everything-a-url-and-tags-so-it-can/): waiting, 2026-10-24
+- [give-every-module-an-architecture-md-rec](/framework/ext/Doc/tasks/give-every-module-an-architecture-md-rec/): idle, 2026-10-24
+- [make-class-instances-and-the-app-structu](/framework/code/objects/tasks/make-class-instances-and-the-app-structu/): waiting, 2026-10-24
+- [framework-home-grids-without-voids-expli](/framework/styles/layouts/tasks/framework-home-grids-without-voids-expli/): waiting, 2026-10-24
+- [padding-percentage-padding-a-wrapper-per](/framework/design/layout/tasks/padding-percentage-padding-a-wrapper-per/): waiting, 2026-10-24
+- [selection-tap-to-select-and-drill-down-o](/framework/ext/Ask/tasks/selection-tap-to-select-and-drill-down-o/): waiting, 2026-10-24
+- [templates-weight-per-use-use-template-sk](/framework/core/Page/Template/tasks/templates-weight-per-use-use-template-sk/): waiting, 2026-10-24
+- [.item-tool-test-2432-caller](/framework/ai/sessions/2026/10/16/.item-tool-test-2432-caller/): idle, 2026-10-24
+- [.item-tool-test-36876-caller](/framework/ai/sessions/2026/10/16/.item-tool-test-36876-caller/): idle, 2026-10-24
+- [ui-system-class-framework-ui-library-of](/framework/ui/tasks/ui-system-class-framework-ui-library-of/): idle, 2026-10-23
 - [item-move](/framework/core/Item/tasks/item-move/): idle, 2026-10-23
 - [amber-badge-when-readme-is-stale](/framework/ext/drawer/tasks/amber-badge-when-readme-is-stale/): idle, 2026-10-21
 - [v-4lwslx3](/framework/ai/sessions/2026/10/20/v-4lwslx3/): idle, 2026-10-21
