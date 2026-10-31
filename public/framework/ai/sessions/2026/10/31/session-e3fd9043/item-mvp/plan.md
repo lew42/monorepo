@@ -54,7 +54,14 @@ Landed and pushed on `claude/replay-tests` (35 of 37 core test files pass; the 2
 - **Wave 2 F** files: design `core/Page/doc/files.md`; phase 1 built: `<page>/files/` live read-only list.
 - Fix: `ext/Chat/md.js` imported `ext/Markdown` (folder is `ext/markdown`); the app didn't boot on a case-sensitive host. Same line is on michael/dev.
 
-Running: Wave 2 D (API overview doc), Wave 2 E (snapshots).
+- **Wave 2 D** docs: the core API as pseudo-classes, `public/framework/core/doc/overview.md` (linked from `core/readme.md`); stale `/api/item` and replay-lab texts fixed.
+- **Wave 2 E** snapshots: `task.snapshot.json` beside the log (the log is never touched); `Item.open` loads snapshot + tail, else full replay; `Server/Snapshots.mjs` (dry run by default) proves snapshot + tail = full replay before writing. An 8,360-line session: 360–420 ms full replay vs 27–51 ms from a snapshot.
+- **Item tests as demos:** replay, line-format, hooks, call, item-core use `test()` / `t.view`; listed under "Click-through tests" in `core/Item/readme.md`.
+- **Files phase 2:** `+ Page`, upload or drop (25 MB cap, a clash keeps both), set aside into `_removed/`, all over the socket (`Server/plugins/SocketServer/Files.js`), live in other tabs.
+
+Running: an independent review of the core changes (Opus), `view.bind` (D7), the item-tool test that writes to the real `task-moves.jsonl`.
+
+Not started: switching on `Store.marked_lines` (needs the dozen bare readers updated), Files phase 3 (rename, move, nest), per-person UI state (D18), an Item variant experiment, running `Snapshots.mjs` automatically.
 
 ## Open for the owner (work continues on the recommended answer)
 
@@ -64,6 +71,7 @@ Running: Wave 2 D (API overview doc), Wave 2 E (snapshots).
 4. **Existing `set_<name>` methods are now hooks** (`core/Item/doc/hooks.md` lists them).
 5. **Servex's live copy:** the socket path doesn't update it; Servex re-reads the file on its next `item()` call. If that matters, `Store.channel = "item_api"`.
 6. **Dedupe is in server memory:** a server crash between writing and acking, then a resend, can write a batch twice.
+8. **Snapshots on the static site:** opening a log that has no snapshot costs one extra 404 request. A site-wide list of snapshotted logs would avoid it. Recommended: leave it until it shows up as slow.
 7. **Files design answers taken as defaults:** route `files/`, 25 MB upload cap over the socket, keep both on a name clash, move manifests in `Server/moves/`, names only in phase 1.
 
 ## Found along the way
