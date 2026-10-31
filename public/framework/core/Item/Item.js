@@ -1,4 +1,5 @@
 import Store from "./Store.js";
+import Snapshot from "./Snapshot.js";
 import { Events } from "../Events/Events.js";
 
 const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
@@ -599,8 +600,10 @@ export class Item extends Events(Object) {
 	static replay_new(lines){ return new this(); }
 	// The root is built the way Item.open builds it (root_from below): a plain Item IS its line 1 (id and fields), the other
 	// lines replay onto it; a class with its own replay_new (Task, Session) builds from all the lines and replays them all.
-	static replay(lines){
-		const { host, rest } = this.root_from(lines);
+	// `snapshot` (an optional second argument: a Snapshot, or {state, memory}) starts the item from that saved state, and `lines` are
+	// then only the lines after it (the node twin of Item.open's snapshot load; Server/Snapshots.mjs verifies a snapshot with it).
+	static replay(lines, snapshot){
+		const { host, rest } = snapshot ? { host: this.from_snapshot(snapshot), rest: lines } : this.root_from(lines);
 		Store.replay_depth++;   // a replay saves nothing, here as when a Store reads (as_call, Store.js)
 		try {
 			for (const line of rest) if (line && typeof line === "object") host.replay_line(line);
@@ -608,6 +611,34 @@ export class Item extends Events(Object) {
 		} finally { Store.replay_depth--; }
 		return host;
 	}
+	// null when a snapshot of this item can be continued by replaying later lines; else the reason it cannot (Server/Snapshots.mjs refuses it).
+	snapshot_unsafe(){ return null; }
+
+	// An empty item of this class, restored from a snapshot (nothing is saved while it is built).
+	static from_snapshot({ state, memory }){
+		const host = new this();
+		Store.replay_depth++;
+		try { host.restore(state, memory); } finally { Store.replay_depth--; }
+		return host;
+	}
+
+	/* Start this (empty) item from a snapshot's saved shape (doc/snapshots.md): its data, its lists of children, and the in-memory
+	   fields toJSON leaves out (`memory`). Each `set_<key>` hook then runs ONCE for the key's saved value (D17), on this item and on
+	   every item under it, which is what a replay of the lines would have ended up with. Nothing here is saved: callers hold
+	   Store.replay_depth. A subclass with state of its own overrides this and calls super. */
+	restore(state, memory = []){
+		const built = this.constructor.hydrate(state);   // a twin built the ordinary way; its parts are moved here
+		this.id = built.id;
+		Object.assign(this.data, built.data);
+		for (const [name, list] of Object.entries(built.lists())){
+			const mine = this.get(name) ?? (this[name] = Item.makeList({ owner: this, name }));
+			for (const kid of [...list]) mine.insert(kid);
+		}
+		Snapshot.apply_memory(this, memory);
+		this.walk(item => { for (const key of Object.keys(item.data)) if (item.hook_for(key)) item.take(key, item.data[key]); });
+		return this;
+	}
+
 	// `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while
 	// it applies (a Task stamps its verbs with it), for every Item. Before, a plain Item kept them as fields (seat a).
 	replay_line(line){
@@ -666,12 +697,14 @@ export class Item extends Events(Object) {
 		const store = this.Store.for(src);
 		if (store.host) return store.host;
 		if (store.rooting) return store.rooting;
-		const rooting = store.rooting = store.open().then(() => {
+		// A snapshot (a state to start from, and where in the log it ends) is used only when nobody has opened this store yet: another
+		// reader of the same Store expects every line (Store.use_snapshot).
+		const rooting = store.rooting = (this.Store.snapshots ? store.use_snapshot() : Promise.resolve()).then(() => store.open()).then(() => {
 			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
-			const Class = this === Item ? Item.class_for(store.entries) : this;
-			const { host, rest } = Class.root_from(store.entries);
+			const Class = this !== Item ? this : store.snapshot ? Item.types.get(store.snapshot.state.type) ?? Item : Item.class_for(store.entries);
+			const { host, rest } = store.snapshot ? { host: new Class(), rest: store.entries } : Class.root_from(store.entries);
 			store.entries = rest;
-			store.attach(host);
+			store.attach(host);   // restores the snapshot first, when there is one, then replays the lines held
 			host.replay_end?.();
 			return host;
 		});

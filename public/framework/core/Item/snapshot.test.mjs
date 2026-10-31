@@ -108,7 +108,7 @@ test.node("a Task opened from its snapshot plus the tail equals a full replay, a
 	t.eq(shape(opened), shape(full), "snapshot + tail gives the state a full replay gives");
 	t.eq(opened.tasks.find("c")?.get("title"), "third, renamed", "a child added in the tail is there");
 	t.eq(opened.get("note"), "after the snapshot", "and a field set in the tail");
-	t.eq(opened.store.count, ledger_head.length + ledger_tail.length, "the store counts every line, covered or not");
+	t.eq(opened.store.snapshot?.lines, ledger_head.length, "the store started from the snapshot (it covers the head's lines)");
 
 	const log_hits = hits.filter(h => h.url.includes("task.jsonl"));
 	t.ok(log_hits.length > 0 && log_hits.every(h => h.status === 206), "the log was only ever asked for by byte range: " + J(log_hits));

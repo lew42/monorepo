@@ -587,9 +587,22 @@ export class Task extends Item {
 
 	// No explicit verb line anywhere: infer the state from the old fields.
 	replay_end(){
+		this._legacy = !this._rp?.explicit; this._fresh = !!this._rp?.fresh;   // kept (and in a snapshot's memory) so a restored task knows whether its state was read from verbs or inferred
 		if (!this._rp?.explicit) this.replay_legacy(!!this._rp?.fresh);
 		this._at = null;
 		this._rp = null;
+		return this;
+	}
+
+	// A task with no verb line has its state INFERRED from old fields at the end of the replay. A later verb line would meet that
+	// inferred state, where a full replay of the longer log meets the idle one, so a snapshot of it cannot be continued.
+	snapshot_unsafe(){ return this._legacy ? "its state is inferred from old fields (no start/complete/... line yet): lines added later would replay differently from a snapshot" : null; }
+
+	// Started from a snapshot (Item.restore): its state is already final. A task whose state came from verb lines must not have it
+	// inferred again from old fields when the lines after the snapshot end; a legacy task (no verbs) still infers it, as a full replay does.
+	restore(state, memory){
+		super.restore(state, memory);
+		this._rp = this._legacy ? { at: null, explicit: false, fresh: !!this._fresh } : { at: null, explicit: true };
 		return this;
 	}
 

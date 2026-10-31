@@ -5,6 +5,7 @@
 // needs Item fully defined, and Item.js's own import of Store.js runs before
 // Item's class body does, so List.js would hit the TDZ instead.
 import RecordWriter from "./RecordWriter.js";
+import Snapshot from "./Snapshot.js";
 
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
@@ -55,6 +56,10 @@ export class Store {
 	// only for what Servex did not take.
 	static channel = "socket";
 
+	/* SNAPSHOTS (doc/snapshots.md): `Item.open` may start from `<log>.snapshot.json` (the item's saved shape and how far into the log it
+	   reaches) and replay only the lines after it. false = always replay the whole log, as before. */
+	static snapshots = true;
+
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
 
@@ -80,6 +85,30 @@ export class Store {
 			: this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
 		opening.catch(() => { if (this.opening === opening) this.opening = null; });   // a failed open (server restarting) is not kept: the next open tries again
 		return this.opening = opening;
+	}
+
+	/* Look for a snapshot of this log and check it still matches (Item.open calls this before open(), only when nobody has opened the
+	   store yet). A good one is kept in `this.snapshot`; `count` and `offset` then start where it ends, so the live tail (dev server)
+	   subscribes from there and a static load asks only for the bytes after it. A snapshot that no longer matches the log is
+	   ignored with one warning: the log is the truth, so the load is simply the old full replay. Answers the snapshot or null. */
+	async use_snapshot(){
+		if (!Store.snapshots || this.opening || this.snapshot !== undefined) return this.snapshot ?? null;
+		this.snapshot = null;
+		try {
+			await this.moved();
+			const found = await Snapshot.fetch(this.url);
+			if (!found) return null;
+			const tail = await found.check(this.url, { tail: !Store.local() });
+			if (tail === null){
+				console.warn(`Item.Store: ${Snapshot.url_for(this.url)} does not match ${this.url} (the log was rewritten or cut before byte ${found.bytes}): snapshot ignored, replaying the whole log.`);
+				return null;
+			}
+			this.snapshot = found;
+			this.snapshot_tail = Store.local() ? undefined : tail;
+			this.count = found.lines;
+			this.offset = found.bytes;
+		} catch (error){ console.warn(`Item.Store: could not use the snapshot of ${this.url} (${error?.message ?? error}): replaying the whole log.`); }
+		return this.snapshot;
 	}
 
 	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.
@@ -109,6 +138,11 @@ export class Store {
 	// SPA fallback answers a missing file with index.html at 200 — a real 200 whose
 	// content-type is html is therefore treated as "no file", not "an empty file".
 	async load(){
+		if (this.snapshot){   // only the lines after the snapshot (already fetched when static; the dev server's 1.5 s fallback asks now)
+			const text = this.snapshot_tail ?? await this.snapshot.check(this.url, { tail: true });
+			if (text === null){ this.snapshot = null; this.count = 0; this.offset = 0; }   // changed since use_snapshot(): read it all (a host built from the snapshot would have the same lines twice; rare, reload fixes it)
+			else { this.loaded = true; this.snapshot_tail = undefined; return this.read(this.parse(text)); }
+		}
 		const res = await fetch(this.url).catch(() => null);
 		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return this;
 
@@ -164,6 +198,12 @@ export class Store {
 	attach(host){
 		this.host = host;
 		host.store = this;
+
+		// The host starts from the snapshot (its saved shape, hooks run once per key), then replays the lines after it below.
+		if (this.snapshot){
+			Store.replay_depth++;
+			try { host.restore(this.snapshot.state, this.snapshot.memory); } finally { Store.replay_depth--; }
+		}
 
 		host.on("delta", (line, origin) => {
 			if (this.replaying || Store.replay_depth > 0 || Store.muted_at(origin) || owned_below(origin, host)) return;
