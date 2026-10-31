@@ -89,4 +89,29 @@ const record = host => { const lines = []; const store = new Store({ url: "/x/" 
 	t.eq(parent_lines, [], "1e: but the parent's store saved nothing: a replay writes no line");
 }
 
+// 1f. A running task's open span is saved as data (ran_since), so a reload of change lines keeps its time.
+{
+	const task = new Task({ id: "r", title: "run" });
+	const lines = record(task);
+	task.start();
+	const started = lines.find(l => l.set?.ran_since)?.set;
+	t.ok(started && Number.isFinite(Date.parse(started.ran_since)), "1f: start() saves ran_since as an ISO time: " + JSON.stringify(started));
+	task.pause();
+	t.eq(task.data.ran_since, null, "1f: pause() clears ran_since");
+	t.ok(lines.some(l => "ran_since" in (l.set ?? {}) && l.set.ran_since === null), "1f: and saves the clearing");
+	task.resume();
+	t.ok(typeof task.data.ran_since === "string", "1f: resume() opens a span again");
+
+	// A reload of change lines only (no verb lines): the open span began 5 seconds ago.
+	const five_ago = new Date(Date.now() - 5000).toISOString();
+	const reloaded = Task.replay([{ id: "r", title: "run" }, { set: { state: "running" } }, { set: { started_at: five_ago } }, { set: { ran_since: five_ago } }]);
+	t.ok(reloaded.duration() >= 5000 && reloaded.duration() < 7000, "1f: a reloaded running task keeps its time (got " + reloaded.duration() + " ms)");
+	// Banked time too: a stopped task's ran_ms is read back by duration()
+	const stopped = Task.replay([{ id: "r", title: "run" }, { set: { state: "stopped", ran_ms: 1234, ran_since: null } }]);
+	t.eq(stopped.duration(), 1234, "1f: a stopped task's banked ran_ms is its duration after a reload");
+	// Old lines have no ran_since: they still load, with no open span
+	const old = Task.replay([{ id: "r", title: "run" }, { set: { state: "running" } }]);
+	t.eq(old.duration(), 0, "1f: an old running line without ran_since loads with no open span");
+}
+
 t.done();
