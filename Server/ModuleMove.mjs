@@ -88,10 +88,10 @@ class ModuleMove {
 		const i = token.indexOf(url[0]);
 		if (i >= 0 && ModuleMove.SITE.test(token.slice(0, i))){ const u = at(url, i); if (u) return u; }
 		// "ai/AITask" or "framework/ai/AITask" as a name in prose: live files only, and only a path that is really there.
-		if (history || !(this.exists(token) || this.exists("public/framework/" + token) || this.exists("public/" + token))) return null;
-		if (token.startsWith(bare[0])) return at(bare, 0);
-		if (token.startsWith("framework/" + bare[0])) return at(bare, "framework/".length);
-		return null;
+		if (history) return null;
+		const i0 = token.startsWith(bare[0]) ? 0 : token.startsWith("framework/" + bare[0]) ? "framework/".length : -1;
+		if (i0 < 0 || !(this.exists(token) || this.exists("public/framework/" + token) || this.exists("public/" + token))) return null;
+		return at(bare, i0);
 	}
 
 	plan(){
