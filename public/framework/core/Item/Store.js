@@ -26,15 +26,29 @@ export class Store {
 
 	entries = [];
 	count = 0;
-	/* MUTING is per item tree (2026-10-31): while Item.act (or Item.as_call) runs a verb, the changes made to THAT item and
-	   anything under it are not recorded (the verb is), but a write to any other item is. `muting` maps an item to how many
-	   mutes it holds (a verb may call a verb). */
+	/* MUTING (2026-10-31): while Item.act (or Item.as_call) runs a verb, the changes made to THAT item and anything under it are not
+	   recorded (the verb is), and neither are the changes the verb makes in the item's ANCESTORS (the last child completing
+	   completes its parent: Task.child_changed; that is the verb's effect, and a replay of the verb makes it again). A write to any
+	   other item is recorded. `muting` maps an item to how many mutes it holds (a verb may call a verb); `muting_up` does the same
+	   for the ancestors, which are muted as themselves only, not their other children or lists. */
 	static muting = new Map();
-	static mute(item){ Store.muting.set(item, (Store.muting.get(item) ?? 0) + 1); }
-	static unmute(item){ const n = (Store.muting.get(item) ?? 1) - 1; n > 0 ? Store.muting.set(item, n) : Store.muting.delete(item); }
-	// Is `node` (the origin of a change: an Item, or a List, whose parent is its owner) inside a muted item's tree?
+	static muting_up = new Map();
+	// Answers the ancestors it muted; hand them back to unmute() so a verb that moves the item still releases the right ones.
+	static mute(item){
+		Store.muting.set(item, (Store.muting.get(item) ?? 0) + 1);
+		const above = [];
+		for (let n = item.parent; n; n = n.parent){ Store.muting_up.set(n, (Store.muting_up.get(n) ?? 0) + 1); above.push(n); }
+		return above;
+	}
+	static unmute(item, above = []){
+		const n = (Store.muting.get(item) ?? 1) - 1;
+		n > 0 ? Store.muting.set(item, n) : Store.muting.delete(item);
+		for (const up of above){ const m = (Store.muting_up.get(up) ?? 1) - 1; m > 0 ? Store.muting_up.set(up, m) : Store.muting_up.delete(up); }
+	}
+	// Is `node` (the origin of a change: an Item, or a List, whose parent is its owner) inside a muted item's tree, or an ancestor of one?
 	static muted_at(node){
 		if (!Store.muting.size) return false;
+		if (Store.muting_up.has(node)) return true;
 		for (let n = node; n; n = n.parent) if (Store.muting.has(n)) return true;
 		return false;
 	}

@@ -140,13 +140,13 @@ export class Item extends Events(Object) {
 	// A button's verb (browser): run `this[verb](args)` now so the page redraws at once, but record the VERB —
 	// `{start:{}}` — not the `set` lines it made, so the item tool's writer (Store.flush) saves it like an agent's call.
 	// A verb that refused (warned, changed nothing) records nothing. `Store.mute(this)` is what keeps the `set` lines out:
-	// only for this item and what sits under it (an unrelated item's write during the verb is still saved).
+	// for this item, what sits under it, and the ancestors' own derived changes (an unrelated item's write during the verb is still saved).
 	act(verb, args){
 		let changed = 0;
 		const count = () => changed++;
 		this.on("delta", count);
-		Store.mute(this);
-		try { this[verb](args); } finally { Store.unmute(this); this.off("delta", count); }
+		const above = Store.mute(this);
+		try { this[verb](args); } finally { Store.unmute(this, above); this.off("delta", count); }
 		if (changed) this.emit("delta", { [verb + (Store.marked_lines ? "()" : "")]: args ?? {} }, this);
 		return this;
 	}
@@ -163,9 +163,9 @@ export class Item extends Events(Object) {
 		let changed = 0;
 		const count = () => changed++;
 		this.on("delta", count);
-		Store.mute(this);
+		const above = Store.mute(this);
 		let result;
-		try { result = body(); } finally { Store.unmute(this); this.off("delta", count); }
+		try { result = body(); } finally { Store.unmute(this, above); this.off("delta", count); }
 		if (changed) this.emit("delta", { [name + "()"]: Item.call_value(args) }, this);
 		return result;
 	}
