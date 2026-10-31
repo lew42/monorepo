@@ -6,5 +6,15 @@
 	.page-files-list { gap: 0; }
 	.page-files-removed { opacity: 0.55; }
 	.page-files-said { color: var(--danger, #b42318); }
+	.page-files-bar { gap: 0.6em; }
+	.page-files-actions { gap: 0.6em; }
+	.page-files-form { gap: 0.3em; }
+	.page-files-formrow { gap: 0.5em; flex-wrap: wrap; }
+	.page-files-name { flex: 1 1 14em; min-width: 0; }
+	.page-files-drop { gap: 0.6em; flex-wrap: wrap; padding: 0.9em 1em; border: 2px dashed var(--fill-a32); border-radius: var(--radius); }
+	.page-files[data-over] .page-files-drop { border-color: var(--prime); background: var(--fill-a08); }
+	.page-files-result { word-break: break-word; }
+	.page-files-bad { color: var(--danger, #b42318); }
+	.page-files-confirm { gap: 0.6em; flex-wrap: wrap; padding: 0.3em 0.6em 0.6em; }
 	.page-files-chip { margin-inline-start: 0.8em; }
 }

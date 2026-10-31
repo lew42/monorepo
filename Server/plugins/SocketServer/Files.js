@@ -43,7 +43,7 @@ export default class Files {
 
 	page_add(folder_url, name, title){
 		const folder = this.folder(folder_url);
-		try { return Subpages.at(this.url_of(folder)).add({ name, title: String(title || name) }); }
+		try { return Subpages.at(this.url_of(folder), { root: path.dirname(PUBLIC) }).add({ name, title: String(title || name) }); }
 		catch (e){ throw this.refuse(e.message.replace(folder, this.url_of(folder))); }
 	}
 
