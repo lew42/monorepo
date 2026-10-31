@@ -120,8 +120,8 @@ export default class Snapshots {
 			const unsafe = full.snapshot_unsafe?.();   // the item itself knows when its state could not be continued from a snapshot
 			if (unsafe) return { why: unsafe };
 
-			const truth = Snapshot.fingerprint(full);
-			const same = (rebuilt, where) => Snapshot.fingerprint(rebuilt) === truth ? null : `loading from a snapshot ${where} gives a different item than a full replay (${Snapshots.first_difference(truth, Snapshot.fingerprint(rebuilt))})`;
+			const truth = Snapshot.fingerprint(full, { root_id: false });
+			const same = (rebuilt, where) => Snapshot.fingerprint(rebuilt, { root_id: false }) === truth ? null : `loading from a snapshot ${where} gives a different item than a full replay (${Snapshots.first_difference(truth, Snapshot.fingerprint(rebuilt, { root_id: false }))})`;
 
 			const wrong = same(Class.replay([], snapshot), "at the end of the log");
 			if (wrong) return { why: wrong };

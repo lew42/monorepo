@@ -603,7 +603,7 @@ export class Task extends Item {
 	restore(state, memory){
 		super.restore(state, memory);
 		if (this._legacy === undefined) return this;   // not read through Task.replay_line (a Session's record shape): nothing of Task's reading to carry on
-		this._rp = this._legacy ? { at: null, explicit: false, fresh: !!this._fresh } : { at: null, explicit: true };
+		this._rp = { at: null, explicit: !this._legacy, fresh: !!this._fresh };
 		return this;
 	}
 

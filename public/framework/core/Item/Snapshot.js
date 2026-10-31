@@ -42,7 +42,7 @@ export default class Snapshot {
 		let index = 0;
 		host.walk(item => {
 			const props = {};
-			for (const key of Object.keys(item)) if (key.startsWith("_") && item[key] !== undefined && plain(item[key])) props[key] = JSON.parse(JSON.stringify(item[key]));
+			for (const key of Object.keys(item).sort()) if (key.startsWith("_") && item[key] !== undefined && plain(item[key])) props[key] = JSON.parse(JSON.stringify(item[key]));
 			if (Object.keys(props).length) out.push([index, props]);
 			index++;
 		});
@@ -57,10 +57,11 @@ export default class Snapshot {
 	}
 
 	// What two items must share to be "the same": the saved shape, each item's class, id and state, and the in-memory fields above.
-	static fingerprint(host){
-		const rows = [];
-		host.walk(item => rows.push([item.constructor.name, item.id, item.get_one?.("state") ?? null]));
-		return JSON.stringify([host.toJSON(), rows, Snapshot.memory_of(host)]);
+	// `root_id: false` leaves the root's own id out: an item whose log never named one gets a fresh random id on every replay.
+	static fingerprint(host, { root_id = true } = {}){
+		const rows = [], json = host.toJSON();
+		host.walk(item => rows.push([item.constructor.name, item === host && !root_id ? null : item.id, item.get_one?.("state") ?? null]));
+		return JSON.stringify([root_id ? json : { ...json, id: null }, rows, Snapshot.memory_of(host)]);
 	}
 
 	// A snapshot of `host` that covers `lines` lines and `bytes` bytes of the log, whose last bytes are `covered_end`.
