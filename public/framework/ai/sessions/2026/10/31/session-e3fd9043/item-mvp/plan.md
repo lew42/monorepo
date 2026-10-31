@@ -64,9 +64,12 @@ Landed and pushed on `claude/replay-tests` (35 of 37 core test files pass; the 2
 - **Test leak fixed:** `Servex/agents/item_tool.test.mjs` no longer writes to the real `task-moves.jsonl`.
 - `Dated.test.mjs` fails in this sandbox at the base commit too (file watchers exhausted by leftover dev servers); not a regression.
 
-Running: every line reader understands `name()` / `#id` (so D13 writing can be switched on); Files phase 3 (rename, move, nest with a dry run and undo).
+- **Every line reader takes both spellings** (`core/Item/LineKey.js`, used by Chat v2/v3, the session timeline, AIIndex, PromptAudit, UndoneAsks, DatedFiles, TaskMigrate, TaskLoop). `Store.marked_lines` is still off; switching it on is one line, steps in `core/Item/doc/line-format.md`; a test runs the main flows with it on.
+- **Files phase 3:** rename, move (a folder picker, or drag a row onto a folder), a dry-run plan before a folder moves, Undo; manifests in `Server/moves/`; `ModuleMove` falls back to a plain rename for untracked folders. Not rewritten on a move yet: links inside `.jsonl` records and links to a single file; the scan takes about 1.4 s and blocks the dev server.
 
-Not started: switching on `Store.marked_lines` (needs the dozen bare readers updated), Files phase 3 (rename, move, nest), per-person UI state (D18), an Item variant experiment, running `Snapshots.mjs` automatically.
+Verified at the end: 39 of 41 core test files pass (the other 2 need the live site); Files 70 checks, Files move 64, item tool 116.
+
+Not started: per-person UI state (D18), an Item variant experiment, running `Snapshots.mjs` automatically.
 
 ## Open for the owner (work continues on the recommended answer)
 
@@ -84,3 +87,5 @@ Not started: switching on `Store.marked_lines` (needs the dozen bare readers upd
 ## Found along the way
 
 - **A test writes to a real log:** a run of the item-tool test (temp module `zz-item-tool-test-<pid>`) appended a line to the real `public/framework/ai/sessions/task-moves.jsonl` (`"by":"test"`). Restored by hand; the test should write its moves log inside its temp folder.
+
+- **Leftover dev servers in the cloud sandbox:** builders started `node server.js` on spare ports and some couldn't stop them (the permission system refused their kill). They rewrite `files.jsonl` lists across `public/` (catch-up differences between this Linux clone and the owner's PC); the coordinator filters those out before every commit, keeping only lines for files this branch added.
