@@ -553,8 +553,8 @@ export class Task extends Item {
 		}
 		if (line.content && typeof line.content === "object") this.content.set(line.content);
 		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
-		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
-		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.put(k, v);   // the browser Store's own change line
+		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.take(k, line[k]);   // a plain field line, e.g. one the item tool wrote
+		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.take(k, v);   // the browser Store's own change line
 		// A subtask given its own folder: {"file":"<child>/task.jsonl"} swaps the nested child for that file's task (same id).
 		if (typeof line.file === "string" && line.file.endsWith("/task.jsonl") && typeof this.data.path === "string"){
 			const kid = Task.from_ref(this.data.path.replace(/\/?$/, "/") + line.file.slice(0, -"task.jsonl".length));

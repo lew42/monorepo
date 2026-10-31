@@ -111,7 +111,7 @@ export default class Session extends Task {
 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
 		// The browser Store's own change line for a field on the session ({"set":{"title":…}}), read as Task.replay_line reads it.
 		// Before, it was kept as one field named "set" (the persistence matrix found it).
-		if (delta.set && typeof delta.set === "object" && !Array.isArray(delta.set)){ for (const [k, v] of Object.entries(delta.set)) this.put(k, v); delete delta.set; }
+		if (delta.set && typeof delta.set === "object" && !Array.isArray(delta.set)){ for (const [k, v] of Object.entries(delta.set)) this.take(k, v); delete delta.set; }
 		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.
 		// One known verb that names its task, so the browser's append passes the schema (a bare {"<id>":{…}} line would not).
 		if (delta.decide && typeof delta.decide === "object"){
@@ -129,7 +129,7 @@ export default class Session extends Task {
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
 		}
 		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
-		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);
+		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.take(k, v);
 		return this;
 	}
 

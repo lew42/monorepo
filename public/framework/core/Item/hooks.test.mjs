@@ -13,6 +13,7 @@ const record = host => { const lines = []; const store = new Store({ url: "/x/" 
 
 // A hook that keeps a derived cache, and one that keeps only a volatile value.
 class Cart extends Item {
+	static fields = ["qty"];   // a field passed to the constructor (line 1) goes into data only when the class declares it
 	calls = 0;
 	total = 0;   // derived: never saved, rebuilt by the hook
 	set_qty(value){ this.calls++; this.put("qty", value); this.total = value * 2; }

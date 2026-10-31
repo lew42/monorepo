@@ -42,11 +42,33 @@ const is_envelope = value => is_plain(value) && typeof value.type === "string" &
 // A cache kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
 const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
 
+/* D17, property hooks: a method named `set_<key>` is the hook for the data key `<key>`. It is wrapped once per class (the first
+   time an instance is made) so that calling it by hand and set() calling it do the same thing: run the hook, and if the hook put a
+   different value in data, announce the change (delta, then change). `set_one` is Item's own method, never a hook. */
+const hooked = new WeakSet();
+const wrap_hooks = Class => {
+	if (hooked.has(Class)) return;
+	hooked.add(Class);
+	for (let proto = Class.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)){
+		if (hooked.has(proto)) continue;
+		hooked.add(proto);
+		for (const name of Object.getOwnPropertyNames(proto)){
+			if (!name.startsWith("set_") || name.length <= 4 || name === "set_one") continue;
+			const d = Object.getOwnPropertyDescriptor(proto, name), raw = d.value, key = name.slice(4);
+			if (typeof raw !== "function" || raw.is_hook) continue;
+			const hook = function(value){ return this.run_hook(key, raw, value); };
+			hook.is_hook = true;
+			Object.defineProperty(proto, name, { ...d, value: hook });
+		}
+	}
+};
+
 // Architecture: composition not inheritance; doc/item-notes.md
 export class Item extends Events(Object) {
 
 	constructor(...args){
 		super();
+		wrap_hooks(this.constructor);
 		// A field passed to the constructor goes straight into data: not an own property that would shadow its
 		// accessor (a live rename never reached page.title, Stream.test.mjs), and not through set(), which would
 		// record a line and emit an event for an object that is still being built (Page.set, Template.set).
@@ -188,6 +210,10 @@ export class Item extends Events(Object) {
 		const target = this.get(key);
 		if (routes(target)) return void target.set(value);
 
+		// D17: the class's own hook for this key stores the value (put) and does whatever else it wants.
+		const hook = this.hook_for(key);
+		if (hook) return void hook.call(this, value);
+
 		// An old line named a list member by its id alone (`{"c3":{…}}`, what Store.hops wrote before every hop named its
 		// list): still replayed, from the first list that has it, as get() used to; new lines name the list. It warns only
 		// when the list could have been named (a Page's `pages` cannot be yet, so the page tool's `{"<tab>":{…}}` is current).
@@ -218,6 +244,44 @@ export class Item extends Events(Object) {
 			this.emit("delta", { set: { [key]: value } }, this);
 			this.emit_safely("change", key, value, old);
 		}
+	}
+
+	// The hook (D17) for a data key: the wrapped `set_<key>` method, or null.
+	hook_for(key){
+		const hook = typeof key === "string" && key !== "one" ? this["set_" + key] : null;
+		return typeof hook === "function" && hook.is_hook ? hook : null;
+	}
+
+	/* Runs a hook: `raw` is the class's own `set_<key>(value, old)`. It stores with this.put(key, value) (or keeps the value
+	   elsewhere). When the stored value is different afterwards, the change is announced exactly as set() announces it: the
+	   save (delta) first, then the view event (change). A hook that sets its own key again would loop for ever: warned, and the
+	   value is simply stored. */
+	run_hook(key, raw, value){
+		if (!this._hooking) hide(this, "_hooking", new Set());
+		const running = this._hooking;
+		if (running.has(key)){
+			warn(`set_${key}() set "${key}" again from inside itself — stored as it is, no second hook run`, `hook-loop:${this.constructor.name}.${key}`);
+			this.put(key, value);
+			return;
+		}
+		const old = this.get_one(key);
+		running.add(key);
+		let result;
+		try { result = raw.call(this, value, old); } finally { running.delete(key); }
+		const now = this.get_one(key);
+		if (now !== old){
+			this.emit("delta", { set: { [key]: now } }, this);
+			this.emit_safely("change", key, now, old);
+		}
+		return result;
+	}
+
+	// A line's value for `key` when it is replayed (a Task or Session reads its own line shapes and stores fields itself): the
+	// class's hook if it has one, else put(). Nothing is saved by a replay (Store.replay_depth), so only the hook's own work shows.
+	take(key, value){
+		const hook = this.hook_for(key);
+		if (hook) hook.call(this, value);
+		else this.put(key, value);
 	}
 
 	// `name()` in a line: call the method `name` with the value as its one argument (several arguments: one object).
@@ -613,7 +677,9 @@ export class Item extends Events(Object) {
 		// Line 1 is the item's own fields only when it carries the item's id (`{"id":"layer","x":24}`). A first line that is a change
 		// (`{"cards":{"add":…}}`, a Dated index row) has no id: the item starts empty and every line replays, as Item.replay does.
 		if (!(is_plain(first) && typeof first.id === "string")) return { host: new this(), rest: entries };
-		return { host: new this(first), rest: entries.slice(1) };
+		const host = new this(first);
+		for (const key of Object.keys(first)) if (key !== "id" && host.hook_for(key)) host.take(key, host.get_one(key));   // line 1's fields are a replayed line: their hooks run (the constructor cannot: the subclass is not built yet)
+		return { host, rest: entries.slice(1) };
 	}
 }
 
