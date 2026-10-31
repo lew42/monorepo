@@ -122,3 +122,34 @@ test.optional("edge: act() still saves its one verb line around an as_call metho
 	t.eq(again.order_of(), ["r2", "r1"], "act(): and its line replays (the bare spelling too)");
 	return again;
 });
+
+// every argument list comes back exactly (review finding 8)
+class Args extends Item {
+	take(...args){ return this.as_call("take", args, () => { this.received = args; this.set({ n: (this.get("n") ?? 0) + 1 }); }); }
+}
+Item.register(Args, "Args");
+
+test("every argument list is saved in a line that replays to the same arguments", t => {
+	const show = args => JSON.stringify(args.map(a => a === undefined ? "<undefined>" : a));
+	const trim = args => { const out = [...args]; while (out.length && out.at(-1) === undefined) out.pop(); return out; };   // a trailing undefined is the same as no argument
+	const lists = {
+		"none": [], "one": [1], "two": [1, 2], "one undefined": [undefined], "undefined in the middle": ["a", undefined, "c"], "a trailing undefined": ["a", undefined],
+		"an object": [{ a: 1 }], "an empty object": [{}], "an array": [[1, 2]], "two arrays": [[1], [2]], "null": [null],
+		"an object that looks like the wrapper": [{ $args: [1] }],
+	};
+	const rows = [];
+	for (const [name, list] of Object.entries(lists)){
+		const item = new Args({ id: "a" }), { lines } = record(item);
+		item.take(...list);
+		const saved = JSON.parse(JSON.stringify(lines));   // through the file and back
+		t.eq(saved.length, 1, `${name}: one line is saved (${JSON.stringify(saved[0])})`);
+		const marked = Args.replay([{ id: "a" }, ...saved]);
+		// the item tool strips the "()" before it applies a line (Servex/agents/page_tools.js unmark_delta): the bare spelling must work too
+		const bare = Args.replay([{ id: "a" }, ...saved.map(l => Object.fromEntries(Object.entries(l).map(([k, v]) => [k.replace(/\(\)$/, ""), v])))]);
+		t.eq(show(marked.received ?? []), show(trim(list)), `${name}: replaying the saved line calls the method with the same arguments`);
+		t.eq(show(bare.received ?? []), show(trim(list)), `${name}: and so does the item tool's bare spelling`);
+		t.eq([marked.get("n"), bare.get("n")], [1, 1], `${name}: the call ran on replay (its change came back)`);
+		rows.push({ arguments: show(list), line: JSON.stringify(saved[0]) });
+	}
+	t.view(rows, "each argument list and the line it is saved as");
+});
