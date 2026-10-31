@@ -3,7 +3,7 @@ import { Events } from "../Events/Events.js";
 /* The OUTBOX: every line a tab appends to a .jsonl file leaves through here, over the dev server's socket, and stays here
    until the server says it has written it. It is the wire half of `FsFile.append` and of `Item.Store.flush` (doc/transport.md).
 
-   Each send is one numbered batch: `{method: "append", args: [path, lines, {client, n}]}`.
+   Each send is one numbered batch: `{method: "append", args: [path, lines, {client, n}]}` (plus `item: true` when the lines are an Item.Store's).
      client   this page load's id (the tab id plus a few random letters, so a reload never reuses a number)
      n        1, 2, 3 ... this client's own counter, one per batch
    The server (Server/plugins/SocketServer/Append.js) writes the batch once and answers
@@ -18,7 +18,7 @@ import { Events } from "../Events/Events.js";
      again after `Outbox.retry_after` ms with the same client and n. The server does not remember a failed write, so the retry is safe.
 
    Two more things keep a batch from being lost:
-   - Reload: every unacked batch is also kept in `localStorage` (`outbox:<client>:<path>` -> [{n, lines}]), and dropped when acked. The
+   - Reload: every unacked batch is also kept in `localStorage` (`outbox:<client>:<path>` -> [{n, lines, item?}]), and dropped when acked. The
      next load of the same tab (same `sessionStorage` tab id) finds the keys that start with its tab id, queues those batches with
      their OLD client and n, and sends them: if the server had already written one, it answers `dup`. Storage can be missing or full:
      every read and write is in a try/catch, and without it the outbox simply stays in memory.
@@ -53,7 +53,7 @@ export class Outbox extends Events(Object) {
 		try {
 			const key = `outbox:${batch.client}:${batch.path}`;
 			const group = this.waiting.filter(b => b.client === batch.client && b.path === batch.path);
-			if (group.length) localStorage.setItem(key, JSON.stringify(group.map(b => ({ n: b.n, lines: b.lines }))));
+			if (group.length) localStorage.setItem(key, JSON.stringify(group.map(b => ({ n: b.n, lines: b.lines, ...(b.item ? { item: true } : {}) }))));
 			else localStorage.removeItem(key);
 		} catch {}
 	}
@@ -68,7 +68,7 @@ export class Outbox extends Events(Object) {
 			for (const key of keys){
 				const [, client, ...rest] = key.split(":");
 				const path = rest.join(":");
-				for (const { n, lines } of JSON.parse(localStorage.getItem(key))) old.push({ client, n, path, lines, ws: null, done: () => {}, saved: true });
+				for (const { n, lines, item } of JSON.parse(localStorage.getItem(key))) old.push({ client, n, path, lines, ...(item ? { item } : {}), ws: null, done: () => {}, saved: true });
 			}
 			this.waiting.unshift(...old.sort((a, b) => a.n - b.n));
 		} catch {}
@@ -81,9 +81,10 @@ export class Outbox extends Events(Object) {
 
 	// Queue a batch and send it when the socket is up. Answers true once the server has the lines, false when it refused them
 	// or there is no socket at all (a static host).
-	send(path, lines){
+	// `{item: true}` says the lines are an Item's deltas (Item.Store), which the server does not hold to the per-file agent-verb schema.
+	send(path, lines, { item = false } = {}){
 		return new Promise(done => {
-			this.waiting.push({ client: null, n: ++this.counter, path, lines, ws: null, done });
+			this.waiting.push({ client: null, n: ++this.counter, path, lines, ...(item ? { item } : {}), ws: null, done });
 			this.emit("change", this);
 			this.drain();
 		});
@@ -114,7 +115,7 @@ export class Outbox extends Events(Object) {
 			if (!socket.connected || socket.ws?.readyState !== WebSocket.OPEN) return;
 			if (batch.ws === socket.ws) continue;
 			batch.ws = socket.ws;
-			const frame = { method: "append", args: [batch.path, batch.lines, { client: batch.client, n: batch.n }] };
+			const frame = { method: "append", args: [batch.path, batch.lines, { client: batch.client, n: batch.n, ...(batch.item ? { item: true } : {}) }] };
 			socket.request(frame).then(reply => reply && this.acked(batch, reply));
 		}
 		this.beat();

@@ -98,15 +98,17 @@ export default class Append {
 
 		/* A NUMBERED BATCH, from the Item system (core/Item/Outbox.js): `meta` is {client, n}. Three differences from a plain append:
 		   a batch already written is answered again and not written twice (the dedupe that makes every retry safe); the reply names
-		   the batch and the file's new size; and the lines are not judged by the legacy per-file verb schema, which describes what
-		   agents append by hand (`{"log":{…}}`), not an Item's deltas (`{"set":{…}}`, `{"tasks":{"add":…}}`). A page.jsonl keeps its check. */
+		   the batch and the file's new size. Numbering is NOT what skips the legacy per-file verb schema (it describes what agents
+		   append by hand, `{"log":{…}}`, and FsFile.append callers write exactly that, numbered too). Only a batch that says
+		   `item: true` skips it (Item.Store.deliver): an Item's deltas (`{"set":{…}}`, `{"tasks":{"add":…}}`) are not agent verbs.
+		   A page.jsonl keeps its check either way. */
 		const numbered = typeof meta?.client === "string" && Number.isInteger(meta.n);
 		if (numbered){
 			const before = Append.recall(meta);
 			if (before) return this.answer(index, before.response, { ...before.extra, dup: true });
 		}
 
-		if (!numbered || path.basename(full) === "page.jsonl") for (const obj of lines){
+		if (!(numbered && meta.item === true) || path.basename(full) === "page.jsonl") for (const obj of lines){
 			// check() itself throwing (a bug in jsonl-schema.mjs, not in the line) must never stop
 			// the write — the owner's rule that outranks this whole feature. Treat it exactly like
 			// "nothing wrong found": a throw is a bug report, never a reason to lose the browser's line.

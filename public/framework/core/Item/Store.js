@@ -304,7 +304,7 @@ export class Store {
 		this.unacked = (this.unacked ?? 0) + lines.length;
 		try {
 			const { default: Outbox } = await import("./Outbox.js");   // imported here, not at the top: it is browser-side wire code
-			const ok = await Outbox.shared().send(path, lines);
+			const ok = await Outbox.shared().send(path, lines, { item: true });   // an Item's deltas: the server skips the agent-verb schema for these
 			if (!ok) for (const { by, ts, ...bare } of lines){ const j = (this.sent ?? []).indexOf(JSON.stringify(bare)); if (j !== -1) this.sent.splice(j, 1); }
 			return ok;
 		} finally { this.unacked -= lines.length; }
