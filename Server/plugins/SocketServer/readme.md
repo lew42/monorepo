@@ -12,6 +12,7 @@ One websocket per browser tab, opened on `server.js`'s own http port. This folde
 | `Append.js` | `append`: one batch of lines added to a `.jsonl`, validated, written once, acked |
 | `LiveReload.js` | the file watcher: `.jsonl` changes go to `Tail`, everything else becomes a `changed` frame |
 | `Runtime.js` | `write`, `ls`, `rm`, `move`, `cmd` |
+| `Files.js` | `page_add`, `upload`, `set_aside`: what the Files tab does to a page folder (below) |
 | `Tab.js` | which page each tab is on, and `eval` into it |
 
 Wired in `Server/run.js` with `DevSocket.Socket.use(Tail)`, `use(Append)`, and so on.
@@ -28,7 +29,17 @@ Without the third argument it behaves as it always did: schema check, tail check
 
 How the tab sends, retries and catches up, the exact shapes, and what Servex's `/api/item` did that this path does not: [`core/Item/doc/transport.md`](/framework/core/Item/doc/transport.md).
 
+## `Files`: make a page, upload a file, set one aside (2026-10-31)
+
+`{"method":"page_add","args":[folder_url, name, title]}`, `{"method":"upload","args":[folder_url, name, base64, {part, of}]}`, `{"method":"set_aside","args":[folder_url, name]}`. Each is answered `{index, response: {ok: true, …}}` or `{ok: false, reason: "a sentence"}`.
+
+- **Who sends:** the Files tab (`core/Page/FilesTab.js`), dev server only; a LAN peer is refused by `Socket.js`.
+- **What it writes:** `page_add` makes `<name>/page.jsonl` and links it through `Servex/agents/Subpages.js`; `upload` writes a dot `.part` file and links it to its name on the last part (a name that exists becomes `name (2).ext`, nothing is overwritten; cap `Files.MAX_BYTES` = 25 MB); `set_aside` moves into `<folder>/_removed/<name>-<time>/` and never deletes. It never writes a list line: `PageFiles` sees the disk change and the tail does the rest.
+- **Checks:** every folder url must resolve (symlinks too) inside `public/`, with no `..`, dot segment or `node_modules`; a name is one plain file name. Design and the alternatives: [`core/Page/doc/files.md`](/framework/core/Page/doc/files.md).
+
 ## Tests
+
+- `node Server/plugins/SocketServer/Files.test.mjs`: the three messages over a real ws server and a real folder, with the real `PageFiles` watcher
 
 - `node Server/plugins/SocketServer/Tail.test.mjs` — one offset per socket, no line lost, none applied twice
 - `node Server/plugins/SocketServer/Stream.test.mjs` — a file append reaches a Page
