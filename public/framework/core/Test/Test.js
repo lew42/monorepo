@@ -19,11 +19,13 @@ export default class Test {
 	static last = Promise.resolve();   // tests run one after another
 	checks = 0;
 	failures = [];
+	log = [];   // every check in order: { ok, msg }, for a page to draw
 
 	constructor(name){ this.name = name; }
 
 	ok(cond, msg = "ok"){
 		this.checks++;
+		this.log.push({ ok: !!cond, msg });
 		if (!cond) this.failures.push(msg);
 		return !!cond;
 	}
@@ -46,7 +48,7 @@ export default class Test {
 			console.log(`FAIL ${this.name}: ${this.failures.join("; ")}`);
 			if (globalThis.process) process.exitCode = 1;
 		} else console.log(`PASS ${this.name} (${this.checks} checks)`);
-		return { name: this.name, passed: this.checks - failed, failed, failures: this.failures };
+		return { name: this.name, passed: this.checks - failed, failed, failures: this.failures, log: this.log };
 	}
 
 	// Hand a thing to the page to draw in this test's block (its own view, else the default inspector). In node: nothing to draw, you get it back.
