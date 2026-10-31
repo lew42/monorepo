@@ -101,7 +101,7 @@ Each test file below opens as a page: one block per test, its checks as green/re
 
 ## Snapshots (Wave 2 E, 2026-10-31)
 
-`Item.open` can start from `task.snapshot.json` beside the log (the item's saved shape and how far into the log it reaches) and replay only the lines after it; `node Server/Snapshots.mjs <path>` writes them after proving they equal a full replay (dry run by default). The log is never touched, a stale snapshot is ignored with a warning, `page.jsonl` is not covered. 8,360 lines: 400 ms to 30 ms. Where it lives, who writes and reads it, and the alternative not taken: [doc/snapshots.md](./doc/snapshots.md). Test: `snapshot.test.mjs`.
+`Item.open` can start from `task.snapshot.json` beside the log (the item's saved shape and how far into the log it reaches) and replay only the lines after it; `node Server/Snapshots.mjs <path>` writes them after proving they equal a full replay (dry run by default). The log is never touched, a stale snapshot (log rewritten, or made by other replay code: it stores a hash of the classes' source) is ignored with a warning, `page.jsonl` is not covered. 8,360 lines: 400 ms to 30 ms. Where it lives, who writes and reads it, and the alternative not taken: [doc/snapshots.md](./doc/snapshots.md). Test: `snapshot.test.mjs`.
 
 ## Where an item saves (the rule, 2026-10-20)
 

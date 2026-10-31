@@ -14,20 +14,31 @@ task.snapshot.json    the snapshot, written by Server/Snapshots.mjs
 `session.jsonl` gets `session.snapshot.json`. The snapshot file is one JSON object ([Snapshot.js](../Snapshot.js) describes every field):
 
 ```
-{ snapshot: 1, log: "task.jsonl", lines: 8260, bytes: 2717000, anchor: "<base64>", made_at: "…",
-  state: { …item.toJSON()… }, memory: [[walk index, { _key: value }], …] }
+{ snapshot: 2, log: "task.jsonl", lines: 8260, bytes: 2717000, anchor: "<base64>", made_at: "…",
+  state: { …item.toJSON()… }, memory: [[item index, { _key: value }], …], classes: ["Task"], code: "<hash>" }
 ```
 
 - `lines` and `bytes` say how far into the log the snapshot reaches. `bytes` is always just after a newline.
 - `anchor` is the last 64 bytes of the covered part. A reader asks for the log from `bytes - 64` and checks those 64 bytes. A mismatch means the log was rewritten or cut before that point: the snapshot is ignored with one console warning and the whole log is replayed, as before.
-- `memory` is the `_`-prefixed in-memory fields that `toJSON` leaves out (a Task's last line time, a Session's settings and first/last times). Without it a restored item would not behave like the replayed one.
+- `memory` is the `_`-prefixed in-memory fields that `toJSON` leaves out (a Task's last line time, a Session's settings and first/last times). Without it a restored item would not behave like the replayed one. The index counts every item in a fixed order (`Snapshot.items`): each item, its list members, and any Item held in a data slot.
+- `classes` and `code` say which replay code made the snapshot (next section).
+
+## A snapshot is only good for the code that made it
+
+The anchor proves the *log* is unchanged; it cannot prove today's replay code would build the same state. So the file records `code`: a hash of the source text of every class in the snapshot's tree (with their parent classes up to `Item`), `Item.Store`, `Snapshot` itself, and the hand-bumped number `Snapshot.REPLAY`. `classes` are the registered names of those classes, so a reader can hash the same ones.
+
+- **Reader** (`Store.use_snapshot`): hashes the classes it has loaded under those names. A different hash, or a name it does not know, means the snapshot is ignored with one warning and the whole log is replayed.
+- **Writer** (`Server/Snapshots.mjs`): a snapshot is "current" only when the log (`bytes`, `anchor`), the file format and the `code` all match. After you change replay code, running the script with `--write` re-proves and rewrites.
+- **Why a hash and not only a hand-bumped constant** (the alternative, which is what `REPLAY` still is for): a hand-bumped number is forgotten; a hash of the class sources changes by itself when `Task.replay_line` or `Item.restore` changes. The cost is that *any* edit to those files, even a comment, makes snapshots stale until the script runs again. That is the safe direction (a stale snapshot is a slower load, never a wrong one), and hashing takes about 1 ms.
+- **What the hash cannot see:** module-level helper functions in `Item.js` and `List.js`, and `List`'s own methods (they are not classes in the tree). Bump `Snapshot.REPLAY` by hand when you change replay code there. A class that is not registered with `Item.register` is not hashed either.
 
 ## Who writes it, who reads it
 
-- **Writes:** `node Server/Snapshots.mjs <file-or-folder>` (dry run: says what it would write) and `--write`. Before it writes anything it replays the log, then proves that "snapshot + the lines after it" gives the same item as the full replay (same saved shape, the same class, id and state of every item, the same `memory`), at the end of the log and at two cut points inside it. If the proof fails, the log is refused with the reason and nothing is written. It writes to a temp name and renames, never touches the log, and refuses a log with an unreadable line in the middle (a snapshot would bake the skip in) and any `page.jsonl`.
+- **Writes:** `node Server/Snapshots.mjs <file-or-folder>` (dry run: says what it would write) and `--write`. Before it writes anything it replays the log, then proves that "snapshot + the lines after it" gives the same item as the full replay (same saved shape, the same class, id and state of every item, slot Items included, the same `memory`), at the end of the log and at two cut points inside it, and again after one more line is written into every Item held in a data slot (so a restore that turned a slot Item into plain data cannot pass). If the proof fails, the log is refused with the reason and nothing is written. It writes to a temp name and renames, never touches the log, and refuses a log with an unreadable line in the middle (a snapshot would bake the skip in) and any `page.jsonl`.
 - **Reads:** `Item.open(url)` → `Store.use_snapshot()` → `store.attach(host)` → `host.restore(state, memory)` → the tail replays through the ordinary `replay_line`. `Item.replay(lines, snapshot)` is the node twin. `Store.snapshots = false` turns it all off.
   - **Static site / node:** one request, `Range: bytes=<bytes-64>-`: the anchor check and the tail together. A server that ignores Range and sends the whole file still works (the reader cuts it).
   - **Dev server (localhost):** one 64-byte range request checks the anchor, then the socket subscribes **from `bytes`** (`store.offset`), so the live tail continues from the tail's end like any log. If the folder's listing (`/api/folder-names`) shows no sidecar, nothing is requested at all (no 404 in the console).
+- **Slot Items:** a full replay turns `{"box": {type, id, data}}` into an Item held in the `box` slot (`adopt_slot`: its `parent` is the item, so a later `{"box": {x: 2}}` line writes into it). `restore` does the same for every item in the tree; before 2026-10-31 it left a plain object, and the next line replaced it. Caveat: a slot written by an `add` line (not a `set`) is plain data in a full replay but an Item after `restore`; the proof refuses such a log rather than guess.
 - **Hooks:** `restore` runs each `set_<key>` hook (D17) once per key, on the item and every item under it. A full replay runs a hook once per line.
 
 ## Measured (node, this repo, 2026-10-31)
