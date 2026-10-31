@@ -69,7 +69,7 @@ Not started: switching on `Store.marked_lines` (needs the dozen bare readers upd
 2. **`Store.marked_lines` is off.** About a dozen readers only read the bare spelling (`core/Item/doc/line-format.md`). Turn it on after those readers are updated.
 3. **`as_call` line shape:** one argument is saved as the value (`{"sort_by()": "title"}`), not an array, because the item tool strips `()`.
 4. **Existing `set_<name>` methods are now hooks** (`core/Item/doc/hooks.md` lists them).
-5. **Servex's live copy:** the socket path doesn't update it; Servex re-reads the file on its next `item()` call. If that matters, `Store.channel = "item_api"`.
+5. **Servex's live copy and hooks:** record files (`task`, `session`, `page`, `improvements` .jsonl) go to Servex's `/api/item` first (the default, `Store.channel = "item_api"`), so its live copy and its hooks keep working (Approve starts the agent); the socket is their fallback and the road for every other file. `Store.channel = "socket"` skips Servex: no hooks, and Servex re-reads the file on its next `item()` call. Decided after the review (finding 1); see `core/Item/doc/transport.md`.
 6. **Dedupe is in server memory:** a server crash between writing and acking, then a resend, can write a batch twice.
 8. **Snapshots on the static site:** opening a log that has no snapshot costs one extra 404 request. A site-wide list of snapshotted logs would avoid it. Recommended: leave it until it shows up as slow.
 7. **Files design answers taken as defaults:** route `files/`, 25 MB upload cap over the socket, keep both on a name clash, move manifests in `Server/moves/`, names only in phase 1.

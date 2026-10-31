@@ -195,9 +195,9 @@ class Store
   pending                    // lines made but not acked yet (for a "saving..." sign)
 
   static for(url)            // ONE Store per file
-  static channel = "socket"  // the road lines take; "item_api" is the old POST to Servex
+  static channel = "item_api"  // a record file's road: Servex POST /api/item first (hooks run), the socket as fallback; "socket" = socket only
   static marked_lines        // which spelling writers use (see above)
-  static mute(item) / unmute(item) / muted_at(node)   // the scoped mute
+  static mute(item) / unmute(item, above) / muted_at(node)   // the scoped mute (the item's tree, and its ancestors' own changes)
   static replay_depth        // above 0 while any store replays: nothing is saved
 ```
 

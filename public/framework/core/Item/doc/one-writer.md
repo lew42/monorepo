@@ -6,7 +6,7 @@
 
 | Writer | Today | Its fallback when the entry point is down |
 |---|---|---|
-| A tab (`Item.Store.flush`) | by default the dev socket, numbered and acked ([transport.md](transport.md)); with `Store.channel = "item_api"`, `RecordWriter.post`: a page's lines raw, a task's or session's as verbs | `FsFile.send` to the dev server's `Append.js`, which skips a line already in the file |
+| A tab (`Item.Store.flush`) | by default (`Store.channel = "item_api"`) `RecordWriter.post`: a page's lines raw, a task's or session's as verbs; the lines Servex did not take go over the dev socket, numbered and acked ([transport.md](transport.md)); with `"socket"` all of them do | `FsFile.send` to the dev server's `Append.js`, which skips a line already in the file |
 | An agent (`item`, `page_set`…) | `run_item` in Servex (in-process) | none needed |
 | `LogLine` in Servex (the `log` tool, `dir_log`) | `LogLine.writer` = `record_lines`, synchronous | none needed |
 | Servex's own lines (context alerts, landing nags, a handoff refusal, a worktree's `assign`, `WorktreeWatch`'s log) | `LogLine.raw` → `record_lines` | none needed |
