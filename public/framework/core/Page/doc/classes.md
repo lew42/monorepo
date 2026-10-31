@@ -70,6 +70,7 @@ class PageMarkdown extends Page              // Markdown.js:14, the `md/` child
 | `Links.js` | `PageLinks` | Where a clicked link opens; `.md` helpers | 1, Page.class.js |
 | `Related.js` | `PageRelated` | The pinned "Related" aside | 1, Page.class.js |
 | `PageInbox.js` | `PageInbox`, `NotesLog` (JSONL) | The inbox tab: notes agents left on a page | 2, Page.class.js, ext/Doc |
+| `FilesTab.js` | `PageFilesTab` | The read-only Files tab (`files/`): this folder's names, live from `PageListing.live` | 2, Page.class.js |
 | `Prefs.js` | `PagePrefs` | Saved preferences, memory fallback when localStorage fails | 4, Page.class.js, DataGrid |
 | `PageWeight.js` | `PageWeight` | One weight for a url, a page or an item | 2, Previews.js |
 | `Markdown.js` | `PageMarkdown` (Page) | Gives every page an `md/` child of its markdown files | 13, Page.class.js area |
