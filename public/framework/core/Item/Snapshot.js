@@ -23,6 +23,9 @@ export default class Snapshot {
 
 	static VERSION = 1;
 
+	// For Item.hydrate's `seen` argument: accept every id (hydrate renames a repeated id; a saved tree may repeat one in different lists).
+	static any_id = { has: () => false, add(){} };
+
 	constructor(fields = {}){ Object.assign(this, fields); }
 
 	// `/x/task.jsonl` -> `/x/task.snapshot.json`; null for anything that is not a .jsonl.

@@ -627,7 +627,7 @@ export class Item extends Events(Object) {
 	   every item under it, which is what a replay of the lines would have ended up with. Nothing here is saved: callers hold
 	   Store.replay_depth. A subclass with state of its own overrides this and calls super. */
 	restore(state, memory = []){
-		const built = this.constructor.hydrate(state);   // a twin built the ordinary way; its parts are moved here
+		const built = this.constructor.hydrate(state, Snapshot.any_id);   // a twin built the ordinary way (a saved tree already has its ids; a Prompt's paragraphs are "a", "b" in every prompt); its parts are moved here
 		this.id = built.id;
 		Object.assign(this.data, built.data);
 		for (const [name, list] of Object.entries(built.lists())){

@@ -602,6 +602,7 @@ export class Task extends Item {
 	// inferred again from old fields when the lines after the snapshot end; a legacy task (no verbs) still infers it, as a full replay does.
 	restore(state, memory){
 		super.restore(state, memory);
+		if (this._legacy === undefined) return this;   // not read through Task.replay_line (a Session's record shape): nothing of Task's reading to carry on
 		this._rp = this._legacy ? { at: null, explicit: false, fresh: !!this._fresh } : { at: null, explicit: true };
 		return this;
 	}
