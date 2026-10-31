@@ -1148,8 +1148,23 @@ export async function run_item(args = {}, ctx = {}, alias = false){
 	finally { const ms = Date.now() - t; if (ms > 1000) crumbs?.drop?.(`item< ${ms}ms ${what}`); }
 }
 
+/* D13 marks, read at the door: a delta may spell a call `start()` and a list item `#c3` (core/Item/doc/line-format.md). The tool's
+ * own checks below know the bare spelling (verb names, ids), so the marks come off here and the line is written bare, as before;
+ * core's own readers take both. Applies at every level of the delta, never to a value that is not an object key. */
+function unmark_delta(delta){
+	if (Array.isArray(delta)) return delta.map(unmark_delta);
+	if (!is_plain(delta)) return delta;
+	const out = {};
+	for (const [key, value] of Object.entries(delta)){
+		const bare = key.length > 2 && key.endsWith("()") ? key.slice(0, -2) : key.length > 1 && key.startsWith("#") ? key.slice(1) : key;
+		out[bare in out ? key : bare] = unmark_delta(value);
+	}
+	return out;
+}
+
 async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
+	delta = unmark_delta(delta);
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
 	if (target !== undefined) target = hops(target);   // a dotted target is its hops: the line is still written nested

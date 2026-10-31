@@ -9,6 +9,10 @@ import Item from "./Item.js";
 import List from "../List/List.js";
 import Store from "./Store.js";
 import Task from "../Task/Task.js";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { run_item } from "../../../../Servex/agents/page_tools.js";
 
 const t = new Test("core/Item: the line format reads name, name() and #id, and writes the marked shape when switched on");
 const quiet = fn => { const w = console.warn, said = []; console.warn = (...a) => said.push(a.join(" ")); try { fn(); } finally { console.warn = w; } return said; };
@@ -120,6 +124,27 @@ const written = (marked) => {
 	t.eq(Task.replay([{ id: "x", title: "x" }, { "start()": {} }]).state, "running", "a Task replays a marked verb line {start(): {}}");
 	const nested = Task.replay([{ id: "x", title: "x" }, { tasks: { "add()": { id: "k", title: "k" } } }, { tasks: { "#k": { "start()": {} } } }]);
 	t.eq(nested.tasks.find("k")?.state, "running", "a Task replays {tasks: {#k: {start(): {}}}}");
+}
+
+// ---- the item tool (Servex/agents/page_tools.js) takes the marks at its door and writes the bare spelling ----
+{
+	const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
+	const REL = "public/framework/ai/sessions/2026/10/22/.line-format-test-" + process.pid;
+	const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "task.jsonl"), url = "/" + REL.slice("public/".length) + "/";
+	fs.mkdirSync(DIR, { recursive: true });
+	fs.writeFileSync(FILE, JSON.stringify({ assign: { slug: "lf", title: "Line format" } }) + "\n");
+	try {
+		const added = await run_item({ path: url, delta: { tasks: { "add()": { id: "k1", title: "kid" } } } }, { caller: "owner" });
+		t.ok(added.ok, "the tool accepts {tasks: {add(): {...}}}: " + JSON.stringify(added.why));
+		const started = await run_item({ path: url, delta: { "start()": {} } }, { caller: "owner" });
+		t.ok(started.ok, "the tool accepts {start(): {}}: " + JSON.stringify(started.why));
+		const kid_started = await run_item({ path: url, delta: { tasks: { "#k1": { "start()": {} } } } }, { caller: "owner" });
+		t.ok(kid_started.ok, "the tool accepts {tasks: {#k1: {start(): {}}}}: " + JSON.stringify(kid_started.why));
+		const lines = fs.readFileSync(FILE, "utf8").trim().split("\n").map(l => JSON.parse(l));
+		t.ok(lines.some(l => l.start) && lines.every(l => !JSON.stringify(Object.keys(l)).includes("()")), "and writes the bare spelling it always wrote");
+		const again = Task.replay(lines);
+		t.eq([again.state, again.tasks.find("k1")?.state], ["running", "running"], "a fresh replay of that file has both running");
+	} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 }
 
 t.done();
