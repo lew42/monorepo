@@ -1,6 +1,6 @@
 # Owner notes, 2026-10-16: a full voice conversation (dictated, captured by voice-app)
 
-Not a plan, not approved. The owner's words condensed so a later session can find them. Past work on voice output: this module (`Voice.js`, browser `speechSynthesis` only) and `../doc/decisions.md` `d-voice-engine`. Past work on voice *sessions* (mic → Claude): `ai/past-work-index.md` sections "voice" and "Voice sessions".
+Not a plan, not approved. The owner's words condensed so a later session can find them. Past work on voice output: this module (`Voice.js`: the browser's `speechSynthesis`, and since 2026-11-01 the local recite-server) and [Recite](../../Recite/readme.md), which reads replies aloud with barge-in. Past work on voice *sessions* (mic → Claude): `ai/past-work-index.md` sections "voice" and "Voice sessions".
 
 ## The missing piece
 

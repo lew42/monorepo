@@ -36,6 +36,7 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 - **A phone plays sound only after a tap on the page.** Any tap counts (the mic, a button). Until then the bar says to tap play.
 - **Back 10 s needs recite-server.** With the browser's voice it steps by sentence.
 - **Speakers leak into the mic.** Echo cancelling removes most of it, and words that match the sentence being read are ignored. Headphones are best.
+- **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice ([cloud-voice-agent.md](../../../../Servex/ext/remote/doc/cloud-voice-agent.md)). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
 - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
 
 ## Files

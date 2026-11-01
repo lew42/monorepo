@@ -12,7 +12,18 @@ export default class ReciteBar extends View {
 
 	render(){
 		const r = this.recite;
-		this.ac("audio-recite-bar");
+		this.ac("audio-recite-wrap");   // the container its narrow layout queries (Recite.css)
+		div.c("audio-recite-bar", () => this.controls(r));
+
+		this.off = r.on(() => {
+			if (this.el.isConnected) this.seen = true;
+			else if (this.seen) return this.off();   // removed from the page: stop listening
+			this.draw();
+		});
+		this.draw();
+	}
+
+	controls(r){
 		this.$auto = button.c("audio-recite-btn", () => { this.$auto_icon = icon("record_voice_over"); }).attr("title", "Read new replies aloud by themselves").click(() => r.set_auto(!r.auto));
 		this.$play = button.c("audio-recite-btn", () => { this.$play_icon = icon("play_arrow"); }).attr("title", "Play / pause").click(() => r.toggle());
 		this.$back = button.c("audio-recite-btn", () => icon("replay_10")).attr("title", "Back 10 seconds").click(() => r.back(10));
@@ -28,13 +39,6 @@ export default class ReciteBar extends View {
 		this.$threshold = input.c("audio-recite-threshold").attr("type", "range").attr("min", "0.05").attr("max", "0.95").attr("step", "0.05")
 			.attr("value", String(r.barge.threshold)).attr("title", "How loud counts as talking (the bar behind it is the mic level)")
 			.on("input", e => r.barge.set_threshold(e.target.value));
-
-		this.off = r.on(() => {
-			if (this.el.isConnected) this.seen = true;
-			else if (this.seen) return this.off();   // removed from the page: stop listening
-			this.draw();
-		});
-		this.draw();
 	}
 
 	draw(){

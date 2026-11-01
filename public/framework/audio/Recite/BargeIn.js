@@ -1,6 +1,6 @@
 import Part from "../Part.js";
 import MicStream from "../MicStream/MicStream.js";
-import Dictate from "../../ux/Dictate/Dictate.js";
+import Whisper from "../Whisper/Whisper.js";
 
 /**
  * class BargeIn extends Part — `Recite.BargeIn`: while Recite reads, it listens
@@ -27,7 +27,7 @@ export default class BargeIn extends Part {
 	peak = 0;             // the loudest level while checking
 	heard = "";           // what Whisper heard last ("" = noise)
 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
-	whisper_url = Dictate.prototype.whisper_url;
+	whisper_url = Whisper.default_url();   // the same URL rule as Dictate: 127.0.0.1:8178 here, <origin>/whisper elsewhere
 
 	constructor(...args){
 		super(...args);

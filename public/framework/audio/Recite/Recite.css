@@ -60,8 +60,8 @@
 		font-variant-numeric: tabular-nums;
 		padding-block-end: 0.3em;
 	}
-	.audio-recite-bar.is-heard .audio-recite-label { color: var(--ink); }
-	.audio-recite-bar.is-error .audio-recite-label { color: var(--error); }
+	.audio-recite-wrap.is-heard .audio-recite-label { color: var(--ink); }
+	.audio-recite-wrap.is-error .audio-recite-label { color: var(--error); }
 
 	.audio-recite-voice {
 		flex: none;
@@ -79,6 +79,13 @@
 		border-radius: 1em;
 	}
 	.audio-recite-hide { display: none; }
+
+	/* A narrow bar (a phone, a small demo stage): the progress line and its label take their own row under the buttons. */
+	.audio-recite-wrap { container-type: inline-size; }
+	@container (max-width: 26em) {
+		.audio-recite-bar { flex-wrap: wrap; row-gap: 0; }
+		.audio-recite-track { order: 9; flex: 1 0 100%; padding-inline: 0.5em; }
+	}
 
 	@keyframes audio-recite-pulse { 50% { opacity: 0.35; } }
 }
