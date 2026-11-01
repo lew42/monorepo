@@ -37,8 +37,8 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - `Composer.js`: Text buffer, input autosizing, and audio controls.
 - `Mic.js` / `strip.js`: the composer's mic (`ComposerMic`) and its pure already-sent word-dedup (`strip_words`, `strip_sent`), node-testable in `strip.test.mjs` with no browser.
 - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
-- [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown under a v2 chip in the session page's Chat tab and the ✦ sheet, live demo at `/framework/ext/Chat/v2/`.
-- [`v3/`](./v3/readme.md): Chat v3, a rough draft: a plain view over the session's existing `tasks` list (raw gray while moving, solid once finished, replies and questions inside the Prompt), behind its own v3 chip beside v2; demo at `/framework/ext/Chat/v3/`.
+- [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown as V2 in the version dropdown of the ✦ sheet and the drawer, and a chip on the session page's Chat tab, live demo at `/framework/ext/Chat/v2/`.
+- [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from the session's `tasks` list, with every reply inside it (the old-style `{chat}` replies too, read-only), the reply being written, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`.
 - `roles.js`: Sender avatars and badges.
 
 ## Doc topics
