@@ -3,6 +3,13 @@
 Work that is waiting, in priority order. Agents put anything **you did not specifically ask for**
 here instead of starting it. You pick what runs next. Each line links to its brief.
 
+- **Session rename: propose, then accept or reject** (2026-10-25, [task](sessions/2026/10/25/session-5644835c/mastermind-session-names/)):
+  - **Problem:** a long voice session drifts from its title.
+  - **Idea:** the assistant proposes a new name on a card; you accept or reject it.
+  - **Reuse:** `core/Task` already has `approve` / `reject` verbs, so no new card type.
+  - **Missing:** wire "approved" to the `rename_session` tool, which is built and waiting.
+  - **Status:** not built, by your call.
+
 ## 1. Asked for, not finished yet
 
 - **Markdown Explorer, Command Characters & Class Card Views** (2026-10-06):
@@ -261,3 +268,4 @@ here instead of starting it. You pick what runs next. Each line links to its bri
 - 2026-10-25 01:50 — The session Overview (`ai/AISession/SessionOutlineView.js`) draws its own task rows instead of `TaskView.row` (Law 6: one task-row component). Folder-only tasks have no `Task` object, and the row needs a state icon, a 2-line clamp, the child's model/cost line and an in-place proof. Teach `TaskView` those, then switch. Also give `SessionOutline` a live-instances page (children per source, tasks drawn). [review](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/sessions-list-slim/overview/review.md), items 1 and 7. Sonnet $3.
 - 2026-10-25 12:15 — `ux/Dictate/Dictate.js:724,731` write fallback lines to `prompts.jsonl` from any browser, so a smoke or test run could pollute it the way it polluted the Whisper bucket. Guard them with `WhisperLog.automated()` (see [bucket review](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/bucket/review.md), item 6). Sonnet $1.
 - 2026-10-25 18:10 — `ux/Dictate/test/earlier.mjs` fails "click 1: the reader moved (144 -> -1072)" on `michael/dev` (same before and after the chat-scroll pin change): "show earlier" keeps the reader in place by its own rule, which may fight the bottom lock in `ext/Chat/Chat.js` `sticky_scroll`. Check which wins when the reader is unlocked ([task](/framework/ai/sessions/2026/10/25/session-53d50878/task-mastermind-3/requirements.md)).
+- 2026-11-01 17:40 — `Server/AskIndex-tasks.test.mjs:22` fails (`recorded` 0, expected 2) on `michael/dev` with the original `AskIndex.mjs` too, so `after_refine` records no asks in that fixture. Found by the session-twins review ([review](/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/review.md), item 7). Sonnet $1.
