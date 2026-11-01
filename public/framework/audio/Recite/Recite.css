@@ -8,13 +8,14 @@
 		gap: 0.25em;
 		font-size: 0.85em;
 		min-inline-size: 0;
+		padding-inline: 0.4em;
 		color: var(--subtle);
 	}
 	.audio-recite-btn {
 		display: inline-grid;
 		place-items: center;
-		inline-size: 2.2em;
-		block-size: 2.2em;
+		inline-size: 2.4em;
+		block-size: 2.4em;
 		padding: 0;
 		border: 0;
 		border-radius: 50%;

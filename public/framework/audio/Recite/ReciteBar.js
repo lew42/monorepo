@@ -3,7 +3,7 @@ import Voice from "../Voice/Voice.js";
 
 /**
  * class ReciteBar extends View — `Recite.Bar`, the one small control line:
- * play/pause, back 10 s, restart, the progress line (or the last barge-in
+ * read new replies by themselves (on/off), play/pause, back 10 s, restart, the progress line (or the last barge-in
  * note), the voice, and the barge-in mic with its threshold.
  *
  *   new Recite.Bar({ recite });   // or recite.bar
@@ -13,6 +13,7 @@ export default class ReciteBar extends View {
 	render(){
 		const r = this.recite;
 		this.ac("audio-recite-bar");
+		this.$auto = button.c("audio-recite-btn", () => { this.$auto_icon = icon("record_voice_over"); }).attr("title", "Read new replies aloud by themselves").click(() => r.set_auto(!r.auto));
 		this.$play = button.c("audio-recite-btn", () => { this.$play_icon = icon("play_arrow"); }).attr("title", "Play / pause").click(() => r.toggle());
 		this.$back = button.c("audio-recite-btn", () => icon("replay_10")).attr("title", "Back 10 seconds").click(() => r.back(10));
 		this.$restart = button.c("audio-recite-btn", () => icon("skip_previous")).attr("title", "From the beginning").click(() => r.restart());
@@ -52,6 +53,8 @@ export default class ReciteBar extends View {
 		this.tc("is-heard", r.state === "heard");
 		this.tc("is-error", !!r.error && r.state !== "heard");
 
+		this.$auto_icon.text(r.auto ? "record_voice_over" : "voice_over_off");
+		this.$auto.tc("is-on", r.auto);
 		this.$mic_icon.text(b.on ? "hearing" : "hearing_disabled");
 		this.$mic.tc("is-on", b.on).tc("is-open", !!b.mic);
 		this.$threshold.tc("audio-recite-hide", !b.on);

@@ -30,6 +30,8 @@ export default class Recite extends Part {
 	voice = null;          // a Voice (one persona); Voice.PERSONAS lists them
 	chunks = [];           // one per sentence: {text, start, seconds, src, pending}
 	at = 0;                // the chunk playing, or paused in
+	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : !!globalThis.matchMedia?.("(pointer: coarse)").matches;   // read new replies by themselves (on by default on a phone)
+	live = null;           // the reply being streamed: {text, queued, fresh}
 
 	constructor(...args){
 		super(...args);
@@ -37,6 +39,7 @@ export default class Recite extends Part {
 		this.voice ??= Voice.persona(Recite.remember("voice") ?? Voice.PERSONAS[0].name);
 		this.listeners = new Set();
 		this.token = 0;
+		this.done = new Set();   // replies already read, so the settled line after a stream is not read twice
 		this.audio = typeof Audio === "function" ? new Audio() : null;   // node (the core test) has none
 		this.audio?.addEventListener("ended", () => this.ended());
 		this.audio?.addEventListener("timeupdate", () => this.changed());
@@ -118,6 +121,53 @@ export default class Recite extends Part {
 
 	ended(){ if (this.state === "playing") this.play(this.at + 1, 0); }
 	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
+
+	/* ── replies from a chat session ────────────────────────────────── */
+
+	/** One event from a session's live wire (ext/Session `Session.stream`): the smart seat's reply is read, the owner's line pauses it.
+	 *  Wire shapes: dictation-notes.md in the voice-recite task. */
+	from_wire(ev){
+		if (ev?.kind === "stream" && ev.role === "smart") return this.partial(ev.text);
+		if (ev?.kind !== "line") return;
+		const line = ev.line ?? {}, chat = line.chat;
+		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
+		if (chat?.from?.kind === "assistant") return chat.from.id === "smart" ? this.final(chat.text) : undefined;
+		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
+		if (add) return add.by === "smart" ? this.final(add.text) : undefined;
+		if (chat?.text && this.auto && this.barge.on) this.barge.owner_spoke(chat.text);   // ear off = manual playback
+	}
+
+	/** A reply still being written, the whole text so far: each sentence is read as soon as it ends. "" = the reply ended. */
+	partial(text){
+		if (!this.auto) return;
+		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
+		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))) this.live = { text, queued: 0, fresh: true };
+		this.live.text = text;
+		this.take(text, false);
+	}
+
+	/** A settled reply. Read whole, unless its stream was already read. The newest reply replaces what was playing. */
+	final(text){
+		if (!this.auto || !text) return;
+		const key = Recite.norm(text);
+		if (this.done.has(key)) return;
+		this.done.add(key);
+		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){ this.live.text = text; this.take(text, true); this.live = null; return; }
+		this.live = null;
+		this.read(text);
+	}
+
+	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`). */
+	take(text, all){
+		const live = this.live, rest = text.slice(live.queued);
+		const cut = all ? rest.length : Recite.complete(rest);
+		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
+		live.queued += cut;
+		if (live.fresh){ live.fresh = false; this.read(rest.slice(0, cut)); }
+		else this.queue(rest.slice(0, cut));
+	}
+
+	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }
 
 	/* ── the playhead ────────────────────────────────────────────────── */
 
@@ -272,6 +322,12 @@ export default class Recite extends Part {
 		}
 		return out;
 	}
+
+	/** Where the last finished sentence of `s` ends (0 = none yet): a stop followed by a space, or a line break. */
+	static complete(s){ let end = 0; for (const m of String(s).matchAll(/[.!?…:;](?=\s)|\n/g)) end = m.index + 1; return end; }
+
+	/** Text compared loosely: spaces and markdown marks do not count. */
+	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
 
 	/** One remembered setting (the voice, barge-in on/off, its threshold) in localStorage. */
 	static remember(key, value){

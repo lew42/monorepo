@@ -39,6 +39,11 @@ export default class BargeIn extends Part {
 	/** Open or close the mic to match Recite: open while it reads, closed when idle or switched off. */
 	sync(){
 		const reading = ["playing", "loading"].includes(this.recite.state);
+		if (this.dictating()){   // the chat's own mic is on: listen to its level, never open a second mic
+			if (this.mic && this.state !== "checking") this.close();
+			if (this.on && reading && this.state === "off") this.state = "listening";
+			return;
+		}
 		if (this.on && reading && !this.mic && this.state !== "checking") this.open();
 		else if ((!this.on || this.recite.state === "idle") && this.mic && this.state !== "checking") this.close();
 	}
@@ -51,6 +56,23 @@ export default class BargeIn extends Part {
 		if (!this.on){ this.close(); return; }
 		this.mic.on_level(shown => this.hear(shown));
 		this.recite.changed();
+	}
+
+	/** Follow a chat's Dictate mic: while it is on, its level (the same 0..1 meter) drives barge-in, and the line it sends is the check. */
+	use_mic(dictate){
+		if (!dictate || dictate.$recite_barge) return;
+		dictate.$recite_barge = this;
+		this.dictate = dictate;
+		const prior = dictate.on_meter;
+		dictate.on_meter = v => { prior?.(v); if (this.dictating()) this.hear(v); };
+	}
+
+	dictating(){ return ["listening", "transcribing"].includes(this.dictate?.state); }
+
+	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused. */
+	owner_spoke(text){
+		this.spoke?.(text);
+		if (this.recite.state === "playing" || this.recite.state === "loading"){ this.recite.pause("heard"); this.note = "heard: " + text; this.state = "heard"; this.recite.changed(); }
 	}
 
 	close(){
@@ -75,7 +97,7 @@ export default class BargeIn extends Part {
 		} else {
 			this.loud_since = null;
 			this.quiet_since ??= now;
-			if (now - this.quiet_since > 1000){ this.mic.cut(); this.quiet_since = now; }   // keep only the last second of quiet as the clip's lead-in
+			if (now - this.quiet_since > 1000){ this.mic?.cut(); this.quiet_since = now; }   // keep only the last second of quiet as the clip's lead-in
 		}
 	}
 
@@ -87,12 +109,8 @@ export default class BargeIn extends Part {
 		this.peak = 0;
 		this.note = "listening…";
 		this.recite.changed();
-		await new Promise(r => setTimeout(r, this.listen_ms));
-		if (!this.mic) return;
-		const samples = this.mic.snapshot();
-		this.mic.cut();
 		let text = "";
-		try { text = await this.transcribe(samples); }
+		try { text = this.dictating() ? await this.await_line() : await this.listen_and_transcribe(); }
 		catch (e){ this.state = "heard"; this.note = "Whisper did not answer (" + e.message + "): press play to go on"; this.recite.changed(); return; }
 		const echo = this.echo(text);
 		this.heard = text;
@@ -104,9 +122,26 @@ export default class BargeIn extends Part {
 		} else {
 			this.note = "heard: " + text;
 			this.state = "heard";
-			this.close();   // the mic is yours now (dictate); play reopens it
+			if (this.mic) this.close();   // the mic is yours now (dictate); play reopens it
 		}
 		this.recite.changed();
+	}
+
+	/** Own mic: record listen_ms more, then ask Whisper. */
+	async listen_and_transcribe(){
+		await new Promise(r => setTimeout(r, this.listen_ms));
+		if (!this.mic) throw new Error("the mic closed");
+		const samples = this.mic.snapshot();
+		this.mic.cut();
+		return this.transcribe(samples);
+	}
+
+	/** Dictate's mic: it transcribes on its own; wait up to 5 s for the owner's line, else it was noise. */
+	await_line(){
+		return new Promise(done => {
+			const timer = setTimeout(() => { this.spoke = null; done(""); }, 5000);
+			this.spoke = text => { clearTimeout(timer); this.spoke = null; done(text); };
+		});
 	}
 
 	async transcribe(samples){
