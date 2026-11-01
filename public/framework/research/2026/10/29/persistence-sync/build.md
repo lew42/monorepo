@@ -40,6 +40,8 @@ Cloudflare answers a missing file with `index.html`; a module that comes back as
 
 ## How to merge (owner: into `michael/dev`, not `main` yet)
 
+**Done 2026-11-01:** merged on GitHub into `michael/dev` (merge commit `9e849d788`, from the cloud session); the one conflict was resolved by keeping both sides. The PC pulls `michael/dev`, then restarts Servex and the dev server ([handover](/framework/ai/handover.md)). The steps below are what was planned.
+
 1. Open the preview and click around: https://claude-oop-streaming-research-monorepo.lew42.workers.dev/framework/. If you can't open it yourself, `node Server/PreviewCheck.mjs <that url> --all` does it headless (exit 0 = every page renders).
 2. `git fetch origin claude/oop-streaming-research`, then merge it into your local `michael/dev`. A dry run (`git merge-tree`, 2026-11-01) showed **one conflict**: `public/framework/core/Session/tasks/data-shapes/plan.md`, a plan doc; keep both sides.
 3. Your local `michael/dev` has about 134 commits GitHub doesn't; push it after the merge.

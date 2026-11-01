@@ -11,7 +11,7 @@ Until then: one line per task below, and when one gets a real task folder, link 
 
 ## 2026-11-01 (the owner's dictation, cloud session `e3fd9043`, branch `claude/oop-streaming-research`)
 
-- **Merge `claude/oop-streaming-research` into `michael/dev`**, not `main` yet. Steps and the one expected conflict: [build.md](../research/2026/10/29/persistence-sync/build.md#how-to-merge-owner-into-michaeldev-not-main-yet).
+- ~~**Merge `claude/oop-streaming-research` into `michael/dev`**~~ done 2026-11-01 (with `integration/data-shapes-2`); the PC still pulls and restarts. Steps and the one conflict: [build.md](../research/2026/10/29/persistence-sync/build.md#how-to-merge-owner-into-michaeldev-not-main-yet).
 - **`index.jsonl` per folder**, so pages can be listed, linked, searched and mentioned without loading them: the plan and its open questions, [core/Page/doc/index-jsonl.md](../core/Page/doc/index-jsonl.md).
 - **The Research page lists its projects by itself**, newest first, like a log. Today it is a list kept by hand in [research/page.js](../research/page.js). A `Dated` collection (`core/Item/Dated.js`) would do it, but its index lives in `ai/sessions/`, which isn't deployed; it needs an index the static site gets. Could become the default page for any dated folder.
 - **Pages of files are cramped on mobile.** `page.jsonl` pages that show a file explorer are too wide on a phone. Rethink the explorer; meanwhile a project page shows links (the research project page does).

@@ -32,9 +32,9 @@ d5635f019 servex: log sweep (1 files)
 The dated sections below are written by hand and go stale; this block does not.
 <!-- NOW:end -->
 
-## Waiting to merge: branch `claude/oop-streaming-research` (2026-11-01)
+## Just merged into `michael/dev`: `claude/oop-streaming-research`, with `integration/data-shapes-2` (2026-11-01)
 
-The persistence research and the Item MVP built from it; not merged into `michael/dev` yet. Everything about it: [/framework/research/2026/10/29/persistence-sync/build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once merged.
+The persistence research, the Item MVP built from it, and the whole of `integration/data-shapes-2` are now on `michael/dev` (merged on GitHub from the cloud session). **On the PC, after `git pull`:** restart Servex (`node Servex/sustain.mjs --restart`) and the dev server (never during a voice call), then open `/framework/core/Page/tool/` in two tabs and check an edit in one shows in the other. Everything about the merge: [build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once the PC has pulled and checked.
 
 ## LATEST, 2026-10-25 evening: VS Code tab e00f55c9 wound down after five days (2026-10-20 → 10-25)
 
