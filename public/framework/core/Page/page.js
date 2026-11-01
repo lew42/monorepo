@@ -47,7 +47,7 @@ export default new Doc({
 
 	// ⚠ Every name here MUST sync with `children:` list above; missing names never become tabs
 	bar(){
-		return ["overview", "make", "jsonl", "settings", "layout", "navigation", "ai", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
+		return ["overview", "make", "jsonl", "settings", "layout", "navigation", "ai", "tool", "dynamic", "weight", "generator", "api", "doc", "files", "old"]
 			.filter(name => name === "doc" ? Doc.names(this.notes).length > 0 : this.children.has(name));
 	},
 

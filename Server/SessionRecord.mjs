@@ -68,7 +68,7 @@ export default class SessionRecord {
 	 *  Task.replay read it as a subtask. Never twice, never above the session folder. Returns the parent's log file, or null. */
 	/*  Options: `parent` (an explicit parent folder, e.g. open_task's parent_task: the task that handed work to a child session) wins over
 	 *  the nearest folder; `session_id` (the full id of the session that made the folder) lets a VS Code tab's `session-<id8>/` folder,
-	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}}, then the reference; `entry`
+	 *  which has no log of its own yet, get one: its first line is {"session":{id, kind:"vscode-tab"}} ("cloud" in a cloud session), then the reference; `entry`
 	 *  ({type, spawn, cause}) makes that reference a Session entry (add_ref). */
 	static link_parent(dir, by = "TaskDirs", { parent = null, session_id = null, entry = null } = {}){
 		const abs = path.resolve(dir), pub = slash(abs).match(/^(.*\/public)\//)?.[1];
@@ -80,7 +80,9 @@ export default class SessionRecord {
 		if (!id8) return null;   // spawned/, cards/, cloud-voice-*: containers or sessions that keep their own log
 		if (!String(session_id ?? "").startsWith(id8)) return null;   // never invent a session id
 		const rec = path.join(top, this.NEW);
-		fs.appendFileSync(rec, JSON.stringify({ session: { id: session_id, kind: "vscode-tab", at: new Date().toISOString() }, by }) + "\n");
+		// A cloud session (Claude Code on the web: CLAUDE_CODE_REMOTE=true) has no VS Code tab; SessionRecord.kind.test.mjs
+		const kind = process.env.CLAUDE_CODE_REMOTE === "true" ? "cloud" : "vscode-tab";
+		fs.appendFileSync(rec, JSON.stringify({ session: { id: session_id, kind, at: new Date().toISOString() }, by }) + "\n");
 		return this.add_ref(rec, url, by, undefined, entry);
 	}
 	/** The session folder (`.../framework/ai/sessions/YYYY/MM/DD/<session>`) above `abs`, or null when `abs` is outside the store or is that folder itself. */

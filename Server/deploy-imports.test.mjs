@@ -6,6 +6,7 @@
 // Run: node Server/deploy-imports.test.mjs
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import Test from "../public/framework/core/Test/Test.js";
 
@@ -46,9 +47,14 @@ const files = [];
 
 // Root-relative ("/framework/…") and relative ("../x.js") specifiers; bare names (npm) are not served from public/.
 const IMPORT = /(?:^|[\s;])(?:import|export)\s[^'"`]*?from\s*["']((?:\/|\.\.?\/)[^"']+)["']|import\(\s*["']((?:\/|\.\.?\/)[^"']+)["']\s*\)|^\s*import\s*["']((?:\/|\.\.?\/)[^"']+)["']/gm;
-// The exact name of every .js / .mjs on disk (readdir gives the real case on Windows too), keyed by lower case,
-// so an import whose case differs from the file is caught here instead of on a case-sensitive host.
+// The exact name of every .js / .mjs, keyed by lower case, so an import whose case differs from the file is
+// caught here instead of on a case-sensitive host. Git's name wins over the disk's: Cloudflare builds from git,
+// and on Windows a rename that only changes case (made outside `git mv`) changes the disk but not git.
 const exact = new Map(files.map(f => { const r = path.relative(PUBLIC, f).split(path.sep).join("/"); return [r.toLowerCase(), r]; }));
+try {
+	for (const r of execFileSync("git", ["ls-files", "-z", "--", "*.js", "*.mjs"], { cwd: PUBLIC, encoding: "utf8", maxBuffer: 1 << 26 }).split("\0"))
+		if (r && exact.has(r.toLowerCase())) exact.set(r.toLowerCase(), r);
+} catch {}   // not a git checkout: the disk names stand
 const bad = [], wrong_case = [];
 for (const file of files){
 	const rel = path.relative(PUBLIC, file).split(path.sep).join("/");
@@ -59,7 +65,7 @@ for (const file of files){
 		const target = spec.startsWith("/") ? spec.slice(1) : path.posix.normalize(path.posix.join(path.posix.dirname(rel), spec));
 		if (ignored(target)) bad.push(`${rel} imports ${spec}`);
 		const real = exact.get(target.toLowerCase());
-		if (real && real !== target) wrong_case.push(`${rel} imports ${spec}, but the file is ${real}`);
+		if (real && real !== target) wrong_case.push(`${rel} imports ${spec}, but the file is ${real} (in git)`);
 	}
 }
 
