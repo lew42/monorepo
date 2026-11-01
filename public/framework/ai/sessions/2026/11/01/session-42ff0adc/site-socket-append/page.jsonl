@@ -1,2 +1,5 @@
 {"title":"Site socket: append through the gateway, calm reconnect strip","group":"ai-ops","expected":"Page edits and dictation appends work through https://monorepo.lew42.com; the restarting strip only after 5 s down","by":"mastermind-merge-remote-voice","ts":"2026-11-01T23:30:53.105Z"}
 {"file":"task.jsonl"}
+{"file":"review/"}
+{"file":"review.md"}
+{"file":"review.jsonl"}
