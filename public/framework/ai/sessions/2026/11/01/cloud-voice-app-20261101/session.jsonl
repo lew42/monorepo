@@ -1,0 +1,8 @@
+{"session":{"id":"cloud-voice-app-20261101","kind":"cloud-voice-agent","caller":"voice-app","at":1793555743356}}
+{"tool_call":{"at":"2026-11-01T17:55:43.357Z","tool":"shell","args_hash":"6daf0ceb7b43","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-01T17:56:05.448Z","tool":"shell","args_hash":"00a429217470","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-01T17:56:16.857Z","tool":"shell","args_hash":"404107252c6f","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-01T17:58:03.452Z","tool":"shell","args_hash":"6dbff0d959a0","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-01T17:58:07.672Z","tool":"shell","args_hash":"a05b6cd306e1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-01T17:58:17.752Z","tool":"shell","args_hash":"59b89750daf1","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-01T18:01:56.351Z","tool":"shell","args_hash":"a32f6ebadfeb","caller":"voice-app"}}
