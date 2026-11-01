@@ -6,7 +6,7 @@
 
 | What | Where |
 |---|---|
-| The code | branch **`claude/oop-streaming-research`** (renamed from `claude/replay-tests` on 2026-11-01; same commits). It starts at `integration/data-shapes-2` `9ba46ee87` (2026-10-28), so it contains that whole branch. Preview: `claude-oop-streaming-research-monorepo.lew42.workers.dev` |
+| The code | branch **`claude/oop-streaming-research`** (renamed from `claude/replay-tests` on 2026-11-01; the old name is still on GitHub, every one of its commits is in the new branch, delete it when you like). It starts at `integration/data-shapes-2` `9ba46ee87` (2026-10-28), so it contains that whole branch. Preview: `claude-oop-streaming-research-monorepo.lew42.workers.dev` |
 | The research | [`/framework/research/2026-10-29-persistence-sync/`](/framework/research/2026-10-29-persistence-sync/) (copied from GitHub `mikelew42/research`, which can be archived; branch `research/persistence-sync` is superseded) |
 | The plan, progress and the owner's open calls | [plan.md](plan.md) in this folder; the owner's words: [requirements.md](requirements.md) |
 | The two independent reviews and their fixes | [review.md](review.md), [review-2.md](review-2.md) |
@@ -31,7 +31,8 @@ Cloudflare answers a missing file with `index.html`; a module that comes back as
 ## Verified
 
 - Core tests 39 of 41 (the other 2 need the live site); Files 70 + move 110 checks; item tool 116; deploy test passes.
-- Real browser on the real preview (owner's PC, 2026-11-01): the home page, `/framework/`, the Replay Lab, `/framework/ai/`, a test page, `ext/Shots`, a Files tab all render.
+- Real browser on the real preview of `claude/oop-streaming-research` (owner's PC, 2026-11-01, commit b2dfcdcce): 11 pages render with no module errors: `/`, `/framework/`, `/framework/research/`, the new research page and its app, the Replay Lab, a click-through test page, `/framework/ai/`, `ext/Shots`, `core/Item` and its Files tab. The only console error is the dev-server socket, which a static host doesn't have.
+- A Cloudflare-faithful local copy (only committed files, `.assetsignore` matched case-blind) is how to check before pushing; it caught that a new `page.jsonl` page needs its parent's `files.jsonl` line committed.
 - Not yet: `node Server/PreviewCheck.mjs <preview> --all` over every page (the long run timed out through the remote tunnel; run it locally before merging).
 
 ## How to merge (owner: into `michael/dev`, not `main` yet)
