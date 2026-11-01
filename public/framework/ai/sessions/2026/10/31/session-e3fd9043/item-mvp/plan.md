@@ -1,6 +1,6 @@
 # Item MVP: plan
 
-**Handoff (start here when picking this up):** [handoff.md](handoff.md).
+**Handoff (start here when picking this up):** moved into the research project, [`/framework/research/2026/10/29/persistence-sync/build.md`](/framework/research/2026/10/29/persistence-sync/build.md).
 
 **Goal:** turn the persistence research into a working, tested Item system on branch `claude/replay-tests` (off `integration/data-shapes-2`), with visual tests the owner can click through, then design the file system integration. Asks: [requirements.md](requirements.md). Research: github.com/mikelew42/research `design/` (D1–D18).
 

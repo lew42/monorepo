@@ -2,7 +2,7 @@
 
 **Question:** should Lew42 keep building its own save, sync and streaming layer (Item, List, Page, JSONL deltas, the socket), or adopt existing tools? **Answer: keep the Item / List / Page core and fix it.** Figma, Linear and tldraw run the same design (one ordered log per document, last-writer-wins per property, ids not indexes). Borrow their protocols; adopt libraries only at the edges (Yjs for shared rich text, SQLite FTS5 / MiniSearch for search, Cloudflare Realtime SFU for voice).
 
-The research was done in a cloud Claude session (`e3fd9043`) coordinating many agents, first in its own GitHub repo (`mikelew42/research`), copied here on 2026-11-01 so it lives with the framework. What it led to was built on branch `claude/oop-streaming-research`: [the build's plan and handoff](/framework/ai/sessions/2026/10/31/session-e3fd9043/item-mvp/).
+The research was done in a cloud Claude session (`e3fd9043`) coordinating many agents, first in its own GitHub repo (`mikelew42/research`), copied here on 2026-11-01 so it lives with the framework. What was built from it (branch `claude/oop-streaming-research`), how to merge it, and what is left: [build.md](build.md).
 
 ## Start here
 

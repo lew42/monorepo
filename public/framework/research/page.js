@@ -1,4 +1,4 @@
-import { Page, div, p, a, span } from "/app.js";
+import { Page, div, p, a, span, md } from "/app.js";
 import { Research, ResearchJSONL } from "/framework/ext/Research/Research.js";
 
 /* ⚠ The SPA fallback answers every miss with index.html — content-type is the 404. */
@@ -27,10 +27,15 @@ export default new Page({
 	description: "Live research topics — the minions dig, the report moves while you read it.",
 	icon: "travel_explore",
 
-	// Research projects that are pages (a dated folder with a page.jsonl): listed in the framework page's Research section.
-	children: "2026-10-29-persistence-sync",
+	// Research is filed by date: research/YYYY/MM/DD/<topic>/ (each date level is a small page.jsonl index).
+	children: "2026",
+
 
 	content(){
+		// Projects first, newest on top (filed by date: research/YYYY/MM/DD/<topic>/). Kept by hand for now;
+		// listing the dated folders automatically is a framework task (framework/tasks/readme.md).
+		md("**Projects, newest first**\n- 2026-10-29 · [Persistence & sync: build or buy](2026/10/29/persistence-sync/) — keep the Item / List / Page core and fix it.");
+
 		p("A topic is one append-only log the minions write while they dig. Open one and it moves as they work — conclusions first, every claim a card you can open forever.");
 
 		div.c("research-topics flex v gap", async $t => {
