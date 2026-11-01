@@ -1,6 +1,6 @@
 # Git and deploying: how code gets from a worktree to production
 
-**Decided in principle (the owner, 2026-11-01):** the PC's work lands on its own branch (`compliance`), which goes into `main`. `main` is staging: anyone may push to it, and its address shows the newest checked code. A separate `production` branch is what the public site (`lew42.com`) serves, and it moves up to `main` only when the owner says so.
+**Decided in principle (the owner, 2026-11-01):** the PC's work lands on its own branch (`compliance/dev`, today `michael/dev`), which goes into `main`. `main` is staging: anyone may push to it, and its address shows the newest checked code. A separate `production` branch is what the public site (`lew42.com`) serves, and it moves up to `main` only when the owner says so.
 
 Words used here: **production** is the public site (`lew42.com`, later). **Staging** is `main`'s address. **Preview** is any other branch's address. Only production is "live" for visitors. This comes from two of the owner's dictations on 2026-11-01 (cloud session `e3fd9043`), with every fact checked that day. Nothing is built yet: the steps are at the end. The older rules for people joining the repo are in the [root readme](../../../readme.md#new-dev-onboarding).
 
@@ -8,7 +8,7 @@ Words used here: **production** is the public site (`lew42.com`, later). **Stagi
 
 | Branch | What it is | Who moves it |
 |---|---|---|
-| `compliance` (today `michael/dev`) | The PC's long-lived branch, named after the machine. The dev server serves it; `merge.mjs` lands every worktree into it and pushes it to GitHub as a backup. | `merge.mjs`, after each landing |
+| `compliance/dev` (today `michael/dev`) | The PC's long-lived branch, named after the machine (why not plain `compliance`: below). The dev server serves it; `merge.mjs` lands every worktree into it and pushes it to GitHub as a backup. | `merge.mjs`, after each landing |
 | `main` | Staging, and GitHub's default branch. The newest checked code. Pushed to directly: no pull request. | Any agent, once the work is checked |
 | `production` | What the public site serves. Lives only on GitHub; nobody needs a local copy. | Only on the owner's word |
 | worktree branches (`worktree/qf-5`, task worktrees) | One per fix or task, local, merged into `compliance` | `merge.mjs` |
@@ -25,7 +25,10 @@ Words used here: **production** is the public site (`lew42.com`, later). **Stagi
 - **Branches don't make the repo bigger;** files and their history do.
 - **We merge, we don't squash:** a normal merge keeps every commit of the branch; a squash collapses them into one.
 
-**Why `compliance` and `compliance/fix` can't both exist** (checked with git 2.43, 2026-11-01): git stores each branch as a file under `.git/refs/heads/`, so `compliance/fix` needs a *folder* named `compliance`, and there's already a *file* by that name. Git refuses: `cannot lock ref 'refs/heads/compliance/fix': 'refs/heads/compliance' exists`. Names that only share the start of a word are fine: `compliance/dev` and `compliance/dev-1` live side by side. So with a `compliance` branch, fix branches take another prefix (`fix/<slug>`); or the PC's branch is `compliance/dev`, and fixes are `compliance/<slug>`.
+**The `/` in a branch name is a real folder, not just a GitHub convention.** Git keeps each branch as a small file inside `.git/refs/heads/`: branch `main` is the file `.git/refs/heads/main`, and branch `compliance/fix` is the file `fix` inside a folder `.git/refs/heads/compliance/`. (Git sometimes packs them all into one file, but it keeps the same rule.)
+- **What you can lean on:** grouping, and commands that take a pattern: `git branch --list 'fix/*'` lists them, `git push origin 'refs/heads/fix/*'` pushes the group, and some desktop git apps show the folders. GitHub's branch list doesn't fold them; it's a flat list with a search box.
+- **The one limit:** a name can't be both a branch and a folder. If branch `compliance` exists, `compliance/fix` would need a folder with the same name as that file, so git refuses (checked with git 2.43: `cannot lock ref 'refs/heads/compliance/fix': 'refs/heads/compliance' exists`). Names that only share a beginning are fine: `compliance/dev` and `compliance/dev-1` live side by side.
+- **So, two shapes:** `compliance/dev` for the PC's long-lived branch with fixes as `compliance/<slug>` (today's `michael/dev` shape), or `dev` with fixes as `fix/<slug>`.
 
 ## How Cloudflare serves this site
 
@@ -38,12 +41,22 @@ Words used here: **production** is the public site (`lew42.com`, later). **Stagi
 
 ## Staging at `monorepo.lew42.workers.dev`: one Worker or two
 
-A Worker's own address (`monorepo.lew42.workers.dev`) and its custom domains serve the **same** deployment, the one built from its production branch. So:
+In plain terms: one Worker has exactly one "production" slot. Its own address (`monorepo.lew42.workers.dev`) and any domain attached to it (`lew42.com`) always show what's in that slot, and the slot is filled from one branch, the production-branch setting. Every other branch only gets a `<branch>-monorepo` preview address. Today the slot is fed by `main`, which is why `monorepo.lew42.workers.dev` shows `main`. So:
 
 - **One Worker:** set its production branch to `production`. Then `lew42.com` *and* `monorepo.lew42.workers.dev` are production, and staging moves to `main-monorepo.lew42.workers.dev`.
 - **Two Workers on the same repo** (keeps the clean staging address, which the owner prefers): `monorepo` keeps `main` as its production branch, so `monorepo.lew42.workers.dev` is staging; a second Worker (say `lew42`) has `production` as its production branch and owns `lew42.com`. Not tried yet: the second Worker's build has to deploy under its own name (for example a deploy command of `npx wrangler deploy --name lew42`), because `wrangler.jsonc` names `monorepo`.
 
 Either way, nothing changes until a custom domain is added: today only `monorepo.lew42.workers.dev` exists, and it follows `main`.
+
+## The PC's routine: work on a dev branch, never check out `main`
+
+The owner's worry (2026-11-01): if the PC works directly on `main`, a pull can land on top of its own unpushed merges and conflict, and `main` is no longer a clean copy of GitHub's. Answer: the PC never checks out `main` at all.
+1. **Work lands on the PC's dev branch** (`compliance/dev`, today `michael/dev`), through `merge.mjs`, and is pushed to GitHub as that branch after each landing, as a backup.
+2. **To publish to `main`,** on the dev branch: `git fetch origin`, then `git merge origin/main` (any conflict happens here, on the branch where the work is, and the agent that did the work resolves it), then `git push origin HEAD:main`. That last push is a plain step forward, because the dev branch now contains all of GitHub's `main`.
+3. **If GitHub refuses the push** (someone published in between), repeat step 2.
+4. **The local `main` label** can be moved up without switching to it: `git fetch origin main:main`. Nothing needs it, though.
+
+Rules: always commit (never stash); never commit on `main` locally; never force-push `main`; `production` moves only on the owner's word.
 
 ## Moving `production`, and moving it back
 

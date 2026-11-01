@@ -2,6 +2,7 @@
 
 ## Index
 
+- **[Item system status](./core/doc/status.md)** — what's built of the save-and-stream plan, what isn't, the check that sessions and tasks still replay the same, and the next steps (2026-11-01)
 - [live](/live/) — the owner's live voice-work feed (lives at `public/live/`, not in this folder)
 - [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List); [how a page renders](./core/Page/doc/how-a-page-renders.md)
 - [ext](./ext/) — opt-in addons; core never imports them
