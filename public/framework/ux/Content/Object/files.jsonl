@@ -12,3 +12,5 @@
 {"file":"InstanceTree.css"}
 {"file":"InstanceTree.js"}
 {"file":"tasks/"}
+{"file":"DefaultView.css"}
+{"file":"DefaultView.test.js"}

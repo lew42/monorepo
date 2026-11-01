@@ -1956,3 +1956,15 @@
 {"at":"2026-11-01T19:26:36.259Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/ai2-retire/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-01T19:27:37.388Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/ai2-retire/requirements.md","verdict":"spawned","to":"clarity-ai2-retire"}
 {"at":"2026-11-01T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/ai2-retire/requirements.md","verdict":"clear","what":"title states the audit-only scope, four numbered questions, fences listed; text-check found no flags","to":"clarity-ai2-retire"}
+{"at":"2026-11-01T22:16:05.170Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T22:16:06.364Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-recite/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T22:17:06.351Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/requirements.md","verdict":"spawned","to":"clarity-remote-site-tunnel"}
+{"at":"2026-11-01T22:17:07.471Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-recite/requirements.md","verdict":"spawned","to":"clarity-voice-recite"}
+{"at":"2026-11-01T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-recite/requirements.md","verdict":"clear","what":"Agent brief: title says what it is, asks are a short list, no flags from text-check, no paragraph over 60 words.","to":"none"}
+{"at":"2026-11-01T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/requirements.md","verdict":"rewrote","what":"added a two-line In short summary above the long owner quote","to":"requirements.md"}
+{"at":"2026-11-01T22:22:47.254Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-map/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T22:23:48.336Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-map/requirements.md","verdict":"spawned","to":"clarity-dictation-map"}
+{"at":"2026-11-01T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-map/requirements.md","verdict":"rewrote","what":"title was a sentence plus agent address; path as tree, voice-recite linked, three deliverables named up front","to":"requirements.md"}
+{"at":"2026-11-01T22:45:12.881Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T22:46:13.944Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/requirements.md","verdict":"spawned","to":"clarity-session-twins-fix"}
+{"at":"2026-11-01T16:50:00-06:00","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/requirements.md","verdict":"sent","what":"long undefined-jargon title, finder told in prose, landing not a checklist: rewrite sent","to":"mastermind-session-twins"}
