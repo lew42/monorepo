@@ -5,19 +5,14 @@ import Part, { PartView } from "../Part.js";
 View.stylesheet(import.meta, "Voice.css");
 
 /**
- * class Voice extends Part — text to speech, the output half of the mic pair:
- * `Transcriber` turns speech INTO text, `Voice` turns text BACK into speech.
- * `window.speechSynthesis` (the browser's own `SpeechSynthesisUtterance`) is
- * the whole engine here — built into every modern browser, nothing to
- * install, nothing to run — the same zero-dependency tier as
- * `Transcriber.Browser` (its speech-to-text twin). Why not a local engine
- * like whisper-server: `doc/decisions.md`'s `d-voice-engine` — there is no
- * local TTS binary on this machine today, so there is nothing yet to wrap.
+ * class Voice extends Part — one voice, a persona (name, recite-server voice id, speed).
+ * Two engines: render(text, url) gets one sentence as a WAV from recite-server (local
+ * Kokoro; audio/Recite uses it), and speak(text) uses the browser's own speechSynthesis.
+ * readme.md has both; Voice.PERSONAS lists the personas.
  *
- *   const voice = new Voice();
- *   voice.speak("Hello there.");    // → voice.state === "speaking", then "idle" when done
- *   voice.rate = 1.3;                // takes effect on the NEXT speak()
- *   voice.pick(voice.voices()[2]);   // choose a voice by its SpeechSynthesisVoice object
+ *   const voice = Voice.persona("George");
+ *   await voice.render("Hello.", recite.url);   // {blob, seconds}
+ *   voice.speak("Hello there.");                // the browser's voice
  */
 export default class Voice extends Part {
 
