@@ -44,7 +44,31 @@ export default class Recite extends Part {
 		this.audio?.addEventListener("ended", () => this.ended());
 		this.audio?.addEventListener("timeupdate", () => this.changed());
 		this.barge = new this.constructor.BargeIn({ recite: this });
+		this.unlock_on_tap();
 		Recite.track?.(this);
+	}
+
+	/** A phone plays sound only from a tap. A reply arrives from the network, with no tap, so the browser refused it
+	 *  (NotAllowedError, "tap play") and nothing was heard. The first tap anywhere on the page (the mic, a button) plays
+	 *  a silent tenth of a second on this one <audio>, which unlocks it for the rest of the visit; a reply held by that
+	 *  refusal then starts. (dictation-v3, 2026-11-01) */
+	unlock_on_tap(){
+		if (!this.audio || typeof document === "undefined") return;
+		const kinds = ["pointerdown", "touchend", "keydown"];
+		const unlock = () => {
+			if (this.unlocked || this.unlocking) return;   // one tap fires pointerdown AND touchend: unlock once
+			const refused = this.state === "paused" && /tap/.test(this.error);
+			if (this.state !== "idle" && !refused) return;   // a sentence is loaded or playing: never swap its source (pause keeps its place)
+			this.unlocking = true;
+			const a = this.audio;
+			a.muted = true; a.src = Recite.SILENCE;
+			a.play().then(() => {
+				a.pause(); a.muted = false; this.unlocked = true;
+				kinds.forEach(k => document.removeEventListener(k, unlock, true));
+				if (this.state === "paused" && /tap/.test(this.error)) this.resume();   // the reply the browser refused
+			}, () => { a.muted = false; }).finally(() => { this.unlocking = false; });
+		};
+		kinds.forEach(k => document.addEventListener(k, unlock, true));
 	}
 
 	/** Calls fn() on every change of state or position; returns an unsubscribe. */
@@ -86,6 +110,7 @@ export default class Recite extends Part {
 		catch (e){ if (token === this.token) this.set("paused", e.name === "NotAllowedError" ? "tap play: the browser wants a tap before it plays sound" : e.message); return; }
 		if (token !== this.token) return;
 		this.set("playing", "");
+		this.unlocked = true;   // it played: no tap-unlock needed any more
 		this.media_session();
 		this.prefetch(i);
 	}
@@ -345,6 +370,7 @@ export default class Recite extends Part {
 
 Recite.BargeIn = BargeIn;
 Recite.Bar = ReciteBar;
+Recite.SILENCE = "data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";   // 0.1 s of silence, 8 kHz: what unlock_on_tap() plays
 track(Recite);
 
 export { Recite };
