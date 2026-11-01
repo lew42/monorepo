@@ -319,8 +319,13 @@ export default class RemoteMCP {
         const out = path.join(this.replies, qid + ".txt");
         fs.mkdirSync(this.replies, { recursive: true });
         const t = this.ticket(qid, { sid, agent: id, routed, busy: this.servex.agents?.live?.get?.(id)?.state === "working" });
-        // say first (voice-bridge): the sentence before the first tool call is streamed to the voice agent as it is written
-        const msg = `The owner asks by voice (question ${qid}): "${question}"\nSAY FIRST: begin your reply with ONE plain sentence, before any tool call: the answer if you know it, else what you are doing and about how long. The voice agent hears it the moment you write it.\nThen, if more is needed, do it and write the full answer for the voice agent, which will decide how to say it aloud: the answer first, then the context it needs to hold a conversation (what it is, where it lives, what is open, alternatives, a link or two); a few short paragraphs at most. Write it as plain text to ${out} (one file write). If your first sentence was the whole answer, skip the file.`;
+        // say first (voice-bridge): the sentence before the first tool call is streamed to the voice agent as it is written. Only a Servex
+        // agent streams; a VS Code tab (reached through its inbox file) streams nothing, so it always writes the reply file.
+        const streams = !!this.servex.agents?.live?.get?.(id);
+        const answer = `the full answer for the voice agent, which will decide how to say it aloud: the answer first, then the context it needs to hold a conversation (what it is, where it lives, what is open, alternatives, a link or two); a few short paragraphs at most. Write it as plain text to ${out} (one file write)`;
+        const msg = `The owner asks by voice (question ${qid}): "${question}"\n` + (streams
+            ? `SAY FIRST: begin your reply with ONE plain sentence, before any tool call: the answer if you know it, else what you are doing and about how long. The voice agent hears it the moment you write it.\nThen, if more is needed, do it and write ${answer}. If your first sentence was the whole answer, skip the file.`
+            : `Reply as soon as you can: write ${answer}. Always write the file, even for a one-sentence answer: it is the only way your answer reaches the voice agent.`);
         try { this.servex.agents.send(id, msg, { from: "owner (voice)" }); }
         catch (e) {
             // the stored agent was stopped on purpose or landed: this session gets a fresh one
@@ -433,7 +438,7 @@ export default class RemoteMCP {
         if (event.type === "delta"){ if (!t.tools) t.first += event.text; t.words += event.text; return this.changed(t); }
         if (event.type === "tool"){ t.tools++; t.doing = `${String(event.name).replace(/^mcp__\w+__/, "")} ${event.input ?? ""}`.trim().slice(0, 80); return this.changed(t); }
         if (event.type === "result"){
-            // one turn can answer several queued asks; each without a reply file takes the words its turn said
+            // the turn's words go to the oldest open ask only; a later ask the same turn answered arrives by its reply file
             for (const x of open) if (x.armed && (x === t || x.words)){ x.turn_done = true; x.deliver?.() || this.changed(x); }
         }
     }

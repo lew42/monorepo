@@ -246,6 +246,11 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
         },
         // the agent: say-first words, a tool, more words, then the reply file (or none) and the turn's end, on the timing given
         send(id, text){
+            if (!live.has(id)){   // a VS Code tab: no stream, it answers only by writing the reply file
+                assert.ok(!/skip the file/.test(text) && /Always write the file/.test(text), "a non-streaming target is told to always write the file");
+                const out = /plain text to (\S+\.txt)/.exec(text)[1];
+                return setTimeout(() => fs.writeFileSync(out, "From the tab, by file."), 200);
+            }
             const a = live.get(id) ?? { id };
             const out = /plain text to (\S+\.txt)/.exec(text)?.[1];
             const ev = (ms, e) => setTimeout(() => { if (e.type === "result") a.state = "idle"; agents2.watch(e, a); }, ms);   // a real agent is idle once its turn ends
@@ -328,6 +333,8 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     await new Promise(r => setTimeout(r, 400));   // one question at a time: a turn's words belong to the oldest open ask of that agent
     script = () => [[100, { type: "delta", text: "Direct." }], [150, { type: "result" }]];
     assert.equal((await tool2("ask_mastermind", { question: "you?", to: "vscode-mastermind" }, b1)).text, "Direct.");
+    // 11) the real fallback kind: a tab reached through its inbox, which streams nothing; its reply file is the answer
+    assert.equal((await tool2("ask_mastermind", { question: "tab?", to: "vscode-tab-test" }, b1)).text, "From the tab, by file.", "a non-streaming target's file answer is returned");
     console.log("bridge:", JSON.stringify({ ack_ms, first_ms, answer_ms }));
     srv2.close();
 }
