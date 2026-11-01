@@ -50,3 +50,25 @@ if (Recite) test("Recite: split, render, timeline, seek", async t => {
 	t.eq(Recite.BargeIn.noise("wait, stop"), false, "real words do not");
 	return r;
 });
+
+// A phone refuses sound that starts without a tap (NotAllowedError). The first tap unlocks Recite's <audio> and starts the refused reply;
+// a paused sentence keeps its source (pause keeps its place), and one tap's two events unlock once. A fake <audio> stands in for the phone.
+if (Recite) test("Recite: the first tap unlocks a refused reply", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.barge.on = false;
+	let plays = 0, refuse = true;
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ plays++; return refuse && this.src !== Recite.SILENCE ? Promise.reject(Object.assign(new Error("no"), { name: "NotAllowedError" })) : Promise.resolve(); } };
+	await r.read("A reply from the network.").play(0, 0);
+	t.eq(r.state, "paused", "the browser refused the reply: paused");
+	t.ok(/tap/.test(r.error), "and the bar asks for a tap");
+	refuse = false; plays = 0;
+	document.dispatchEvent(new Event("pointerdown")); document.dispatchEvent(new Event("touchend"));   // one tap fires both
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.unlocked, true, "the tap unlocked it");
+	t.eq(r.state, "playing", "and the refused reply started");
+	t.eq(plays, 2, "one silent play, then the reply: the second event of the tap did nothing");
+	r.pause(); const src = r.audio.src;
+	document.dispatchEvent(new Event("pointerdown"));
+	t.eq(r.audio.src, src, "a later tap never swaps a paused sentence's source");
+	return r;
+});
