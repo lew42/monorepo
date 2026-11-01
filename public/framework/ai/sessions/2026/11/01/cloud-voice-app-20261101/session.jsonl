@@ -54,3 +54,5 @@
 {"tool_call":{"at":"2026-11-01T20:21:09.997Z","tool":"wait_for_agent","args_hash":"3e8094b08717","caller":"voice-app"}}
 {"log":{"at":"2026-11-01T14:27:33-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-11-01T14:32:33-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-01T14:37:33-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-01T14:42:33-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
