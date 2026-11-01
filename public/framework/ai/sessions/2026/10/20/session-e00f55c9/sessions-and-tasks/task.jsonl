@@ -210,3 +210,5 @@
 {"action":{"at":"2026-10-29T18:35:00-05:00","did":"edit","files":["Server/merge.mjs"]}}
 {"log":{"at":"2026-10-31T19:02:32-05:00","msg":"dropped: deputy: deferral to /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/ is past its decide-by time (2026-11-01T00:00:00Z)","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/","reason":"deferral-overdue"}}
 {"stop":{"at":"2026-10-31T19:02:32-05:00","why":"dropped: deferral to /framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/ is past its decide-by time (2026-11-01T00:00:00Z)"}}
+{"action":{"at":"2026-11-01T15:42:37-06:00","did":"edit","files":[".claude/hooks/python-guard.mjs"]}}
+{"action":{"at":"2026-11-01T15:42:47-06:00","did":"edit","files":[".claude/settings.json"]}}
