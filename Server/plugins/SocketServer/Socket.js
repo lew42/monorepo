@@ -2,9 +2,9 @@ import Events from "../../Events.js";
 import os from "node:os";
 import { loopback } from "../MCP.js";
 
-// What the internet may send through Server/SiteGateway.mjs on top of the LAN list: `append` (one JSONL line, only under public/ and
+// What the internet may send through Server/SiteGateway.mjs on top of the LAN list: `append` and `ping` (one JSONL line, only under public/ and
 // only a .jsonl, schema-checked in Append.js) so page edits and dictation work from anywhere. Never write, rm, move, cmd or ask.
-const SITE_OK = new Set(["append"]);
+const SITE_OK = new Set(["append", "ping"]);   // ping: the Outbox heartbeat that restarts a dead socket (core/Item/Outbox.js)
 
 // This PC's own addresses. A peer that is one of them is a process on this machine (the gateway dials the PC's LAN address),
 // so a phone on the Wi-Fi, which has its own address, can never pass as the gateway by sending the header itself.
