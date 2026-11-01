@@ -1077,6 +1077,12 @@ export default class Servex extends Events {
             return `${health.verdict}\n\n${JSON.stringify(health, null, 2)}`;
         });
 
+        this.mcp.tool("check_usage", {
+            description: "Claude subscription usage, from public/framework/ai/usage.json (refreshed every 15 min): the weekly limit and the"
+                + " 5-hour session window, each as % used, % of the window gone, and % of pace (used ÷ gone; 100 is the line). `over_pace`"
+                + " true means no new spawns. Same numbers as `node Server/usage-now.mjs`; no endpoint call happens here."
+        }, () => JSON.stringify(Usage.status(), null, 1));
+
         /* The task loop's own two tools (Servex/doc/task-loop.md). */
         this.mcp.tool("close_task", {
             description: "The only way a task leaves the task loop besides landing. Appends {closed_by: \"owner\","
