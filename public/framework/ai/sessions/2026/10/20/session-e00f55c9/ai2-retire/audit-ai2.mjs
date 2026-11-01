@@ -131,6 +131,7 @@ const TEXT_EXT = new Set([".md", ".js", ".mjs", ".json", ".jsonl", ".txt", ".css
 
 walk(STORE, (p, e) => {
 	if (p.startsWith(HERE)) return;   // this audit's own folder is not store history
+	if (p.startsWith(HERE)) return;
 	const rp = rel(p, STORE);
 	store.files++;
 	const ext = path.extname(p);
