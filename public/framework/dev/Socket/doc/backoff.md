@@ -73,7 +73,7 @@ The `console.warn` above is invisible to anyone not watching devtools — which 
 restart (`Server/doc/watch.md`'s boot-tested swap) is usually back in well under a second, but
 with no sign on screen at all it read as "the page died," not "it's coming back"
 ([`/framework/ai/sessions/2026/10/01/page-holds/page-holds/`](/framework/ai/sessions/2026/10/01/page-holds/page-holds/)). `reconnect()`
-now calls `show_reconnecting()` the moment it schedules its first retry — a small fixed strip,
+now calls `show_reconnecting()` once the socket has stayed down 5 s (2026-11-01: through the tunnel a short blip flashed it) — a small fixed strip,
 "server restarting… reconnecting" — and `open()` calls `hide_reconnecting()` the instant the
 socket is back. It never reloads anything itself; it is purely a notice over whatever is already
 on screen. Gated on `this.ever_connected` so a tab's very first connect attempt, before the dev

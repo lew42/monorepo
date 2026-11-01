@@ -21,7 +21,7 @@ import { fileURLToPath } from "url";
  *      /Servex/, /Server/, /ask/turn, /push/send) never pass.
  *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
  * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
- * A live stream (SSE) gets a comment line after 20 s of silence, and both TCP legs use keep-alive, so Cloudflare's ~100 s idle cut does not drop it.
+ * A live stream (SSE) gets a comment line after 20 s of silence (the socket gets a ping from Socket.js), so Cloudflare's ~100 s idle cut does not drop it.
  *
  *     node Server/SiteGateway.mjs       run it alone (Tunnel.mjs `up` also starts it in named mode)
  *
