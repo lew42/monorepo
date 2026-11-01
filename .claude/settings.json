@@ -91,6 +91,19 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/tab-spawn-guard.mjs"
+            ],
+            "timeout": 10
+          }
+        ]
       }
     ],
     "SessionStart": [
