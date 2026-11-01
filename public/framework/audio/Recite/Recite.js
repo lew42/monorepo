@@ -56,15 +56,17 @@ export default class Recite extends Part {
 		if (!this.audio || typeof document === "undefined") return;
 		const kinds = ["pointerdown", "touchend", "keydown"];
 		const unlock = () => {
-			if (this.unlocked) return;
-			if (this.state === "playing" || this.state === "loading") return;   // already playing: it is unlocked, or the next tap will do
+			if (this.unlocked || this.unlocking) return;   // one tap fires pointerdown AND touchend: unlock once
+			const refused = this.state === "paused" && /tap/.test(this.error);
+			if (this.state !== "idle" && !refused) return;   // a sentence is loaded or playing: never swap its source (pause keeps its place)
+			this.unlocking = true;
 			const a = this.audio;
 			a.muted = true; a.src = Recite.SILENCE;
 			a.play().then(() => {
 				a.pause(); a.muted = false; this.unlocked = true;
 				kinds.forEach(k => document.removeEventListener(k, unlock, true));
 				if (this.state === "paused" && /tap/.test(this.error)) this.resume();   // the reply the browser refused
-			}, () => { a.muted = false; });
+			}, () => { a.muted = false; }).finally(() => { this.unlocking = false; });
 		};
 		kinds.forEach(k => document.addEventListener(k, unlock, true));
 	}
@@ -108,6 +110,7 @@ export default class Recite extends Part {
 		catch (e){ if (token === this.token) this.set("paused", e.name === "NotAllowedError" ? "tap play: the browser wants a tap before it plays sound" : e.message); return; }
 		if (token !== this.token) return;
 		this.set("playing", "");
+		this.unlocked = true;   // it played: no tap-unlock needed any more
 		this.media_session();
 		this.prefetch(i);
 	}
