@@ -22,7 +22,7 @@
 - [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
 - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
-- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below
+- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below; [doc/git.md](./doc/git.md) is how branches flow to `main` (proposal)
 
 ## The systems (one line each; each links its own readme)
 - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
