@@ -11,3 +11,16 @@
 {"finding":{"at":"2026-11-01T16:50:07-06:00","n":10,"kind":"note","text":"`audio/Recite/BargeIn.js` imports `ux/Dictate/Dictate.js` only to read `whisper_url`. That makes the audio building block depend on a ux surface. Passing the URL in, or reading it from `audio/Whisper`, keeps audio below ux."}}
 {"finding":{"at":"2026-11-01T16:50:07-06:00","n":11,"kind":"note","text":"layout.json for /framework/audio/ records a 404 at both widths. It may predate this diff, but it was not traced."}}
 {"phase":{"at":"2026-11-01T16:50:07-06:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":1.4478039999999996,"model":"claude-opus-5-5"}}
+{"phase":{"at":"2026-11-01T16:52:45-06:00","n":2,"kind":"answers","status":"start"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":1,"reply":"fixed: the bar is a query container; under 26em the progress line and label take their own row (proof/demo-400.png); in the sheet at 400 the label reads 0:01 / 0:02 (proof/sheet-400.png)"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":2,"reply":"fixed: proof/sheet-400.png, the phone sheet at 400 px with the bar above the mic while a streamed reply is read"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":3,"reply":"fixed: handoff.md has the merge command, the two restarts and what to try on the walk"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":4,"reply":"fixed: plan.md section 6 filled (the live wire, read as it streams, the bar above the mic, never two mics)"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":5,"reply":"fixed: Servex/readme.md ext row lists recite/"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":6,"reply":"fixed: Server/README.md names plugins/Recite.js and /recite/*; Server/doc/mobile-lan.md lists the /recite routes"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":7,"reply":"fixed: Recite readme says the Claude-app voice agent speaks with its own voice and writes /live/, so Recite never reads it; /recite passes the site gateway like /whisper (SiteGateway DENY does not list it)"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":8,"reply":"fixed: the owner note now points at Voice's two engines and Recite"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":9,"reply":"noted: the audio tab strip still fits one row and scrolls; trimming the old v1 demo tabs is a separate audio/ cleanup"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":10,"reply":"fixed: BargeIn reads Whisper.default_url() from audio/Whisper; no ux import"}}
+{"answer":{"at":"2026-11-01T16:52:45-06:00","n":11,"reply":"noted: the 404 on /framework/audio/ is in the layout check's crawl of an existing audio child, not in this diff"}}
+{"phase":{"at":"2026-11-01T16:52:45-06:00","n":2,"kind":"answers","status":"done"}}
