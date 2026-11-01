@@ -1,75 +1,81 @@
-# Git and deploying: how code gets from a worktree to the live site (proposal, 2026-11-01)
+# Git and deploying: how code gets from a worktree to production
 
-**In one line:** agents land their work on the PC's branch (`compliance`, today `michael/dev`), which is pushed to GitHub after every landing; it moves into `main` once it's checked; and the live site changes only on the owner's word.
+**Decided in principle (the owner, 2026-11-01):** the PC's work lands on its own branch (`compliance`), which goes into `main`. `main` is staging: anyone may push to it, and its address shows the newest checked code. A separate `production` branch is what the public site (`lew42.com`) serves, and it moves up to `main` only when the owner says so.
 
-Nothing here is settled; the open decisions are at the end. It comes from two of the owner's dictations of 2026-11-01 (cloud session `e3fd9043`), with every fact below checked that day. The older rules for people joining the repo are in the [root readme](../../../readme.md#new-dev-onboarding).
+Words used here: **production** is the public site (`lew42.com`, later). **Staging** is `main`'s address. **Preview** is any other branch's address. Only production is "live" for visitors. This comes from two of the owner's dictations on 2026-11-01 (cloud session `e3fd9043`), with every fact checked that day. Nothing is built yet: the steps are at the end. The older rules for people joining the repo are in the [root readme](../../../readme.md#new-dev-onboarding).
+
+## The branches
+
+| Branch | What it is | Who moves it |
+|---|---|---|
+| `compliance` (today `michael/dev`) | The PC's long-lived branch, named after the machine. The dev server serves it; `merge.mjs` lands every worktree into it and pushes it to GitHub as a backup. | `merge.mjs`, after each landing |
+| `main` | Staging, and GitHub's default branch. The newest checked code. Pushed to directly: no pull request. | Any agent, once the work is checked |
+| `production` | What the public site serves. Lives only on GitHub; nobody needs a local copy. | Only on the owner's word |
+| worktree branches (`worktree/qf-5`, task worktrees) | One per fix or task, local, merged into `compliance` | `merge.mjs` |
+
+**After every push to `main`**, the push step also brings the PC's local `main` up to GitHub's (a fast-forward), so it never falls behind.
 
 ## Git in one minute (what a branch really is)
 
 - **A branch is a label on one commit**: a tiny file holding one commit id. Each new commit on the branch moves the label forward.
-- **A tag is a label that doesn't move** (moving one takes force). Projects use tags to mark releases, like `v1.2.0`.
-- **A merge commit records its two parent commits, not their branch names.** The only trace of a branch's name is the text of the merge message.
+- **A tag is a label that doesn't move** (moving one takes force). Projects use tags to mark releases, like `v1.2.0`. GitHub lists them under Tags and Releases.
+- **A merge commit has two parents:** the branch it landed on, and the last commit of the branch that was merged. Following that second parent walks back through every commit of the merged branch. It records commit ids, not branch names; the only trace of a name is the merge message's text.
 - **Deleting a merged branch deletes only the label.** Every commit stays in history. Commits that were never merged anywhere are cleaned up by git after a while.
 - **Reusing a deleted name is safe:** the new branch is just a new label.
 - **Branches don't make the repo bigger;** files and their history do.
 - **We merge, we don't squash:** a normal merge keeps every commit of the branch; a squash collapses them into one.
 
-So a branch name helps while the work is open. What survives is the merge message, so it should say what the work was.
+**Why `compliance` and `compliance/fix` can't both exist** (checked with git 2.43, 2026-11-01): git stores each branch as a file under `.git/refs/heads/`, so `compliance/fix` needs a *folder* named `compliance`, and there's already a *file* by that name. Git refuses: `cannot lock ref 'refs/heads/compliance/fix': 'refs/heads/compliance' exists`. Names that only share the start of a word are fine: `compliance/dev` and `compliance/dev-1` live side by side. So with a `compliance` branch, fix branches take another prefix (`fix/<slug>`); or the PC's branch is `compliance/dev`, and fixes are `compliance/<slug>`.
 
 ## How Cloudflare serves this site
 
-- **The site is files, not code.** `wrangler.jsonc` has only an `assets` block: on each deploy, every file in `public/` (minus `.assetsignore`) is uploaded to Cloudflare's storage for Worker assets (not R2) and served from its edge. A request for a file never runs any Worker code, and those requests are free and unlimited. A Worker script could be added later for "magic routes"; there is none today.
-- **Every deploy is a version.** Dashboard → Workers & Pages → `monorepo` → Deployments lists them. "Promote deployment" makes a chosen version live; a rollback picks an older one.
-- **Workers Builds is the GitHub hookup.** A push to the *production branch* (a setting: Settings → Build → Branch control; it defaults to `main`) builds and deploys. A push to any other branch builds a *preview* (if "Enable Preview Builds" is on) at `<branch, / turned into ->-monorepo.lew42.workers.dev`, which is never live.
-- **Deploy hooks:** a secret URL; a POST to it starts a build of one chosen branch. It's a "deploy button" a script can press.
-- **Addresses:** there is no custom domain in `wrangler.jsonc`, so the live site is https://monorepo.lew42.workers.dev/. To serve `lew42.com` or `framework.lew42.com` from it, add it under the Worker's Settings → Domains & Routes (the domain has to be on Cloudflare). Then the `workers.dev` address can be switched off (`"workers_dev": false`), so the same site isn't online twice. Whether `lew42.com` is on Cloudflare today wasn't checked from here.
+- **The site is files, not code.** `wrangler.jsonc` has only an `assets` block. On each deploy, every file in `public/` (minus `.assetsignore`) is uploaded to Cloudflare's storage for Worker assets and served from its edge. Cloudflare says requests to these files are free and unlimited, and they never run Worker code. It doesn't say what the storage is built on (R2 may well be underneath). What matters for us: **these files are read-only between deploys**, and a version holds at most 20,000 files on the free plan (we upload about 11,400).
+- **Every deploy is a version.** Dashboard → Workers & Pages → `monorepo` → Deployments lists them; "Promote deployment" serves a chosen one; a rollback picks an older one.
+- **Workers Builds is the GitHub hookup.** A push to the Worker's *production branch* (a setting: Settings → Build → Branch control; it defaults to `main`) builds and deploys to the Worker's own addresses. A push to any other branch builds a *preview* at `<branch>-monorepo.lew42.workers.dev`.
+- **Why hyphens, not dots, in preview addresses:** a security certificate for `*.lew42.workers.dev` covers exactly one level of name. `main.monorepo.lew42.workers.dev` would be two levels and need its own certificate, so Cloudflare joins the names with a hyphen.
+- **A deploy hook** is a secret address on Cloudflare's API, not a Worker. Sending a POST to it starts a build of one chosen branch: a "deploy button" a script can press.
+- **A custom domain** (`lew42.com`, `framework.lew42.com`) is added under the Worker's Settings → Domains & Routes; the domain has to be on Cloudflare (`lew42.com` is: it already carries a tunnel subdomain). Cloudflare then answers that domain with the Worker. Check first what serves `lew42.com` today; the owner thinks it's a separate repo. Afterwards the `workers.dev` address can be switched off (`"workers_dev": false`) so the site isn't online twice.
 
-## Three ways to make something live
+## Staging at `monorepo.lew42.workers.dev`: one Worker or two
 
-| | Going live | A last look before it's live | Notes |
-|---|---|---|---|
-| **1. `main` is live** (today) | Anything that lands on `main` deploys at once | Only a branch's own preview, before it merges | Simplest. The pull-request rule on `main` is the only brake |
-| **2. A `production` branch** (recommended) | Set Cloudflare's production branch to `production`; going live = moving `production` up to `main`'s commit | `main`'s preview, `main-monorepo.lew42.workers.dev` (staging) | Cloudflare's normal git flow; works from a script; the branch records what's live |
-| **3. A button** | Set the production branch to one nobody pushes; every `main` push makes a preview version; going live = "Promote deployment" on that version in the dashboard (or `wrangler versions deploy`) | the same preview | No extra branch, but git doesn't record what's live. Not tried yet: whether a version made by a preview build can be promoted |
+A Worker's own address (`monorepo.lew42.workers.dev`) and its custom domains serve the **same** deployment, the one built from its production branch. So:
 
-**Is the `production` branch just a trigger?** Mostly, yes. Cloudflare needs something to start a deploy: a push to the production branch, a deploy hook, or a click in the dashboard. The branch adds two things a button doesn't: a record anyone can read of which commit is live (GitHub shows it), and an easy rollback (move it back, or use Cloudflare's rollback).
+- **One Worker:** set its production branch to `production`. Then `lew42.com` *and* `monorepo.lew42.workers.dev` are production, and staging moves to `main-monorepo.lew42.workers.dev`.
+- **Two Workers on the same repo** (keeps the clean staging address, which the owner prefers): `monorepo` keeps `main` as its production branch, so `monorepo.lew42.workers.dev` is staging; a second Worker (say `lew42`) has `production` as its production branch and owns `lew42.com`. Not tried yet: the second Worker's build has to deploy under its own name (for example a deploy command of `npx wrangler deploy --name lew42`), because `wrangler.jsonc` names `monorepo`.
 
-## `git push origin main:production`, explained
+Either way, nothing changes until a custom domain is added: today only `monorepo.lew42.workers.dev` exists, and it follows `main`.
 
-- It means "make GitHub's `production` label point at the commit my `main` points at." It's not a merge, and no files change.
-- **It can't move `production` backward by accident:** GitHub refuses a push that isn't a step forward, unless it's forced.
-- **The risk:** if my `main` is behind GitHub's `main`, `production` gets an older commit than meant. The safe form sends exactly GitHub's `main`: `git fetch origin`, then `git push origin origin/main:production`.
-- **A promote script** would: fetch, check the `main` preview loads, require the owner's say-so (agents push with the owner's own GitHub login, so GitHub can't tell them apart), push, and log one line. It belongs beside `merge.mjs`, not as a second merge system.
+## Moving `production`, and moving it back
 
-## The PC's branch: `compliance` (the owner's leaning)
+- **The command:** `git fetch origin`, then `git push origin origin/main:production`. Read it as `git push <to GitHub> <this commit>:<that branch>`: "set GitHub's `production` to the commit GitHub's `main` is at." `origin/main` is my copy of GitHub's `main`, refreshed by the fetch. It's not a merge; no files change anywhere.
+- **Why not `main:production`:** that sends *my local* `main`. If it's behind GitHub's, production gets an older commit than meant. `origin/main` avoids that.
+- **GitHub refuses to move a branch backward** unless the push is forced. A forward move is always safe.
+- **Rolling back** means forcing `production` to an older commit, or using Cloudflare's rollback. Either way the site then serves exactly that commit's files: files added since disappear, files deleted since come back. Git does the same to tracked files when you check out an older commit, and leaves untracked files alone. **Data written while the site runs is not in git and is not rolled back**; if its shape changed, old code meets new data. That's the database-migration problem, and the reason to keep data formats backward-compatible (append-only JSONL helps: old code can skip lines it doesn't know).
+- **A promote step** (beside `merge.mjs`, not a second merge system) would fetch, check staging loads, require the owner's say-so, push, and log one line. GitHub can't tell agents from the owner (they push with his login), so the say-so check is ours.
 
-- **Why not work on `main` directly** (the owner's reasons, and they hold): `main` stays a clean copy of GitHub's `main`, so anyone's work can be pulled into it at any time without touching the branch the dev server is serving; and nothing reaches `main` before it's checked.
-- **The flow:** a worktree branch → merged into `compliance` by `merge.mjs` (the dev server serves `compliance`; it's pushed to GitHub after each landing, as a backup) → when checked, merge GitHub's `main` into `compliance` first (the agent that did the work sorts out anything that clashes), then `git push origin compliance:main`, which is then a plain step forward.
-- **A name can't be both a branch and a folder.** If `compliance` is a branch, `compliance/qf-5` can't exist (git refuses: "cannot lock ref"). That's why today's branch is `michael/dev`, not `michael`. So either the fix branches use another prefix (`fix/<slug>`, `qf/<n>`), or the PC's branch is `compliance/dev`.
-- **Renaming `michael/dev`** touches `merge.mjs`, Servex, the docs and the PC's checkout, so it's one scripted change, done with the owner's go.
+## The pull-request rule on `main` goes
 
-## Should every fix branch go to GitHub?
+The ruleset on `main` today (GitHub → Settings → Rules → "Rule 1") blocks direct pushes and requires a pull request with 0 approvals. With `main` as staging, the rule only adds a step (an agent can open and merge its own pull request anyway). **Plan:** drop "Require a pull request"; keep "Block force pushes" and "Restrict deletions". Safe as soon as nothing public serves `main` (true today: only `monorepo.lew42.workers.dev` follows it).
 
-- **The time machine already exists without them.** Every commit can be browsed on GitHub as the whole repo stood at that moment (`github.com/lew42/monorepo/tree/<commit>`), and each merge commit lists the fix's own commits. A pushed branch only adds a name.
-- **The cost:** a name exists once on GitHub, so hundreds of fix branches pile up in one long list and their names can't be reused unless the old one is deleted. GitHub's branch list is flat with a search box; it doesn't fold `/` into folders (some desktop git apps do).
-- **Recommendation:** don't push fix branches. Give every merge a unique, descriptive message (`Merge fix/bold-title: bold the session title`). If a moment deserves a name later, a tag can mark it.
-- **Quick-fix slots** (`worktree/qf-1`, `qf-2`, …) reuse their names on purpose: those worktrees are ready-made (`npm ci` already run), so a fix starts in seconds. Today `merge.mjs` writes `Merge branch 'worktree/qf-5' into michael/dev`; it should write the fix's title ([framework tasks](../tasks/readme.md)).
+## Fix branches on GitHub: an open choice
+
+- **Keep them local** (today): GitHub stays tidy. Every commit can still be browsed as the whole repo stood then (`github.com/lew42/monorepo/tree/<commit>`), and each merge commit leads to the fix's commits; a clear merge message (`Merge fix/bold-title: bold the session title`) is how you find them.
+- **Push them too** (the owner's leaning, 2026-11-01): each fix is findable by name in GitHub's branch list, which is how people usually navigate. The cost: GitHub's branch list is flat (it doesn't fold `/` into folders), so hundreds of fix branches become noise nobody can read, and a name can't be reused until the old one is deleted.
+- **Tags for the milestones:** a tag on the merge commit of a major piece of work gives it a lasting name without a branch.
+- **Quick-fix slots** (`worktree/qf-1`, `qf-2`, …) reuse their names on purpose: those worktrees are ready-made (`npm ci` already run), so a fix starts in seconds. To push them, each needs a unique name first (`fix/<slug>`).
 
 ## GitHub's default branch
 
-- It's what GitHub shows first (Settings → General → Default branch). Every other branch is still at `github.com/lew42/monorepo/tree/<branch>`, and the branch picker switches.
-- `npm install` takes releases from the npm registry, not from GitHub's default branch. Libraries usually show their newest work on `main` and mark releases with tags.
-- For this repo, `main` as the newest checked code is fine. A stable branch shown by default would matter once other people install releases of it.
+It's what GitHub shows first (Settings → General → Default branch); every other branch is at `github.com/lew42/monorepo/tree/<branch>`. `npm install` takes releases from the npm registry, not from GitHub. Libraries usually show their newest work on `main` and mark releases with tags. Here `main` (staging) is the default.
 
 ## Avoiding merge conflicts
 
-A conflict happens only when two branches change the same lines. The habits that keep them rare, so the owner never has to resolve one:
+A conflict happens only when two branches change the same lines. Habits that keep them rare, so the owner never resolves one:
 - **Start every worktree from the newest code** and land it within hours, not weeks.
 - **Pull before pushing.** Today `merge.mjs` pushes after each landing but doesn't pull first, and a refused push only prints a warning (`Server/merge.mjs`, "KEEP GITHUB CURRENT"). It should merge GitHub's copy first and push again when refused.
+- **The one who made the changes merges them**, because they know what they did: the agent bringing `compliance` into `main` first merges GitHub's `main` into `compliance`.
 - **One agent per file at a time** (task fences), and big moves done by script in one commit.
-- **Going live never merges** (option 2 or 3), so it can't conflict.
-
-When a conflict does happen, the agent that hit it resolves it and says what it kept.
+- **Moving `production` never merges**, so it can't conflict.
 
 ## Capital letters
 
@@ -77,21 +83,21 @@ Windows treats `Markdown` and `markdown` as the same name; Cloudflare and Linux 
 - **Change a name's case only with `git mv old New`** (or the move script).
 - **`node Server/deploy-imports.test.mjs`** fails when an import's case differs from the file's name as git has it.
 
+## Writing files while the site runs: not now
+
+Today the site only reads files; every change goes through git. Writing at runtime (appending JSONL, uploading images into the site's folders) would need a Worker script and storage like R2, and raises git sync, per-environment separation and the fact that R2 objects can't be appended to. Recorded with the hosting ideas: [research/…/ideas/hosting-tunnels-and-cloud-files.md](../research/2026/10/29/persistence-sync/ideas/hosting-tunnels-and-cloud-files.md#writing-files-on-the-hosted-site-the-owner-2026-11-01).
+
 ## Where things stand (checked 2026-11-01)
 
-- **`main` is live**, last updated 2026-08-07; `michael/dev` is about 7,800 commits ahead of it. A GitHub ruleset on `main`: no direct push, no force push, no deletion, changes only by pull request with **0 approvals** needed.
-- **`michael/dev` is the PC's working branch** (the PC is named `compliance`). The dev server runs it; `Server/merge.mjs` lands every worktree into it and pushes it.
-- **Worktree branches are local only** ([worktrees](../../../Server/doc/worktrees.md), [quick fix](../ai/quick-fix/readme.md)).
+- **`main` was last updated 2026-08-07;** `michael/dev` is about 7,800 commits ahead. `monorepo.lew42.workers.dev` follows `main`; no custom domain is attached.
+- **`michael/dev` is the PC's working branch** (the PC is named `compliance`). Worktree branches are local only ([worktrees](../../../Server/doc/worktrees.md), [quick fix](../ai/quick-fix/readme.md)).
 - **12 branches on GitHub.** Already fully inside `michael/dev`, so safe to delete: `alex/page-route`, `castin/framework`, `claude/oop-streaming-research`, `claude/replay-tests` (its old name), `claude/web-crawler-design-analysis-og8s3r`, `integration/data-shapes-2`, `michael/echo-wire-format-fix`. Not inside it: `alex/update-working-dir` (5 commits), `edric/new-page` (2), `research/persistence-sync` (8 snapshot commits of the research, replaced by `research/2026/10/29/persistence-sync/`; check, then delete).
 
-## Later: a production site that installs only what it needs
+## Steps, in order (none done yet)
 
-A production site might not clone the whole monorepo with its history; it could install a release (a tag, or a package) of only the modules it uses. Then "what's live" is a tagged release. Not needed yet.
-
-## Open decisions (the owner's)
-
-- **How things go live:** option 1, 2 or 3, and which address is live (`monorepo.lew42.workers.dev` today; `lew42.com` or `framework.lew42.com` later).
-- **The PC's branch:** rename `michael/dev` to `compliance` (fix branches then need another prefix) or `compliance/dev`, or keep it.
-- **The pull-request rule on `main`:** it's the only brake in option 1; with option 2 or 3 the brake moves to going live, and the rule can go.
-- **When to first bring `main` up to `michael/dev`.** The live site hasn't changed since 2026-08-07. The `michael/dev` preview loaded in a real browser on 2026-11-01 (12 pages).
-- **Delete the merged branches** listed above, and decide about `alex/update-working-dir` and `edric/new-page`.
+1. **Drop the pull-request rule on `main`** (keep no-force-push and no-deletion). A 30-second change in GitHub's settings, or an agent with the owner's go.
+2. **Bring `main` up to `michael/dev`** (`git push origin michael/dev:main`, a step forward). Staging then shows today's code; it hasn't moved since 2026-08-07.
+3. **`merge.mjs`:** pull before push; after a push to `main`, fast-forward the local `main`; name the work in the merge message.
+4. **Rename `michael/dev` → `compliance`** (or `compliance/dev`, if fixes will be `compliance/<slug>`): one scripted change to `merge.mjs`, Servex, the docs and the PC's checkout.
+5. **When `lew42.com` should serve this repo:** create `production` at `main`, pick one Worker or two (above), attach the domain, and add the promote step.
+6. **Decide about fix branches on GitHub**, and delete the merged branches listed above.
