@@ -42,6 +42,7 @@ const ok = (p, o = {}) => go(p, { ...o, headers: { cookie: cookie + "; other=1",
 
 const page = await ok("/framework/");
 assert.strictEqual(page.status, 200, "a page passes");
+assert.ok((page.headers.get("set-cookie") ?? "").startsWith(cookie) && page.headers.get("set-cookie").includes("Max-Age=2592000"), "a visit with a valid cookie renews its 30 days");
 assert.strictEqual((await ok("/framework/?key=abc")).status, 200, "a page's own ?key= is left alone");
 const h = seen.at(-1).headers;
 assert.strictEqual(h.host, "10.0.0.1:3104", "the dev server sees its LAN host");

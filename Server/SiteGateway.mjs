@@ -53,6 +53,9 @@ export default class SiteGateway {
     dest(){ return this.target ??= SiteGateway.target(); }
     lost(){ if (!this.fixed) this.target = null; }
 
+    // the login cookie, 30 days from now: sent on sign-in and again on every page visit, so the owner signs in once
+    set_cookie(){ return `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`; }
+
     // ── the four checks ────────────────────────────────────────────────────
     has_cookie(req){
         const m = new RegExp(`(?:^|;\\s*)${SiteGateway.COOKIE}=([0-9a-f]{64})`).exec(req.headers.cookie ?? "");
@@ -103,7 +106,7 @@ export default class SiteGateway {
             if (!this.key_ok(url.searchParams.get("site_key"))) return this.locked(res);
             url.searchParams.delete("site_key");
             return res.writeHead(302, {
-                "set-cookie": `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`,
+                "set-cookie": this.set_cookie(),
                 location: url.pathname + url.search, "cache-control": "no-store" }).end();
         }
         if (!this.has_cookie(req)) return this.locked(res);
@@ -113,6 +116,7 @@ export default class SiteGateway {
         const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: this.headers(req) }, r => {
             const h = { ...r.headers };
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
+            h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
             res.writeHead(r.statusCode, h);
             r.pipe(res);
             r.on("error", () => res.destroy());
