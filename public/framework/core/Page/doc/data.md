@@ -1,5 +1,7 @@
 # `data:` — a page whose `page.json` is the page
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 A page can say one word about whether it has data, and that word is `data`.
 
 ```js

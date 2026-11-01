@@ -1,5 +1,6 @@
 import { query, getSessionInfo, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
 import SessionRecord from "../../Server/SessionRecord.mjs";
+import LogLine from "../../Server/LogLine.mjs";
 import ChildLinks from "../../Server/ChildLinks.mjs";
 import fs from "node:fs";
 import { spawn } from "node:child_process";
@@ -1079,7 +1080,7 @@ export function open_task(task, { session_id, agent, role, by, model, effort = n
 	// upgraded in place: its reference keeps its id and becomes the Session entry (cause rule b, "handoff").
 	// Not awaited (open_task is synchronous): the history lands just after the first turn starts. A refusal is written into the new log, so it is seen.
 	if (handoff){
-		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => { fs.appendFileSync(log, JSON.stringify({ handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }) + "\n"); link(); };
+		const log = SessionRecord.start_file(dir, JSON.parse(line)), refused = why => { LogLine.raw(log, { handoff: { from: task.from, id: task.id, refused: why }, by: "servex", ts: stamp() }); link(); };
 		move_item({ from: task.from, id: task.id, to: "/" + path.relative(path.join(process.cwd(), "public"), dir).split(path.sep).join("/") + "/", by: task.by ?? by ?? "spawn", entry: { type: "Session", spawn: { ...spawn, placed: "handoff" } } })
 			.then(r => { if (r.why) refused(r.why); }, e => refused(String(e.message || e)));
 	}
@@ -1733,7 +1734,7 @@ Agents.Agent = class Agent {
 		if (!dir || this.landing_nagged || this.one_shot || !/^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return;
 		if (Landed.logged(dir) || !/\b(merged|merge commit|landed)\b/i.test(this.words ?? this.last_text ?? "")) return;
 		this.landing_nagged = true;
-		try { fs.appendFileSync((SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl")), JSON.stringify({ log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }) + "\n"); } catch {}
+		try { LogLine.raw(SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl"), { log: { at: stamp(), msg: "agent stopped with the work merged but no landing line; too late to nag, the parent's harvest lands it" } }); } catch {}
 	}
 
 	card(){
@@ -2277,7 +2278,7 @@ Agents.Agent = class Agent {
 		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
 		let tail = ""; try { tail = fs.readFileSync(file, "utf8").slice(-20000); } catch {}
 		if (tail.includes(JSON.stringify(msg).slice(1, -1))) return false;   // already said: a Servex restart forgets landing_flagged
-		try { fs.appendFileSync(file, JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+		try { LogLine.raw(file, { log: { at: stamp(), msg } }); } catch {}
 		this.host?.store().append("servex", { type: "landing-unmerged", agent: this.id, task: dir, branch: v.branch, missing: v.missing.length }).catch(() => {});
 		const card = this.task?.card;
 		if (card) try { this.host?.servex?.assistant?.card_reply({ card, from: "servex-landing-check", text: msg }); } catch {}
@@ -2316,7 +2317,7 @@ Agents.Agent = class Agent {
 			if (context < window * pct / 100 || (this.context_alerted ??= []).includes(pct)) continue;
 			this.context_alerted.push(pct);
 			const msg = `alert: context ${Math.round(context / window * 100)}% (${context.toLocaleString("en-US")} of ${window.toLocaleString("en-US")} tokens): ${this.id}. Wind down: finish, compact (send it the compact nudge) or give the next phase to a fresh agent.`;
-			try { fs.appendFileSync(SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl"), JSON.stringify({ log: { at: stamp(), msg } }) + "\n"); } catch {}
+			try { LogLine.raw(SessionRecord.log_file(path.resolve(MAIN_ROOT, this.task.dir)) ?? path.resolve(MAIN_ROOT, this.task.dir, "task.jsonl"), { log: { at: stamp(), msg } }); } catch {}
 			this.emit({ type: "context_alert", pct, context });
 		}
 	}

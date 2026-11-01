@@ -1,0 +1,253 @@
+{
+  "dilemma": "class-versions",
+  "lens": "edge-cases",
+  "by": "analyst-versions-edge",
+  "options": [
+    {
+      "id": "upcast-on-read",
+      "label": "Upcast on read: a small pure function upgrades each old line as it is read; the version is stamped on every line, not once per file",
+      "wins_when": [
+        {
+          "scenario": "The D1 decision turns bare-id list lines (a plain c3 key under my_list) into #id lines and drops the implied set verb. The existing logs of 2.7 to 7.6 MB (research/design/fixes.md) keep loading, and their files in git are never rewritten.",
+          "why": "History stays intact, so the never-destructive rule holds and git remains the backup. Replay already holds the live instance, so the upgrade can tell which name is a list."
+        },
+        {
+          "scenario": "A tab opened before a deploy keeps the old code and writes old-shape lines into a page that the new Servex reads.",
+          "why": "Each line says its version, so the reader upgrades that line instead of mixing shapes silently. No writer has to be upgraded at the same moment."
+        },
+        {
+          "scenario": "Every append already passes one shape check: the jsonl-schema check in .claude/hooks/jsonl-schema.mjs, which Server/plugins/SocketServer/Append.js runs before it writes.",
+          "why": "The refuse-too-new rule (tldraw refuses a file from a newer version) goes into the one validator that every writer already uses, so nothing new has to be wired up (law 6)."
+        },
+        {
+          "scenario": "A multi-day session log spans five code changes before it is compacted.",
+          "why": "The upgrade chain runs in order, once per line: one function call per line on top of the set() call that replay already makes."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A branch made before a shape change is merged under the *.jsonl merge=union rule in .gitattributes. The merged page.jsonl holds old and new lines, but a file-level version line says only the new one.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "A per-file stamp lies after any merge that brings old lines in. Old lines read as new become junk data and get written back. Stamping each line fixes it, and the same reader handles both."
+        },
+        {
+          "scenario": "An upgrade function has a bug for one case, for example a rename that drops a false value. A tab with the bug compacts the upgraded tree, and the old lines leave the file.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "An upgrade must never be the only copy. Compaction has to archive the old file first (research/persistence-sync/report.md, M5: archive, never truncate), so the original lines survive in the archive and in git."
+        },
+        {
+          "scenario": "Call logging, the owner's leaning: Task.start() changes its behaviour, and an old call line for start() replays with the new body.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Upgrade functions only cover recorded data. When a method is re-run, no data upgrade can fix a method change. This is the call-or-change question, not a versioning fault (research/design/calls-vs-changes.md, risk 1)."
+        },
+        {
+          "scenario": "The upgrade chain grows to ten functions, and none can be deleted because an archive still holds the oldest lines.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Deleting an upgrade has to wait until compaction has upgraded the archives. A readme table with one line per version keeps the chain readable."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "tldraw store migrations",
+          "how": "Each migration has an id, a scope, an up function and an optional down. A file from a newer version is refused, not guessed at (TargetVersionTooNew).",
+          "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/store/src/lib/migrate.ts#L195-L224"
+        },
+        {
+          "tool": "mobx-keystone snapshot processors",
+          "how": "fromSnapshotProcessor and toSnapshotProcessor upgrade old snapshot shapes on load. There is no migration system.",
+          "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/model/Model.ts#L220-L240"
+        },
+        {
+          "tool": "LiveStore",
+          "how": "Replays logged events through pure materializer functions and versions the event types.",
+          "src": "research/design/calls-vs-changes.md"
+        }
+      ]
+    },
+    {
+      "id": "rewrite-logs",
+      "label": "Rewrite logs once: a script converts old files to the new shape, then the old code paths are deleted",
+      "wins_when": [
+        {
+          "scenario": "The move of page logs behind a Durable Object in front of R2 (research/design/phase-1.md, phase 2) copies every file anyway, so the one-time conversion rides on a copy that happens regardless.",
+          "why": "Only one shape is left in live code, so the readers stay small and the table-driven test has one expected shape."
+        },
+        {
+          "scenario": "The 1,810 old at lines already have a plan: migrate by script, then delete the compat branch (research/design/fixes.md).",
+          "why": "This is the owner's own precedent for this kind of change, so the owner already knows how it goes."
+        },
+        {
+          "scenario": "A quiet window on the day of the rewrite: no tab open on the page, no agent appending, and no branch holding lines of that file.",
+          "why": "Under merge=union an in-flight branch brings its old lines back, so a quiet window is the only safe time for a one-off rewrite."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "An agent or tab appends a line while the script reads the file, and the script renames its output over the original with no lock and no archive kept.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Lines appended in the gap are lost with the original unless the old file is kept first. The owner's never-destructive rule requires that copy, so it has to be part of the script."
+        },
+        {
+          "scenario": "A branch cut before the rewrite merges back under merge=union, and old-shape lines return into the rewritten page.jsonl.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The old reader must stay, so deleting the old code cannot happen. .gitattributes says merge=union assumes append-only and names rewritten files as the exception, so the rule that protects logs becomes the hazard."
+        },
+        {
+          "scenario": "After the deploy, a tab reconnects and resends its pending lines in the old shape (research/design/phase-1.md: pending lines resent on reconnect), and the door refuses old-shape lines.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Pending writes live only in the tab's memory (research/design/fixes.md), so a refused line is lost on reload. The door needs the old-shape reader for a while, which undoes deleting the old code."
+        },
+        {
+          "scenario": "The script misreads one shape that no fixture covers, and the rewrite overwrites the only copy of that data.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "A rewrite is a one-way change to the data. Only an archive or git history can undo it, and only if one was kept before the write."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "lew42 at-line migration (planned)",
+          "how": "The 1,810 old at lines: migrate by script, then delete the compat branch.",
+          "src": "research/design/fixes.md"
+        },
+        {
+          "tool": "nedb (via the storage-compaction lesson)",
+          "how": "Temp file, fsync, rename. Refuses a mostly corrupt file, and does not compact on load.",
+          "src": "research/persistence-sync/lessons/storage-compaction.md"
+        },
+        {
+          "tool": "lew42 compaction plan (report M5)",
+          "how": "Stage 2 archives, never truncates. The merge=union case after compaction is flagged as an open risk (F3) that still needs an owner decision.",
+          "src": "research/persistence-sync/report.md"
+        }
+      ]
+    },
+    {
+      "id": "versioned-classes",
+      "label": "Versioned classes: the line names its version (Item@1, Item@2) and migration functions move data forward",
+      "wins_when": [
+        {
+          "scenario": "An agent opens an older session log and sees a version tag on the line, so it knows the shape before it opens any code.",
+          "why": "The name describes itself, and the version travels with the line through union merges, so no file-level header can lie about it."
+        },
+        {
+          "scenario": "A call-logged class (the owner's option B) must replay old lines exactly as they ran, for example Task@1.start() with its old body.",
+          "why": "Keeping the old method body is the only faithful way to replay old calls under B. Games do the same with pinned code versions (research/design/calls-vs-changes.md)."
+        },
+        {
+          "scenario": "An archive of Task@1 lines is read long after several releases.",
+          "why": "Archived lines never change, so their names keep meaning the same shape."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "Item@1 and Item@2 are kept as classes, so a fix in shared code has to be made in each copy, and the layers pile up as in the owner's Item0 to Item9 experience.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "A missed copy shows wrong data until it is fixed. It also breaks law 6 (never build a second version of a system)."
+        },
+        {
+          "scenario": "A person or agent sees Item@1 next to Item, reads them as two kinds of item, and creates new items in the old kind.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "The owner already ruled out two kinds of item that people or AIs can confuse (research/design/decisions-log.md, 2026-10-30 06:16Z). The new items then have to be upgraded from the old shape."
+        },
+        {
+          "scenario": "Data lines carry no type (a plain done key under a #c3 item), so the version is not on them unless every line gets a stamp anyway.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Class names only label add lines. A per-line stamp is needed regardless, so the class names add a second mechanism for no gain."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "tldraw StoreSchema (too-new check)",
+          "how": "A file stores schemaVersion and a version per migration sequence. A file from a newer version fails to load instead of being guessed at.",
+          "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/store/src/lib/StoreSchema.ts#L553-L576"
+        },
+        {
+          "tool": "LiveStore",
+          "how": "Versions its event types, so each logged event says which shape it has.",
+          "src": "research/design/calls-vs-changes.md"
+        },
+        {
+          "tool": "Lockstep and rollback games",
+          "how": "Replay logged inputs through a deterministic simulation with the code version pinned.",
+          "src": "research/design/calls-vs-changes.md"
+        }
+      ]
+    },
+    {
+      "id": "compat-in-code",
+      "label": "Compat in code: each method accepts old and new shapes inline, kept until a script removes the branch",
+      "wins_when": [
+        {
+          "scenario": "Adding an optional field to Task (a priority with a default when missing): old lines simply lack it, and the default covers them.",
+          "why": "Most changes are additive. No version, no migration, and no file is touched."
+        },
+        {
+          "scenario": "The planned envelope form for add (research/persistence-sync/lessons/object-model.md): old flat lines still replay for one release, and the reader already accepts the new shape.",
+          "why": "This is the shortest path for a change the owner can test in one session, and it matches a plan already written down."
+        },
+        {
+          "scenario": "Servex and the dev server restart together, and no tab is open on the changed page.",
+          "why": "When every writer and reader moves at once, no version drift can happen, so the inline branch never meets the other shape."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A rename (done to state) with no version: an old tab writes done lines, and the new reader stores them as an unknown data field, so the task never shows as finished.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "No marker says which shape a line is, so the reader has to guess. Gap 6 already stores unknown names as data with no warning (research/persistence-sync/lessons/object-model.md)."
+        },
+        {
+          "scenario": "Two shapes for one field meet in one merged file: a state line and a done line written in the same minute.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Replay order decides the value. It is the same on every reload, so reloading shows the same wrong value, although the log still holds both lines."
+        },
+        {
+          "scenario": "The at compat branch is still serving 1,810 lines months later, and each new method grows another if/else.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "A compat branch outlives its change because nothing forces its removal, and every branch doubles the cases a test must cover."
+        },
+        {
+          "scenario": "Call logging (option B): start() gains a required argument, old call lines for start() throw during replay, and the page stops loading partway.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "A throw in replay stops the load, but the lines are intact. The fix is a default for the argument, which is one more compat branch."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "lew42 at compat branch",
+          "how": "About 1,810 old at lines still replay through a compat branch that is planned for deletion once migrated by script.",
+          "src": "research/design/fixes.md"
+        },
+        {
+          "tool": "tldraw advice (as recorded for lew42)",
+          "how": "Add a schema stamp per file and new verbs instead of changed ones, so old verbs keep working as they are.",
+          "src": "research/persistence-sync/lessons/object-model.md"
+        },
+        {
+          "tool": "Colyseus",
+          "how": "Keeps no history at all, so a late joiner gets a full snapshot and nothing old has to be read. This avoids the problem and does not fit a log.",
+          "src": "research/persistence-sync/tools/colyseus.md"
+        }
+      ]
+    }
+  ],
+  "recommended": "upcast-on-read",
+  "confidence": 4,
+  "surprise": "Whether a line records a call or a change decides how big the version problem is. Under call logging (the owner's leaning) every method edit changes how old history plays, and only pinned old method bodies fix that, which is the Item0 to Item9 path. Under effect logging only data shapes need versions.",
+  "notes": "Recommend upcast-on-read with the version on every line, as by and ts already are (replay strips them), taking versioned-classes' tag and dropping its class copies, because a file-level stamp breaks under the merge=union rule that covers every .jsonl. Keep one class and one table of pure upcast functions with one line per version, so a new agent can read which version is which in one place; refuse lines newer than the code knows in the jsonl-schema check that every append already runs; allow rewrites only inside compaction, with the old file archived first. Test it by replaying small fixtures (one real log cut per version) through current code and comparing the tree with a saved copy on every run, and keep the schema-stamp contract test that research/design/fixes.md already asks for; under effect logging (option C in calls-vs-changes.md) that test checks data shapes alone."
+}

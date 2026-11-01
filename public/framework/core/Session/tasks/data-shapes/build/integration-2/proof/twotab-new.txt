@@ -1,0 +1,78 @@
+{
+ "mode": "new",
+ "before": 10,
+ "add": {
+  "lines_added": 1,
+  "last": {
+   "content": {
+    "add": {
+     "id": "s571lsj6",
+     "type": "part-text",
+     "after": "inside",
+     "text": "probe two-tab one"
+    }
+   },
+   "by": "owner",
+   "ts": "2026-10-29T03:44:49.925Z"
+  },
+  "shown_in_B": 1,
+  "shown_in_A": 1,
+  "r": "s571lsj6"
+ },
+ "edit": {
+  "lines_added": 1,
+  "last": {
+   "content": {
+    "s571lsj6": {
+     "set": {
+      "text": "probe two-tab edited"
+     }
+    }
+   },
+   "by": "owner",
+   "ts": "2026-10-29T03:44:51.708Z"
+  },
+  "shown_in_B": 0,
+  "shown_in_A": 0,
+  "r": true
+ },
+ "move": {
+  "lines_added": 1,
+  "last": {
+   "content": {
+    "move": {
+     "id": "s571lsj6",
+     "after": null
+    }
+   },
+   "by": "owner",
+   "ts": "2026-10-29T03:44:53.484Z"
+  },
+  "shown_in_B": 1,
+  "shown_in_A": 1,
+  "r": [
+   "s571lsj6",
+   "what",
+   "how",
+   "tab",
+   "words",
+   "inside"
+  ]
+ },
+ "order_in_B": [
+  "s571lsj6",
+  "what",
+  "how"
+ ],
+ "order_in_A": [
+  "s571lsj6",
+  "what",
+  "how"
+ ],
+ "total_added": 3,
+ "posts_to_new_entry": 3,
+ "logs": [
+  "A HTTP 404 http://localhost:53219/directory.json",
+  "B HTTP 404 http://localhost:53219/directory.json"
+ ]
+}

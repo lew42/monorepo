@@ -1,5 +1,7 @@
 # Voice sessions: the file, the routes, the two assistants
 
+> **Old way (deprecated 2026-10-28):** the pseudo-property lines this page lists as the format (`chat`, `place`, `sent`, `quiet`, `react`, …) fall through to `put` and lose their history; the replacement is list deltas (`chat.add`). Plan: [core/Session/doc/one-replay-plan.md](/framework/core/Session/doc/one-replay-plan.md).
+
 ## The file
 
 One session is one append-only file in the dated store: `public/framework/ai/sessions/YYYY/MM/DD/<session>/session.jsonl` (the local day it was opened; `Sessions.session_path()` is the one place that shape lives). The browser reads it at the same path on the site. The session id is `v-` plus a short base36 id. Line 1 is `{"session": {"id", "home", "kind": "voice", "at", …}}`: `home` is the page it was opened on and is only a field, not where the file lives. Records written before this (`<home>ai/<session>.jsonl`) are moved into the store by `node Servex/agents/voice-backfill.mjs` (dry run by default; `--apply` moves; `--manifest <file>` writes every old and new path; nothing is overwritten or deleted), and Servex repoints each session's `file` in `sessions.json` on its next start (`Sessions.relocate`).

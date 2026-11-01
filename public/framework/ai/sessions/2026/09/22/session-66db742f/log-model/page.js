@@ -108,6 +108,6 @@ export default new Page({
 		h2("More");
 		p(() => { a("events.md — the full schema, every field, every example line, and how today's log lines map onto it").href(import.meta.resolve("./events.md")); });
 		p(() => { a("sample.jsonl — the thirty-line story these examples come from").href(import.meta.resolve("./sample.jsonl")); });
-		p(() => { a("fold.js — the function itself, seventy lines including its own explanation").href(import.meta.resolve("./fold.js")); });
+		p(() => { a("fold.js — the function itself, seventy lines including its own explanation").href(import.meta.resolve("../../../../../../log/fold.js")); });
 	},
 });

@@ -47,6 +47,14 @@ try {
 	const pair = Item.hydrate({ id: "p", kids: [] });
 	pair.kids.add([{ id: "x" }, { id: "y" }]);
 	t.eq(ids(pair), ["x", "y"], "add([a, b]) adds two members");
+
+	// render(): nothing until the browser wires List.View; then that view, given the list, open one level (build B's default view)
+	const { default: ListClass } = await import("./List.js");
+	t.eq(pair.kids.render(), undefined, "render() with no List.View draws nothing (node, or before the view is wired)");
+	ListClass.View = class { constructor(o){ Object.assign(this, o); } };
+	const v = pair.kids.render();
+	t.ok(v instanceof ListClass.View && v.subject === pair.kids && v.open === 1, "render() makes List.View with the list as its subject, open one level");
+	delete ListClass.View;
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 t.done();

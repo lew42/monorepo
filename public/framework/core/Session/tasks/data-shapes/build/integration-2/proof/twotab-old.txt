@@ -1,0 +1,78 @@
+{
+ "mode": "old",
+ "before": 10,
+ "add": {
+  "lines_added": 1,
+  "last": {
+   "content": {
+    "add": {
+     "id": "sefq27fp",
+     "type": "part-text",
+     "after": "inside",
+     "text": "probe two-tab one"
+    }
+   },
+   "by": "owner",
+   "ts": "2026-10-29T03:43:26.103Z"
+  },
+  "shown_in_B": 1,
+  "shown_in_A": 1,
+  "r": "sefq27fp"
+ },
+ "edit": {
+  "lines_added": 1,
+  "last": {
+   "content": {
+    "sefq27fp": {
+     "set": {
+      "text": "probe two-tab edited"
+     }
+    }
+   },
+   "by": "owner",
+   "ts": "2026-10-29T03:43:27.876Z"
+  },
+  "shown_in_B": 0,
+  "shown_in_A": 0,
+  "r": true
+ },
+ "move": {
+  "lines_added": 1,
+  "last": {
+   "content": {
+    "move": {
+     "id": "sefq27fp",
+     "after": null
+    }
+   },
+   "by": "owner",
+   "ts": "2026-10-29T03:43:29.641Z"
+  },
+  "shown_in_B": 1,
+  "shown_in_A": 1,
+  "r": [
+   "sefq27fp",
+   "what",
+   "how",
+   "tab",
+   "words",
+   "inside"
+  ]
+ },
+ "order_in_B": [
+  "sefq27fp",
+  "what",
+  "how"
+ ],
+ "order_in_A": [
+  "sefq27fp",
+  "what",
+  "how"
+ ],
+ "total_added": 3,
+ "posts_to_new_entry": 0,
+ "logs": [
+  "A HTTP 404 http://localhost:53219/directory.json",
+  "B HTTP 404 http://localhost:53219/directory.json"
+ ]
+}

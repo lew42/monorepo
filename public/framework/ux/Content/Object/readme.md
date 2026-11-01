@@ -1,61 +1,38 @@
-# Object — show a real object instead of explaining it
+# Object — one default view for any object: a row you can open, live
 
-Three ways in, all from one real object, a class, or a class instance:
+`view(x)` draws any object (an Item, a List, a class, a plain object, an array) as one row: the class's icon, the id, the class name as a small label, and counts ("3 items"). Click it open and it shows the object's data by type: a string or number is written out, an object it owns opens the same way, and a reference (its `parent`, a store) says where it points; a click on a reference flashes every view of its target. It is live: a change redraws only the row it touched. **See it:** [watch a tree being built](/framework/core/Item/watch/).
 
-- **`object()`** (`Object.js`) — one small card: icon, class name, `name = value` for
-  each property, method names. Reads nothing, writes nothing, draws once.
-- **`view()`** (`DefaultView.js`) — a tree of [`ui/item`](/framework/ui/item/)
-  rows instead: a header row, then one row per property, and a property that is
-  itself an object opens (lazily — nothing under it is read until you click) to
-  show its own properties the same way, as deep as you keep going. Best guess by
-  default; a class overrides it with its own `Thing.View`.
-- **`InstanceTree`** (`InstanceTree.js`, [page](/framework/ux/Content/Object/instance-tree/), [doc](doc/instance-tree.md)) — the whole running site as a live tree.
-- **`inspect()`** (`Inspect.js`) — the debug/inspector view, separate from a class's
-  own `render()` (it exists even when a class has no `render()` at all). Bigger than
-  `object()`'s card, and a property whose value is itself an object nests its own
-  `inspect()` card instead of a one-line `Array(3)`. A class gets the SAME icon in a
-  heavier frame, listing properties and methods together.
+## Index
 
-Any class may carry `static icon = "material-symbol-name"` — all three views read it
-the same way, falling back to `"data_object"` when a class says nothing.
+- [DefaultView.js](./DefaultView.js) — `class DefaultView extends View`, and `view(thing, opts)`, the one call
+- [DefaultView.test.js](./DefaultView.test.js) — its one core test, in a browser (16 checks); the result shows on the [watch page](/framework/core/Item/watch/)
+- [InstanceTree.js](./InstanceTree.js) — the whole running site as a live tree of pages; each opens its `view()` ([doc](doc/instance-tree.md), [page](/framework/ux/Content/Object/instance-tree/))
+- [Object.js](./Object.js), [Inspect.js](./Inspect.js) — ⚠ deprecated (2026-10-28): `object()` and `inspect()` draw the default view, open one level
+- [doc/default-view.md](doc/default-view.md) — what the view reads, how it stays live, and why one view replaced three
 
 ## Use
+
 ```js
-import { object } from "/framework/ux/Content/Object/Object.js";
 import { view } from "/framework/ux/Content/Object/DefaultView.js";
-import { inspect } from "/framework/ux/Content/Object/Inspect.js";
 
-object(somePage)                                       // the small card
-object(Page, { doc: "/framework/core/Page/" })         // a class, names link to its doc pages
-view(somePage)                                          // the tree — Page has no Thing.View, so this is DefaultView
-inspect(somePage)                                       // the debug view — icon, name, properties, nested
-inspect(Page)                                           // the SAME debug view, as a class card
+view(item)                                   // closed: one row
+view(item, { open: 3 })                      // three levels open from the start
+view(obj, { properties: "title state" })     // only these rows, in this order
+view(Page, { open: 1 })                      // a class: its fields, then its own methods
 ```
-One call, like `new Question({...})` — everything it needs arrives as one data object.
 
-**Opt a class's instances into being findable at all** with `core/track/track.js`:
-call `track(MyClass)` once per class, then `MyClass.track(this)` — one line, in
-that class's own constructor. `Page` already does this, which is what makes the
-two live pages below possible.
+A class may carry `static icon = "material-symbol-name"` (else `"data_object"`), `static shown` (rows first) and `static hidden` (rows never shown). A class with its own look declares `static View`, a View that takes `subject`; `view()` picks it, nested rows always use the default.
 
 ## Watch out
-- `object()`'s `doc` and `api` are the two ways a name becomes a link — this card
-  cannot guess where a class's docs live, so pass one whenever you know it. `api`
-  wins when both are given (`shape.md`). `inspect()` takes the same two.
-- All three skip functions and DOM/View nodes by default; `object()`/`inspect()`
-  also take `properties: [...]` (and `methods: [...]`) to choose exactly which
-  ones show, in order — the way to put "core API" members first.
-- A long value is cut to one line; hover it for the full text (a `title` attribute).
-- `inspect()`'s `variant: "full"` renders identically to `"card"` today — the owner
-  hasn't decided yet what more it should add; see the comment in `Inspect.js`.
-- Most classes should NOT call `track()` — it's for the handful where "see every
-  one of these" is actually useful, not a default every class pays for.
+
+- **Live means an emitter.** The view listens to the object's `"delta"` event (an Item, a List, anything with `on()`), and to `"read"` at the top of its tree, which a Store sends once per batch of lines it replays live (an agent's change, which sends no delta); a plain object draws once.
+- **Every view of an object is in `item.views`** (core/Item/Item.js; a WeakMap for other emitters). A view whose element has left the page drops out on the next change, so a view built and never attached stays listed.
+- **Built outside a render, pass `capture: false`**, or the view lands in whatever is capturing at that moment (the page body).
+- `item.view` (singular, core/Item) is a class's own view (`PageText.View`, `Task.View`), not this one.
+- `List.render()` drawing each member through its own view is not built: `core/List/List.js` belongs to the data backbone build. `view(list)` already does it.
 
 ## More
-- [Live demo](/framework/ux/Content/Object/) · [shape](/framework/ux/Content/Object/doc/shape/)
-  (the small card) · [how DefaultView reads a tree](/framework/ux/Content/Object/doc/default-view/)
-- Two real, live trees: [the Page object](/framework/ux/Content/Object/page/) and
-  [the App object](/framework/ux/Content/Object/app/).
-- Used once already: the [`Page` API tab](/framework/core/Page/api/) opens with
-  `object()`'s card, so "what does a `Page` have?" is answered by looking, not
-  reading.
+
+- [Live demo of this module](/framework/ux/Content/Object/) · two live trees: [the Page object](/framework/ux/Content/Object/page/), [the App object](/framework/ux/Content/Object/app/)
+- [doc/census.md](doc/census.md) — which classes are worth a view (2026-10 walk)
+- [code/objects](/framework/code/objects/) — the rule: every class ships a view of its state

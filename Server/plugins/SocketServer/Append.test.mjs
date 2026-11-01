@@ -70,6 +70,24 @@ try {
 		appender.append(file, ['{"already":"serialized"}'], 0);
 		ok(/append refused/.test(calls.at(-1).response), "a string line, even serialized JSON, is refused: ONE shape is an array of objects (Append.js, 2026-10-02)");
 	}
+
+	// The outbox numbers every batch ({client, n}). Numbering alone must NOT skip the per-file schema: FsFile.append callers write
+	// agent-style lines to schema'd files. Only a batch the Item system says is its own (`item: true`, Store.deliver) skips it,
+	// because an Item's deltas ({"set":…}, {"tasks":{"add":…}}) are not agent verbs (review finding 5). (page.jsonl is open anyway.)
+	console.log("— a numbered batch is still checked, unless it comes from an Item.Store —");
+	{
+		const numbered = (file, lines, meta) => { calls.length = 0; appender.append(file, lines, 0, meta); return calls[0]; };
+		const board = rel("num/board.jsonl");
+		const res = numbered(board, [{ nonsense: true }], { client: "t.a", n: 1 });
+		ok(/^append refused: a flat line/.test(res.response), "FsFile.append's numbered batch to board.jsonl: the schema check runs: " + res.response);
+		ok(!fs.existsSync(full("num/board.jsonl")), "and nothing was written");
+
+		const task = rel("num/task.jsonl");
+		const mine = numbered(task, [{ set: { a: 1 } }, { tasks: { add: { id: "k" } } }], { client: "t.a", n: 2, item: true });
+		ok(mine.response === "append successful", "an Item.Store batch (item: true) with item deltas is written: " + mine.response);
+		ok(fs.readFileSync(full("num/task.jsonl"), "utf8").trim().split("\n").length === 2, "both item lines landed");
+
+	}
 } finally {
 	fs.rmSync(testDir, { recursive: true, force: true });
 }

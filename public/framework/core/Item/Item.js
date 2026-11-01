@@ -1,4 +1,6 @@
 import Store from "./Store.js";
+import Snapshot from "./Snapshot.js";
+import LineKey from "./LineKey.js";
 import { Events } from "../Events/Events.js";
 
 const is_data = value => !!value && typeof value === "object" && !Array.isArray(value);
@@ -17,13 +19,58 @@ const skipped = key => key === "constructor" || key === "__proto__" || key.start
 // Duck-typed list check: items array + find(): doc/item-notes.md
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
+// Why a value cannot be written to a .jsonl line (a function, a DOM node, a cycle), found inside plain objects and arrays; null when it can.
+// An Item or List carries its own saved shape (toJSON) and is not looked into. `path` is where in the value the problem is.
+const unsavable = (value, path = "", seen = new Set()) => {
+	if (typeof value === "function") return `a function${path}`;
+	if (!value || typeof value !== "object") return null;
+	if (typeof Node !== "undefined" && value instanceof Node || (typeof value.nodeType === "number" && typeof value.nodeName === "string")) return `a DOM node${path}`;
+	if (!Array.isArray(value) && !is_plain(value) && value.constructor !== undefined) return null;   // Item, List, Date, Map...: their own shape
+	if (seen.has(value)) return `a cycle (it contains itself)${path}`;
+	seen.add(value);
+	try {
+		for (const key of Object.keys(value)){ const why = unsavable(value[key], `${path} at "${key}"`, seen); if (why) return why; }
+	} finally { seen.delete(value); }
+	return null;
+};
+
 const building = new WeakSet();   // Items inside their own constructor (see constructor())
+
+// Can a key's value take the rest of a delta? (an Item or List; a Map has a set() too, but it is data)
+const routes = node => !!node && typeof node.set === "function" && !(node instanceof Map);
+// The saved shape of one Item (`toJSON()`): a registered type, an id, a data object, and nothing but lists beside them.
+const is_envelope = value => is_plain(value) && typeof value.type === "string" && "id" in value && is_data(value.data) && !!Item.types.get(value.type)
+	&& Object.keys(value).every(k => k === "type" || k === "id" || k === "data" || Array.isArray(value[k]));
+// A cache kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
+const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
+
+/* D17, property hooks: a method named `set_<key>` is the hook for the data key `<key>`. It is wrapped once per class (the first
+   time an instance is made) so that calling it by hand and set() calling it do the same thing: run the hook, and if the hook put a
+   different value in data, announce the change (delta, then change). `set_one` is Item's own method, never a hook. */
+const hooked = new WeakSet();
+const wrap_hooks = Class => {
+	if (hooked.has(Class)) return;
+	hooked.add(Class);
+	for (let proto = Class.prototype; proto && proto !== Object.prototype; proto = Object.getPrototypeOf(proto)){
+		if (hooked.has(proto)) continue;
+		hooked.add(proto);
+		for (const name of Object.getOwnPropertyNames(proto)){
+			if (!name.startsWith("set_") || name.length <= 4 || name === "set_one") continue;
+			const d = Object.getOwnPropertyDescriptor(proto, name), raw = d.value, key = name.slice(4);
+			if (typeof raw !== "function" || raw.is_hook) continue;
+			const hook = function(value){ return this.run_hook(key, raw, value); };
+			hook.is_hook = true;
+			Object.defineProperty(proto, name, { ...d, value: hook });
+		}
+	}
+};
 
 // Architecture: composition not inheritance; doc/item-notes.md
 export class Item extends Events(Object) {
 
 	constructor(...args){
 		super();
+		wrap_hooks(this.constructor);
 		// A field passed to the constructor goes straight into data: not an own property that would shadow its
 		// accessor (a live rename never reached page.title, Stream.test.mjs), and not through set(), which would
 		// record a line and emit an event for an object that is still being built (Page.set, Template.set).
@@ -93,15 +140,58 @@ export class Item extends Events(Object) {
 
 	// A button's verb (browser): run `this[verb](args)` now so the page redraws at once, but record the VERB —
 	// `{start:{}}` — not the `set` lines it made, so the item tool's writer (Store.flush) saves it like an agent's call.
-	// A verb that refused (warned, changed nothing) records nothing. `Store.muted` is what keeps the `set` lines out.
+	// A verb that refused (warned, changed nothing) records nothing. `Store.mute(this)` is what keeps the `set` lines out:
+	// for this item, what sits under it, and the ancestors' own derived changes (an unrelated item's write during the verb is still saved).
 	act(verb, args){
 		let changed = 0;
 		const count = () => changed++;
 		this.on("delta", count);
-		Store.muted++;
-		try { this[verb](args); } finally { Store.muted--; this.off("delta", count); }
-		if (changed) this.emit("delta", { [verb]: args ?? {} }, this);
+		const above = Store.mute(this);
+		try { this[verb](args); } finally { Store.unmute(this, above); this.off("delta", count); }
+		if (changed) this.emit("delta", { [verb + (Store.marked_lines ? "()" : "")]: args ?? {} }, this);
 		return this;
+	}
+
+	/* D14, a method saved as ONE call. The method wraps its body, so a caller never has to remember act():
+	       sort_by(key){ return this.as_call("sort_by", [key], () => { …the work… }); }
+	   While the body runs, saving is muted for this item and what sits under it (Store.mute); when it is done ONE line is saved,
+	   `{"sort_by()": "title"}`: the call, with its argument as the line's value (any other argument list is wrapped, see call_value).
+	   Only the OUTERMOST call saves: a call made inside the body (or inside any muted tree) just runs. While a line is replayed
+	   nothing is saved either: the body runs and its changes come back by themselves. No change, no line. A body that throws
+	   saves no line and the error goes on to the caller. act() keeps working beside it. Doc: core/Item/doc/call.md. */
+	as_call(name, args, body){
+		if (Store.muted_at(this) || Store.replay_depth > 0) return body();
+		let changed = 0;
+		const count = () => changed++;
+		this.on("delta", count);
+		const above = Store.mute(this);
+		let result;
+		try { result = body(); } finally { Store.unmute(this, above); this.off("delta", count); }
+		if (changed) this.emit("delta", { [name + "()"]: Item.call_value(args) }, this);
+		return result;
+	}
+
+	/* HOW AN ARGUMENT LIST IS SAVED IN A LINE, and read back (doc/call.md). Exactly one plain argument is the line's value as it is
+	   (`{"sort_by()": "title"}`). Any other list goes in a small wrapper, so the method gets the same arguments on replay:
+	       none           {"$args": []}
+	       two            {"$args": [1, 2]}
+	       a hole         {"$args": ["a", null, "c"], "$undefined": [1]}      (JSON has no undefined; the listed places are put back)
+	   Trailing undefined arguments are dropped (a method sees "no argument" and "undefined" alike). One argument that is itself an
+	   object with an `$args` key is wrapped too, so it is never mistaken for the wrapper. */
+	static call_value(args){
+		const list = [...args];
+		while (list.length && list.at(-1) === undefined) list.pop();
+		if (list.length === 1 && !(is_plain(list[0]) && "$args" in list[0])) return list[0];
+		const holes = list.flatMap((arg, i) => arg === undefined ? [i] : []);
+		return { $args: list.map(arg => arg === undefined ? null : arg), ...(holes.length ? { $undefined: holes } : {}) };
+	}
+
+	// The reverse: a line's value -> the list of arguments to call the method with. A value that is not the wrapper is the one argument.
+	static call_args(value){
+		if (!is_plain(value) || !Array.isArray(value.$args) || !Object.keys(value).every(key => key === "$args" || key === "$undefined")) return [value];
+		const args = [...value.$args];
+		for (const i of Array.isArray(value.$undefined) ? value.$undefined : []) if (i in args) args[i] = undefined;
+		return args;
 	}
 
 	// The one rule, key by key, IN KEY ORDER:
@@ -128,6 +218,7 @@ export class Item extends Events(Object) {
 		// ⚠ compat only, one release (2026-10-03 fold-away) — never WRITE this form
 		// again, only read it: an old line routed the rest of its delta to whatever
 		// `at` named (a `/`-separated path from `locate()` below).
+		// DEPRECATED (2026-10-28): use a nested delta (`get()` per level). Guide: /framework/core/Item/doc/item-notes.md. Remove when: the ~1,810 history `{"at":…}` lines are migrated by script, then delete this branch and `locate()`.
 		if ("at" in delta){
 			const { at, ...rest } = delta;
 			const target = this.locate(at);
@@ -144,18 +235,135 @@ export class Item extends Events(Object) {
 	}
 
 	set_one(key, value){
+		// D13, the spelling says what a key does: `name()` calls the method, `#id` names a list item, a plain `name` is data (or a
+		// step into a child). Never stored as data, whatever they name: a call with no method and a hop with no item are refused.
+		if (key.length > 2 && key.endsWith("()")) return void this.call_marked(key, value);
+		if (key.charCodeAt(0) === 35) return void this.hop_marked(key, value);
+
+		// A dotted key is a path: `{"tasks.ui.tasks.c3": v}` is `{"tasks": {"ui.tasks.c3": v}}`, and the next level's own
+		// set() takes the rest (ids-and-paths.md, DECIDED). A key that already names something here as it is wins.
+		const dot = key.indexOf(".");
+		if (dot > 0 && dot < key.length - 1 && !(key in this) && this.get_one(key) === undefined)
+			return void this.set_one(key.slice(0, dot), { [key.slice(dot + 1)]: value });
+
+		// An OLD line named a method bare (`{"start":{}}`): still called, until the old logs are migrated (Item.bare_calls = false
+		// reads a bare name as data, the D13 rule, and lets a field be named like a method).
 		const here = this[key];
-		if (typeof here === "function") return void here.call(this, value);
+		if (typeof here === "function" && Item.bare_calls) return void here.apply(this, Item.call_args(value));
 
 		const target = this.get(key);
-		if (target && typeof target.set === "function" && !(target instanceof Map)) return void target.set(value);
+		if (routes(target)) return void target.set(value);
 
-		const old = this.get(key);
+		// D17: the class's own hook for this key stores the value (put) and does whatever else it wants.
+		const hook = this.hook_for(key);
+		if (hook) return void hook.call(this, value);
+
+		// An old line named a list member by its id alone (`{"c3":{…}}`, what Store.hops wrote before every hop named its
+		// list): still replayed, from the first list that has it, as get() used to; new lines name the list. It warns only
+		// when the list could have been named (a Page's `pages` cannot be yet, so the page tool's `{"<tab>":{…}}` is current).
+		if (target === undefined){
+			const [name, list] = Object.entries(this.lists()).find(([, l]) => l.find(key) !== undefined) ?? [];
+			const kid = list?.find(key);
+			if (routes(kid)){
+				const named = [list.name, name].find(n => n && !skipped(n) && this.get(n) === list);
+				// Counted always (Item.old_hops: "<list>.<id>" -> lines); warned in node only, where the item tool and the tests
+				// run. In a browser it would be noise on every page: the page tool still documents `{"<card id>":{…}}` today.
+				if (named && is_plain(value)){
+					Item.old_hops.set(`${named}.${key}`, (Item.old_hops.get(`${named}.${key}`) ?? 0) + 1);
+					if (typeof document === "undefined") warn(`a line named the member "${key}" by its id alone (an old line): it now names its list, {"${named}":{"${key}":…}}`, "member-hop");
+				}
+				return void kid.set(value);
+			}
+		}
+
+		const refused = unsavable(value);
+		if (refused){ warn(`set("${key}") refused: the value is ${refused}, which a saved line cannot hold`, `unsavable:${this.constructor.name}.${key}`); return; }
+
+		const old = target;
+		value = this.adopt_slot(key, value, old);
 		this.put(key, value);
 		if (old !== value){
-			this.emit("change", key, value, old);
+			// The save comes first and does not wait for any view: a listener that throws (a view that broke) is reported and
+			// skipped, so it can never stop the line from being written (item-core.test.mjs, 1a).
 			this.emit("delta", { set: { [key]: value } }, this);
+			this.emit_safely("change", key, value, old);
 		}
+	}
+
+	// The hook (D17) for a data key: the wrapped `set_<key>` method, or null.
+	hook_for(key){
+		const hook = typeof key === "string" && key !== "one" ? this["set_" + key] : null;
+		return typeof hook === "function" && hook.is_hook ? hook : null;
+	}
+
+	/* Runs a hook: `raw` is the class's own `set_<key>(value, old)`. It stores with this.put(key, value) (or keeps the value
+	   elsewhere). When the stored value is different afterwards, the change is announced exactly as set() announces it: the
+	   save (delta) first, then the view event (change). A hook that sets its own key again would loop for ever: warned, and the
+	   value is simply stored. */
+	run_hook(key, raw, value){
+		if (!this._hooking) hide(this, "_hooking", new Set());
+		const running = this._hooking;
+		if (running.has(key)){
+			warn(`set_${key}() set "${key}" again from inside itself — stored as it is, no second hook run`, `hook-loop:${this.constructor.name}.${key}`);
+			this.put(key, value);
+			return;
+		}
+		const old = this.get_one(key);
+		running.add(key);
+		let result;
+		try { result = raw.call(this, value, old); } finally { running.delete(key); }
+		const now = this.get_one(key);
+		if (now !== old){
+			this.emit("delta", { set: { [key]: now } }, this);
+			this.emit_safely("change", key, now, old);
+		}
+		return result;
+	}
+
+	// A line's value for `key` when it is replayed (a Task or Session reads its own line shapes and stores fields itself): the
+	// class's hook if it has one, else put(). Nothing is saved by a replay (Store.replay_depth), so only the hook's own work shows.
+	take(key, value){
+		const hook = this.hook_for(key);
+		if (hook) hook.call(this, value);
+		else this.put(key, value);
+	}
+
+	// `name()` in a line: call the method `name` with the value as its one argument, or with the list the `$args` wrapper holds (Item.call_value).
+	call_marked(key, value){
+		const name = key.slice(0, -2);
+		if (skipped(name) || typeof this[name] !== "function"){
+			warn(`a line called ${key}, but ${this.constructor.name} has no method ${name}() — that part of the line is ignored (a "()" name is never stored as data)`, `call:${this.constructor.name}.${name}`);
+			return;
+		}
+		this[name](...Item.call_args(value));
+	}
+
+	// `#id` in a line: the list item with that id (one of my lists, or my own members when I am a List); the value goes to it.
+	hop_marked(key, value){
+		const kid = this.member(key.slice(1));
+		if (!routes(kid)){
+			warn(`a line named the list item ${key}, but ${this.constructor.name} "${this.id}" has no such item — that part of the line is ignored (a "#" name is never stored as data)`, `hop:${this.id}.${key}`);
+			return;
+		}
+		kid.set(value);
+	}
+
+	// emit(), but a throwing listener is reported on console (naming the event and this item) instead of reaching the caller.
+	emit_safely(event, ...args){
+		try { this.emit(event, ...args); }
+		catch (error){ console.error(`Item — a "${event}" listener threw on ${this.constructor.name} "${this.id}": ${error?.message ?? error}`, error); }
+		return this;
+	}
+
+	/* An Item put in a property is ADOPTED: its parent is me and its slot is the property's name, so its own changes bubble
+	   here and Store.hops writes them under that name ({"child":{"set":{…}}}), and a replay walks back into it. The line
+	   that puts it is the saved shape (`{type, id, data}`), so on replay that shape is made an Item again (seat a, E7/E9).
+	   A List is not adopted this way (its owner is fixed when it is made). */
+	adopt_slot(key, value, old){
+		if (old !== value && old instanceof Item && old.parent === this && old._slot === key){ delete old.parent; delete old._slot; }
+		if (is_envelope(value)) value = Item.hydrate(value);
+		if (value instanceof Item && !is_list(value) && value !== this){ value.parent = this; value._slot = key; }
+		return value;
 	}
 
 	/* THE single resolver (2026-10-03): ONE name, not a path. The owner's order:
@@ -180,13 +388,31 @@ export class Item extends Events(Object) {
 		const value = this.get_one(key);
 		if (value !== undefined) return value;
 
+		// A List made with me as its owner and `key` as its name, even one I keep behind a getter (List.named()).
+		const list = this._named?.get(key);
+		if (list && list.owner === this) return list;
+
+		// A dotted path: my get takes the first name, and what it finds takes the rest with its OWN get (a List looks
+		// up its member; a subclass may look up its own way). ids-and-paths.md, DECIDED.
+		const dot = typeof key === "string" ? key.indexOf(".") : -1;
+		if (dot > 0){
+			const next = this.get(key.slice(0, dot));
+			return routes(next) && typeof next.get === "function" ? next.get(key.slice(dot + 1)) : undefined;
+		}
+		return undefined;
+	}
+
+	// A member of one of my lists, by id: the first list that has it. Only an old line's id-only hop needs this
+	// (set_one above, the item tool's check); every new hop names its list, so get() no longer searches.
+	member(id){
 		for (const list of Object.values(this.lists())){
-			const hit = list.find(key);
+			const hit = list.find(id);
 			if (hit !== undefined) return hit;
 		}
 		return undefined;
 	}
 
+	// DEPRECATED (2026-10-28): use a nested delta (`get()` per level). Guide: /framework/core/Item/doc/item-notes.md. Remove when: the ~1,810 history `{"at":…}` lines are migrated by script, then delete `locate()` and its List.move caller.
 	/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated multi-hop path `at` used
 	   to name, read for one release so an old jsonl line still replays. Walks
 	   `/`-separated segments of `path`, starting from ME: a segment matches a
@@ -215,6 +441,23 @@ export class Item extends Events(Object) {
 		return this;
 	}
 
+	/* THE one move (cross-review finding 5). `dest` a List: I move there, inside my file, and every Ref that named my old path
+	   takes the new one (List.move, through Item.moving in Ref.js). `dest` {url, path}: another file. The file mover carries my
+	   lines there (node: move_item in Servex/agents/page_tools.js, the handoff), and I stay here as a forward,
+	   {moved_to: {url, path}}, which a Ref to my old place follows (Ref.settle) instead of showing "gone".
+	   Answers the forward line it set ({moved_to}), or null for a move inside the file. */
+	move_to(dest, opts = {}){
+		if (is_list(dest)){
+			const from = Object.values(this.parent?.lists?.() ?? {}).find(l => l.index_of(this) !== -1);
+			dest.move(this, { ...opts, ...(from && from !== dest ? { from } : {}) });
+			return null;
+		}
+		if (typeof dest?.url !== "string") throw new Error("move_to: give a List, or {url, path} for another file");
+		const forward = { moved_to: { url: dest.url, path: dest.path ?? "" } };
+		this.set(forward);
+		return forward;
+	}
+
 	root(){ let item = this; while (item.parent) item = item.parent; return item; }
 
 	// Every List property I own, by name — the one seam `find`, `walk` and
@@ -224,9 +467,14 @@ export class Item extends Events(Object) {
 	// ⚠ Only lists I OWN. A member of an ownerless list has that list as its
 	// `parent`; counting it here made toJSON() loop forever (found by the
 	// List replay example, 2026-10-02).
+	// Cached: kept while I have the same own keys and each cached list is still mine under its name. A List made with me
+	// as its owner clears it (List's `owner` setter). Returned as a fresh object each call, as before.
 	lists(){
+		const keys = Object.keys(this).length, had = this._lists;
+		if (had && had.keys === keys && had.names.every(([k, list]) => this[k] === list && list.owner === this)) return Object.fromEntries(had.names);
 		const found = {};
 		for (const key in this) if (is_list(this[key]) && this[key].owner === this) found[key] = this[key];
+		hide(this, "_lists", { keys, names: Object.entries(found) });
 		return found;
 	}
 
@@ -236,8 +484,20 @@ export class Item extends Events(Object) {
 		return this;
 	}
 
-	// A DEEP search — every descendant, across every list, at every depth.
-	find(id){ let hit; this.walk(item => { hit ??= item.id === id ? item : undefined; }); return hit; }
+	// A DEEP search — every descendant, across every list, at every depth: the first one in walk order, me included.
+	// Indexed once per change to any list (Item.generation), so a line that names no child costs a Map lookup, not a walk.
+	find(id){
+		let ix = this._deep;
+		if (!ix || ix.gen !== Item.generation){
+			ix = { gen: Item.generation, map: new Map() };
+			this.walk(item => { if (!ix.map.has(item.id)) ix.map.set(item.id, item); });
+			hide(this, "_deep", ix);
+		}
+		const hit = ix.map.get(id);
+		if (hit === undefined || hit.id === id) return hit;
+		this._deep = null;   // an id changed in place since: walk again
+		return this.find(id);
+	}
 
 	// Strict descendants — `contains(this)` is false, so a drop-check still needs
 	// `target !== this` beside it.
@@ -256,7 +516,13 @@ export class Item extends Events(Object) {
 	}
 	set view(v){ this._view = v; }
 
+	// Every live view drawing me (ask 33): one item can show in two places at once, and a change reaches each.
+	// The default view (ux/Content/Object/DefaultView.js) adds itself here and drops out once off the page.
+	get views(){ return this._views ??= []; }
+	set views(v){ this._views = v; }
+
 	// A child asking to save persists its DOCUMENT — delegation up, never a partial write.
+	// DEPRECATED (2026-10-28): use `item.store` (`Item.Store.for(url)`) for a delta log; whole-document storage is undecided, so `save()` stays the Saver-only door until then. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files of ext/Saver are moved to `item.store` or the Saver is renamed as the whole-document store.
 	save(){ return this.saver ? this.saver.save(this) : this.parent ? this.parent.save() : Promise.resolve(false); }
 	delete(){ return this.saver ? this.saver.delete(this) : this.parent ? this.parent.delete() : Promise.resolve(false); }
 
@@ -271,7 +537,17 @@ export class Item extends Events(Object) {
 
 	wire(){ return this.type ?? Item.names.get(this.constructor) ?? this.constructor.name; }
 
-	static new_id(){ return crypto.randomUUID(); }
+	// One id maker (cross-review finding 3): every new Item gets a short id, whether a string add, an object add or a new Ref. Page keeps its own (a folder name).
+	static new_id(){ return this.short_id(); }
+	// The id a person or an agent makes (a click, an item-tool add): 8 random letters and digits, never a dot, and never
+	// all digits (a number-like key would jump to the front of its object). Code-made structure keeps a fixed name instead.
+	// core/Session/tasks/data-shapes/ids-and-paths.md §5.
+	static short_id(n = 8){
+		const abc = "abcdefghijklmnopqrstuvwxyz0123456789", bytes = crypto.getRandomValues(new Uint8Array(n));
+		let id = abc[bytes[0] % 26];
+		for (let i = 1; i < n; i++) id += abc[bytes[i] % 36];
+		return id;
+	}
 
 	// The methods and getters of this class that only READ. The item tool answers a delta whose keys are all queries (`{"cost":{}}`) and writes no line. A subclass lists its own.
 	static queries = [];
@@ -346,30 +622,134 @@ export class Item extends Events(Object) {
 	// `replay_line` per entry). A subclass overrides `replay_new` (what line 1 builds), `replay_line`
 	// (its legacy line shapes) and `replay_end` (anything inferred once all lines are in).
 	static replay_new(lines){ return new this(); }
-	static replay(lines){
-		const item = this.replay_new(lines);
-		for (const line of lines) if (line && typeof line === "object") item.replay_line(line);
-		item.replay_end?.();
-		return item;
+	// The root is built the way Item.open builds it (root_from below): a plain Item IS its line 1 (id and fields), the other
+	// lines replay onto it; a class with its own replay_new (Task, Session) builds from all the lines and replays them all.
+	// `snapshot` (an optional second argument: a Snapshot, or {state, memory}) starts the item from that saved state, and `lines` are
+	// then only the lines after it (the node twin of Item.open's snapshot load; Server/Snapshots.mjs verifies a snapshot with it).
+	static replay(lines, snapshot){
+		const { host, rest } = snapshot ? { host: this.from_snapshot(snapshot), rest: lines } : this.root_from(lines);
+		Store.replay_depth++;   // a replay saves nothing, here as when a Store reads (as_call, Store.js)
+		try {
+			for (const line of rest) if (line && typeof line === "object") host.replay_line(line);
+			host.replay_end?.();
+		} finally { Store.replay_depth--; }
+		return host;
 	}
-	replay_line(line){ return this.set(line); }
+	// null when a snapshot of this item can be continued by replaying later lines; else the reason it cannot (Server/Snapshots.mjs refuses it).
+	snapshot_unsafe(){ return null; }
+
+	// An empty item of this class, restored from a snapshot (nothing is saved while it is built).
+	static from_snapshot({ state, memory }){
+		const host = new this();
+		Store.replay_depth++;
+		try { host.restore(state, memory); } finally { Store.replay_depth--; }
+		return host;
+	}
+
+	/* Start this (empty) item from a snapshot's saved shape (doc/snapshots.md): its data, its lists of children, and the in-memory
+	   fields toJSON leaves out (`memory`). Each `set_<key>` hook then runs ONCE for the key's saved value (D17), on this item and on
+	   every item under it, which is what a replay of the lines would have ended up with. Nothing here is saved: callers hold
+	   Store.replay_depth. A subclass with state of its own overrides this and calls super. */
+	restore(state, memory = []){
+		const built = this.constructor.hydrate(state, Snapshot.any_id);   // a twin built the ordinary way (a saved tree already has its ids; a Prompt's paragraphs are "a", "b" in every prompt); its parts are moved here
+		this.id = built.id;
+		Object.assign(this.data, built.data);
+		for (const [name, list] of Object.entries(built.lists())){
+			const mine = this.get(name) ?? (this[name] = Item.makeList({ owner: this, name }));
+			for (const kid of [...list]) mine.insert(kid);
+		}
+		// A saved slot Item is `{type, id, data}` in the state; a full replay made it an Item held in that slot (adopt_slot), so do the same on every item.
+		this.walk(item => { for (const key of Object.keys(item.data)) item.data[key] = item.adopt_slot(key, item.data[key]); });
+		Snapshot.apply_memory(this, memory);
+		this.walk(item => { for (const key of Object.keys(item.data)) if (item.hook_for(key)) item.take(key, item.data[key]); });
+		return this;
+	}
+
+	// `by` and `ts` are the writer's stamp on the line, not data: stripped here, the line's time held in `Item.clock` while
+	// it applies (a Task stamps its verbs with it), for every Item. Before, a plain Item kept them as fields (seat a).
+	replay_line(line){
+		if (!is_plain(line) || !("by" in line || "ts" in line)) return this.set(line);
+		const { by, ts, ...rest } = line, was = Item.clock;
+		if (typeof ts === "string") Item.clock = ts;
+		try { return this.set(rest); } finally { Item.clock = was; }
+	}
+
+	// The time of the line being replayed (null outside a replay). One clock for every Item: `Task.clock` reads and
+	// writes this same value.
+	static get clock(){ return Item._clock; }
+	static set clock(at){ Item._clock = at; }
+
+	// A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set()
+	// opens the next). For a replay_line that reads its top-level keys itself (Task, Session) before any set() runs.
+	static dots(line){
+		if (!is_plain(line)) return line;
+		let out = null;
+		for (const key in line){
+			const dot = key.indexOf(".");
+			if (dot <= 0 || dot === key.length - 1) continue;
+			out ??= { ...line };
+			delete out[key];
+			const head = key.slice(0, dot), rest = { [key.slice(dot + 1)]: line[key] };
+			out[head] = is_plain(out[head]) ? { ...out[head], ...rest } : rest;
+		}
+		return out ?? line;
+	}
+
+	// A line's top-level marks undone, for a replay_line that reads its keys by their bare names (Task, Session): `{"start()":{}}`
+	// reads as `{"start":{}}` and `{"#c3":{…}}` as `{"c3":{…}}`. Both shapes of a line therefore read the same there.
+	static unmark(line){ return LineKey.unmark(line); }
 
 	// A string is a .jsonl url: one Store per file, opened, the host built from its
 	// first line, attached. A Saver object keeps the existing whole-JSON path.
 	static async open(src){
+		// DEPRECATED (2026-10-28): use `Item.open(url)` (a .jsonl url, one Store per file); an object Saver is the whole-JSON path. Guide: /framework/ext/Saver/readme.md. Remove when: the 24 importing files of ext/Saver are moved to `item.store` or the Saver is renamed as the whole-document store.
 		if (typeof src !== "string"){
 			const json = await src.load();
 			return Item.hydrate(json ?? {}).assign({ saver: src });
 		}
 
+		// One root per url: a second open() (from anywhere: a Ref, a task page) gets the same live object.
 		const store = this.Store.for(src);
-		await store.open();
+		if (store.host) return store.host;
+		if (store.rooting) return store.rooting;
+		// A snapshot (a state to start from, and where in the log it ends) is used only when nobody has opened this store yet: another
+		// reader of the same Store expects every line (Store.use_snapshot).
+		const rooting = store.rooting = (this.Store.snapshots ? store.use_snapshot() : Promise.resolve()).then(() => store.open()).then(() => {
+			if (store.host) return store.host;   // attached by another reader while this one waited (Task.open_ref)
+			const Class = this !== Item ? this : store.snapshot ? Item.types.get(store.snapshot.state.type) ?? Item : Item.class_for(store.entries);
+			const { host, rest } = store.snapshot ? { host: new Class(), rest: store.entries } : Class.root_from(store.entries);
+			store.entries = rest;
+			store.attach(host);   // restores the snapshot first, when there is one, then replays the lines held
+			host.replay_end?.();
+			return host;
+		});
+		rooting.catch(() => { if (store.rooting === rooting) store.rooting = null; });   // a failed open is not cached: the next Item.open tries again
+		return rooting;
+	}
 
-		const [first, ...rest] = store.entries;
-		const host = new this(first ?? {});
-		store.entries = rest;
-		store.attach(host);
-		return host;
+	// The class a file's root is, from its own lines (Item.open on a url nothing else names): line 1's registered `type` or
+	// `class`; a session's record ({"session":…} line 1, or a spawn's {"assign":{session_id, agent}}) is a Session, any other
+	// {"assign"} record a Task; else a plain Item.
+	static class_for(entries){
+		const first = entries[0] ?? {}, a = entries.find(e => e?.assign)?.assign;
+		const named = Item.types.get(first.type ?? first.class);
+		if (named) return named;
+		if (first.session || (a && a.session_id && a.agent)) return Item.types.get("Session") ?? Item.types.get("Task") ?? Item;
+		if (a) return Item.types.get("Task") ?? Item;
+		return Item;
+	}
+
+	// The root a file's lines open as, and the lines still to replay onto it. An Item is line 1 itself (its fields), the
+	// rest replayed; a class with its own replay_new (Task, Session) builds its root from all the lines and replays them all.
+	static root_from(entries){
+		if (this.replay_new !== Item.replay_new) return { host: this.replay_new(entries), rest: entries };
+		const first = entries[0];
+		// Line 1 is the item's own fields only when it carries the item's id (`{"id":"layer","x":24}`). A first line that is a change
+		// (`{"cards":{"add":…}}`, a Dated index row) has no id: the item starts empty and every line replays, as Item.replay does.
+		if (!(is_plain(first) && typeof first.id === "string")) return { host: new this(), rest: entries };
+		const host = new this(first);
+		for (const key of Object.keys(first)) if (key !== "id" && host.hook_for(key)) host.take(key, host.get_one(key));   // line 1's fields are a replayed line: their hooks run (the constructor cannot: the subclass is not built yet)
+		return { host, rest: entries.slice(1) };
 	}
 }
 
@@ -380,6 +760,10 @@ const warn = (message, key = message) => {
 };
 
 Item.types = new Map();
+Item._clock = null;
+Item.bare_calls = true;   // D13: a bare key that names a method still calls it (old lines). false = a bare key is always data.
+Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them
+Item.generation = 0;   // bumped by every List change: find()'s index is rebuilt only after one
 Item.names = new Map();
 Item.warned = new Set();
 Item.Store = Store;

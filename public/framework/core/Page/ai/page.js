@@ -97,7 +97,7 @@ export default new Doc({
 					if (!shown.length) small.c("muted", "Nothing working or idle right now.");
 					shown.forEach(row => details.c("ai-row", () => {
 						summary(`${row.id} · ${row.role} · ${row.state}`);
-						div.c("ai-row-body", () => view(row));
+						div.c("ai-row-body", () => view(row, { open: 1 }));
 					}));
 					a.c("page-link", "The full list →").href("agents/");
 				});

@@ -1,5 +1,6 @@
 import Task from "./Task.js";
 import View, { div, span, a, small, strong, icon } from "../View/View.js";
+import RefView from "../Item/RefView.js";
 
 View.stylesheet(import.meta, "TaskView.css");
 
@@ -7,7 +8,7 @@ View.stylesheet(import.meta, "TaskView.css");
 export default class TaskView extends View {
 	static sizes = ["chip", "row", "card"];
 	static PREVIEW = 3;   // a parent row previews this many open children
-	static STAGE = { idle: "check_box_outline_blank", waiting: "hourglass_empty", running: "play_circle", paused: "pause_circle", stopped: "stop_circle", complete: "check_box", loading: "hourglass_top", missing: "error_outline" };   // the row's one control: its stage IS its checkbox
+	static STAGE = RefView.STAGE;   // the row's one control: its stage IS its checkbox. One map, kept in core/Item (RefView), which imports nothing from core/Task
 	static VERBS = [["start", "play_arrow", "Start"], ["pause", "pause", "Pause"], ["resume", "play_arrow", "Resume"], ["stop", "stop", "Stop"], ["approve", "check", "Approve"]];   // [verb, Material icon, label]: the buttons, shown when Task.can(verb)
 	static SEGMENTS = 8;   // past this many children the bar is one meter and a count, so the title keeps the room
 	static chip(task){ return new this({ task, size: "chip" }); }
@@ -15,6 +16,7 @@ export default class TaskView extends View {
 	static card(task){ return new this({ task, size: "card" }); }
 
 	initialize(){
+		this.task ??= this.subject;   // view(task) (ux/Content/Object/DefaultView.js) hands a class's View its object as `subject`
 		this.size ??= "card";
 		this.redraw = () => this.empty(() => this[this.size]());
 		this.ac("task-view", "task-" + this.size);

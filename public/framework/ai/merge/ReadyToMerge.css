@@ -8,6 +8,7 @@
 	.rm-what { margin: 0; overflow-wrap: anywhere; }
 	.rm-meta { display: flex; flex-wrap: wrap; gap: 0.2em 1em; font-size: 0.82em; opacity: 0.75; }
 	.rm-branch { overflow-wrap: anywhere; }
+	.rm-preview { font-size: 0.9em; overflow-wrap: anywhere; }
 	.rm-merge { align-self: flex-start; padding: 0.4em 1.2em; font-weight: 600; cursor: pointer; }
 	.rm-merge[disabled] { cursor: default; opacity: 0.6; }
 	.rm-out { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.82em; }

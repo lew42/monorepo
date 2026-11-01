@@ -9,6 +9,7 @@
 // Doc: Server/doc/dated-files.md · plan: public/framework/core/Item/doc/store-index-query-plan.md
 import fs from "node:fs";
 import path from "node:path";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import AIIndexStream from "./AIIndexStream.mjs";
@@ -28,7 +29,7 @@ export default class DatedFiles extends Dated {
 	static rel(abs){ return slash(path.relative(this.ROOT, abs)); }
 	static url(rel){ return "/" + rel.replace(/^public\//, "").replace(/\/?$/, "/"); }
 	static lines(file){
-		try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+		try { return fs.readFileSync(file, "utf8").split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return LineKey.deep(JSON.parse(l)); } catch { return null; } }).filter(Boolean); }   // D13: marks off
 		catch { return []; }
 	}
 	static append(file, obj){ fs.mkdirSync(path.dirname(file), { recursive: true }); fs.appendFileSync(file, JSON.stringify(obj) + "\n"); }

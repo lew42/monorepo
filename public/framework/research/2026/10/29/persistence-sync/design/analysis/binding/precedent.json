@@ -1,0 +1,294 @@
+{
+  "dilemma": "binding",
+  "lens": "precedent",
+  "by": "analyst-binding-precedent",
+  "options": [
+    {
+      "id": "events",
+      "label": "events: a view calls item.on('change', fn) and item.off(...) itself, one listener per view per item",
+      "wins_when": [
+        {
+          "scenario": "A task row in the owner's open tab. An agent's line {\"tasks\": {\"#c3\": {\"done\": true}}} arrives over the socket, set() runs on the live copy, and the row's own change listener redraws it. Remote edits need no separate code path.",
+          "why": "Item.set_one emits change(key, value, old) only when the value is not identical, by !== (public/framework/core/Item/Item.js L155-L157). Backbone also skips equal values, with _.isEqual (backbone.js L576-L577), and Replicache fires only when the result is not deep-equal (packages/replicache/src/subscriptions.ts L116-L122)."
+        },
+        {
+          "scenario": "A flash-on-change or undo UI needs the old value next to the new one.",
+          "why": "change(key, value, old) already carries both (Item.js L156). Backbone's change:<attr> carries only the new value, and the old one comes from previous(attr) (backbone.js L660), so Lew42's payload is the more direct of the two."
+        },
+        {
+          "scenario": "A list-level count or list view must follow adds and removes, including the index where an insert lands.",
+          "why": "Backbone collections announce add and remove, with the removal index in options.index (/home/claude/research/persistence-sync/notes/signals_reactivity_lists.md L134). The List already announces adds and removes (public/framework/core/Page/doc/binding.md section 5), so the same shape applies."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A row is removed by a remote line, its view is dropped without off(), and the detached row keeps redrawing on every change until reload.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Nothing cleans up for you. Backbone does it only through View.remove, which calls stopListening (backbone.js L1443-L1446). Colyseus returns a detach function for every listen (getDecoderStateCallbacks.ts L46-L53). A leak, not lost data."
+        },
+        {
+          "scenario": "A project header shows the count of done tasks. A child task's done change bubbles up to the parent as change('done'), so the header reacts to the wrong task.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "The owner's own comment says a child's change of the same key is heard too (public/framework/core/Property/Property.js L136). Precedents split these cases: Colyseus has a per-instance onChange and a per-field listen, and its collection onChange is marked non-recursive (getDecoderStateCallbacks.ts L60, L94). Yjs keeps observe (this type) and observeDeep (descendants) as two calls (yjs src/utils/Transaction.js L241-L257)."
+        },
+        {
+          "scenario": "The owner opens a session whose log has 8,000 lines. Each line calls set(), so each line runs every listener bound at that moment, one line at a time.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Slow load, same result. Yjs runs observers once per transaction, after the whole transaction (Transaction.js L211-L236). Backbone folds nested set() calls into one change at the end of the outermost batch (backbone.js L561-L613). Colyseus fires onChange once per instance per decoded patch (getDecoderStateCallbacks.ts L124-L127, with the uniqueRefIds guard at L153; Decoder.ts L127)."
+        },
+        {
+          "scenario": "A text input is bound two-way to a title. The owner types, the change re-sets the field, and the caret jumps while the owner is still typing in it.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Equal-value guards stop model loops (Property.js L18, Item.js L155), but a view that writes its own input back can still move the caret. The rule in phase-1.md section 9, 'No update loops' (rule 3: an input with focus ignores its own echo), covers this and must be built into any option."
+        },
+        {
+          "scenario": "An object-valued field such as a whole tags array is set again with the same contents by a replayed line. Item.set_one compares by reference, so every such line counts as a change.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Extra redraws, not wrong data. Item.js L155 uses !==, so a new array always counts as changed. Backbone compares deeply (backbone.js L576-L577), and Replicache compares deeply before it fires (subscriptions.ts L116-L122)."
+        },
+        {
+          "scenario": "One view's change listener throws during set(). The listeners after it, and the delta emit that saves the edit, never run. The edit stays in memory and never reaches the log.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Item.set_one emits change (Item.js L156) before delta (L157), and Events.emit calls each listener in a plain forEach with no try (Events.js L24). So a throw skips the save. The fix belongs in one place: run every listener, keep the failures aside, and rethrow at the end, as mobx-keystone does (its forEachWithDelayedThrow is used at emitPatch.ts L59, L85 and L230)."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Backbone 1.6.1 (Model.set and Collection)",
+          "how": "Model.set batches a call and fires change:<attr> and change once, at the end of the outermost batch (nested sets join the batch). Equal values are skipped with _.isEqual. A Collection forwards every model event through _onModelEvent, so list views hear their models.",
+          "src": "https://github.com/jashkenas/backbone/blob/94260d91dcf4050360f055506271b61f7b24e5e3/backbone.js#L561-L613"
+        },
+        {
+          "tool": "Colyseus schema (client decoder)",
+          "how": "The decoder collects every field change in a patch, then calls triggerChanges once with the whole list. onChange fires once per instance per patch. Instance onChange (any field) is kept apart from per-field listen and from the non-recursive collection onChange.",
+          "src": "https://github.com/colyseus/schema/blob/390cf3833cf76f588f140a01b1d5daf9e4fd5fbb/src/decoder/strategy/getDecoderStateCallbacks.ts#L124-L127"
+        },
+        {
+          "tool": "Meteor DDP (changed and cleared messages)",
+          "how": "A changed message carries only the fields that changed. A field that was unset travels in a cleared list, not as undefined. A view therefore reacts to exactly the keys that moved, which matches Item's change(key, value, old).",
+          "src": "https://github.com/meteor/meteor/blob/e587c05d3abd25484adfd5e2e55373fd5c725469/packages/ddp-common/utils.js#L58-L67"
+        },
+        {
+          "tool": "Yjs (observer batching)",
+          "how": "Observers run in transaction cleanup, after the transaction callback has finished, so one bulk edit fires once per changed type. observeDeep and the delta channel bubble through all ancestors from the same pass.",
+          "src": "https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/utils/Transaction.js#L211-L257"
+        },
+        {
+          "tool": "Replicache (rocicorp/mono subscriptions)",
+          "how": "A subscription re-runs its query and calls onData only when the new result is not deep-equal to the last one. Views get a stream of real changes, not one call per write.",
+          "src": "https://github.com/rocicorp/mono/blob/f779973493b4109a59e35dbf71ad44103c4ae054/packages/replicache/src/subscriptions.ts#L116-L122"
+        }
+      ]
+    },
+    {
+      "id": "props",
+      "label": "props: one lazy Property per field (item.prop(name)); a view calls bind(fn) and keeps the unbind",
+      "wins_when": [
+        {
+          "scenario": "A cost meter in the page header shows the session's total spend. The same value appears in three clones and the header. One Property means one listener per view, and every view repaints from the same value.",
+          "why": "This is what the owner built: Property.bind calls fn now and on each change, and returns the unbind (public/framework/core/Property/Property.js L25-L29). Knockout observables and Vue refs use the same shape: a value container with get, set and subscribers (see precedent)."
+        },
+        {
+          "scenario": "A two-way pair: a slider and a number box both read and write one unit field.",
+          "why": "Property.set skips equal values (Property.js L16-L21, via Object.is), which is the loop guard for two writers. The same field can then drive both controls with no extra wiring."
+        },
+        {
+          "scenario": "A first paint that must be right at once for a new clone.",
+          "why": "bind(fn) paints immediately (Property.js L28). The view never has to draw once and then wait for a change."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A standalone Property (new Property('$0.00')) and the Item field it stands for both hold a value. A replayed line sets only the Item, so the header keeps the old number.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Two copies of one value. Only Property.of (ItemProperty) reads through the Item (Property.js L145-L147), so it has one source. A plain Property is a second copy and can drift until reload or the next write."
+        },
+        {
+          "scenario": "A parent's done Property hears a child's done change through the bubble.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "The owner's comment on Property.Of says so (Property.js L136). The filter in the listener is by key only (Property.js L155), so it cannot tell its own key from a child's."
+        },
+        {
+          "scenario": "A Property is made for every field of every row in a 1,000-row grid.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The owner measured it: 10,000 listeners and 2.4 times the memory of the lazy way, at the same update speed (public/framework/core/Page/doc/binding.md, section 3, Measured). The lazy form is already chosen."
+        },
+        {
+          "scenario": "A clone is dropped and its bind() unbind is never called. The Property keeps its listener and repaints a dead span.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "bind returns the unbind for the caller to keep (Property.js L29). The view must file it, as binding.md section 1 already requires. No precedent here cleans it up by itself."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Lew42 Property.js (in-repo)",
+          "how": "Property is an Events object with get and set, plus value accessors. Property.Of reads and writes through the Item (get and set go to item.get and item.set), so the Item still saves the delta. Its listener is attached only while someone listens.",
+          "src": "public/framework/core/Property/Property.js#L16-L29, #L136-L156"
+        },
+        {
+          "tool": "Knockout observables",
+          "how": "An observable is a value container. subscribe() returns a subscription with dispose(). pureComputed covers derived values. Observable arrays emit arrayChange records with index and status, and Knockout is one of the few systems that reports a move as moved (the notes say MobX and MST have no move).",
+          "src": "https://knockoutjs.com/documentation/observableArrays.html"
+        },
+        {
+          "tool": "Vue refs (reactivity in depth)",
+          "how": "A ref is a value container: .value tracks reads and triggers writes. The value is shared by every reader. Vue states that this runtime reactivity works without a build step, which matches Lew42's no-build rule.",
+          "src": "https://vuejs.org/guide/extras/reactivity-in-depth.html"
+        }
+      ]
+    },
+    {
+      "id": "signals",
+      "label": "signals: each field is a signal; views run effects that read them; Item.get and Item.set are the seam",
+      "wins_when": [
+        {
+          "scenario": "A header reads 'tasks left: 4 of 9', derived from the list. It updates with no wiring when a task's done changes locally or from an agent's line.",
+          "why": "Derived reads are the case signals are built for: a computed records what it read during its run. Preact's createModel wraps class methods and disposes effects through Symbol.dispose (npm @preact/signals-core, see precedent)."
+        },
+        {
+          "scenario": "Future derived views such as a filtered or sorted List, which today need a hand-written rerun after each add, remove or change.",
+          "why": "Lew42 already has one seam: the notes say Item.get and Item.set are the right place (signals_reactivity_lists.md L209). MobX's official hook for custom data is createAtom, with reportObserved in a getter and reportChanged in a setter."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A replay of 8,000 lines at load. Each set() writes a signal and runs every effect that reads it, unless the load is wrapped in a batch.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Signals run effects at once unless batched. mobx-keystone queues its non-synchronous patch listeners and runs them when the outermost change ends (packages/lib/src/patch/emitPatch.ts L240-L260). Yjs batches the same way (see events)."
+        },
+        {
+          "scenario": "A row is removed, but its effect is not disposed. The signal holds a strong reference to the effect, so the dead row keeps running.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "A leak, not lost data. Carniato notes that a signal keeps a strong reference to its subscribers (signals_reactivity_lists.md L34). Preact's model[Symbol.dispose] exists for this case (L100), and Lew42's drop() would also have to dispose effects."
+        },
+        {
+          "scenario": "A write path skips set(): a direct field assignment, or a remote line applied to data without going through set(). The view shows a value the log does not hold.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "A signal only sees writes that go through it. The fix is one write path, which the owner's Item already is (Item.js L124-L157). Reload then shows the log's value."
+        },
+        {
+          "scenario": "The build adds @preact/signals-core or copies a runtime into public/, which makes a second reactivity system next to the events that save deltas.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "CLAUDE.md asks the owner before any new npm dependency, and a vendored copy is still one. The notes size the Preact core at about 2.2 KB (signals_reactivity_lists.md L85). Two systems also break the 'one of everything' law."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "mobx-keystone (closest OO model with patches)",
+          "how": "Patches are the write path, and a computedTree gives derived reads through MobX computed. Reads and writes are split on purpose: the patch stream feeds the log, and computed feeds the views.",
+          "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/computedTree/computedTree.ts#L54-L66"
+        },
+        {
+          "tool": "tldraw store (signals for reads, RecordsDiff for writes)",
+          "how": "The write side is confirmed in the notes: flat records keyed by id, with changes sent as RecordsDiff {added, updated, removed}. The signals-for-reads half is NOT verified here: the sparse clone holds only apps/dotcom and packages/dotcom-shared, not packages/store or packages/state.",
+          "src": "/home/claude/research/persistence-sync/notes/collab_app_architectures.md#L62"
+        },
+        {
+          "tool": "Preact signals-core (createModel, Symbol.dispose)",
+          "how": "createModel groups signals and effects into a disposable model. Class methods are wrapped as batched actions, and effects created in the constructor are disposed by model[Symbol.dispose](). This maps onto Lew42's drop().",
+          "src": "https://www.npmjs.com/package/@preact/signals-core"
+        },
+        {
+          "tool": "MobX createAtom",
+          "how": "A custom atom calls reportObserved() in the getter and reportChanged() in the setter. The notes say this is MobX's official extension point for custom data structures, and it fits Item.get and Item.set.",
+          "src": "https://github.com/mobxjs/mobx/blob/main/packages/mobx/src/core/atom.ts"
+        },
+        {
+          "tool": "Svelte 5 $state (class fields)",
+          "how": "Class instances are not proxied, so reactive state goes in class fields. Lew42's Item subclasses would need the same placement.",
+          "src": "https://svelte.dev/docs/svelte/$state"
+        }
+      ]
+    },
+    {
+      "id": "bind-helper",
+      "label": "bind-helper: view.bind(item, key, fn) wires the change event, files the unbind on the view, and drop() runs it",
+      "wins_when": [
+        {
+          "scenario": "A task row binds to title and done in one call each. When the row is removed, drop() runs both unbinds and the listener count returns to 0.",
+          "why": "Backbone records each listening pair and removes it in stopListening (backbone.js L201-L212, L263-L278), and View.remove calls it (L1443-L1446). Colyseus listen returns a detach function (getDecoderStateCallbacks.ts L46-L53). The owner's binding doc already measured 0 listeners after drop (binding.md, Measured)."
+        },
+        {
+          "scenario": "A new row must show its title at once, with no separate draw call.",
+          "why": "Colyseus listen takes an immediate flag that fires the callback at once when the value is already set (getDecoderStateCallbacks.ts L40-L53). Property.bind does the same (Property.js L28). The helper should paint on bind."
+        },
+        {
+          "scenario": "A List view binds to add and remove and gets the index of each change, so an insert at position 3 is drawn at position 3.",
+          "why": "Backbone's remove event carries the pre-removal index in options.index (/home/claude/research/persistence-sync/notes/signals_reactivity_lists.md L134), so the view can place the row without a re-scan."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A row element is removed with el.remove() instead of drop(). Its bindings stay, and the row keeps updating.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The same trap Backbone has: removing the DOM does not remove the view, which is why View.remove exists (backbone.js L1443-L1446). The owner's binding.md watch-out (section 1) already says so."
+        },
+        {
+          "scenario": "The helper binds the item's change event, so a parent view bound to the same key is fooled by a child's change.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "The helper inherits the bubble (see events). Fix it inside the helper: filter to the item's own keys, and keep a separate deep call, as Colyseus does (per-instance onChange, getDecoderStateCallbacks.ts L60, versus per-field listen) and Yjs does (observe versus observeDeep)."
+        },
+        {
+          "scenario": "A two-way input bound through the helper echoes its own write back into the input.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Same as events: the helper needs the echo rule from phase-1.md section 9 (an input with focus ignores its own echo)."
+        },
+        {
+          "scenario": "The helper is called once per replayed line, so an 8,000-line load runs each bound listener 8,000 times.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Slow load, same result. The helper needs a batch wrapper for replay, the same batching the precedents use (Yjs once per transaction, Colyseus once per patch, Backbone's single change at the end of a batch)."
+        },
+        {
+          "scenario": "One view's change listener throws during set(). The listeners after it, and the delta emit that saves the edit, never run. The edit stays in memory and never reaches the log.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Item.set_one emits change (Item.js L156) before delta (L157), and Events.emit calls each listener in a plain forEach with no try (Events.js L24). So a throw skips the save. The fix belongs in one place: run every listener, keep the failures aside, and rethrow at the end, as mobx-keystone does (its forEachWithDelayedThrow is used at emitPatch.ts L59, L85 and L230). The bind helper is the one place to put that rule, so every view gets it."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Lew42 binding doc (in-repo, the owner's own decision 1)",
+          "how": "show() files each binding's unbind on the view, drop() runs them, and the listener count is back to 0 after drop. The helper would formalise this decision as one named call.",
+          "src": "public/framework/core/Page/doc/binding.md#section-1 (lines 29-52) and #measured (lines 107-127)"
+        },
+        {
+          "tool": "Backbone listenTo, stopListening and View.remove",
+          "how": "listenTo records each listener pair in _listeningTo, and stopListening removes it. View.remove calls stopListening, so dropping the view also drops its bindings. This is the closest API precedent for a bind helper.",
+          "src": "https://github.com/jashkenas/backbone/blob/94260d91dcf4050360f055506271b61f7b24e5e3/backbone.js#L201-L212"
+        },
+        {
+          "tool": "Colyseus listen with detach and immediate",
+          "how": "listen(prop, callback, immediate) returns a detach function and can fire at once if the value is already set. onChange on an instance is kept separate, so the helper's per-field and whole-instance cases stay apart.",
+          "src": "https://github.com/colyseus/schema/blob/390cf3833cf76f588f140a01b1d5daf9e4fd5fbb/src/decoder/strategy/getDecoderStateCallbacks.ts#L40-L60"
+        },
+        {
+          "tool": "mobx-keystone forEachWithDelayedThrow (failure isolation)",
+          "how": "Every listener in a delivery runs. Failures are kept aside and rethrown at the end, as one MobxKeystoneAggregateError when several failed. One bad listener cannot stop the others.",
+          "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/utils/forEachWithDelayedThrow.ts"
+        }
+      ]
+    }
+  ],
+  "recommended": "bind-helper",
+  "confidence": 4,
+  "surprise": "The cost that decides this is the load replay, not the click. Every precedent here batches a bulk apply into one notification (Yjs once per transaction, Colyseus once per patch), while Item.set_one fires once per replayed line, so the replay needs a batch wrapper whichever option wins.",
+  "notes": "Closest architecture: Backbone for the Item API (set, change events, listenTo with stopListening) and Colyseus for server-ordered per-field deltas with a detach function per listener; tldraw is closest for storage, but its signals-for-reads claim is unverified here because the sparse clone lacks packages/store and packages/state. Precedent backs bind-helper: events carry the writes, the helper files each unbind on the view, and the throw-isolation rule belongs in the helper (the edge-cases analyst found the same save-blocking throw). I disagree with edge-cases on one point: derived reads (a header count) should get signals as a named option now, not only as a later swap behind bind, because mobx-keystone and tldraw both split reads from writes that way."
+}

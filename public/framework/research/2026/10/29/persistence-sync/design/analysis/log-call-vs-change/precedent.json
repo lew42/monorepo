@@ -1,0 +1,105 @@
+{
+  "dilemma": "log-call-vs-change",
+  "lens": "precedent",
+  "by": "analyst-calls-precedent",
+  "options": [
+    {
+      "id": "changes",
+      "label": "Log the data changes; replay assigns",
+      "wins_when": [
+        {"scenario": "Tab A, tab B and a Servex agent all set `state` on task #c3, and Servex runs a newer Task.js than an open tab. Each line is an assignment, so after reload every tab shows the last value.", "why": "Replay does not depend on the code that wrote the line, which is what last-writer-wins per field needs."},
+        {"scenario": "A week-long AI session writes a large page.jsonl and needs to load faster.", "why": "The log folds to the last value per field, so it can be compacted into a snapshot without re-running any code. Precedents: Yjs mergeUpdates, y-leveldb trimming at 500 updates, jsonl-db keeping the last line per key."},
+        {"scenario": "A method's code is edited next month (start() now sets a different default). Last month's history must still show the states that really happened.", "why": "Old lines keep their meaning when code changes. The owner's own rule (old history never changes meaning) depends on this."},
+        {"scenario": "The owner undoes a Task state change.", "why": "A reversed difference is the cheapest undo. tldraw inverts its diffs, mobx-keystone patches carry inverses, and Fowler says reversal is simplest when the event is a difference."}
+      ],
+      "fails_when": [
+        {"scenario": "start() also bumps a run counter and caches the last selection outside `data`. After reload the counter is back at its last logged value, and the live tab differs from the replayed one.", "severity": 3, "recoverable": true, "why": "The log never held that state, so reload cannot repair it. The fix is to store such state as data, or to derive it with a getter, from now on."},
+        {"scenario": "A move ('put #d after #a') is replayed on a list whose order differs in another tab.", "severity": 3, "recoverable": true, "why": "A move depends on list state, so it is not a pure assignment. lessons/object-model.md (stale move) shows the tab and the file disagreeing until reload. Figma avoids this by storing a resolved position value, not the move."},
+        {"scenario": "The owner clears a field with set({color: undefined}). The line is {\"set\":{}} and replay keeps the old value.", "severity": 3, "recoverable": true, "why": "This is a gap in today's changes writer (lessons gap 4), not a flaw of the approach. An explicit unset line fixes it going forward; old clears are not in the log."},
+        {"scenario": "The log says started_at was set, but not that the owner pressed Start or which agent did it.", "severity": 2, "recoverable": true, "why": "Intent is lost for audit, but no data is wrong. A label line or a separate audit line can carry it."}
+      ],
+      "precedent": [
+        {"tool": "tldraw store", "how": "Every change is a RecordsDiff {added, updated: [from, to], removed}. applyDiff puts and removes records by id. Each history entry carries source 'user' or 'remote' (ChangeSource), reverseRecordsDiff gives undo, and ephemeral keys are skipped when applying.", "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/store/src/lib/RecordsDiff.ts#L29-L35 (also Store.ts#L77 and Store.ts#L1121-L1135)"},
+        {"tool": "Figma (multiplayer, via notes)", "how": "The log is property-level values (object, property, value), ordered by the server, last value per property wins. A child's parent link and position live in one property so they update together, and sibling order uses fractional positions.", "src": "persistence-sync/notes/collab_app_architectures.md#L12-L23"},
+        {"tool": "jsonl-db", "how": "Each journal line is {k, v, ts} holding the whole new value; {k} alone deletes. On load the last line per key wins. The closest existing design to lew42's JSONL files.", "src": "https://github.com/AlCalzone/jsonl-db/blob/46865f4edecfcfbedc196c6b02e0c8ae96ce073f/src/lib/db.ts#L684-L697"},
+        {"tool": "Linear sync engine (reverse-engineered)", "how": "Writes become transactions of changed fields, applied in order under a global syncId. Local tables change only after server approval. Delta packets carry the sync actions.", "src": "persistence-sync/notes/collab_app_architectures.md#L43-L51"},
+        {"tool": "Automerge repo", "how": "DocHandle.change(fn) runs the callback once on the local document. Storage saves only the binary changes since the last save (A.saveSince). The callback itself is never stored or re-run.", "src": "https://github.com/automerge/automerge-repo/blob/3ab7c33bbc628769e101691e0c32ef4f0c220d5c/packages/automerge-repo/src/storage/StorageSubsystem.ts#L239-L262"},
+        {"tool": "Colyseus schema", "how": "Server state changes are per-field ops (ADD, REPLACE, DELETE) encoded each tick. There is no history, so a late joiner gets a full snapshot. Clients send messages, which the server handles as calls.", "src": "https://github.com/colyseus/schema/blob/390cf3833cf76f588f140a01b1d5daf9e4fd5fbb/src/encoding/spec.ts#L7-L14 (and persistence-sync/lessons/object-model.md#L117)"},
+        {"tool": "ZODB", "how": "On commit each changed persistent object is written as its full pickled state with its old serial. No method is recorded.", "src": "https://github.com/zopefoundation/ZODB/blob/c50a0941d40b22ff5b6fb30a5eab625fa4beba62/src/ZODB/Connection.py#L541-L547"},
+        {"tool": "Event sourcing (Fowler, via notes)", "how": "Fowler's form keeps the events and rebuilds state from them. The notes quote him that reversal is simplest when the event is a difference.", "src": "persistence-sync/notes/delta_logs_build_vs_buy.md#L323 (Fowler: https://martinfowler.com/eaaDev/EventSourcing.html)"}
+      ]
+    },
+    {
+      "id": "calls",
+      "label": "Log the call; replay re-runs the method",
+      "wins_when": [
+        {"scenario": "A Task method keeps a counter or cache outside data (retry count, last poll time). After reload, replaying the call recomputes it.", "why": "The method re-runs, so state no line stored is rebuilt. Materializers in LiveStore and re-simulation in lockstep games rebuild state this way."},
+        {"scenario": "The owner wants short, meaningful lines: {\"tasks\": {\"#c3\": {\"start()\": {}}}} instead of three data fields.", "why": "The line says what was asked. Replicache and Zero send only name and args per mutation (MutationV1)."},
+        {"scenario": "A future game or simulation with many players at 60 Hz.", "why": "Logging only inputs is far smaller than logging positions. Photon Quantum sends only inputs, per the game netcode notes."},
+        {"scenario": "A bug in Task.start() is fixed, and old tasks should show the corrected state on reload.", "why": "Replay runs today's code, so history improves with the fix. Under changes, the old stored values stay wrong."}
+      ],
+      "fails_when": [
+        {"scenario": "Task.start() is edited next month to set a new default field. Replaying last month's log gives a different state from the one that was live.", "severity": 4, "recoverable": true, "why": "The log is intact, so a kept copy of the old method recovers it (decisions.json D16, class versions). Without versions, history silently changed meaning."},
+        {"scenario": "start() calls Date.now() and uniqueId() for started_at and the run id. Each reload makes a new time and a new id.", "severity": 4, "recoverable": false, "why": "Unless the id is passed in the call, no stored line holds the original id, so the links to it break for good. The fix is to pass time and ids in as arguments."},
+        {"scenario": "A method sends an email, spawns an agent or calls a model. Each reload that replays its line does it again.", "severity": 4, "recoverable": false, "why": "The external effect cannot be unsent. Fowler says replays must not re-trigger side effects, and Meteor flags stub runs with isSimulation."},
+        {"scenario": "Servex (Node) and the browser load different copies of Task.js, so the same call gives different states.", "severity": 3, "recoverable": true, "why": "A reload after deploy fixes it. Replicache and tldraw avoid the problem by importing one mutator module on both sides (tldraw dotcom-shared mutators.ts)."},
+        {"scenario": "A replayed line names a method never meant for a log, such as destroy() or a private helper.", "severity": 4, "recoverable": true, "why": "mobx-keystone runs logged calls only through canCall, which by default allows only model actions. lew42 would need an allow-list, or a bad line can delete items on replay."},
+        {"scenario": "A 3-day session makes 200k call lines, and loading runs every method again, including slow ones.", "severity": 2, "recoverable": true, "why": "Replay costs method time on every load. There is no snapshot without a state image: LiveStore has no compaction yet (notes, sync_engines_crdts.md#L300)."}
+      ],
+      "precedent": [
+        {"tool": "LiveStore", "how": "Named events with arguments are committed to an eventlog. SQLite state is a projection built by materializers. The docs warn the log grows, compaction is not built yet, and event types are said to be versioned. NOT CHECKED IN SOURCE: the docs fetch was refused, so this rests on the notes and D14.", "src": "persistence-sync/notes/sync_engines_crdts.md#L157-L177 and #L298-L301; design/decisions.json (D14 detail)"},
+        {"tool": "Redis AOF", "how": "The log holds commands, but a non-deterministic command is rewritten before it is written. SPOP is written as SREM of the element it popped, and EXPIRE as PEXPIREAT with an absolute time. The closest precedent for calls with pinned arguments.", "src": "https://github.com/redis/redis/blob/41888396080aab24ad5218f2e45e66158e24884b/src/t_set.c#L2746 (also src/expire.c#L843 and src/aof.c#L1671)"},
+        {"tool": "Replicache", "how": "A mutation is {id, name, args, timestamp, clientID}. Pending mutations are re-run by name after each pull (rebaseMutationAndCommit), and kept until the server acks them. Mutators must be safe to run twice.", "src": "https://github.com/rocicorp/mono/blob/f779973493b4109a59e35dbf71ad44103c4ae054/packages/replicache/src/sync/push.ts#L36-L42 and packages/replicache/src/replicache-impl.ts#L1010-L1021"},
+        {"tool": "Zero with tldraw dotcom mutators", "how": "The same named mutators run on the client and on the server (ZERO_MUTATE_URL). The tldraw mutators create server-only ids (tx.location === 'server' ? uniqueId()) and replace a client timestamp that is stale or in the future with the server clock. The notes say do not generate ids inside mutators.", "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/dotcom-shared/src/mutators.ts#L63-L67 and #L513 (notes: persistence-sync/notes/sync_engines_crdts.md#L131-L132)"},
+        {"tool": "Meteor methods", "how": "The client runs the method stub, and the server runs the method again with the same random seed (makeRpcSeed). The stub is flagged isSimulation so it can skip side effects.", "src": "https://github.com/meteor/meteor/blob/e587c05d3abd25484adfd5e2e55373fd5c725469/packages/ddp-common/method_invocation.js#L38 and packages/ddp-common/random_stream.js#L92"},
+        {"tool": "Lockstep and rollback games", "how": "Only inputs are sent and logged. A deterministic simulation is re-run from a saved state with the code version pinned. The rest of the state is synced as deltas.", "src": "persistence-sync/notes/game_netcode_streaming_ui.md#L22, #L63-L66, #L75"},
+        {"tool": "mobx-keystone applyCall", "how": "A logged call is run back through applyCall, which checks canCall before running it. By default only model actions may run.", "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/serialization/applyCall.ts#L150-L165"},
+        {"tool": "Redux (NOT CHECKED)", "how": "From memory, not verified this run: actions are the calls, reducers are pure, and devtools replay actions. Persistence usually stores state, not actions. No clone, and the web fetch was refused.", "src": "none checked"}
+      ]
+    },
+    {
+      "id": "both-apply-changes",
+      "label": "Log the call and the changes in one line; replay applies the changes",
+      "wins_when": [
+        {"scenario": "A reviewer reads a Task line and sees start() next to the changed state and started_at, with nothing re-run.", "why": "Intent is readable for people, and replay stays exact because it only assigns."},
+        {"scenario": "Undo and audit need the call name, while sync and reload need only the changes.", "why": "One line, two readers, each using the half it needs. mobx-keystone reports the call and the patches from the same tree, one for applyAction and one for undo."},
+        {"scenario": "A method with a side effect (sends an email) is logged. Reload applies its changes and does not send again.", "why": "Replay never runs code, so no side effect repeats. Fowler's rule is that replays must not re-trigger side effects."}
+      ],
+      "fails_when": [
+        {"scenario": "A method is edited so the name says start() but the changes say something else.", "severity": 3, "recoverable": true, "why": "Replay uses the changes, so the state is right but the label misleads readers, and nothing checks the two against each other. No precedent in this set writes both into one record; mobx-keystone keeps them as two streams."},
+        {"scenario": "Every method write carries a call name plus its changes, so a long session grows about twice as fast.", "severity": 2, "recoverable": true, "why": "Growth is what makes long logs slow. This adds bytes and does not change what replay does."},
+        {"scenario": "The call name is stored, but only an audit page reads it. Every new writer must still fill it in.", "severity": 2, "recoverable": true, "why": "A field with no consumer. The one-of-everything rule argues against it unless a feature needs the name."},
+        {"scenario": "A method takes a token as an argument, the call name is logged with it, and the token never reaches data.", "severity": 3, "recoverable": false, "why": "A call label stores arguments that a changes-only log would never write. Lew42 pushes its logs to GitHub, so a leaked value stays in history."}
+      ],
+      "precedent": [
+        {"tool": "mobx-keystone", "how": "onActionMiddleware reports each top-level call, for applyAction elsewhere. onPatches reports each change, and the patches carry their inverses for undo. Both come from the same tree as separate streams.", "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/actionMiddlewares/onActionMiddleware.ts#L19 and packages/lib/src/patch/emitPatch.ts#L158 (and persistence-sync/lessons/object-model.md#L226)"},
+        {"tool": "Meteor client stubs", "how": "A method stub's writes are recorded against the method id (writtenByStubs). The client then knows which local writes the server's changed messages will settle. The call is a key on the changes and is not run again.", "src": "https://github.com/meteor/meteor/blob/e587c05d3abd25484adfd5e2e55373fd5c725469/packages/ddp-client/common/livedata_connection.js#L156-L170 and #L1009"},
+        {"tool": "tldraw history", "how": "Each history entry is a set of changes tagged with source (user or remote). The tag labels the change and is never replayed.", "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/store/src/lib/Store.ts#L77 and #L1276"},
+        {"tool": "Fowler (via notes)", "how": "Replays must not re-trigger side effects, so external calls go through gateways that are disabled during replay. A label that is never executed is the safe form of this.", "src": "persistence-sync/notes/delta_logs_build_vs_buy.md#L110"}
+      ]
+    },
+    {
+      "id": "per-class",
+      "label": "Changes by default; a class opts in to replaying calls",
+      "wins_when": [
+        {"scenario": "A future game-like class, such as a turn-based simulation or physics world, whose state is a pure function of its inputs.", "why": "Its log holds inputs only, and it re-simulates. Rollback and lockstep games do exactly this."},
+        {"scenario": "A class with large derived state (a layout or solver result) that is cheap to recompute from inputs.", "why": "The call is smaller than the changes, and replay recomputes the state."},
+        {"scenario": "Only opted-in classes may replay calls, so a stray name in a line cannot run other methods.", "why": "The opt-in list is the allow-list that mobx-keystone's canCall enforces by default for model actions."}
+      ],
+      "fails_when": [
+        {"scenario": "Two replay paths, assign for most classes and re-run for games, both need tests, and a bug shows up in only one.", "severity": 3, "recoverable": true, "why": "It breaks lew42's one-of-everything law. Redis avoids this with one writer and one rewrite function (rewriteClientCommandVector), not two engines."},
+        {"scenario": "A class opts in later, so old change lines and new call lines sit in one file.", "severity": 3, "recoverable": true, "why": "Replay needs a marker on each line saying which kind it is. Without one, replay has to guess."},
+        {"scenario": "An opted-in class calls Date.now() or a random id. Its replay differs from the live state with no error.", "severity": 4, "recoverable": false, "why": "Opting in does not check determinism, and the values were never logged. Meteor pins random values per call, and tldraw checks location. lew42 would need the same pins."}
+      ],
+      "precedent": [
+        {"tool": "Redis AOF (per command)", "how": "Most commands are logged as they are, and a few are rewritten into their effects. One writer and one rewrite function decide which, so the split is per command, not per type.", "src": "https://github.com/redis/redis/blob/41888396080aab24ad5218f2e45e66158e24884b/src/networking.c#L5209 and src/t_set.c#L2746"},
+        {"tool": "Rollback and lockstep games", "how": "Inputs are the log, with first-class messages and sequence numbers. The state of the rest is synced as deltas.", "src": "persistence-sync/notes/game_netcode_streaming_ui.md#L22, #L66, #L75"},
+        {"tool": "mobx-keystone canCall", "how": "Replay of calls is limited to what canCall allows. The default is model actions only, and other callables need explicit permission.", "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/serialization/applyCall.ts#L150-L165"}
+      ]
+    }
+  ],
+  "recommended": "changes",
+  "confidence": 4,
+  "surprise": "The framework already has the internal-state case: _ran_since is memory-only (Task.js L40-47), so a changes-only replay loses an open running span. Every changes-log precedent answers that by storing the state as data, as tldraw does for UI and instance state with ephemeral keys, and Figma does for positions. Redis, the best-known call log, writes its clock and random results into the line before saving it, which lew42 would also have to build.",
+  "notes": "The closest architecture is tldraw (records, diffs, source tag) and Figma (property-level last-writer-wins in server order), with jsonl-db as the closest JSONL file, and Automerge, ZODB and Colyseus also log changes; the call-logging systems each need a pinned clock or id, shared code on both sides, or a version registry that lew42 lacks. The LiveStore claims rest on the notes and decisions.json because the docs fetch was refused. Disagreement with edge-cases.json: its running-span and legacy-start failures are real and need fixing under either option, but the label in both-apply is the one field that can drift from the state after a code fix, and no closest-architecture precedent writes both into one record."
+}

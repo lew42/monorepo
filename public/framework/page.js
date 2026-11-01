@@ -196,12 +196,6 @@ export default new Page({
 						md("Write a page, save the file, refresh the tab.");
 					});
 
-					// ⚠ OUTSIDE the prose block: five 9em tiles are 49em with their gaps,
-					// and inside a 40em reading column the fifth is stranded on a row of
-					// its own. A strip of numbers is a wall, not a sentence — /styles.css
-					// gives it the width its own count needs.
-					stats();
-
 					// THE SPRAWL — the whole point of this page (2026-10-02 rebuild, see
 					// public/framework/ai/sessions/2026/10/02/framework-home/). `home_sections()`
 					// (above) is this page's own one-rung-per-sidebar-section pass — a
@@ -212,6 +206,13 @@ export default new Page({
 					// flex column, so a 3440 screen gets about three columns of roughly equal
 					// length instead of one long scroll next to empty grey.
 					sprawl(home_sections(this)).ac("wide");
+
+					// The numbers come AFTER the map (the owner, 2026-11-01: links first, at the top).
+					// ⚠ OUTSIDE the prose block: five 9em tiles are 49em with their gaps,
+					// and inside a 40em reading column the fifth is stranded on a row of
+					// its own. A strip of numbers is a wall, not a sentence — /styles.css
+					// gives it the width its own count needs.
+					stats();
 
 					div.c("flow", () => {
 

@@ -1,6 +1,6 @@
 import { div, span, button, p, small, ol, li, input } from "/app.js";
 import { icon } from "/framework/core/View/View.js";
-import { fold } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
+import { fold } from "/framework/ai/log/fold.js";
 import { clock } from "./timeline.js";
 import { Composer } from "./Composer.js";
 import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";

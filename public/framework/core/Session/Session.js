@@ -21,7 +21,9 @@ export default class Session extends Task {
 	static scanned = false;
 
 	// super() with no args: Item assigns its args onto itself, and a string id would spread into characters.
-	constructor(id){ super(); if (id !== undefined) this.id = id; }
+	// An object is Item's own constructor args ({id, data}, what Item.hydrate passes for a {type:"Session"} member); before, it became
+	// the id itself (the persistence matrix found it).
+	constructor(id){ if (id && typeof id === "object") super(id); else { super(); if (id !== undefined) this.id = id; } }
 
 	// Its tasks are Task's own list (made on first use); its progress is counted from them on read, never stored.
 
@@ -67,6 +69,7 @@ export default class Session extends Task {
 	   through Task.replay_line whole, so the same lines give the same state, completion and fields they gave as a Task, and the Session
 	   adds only its class (children, cost). A Session built some other way (new Session(id), then lines) reads as the record shape. */
 	replay_line(line){
+		line = Item.unmark(Item.dots(line));   // D13 marks read as the bare names below
 		this._shape ??= line?.assign ? "task" : "record";
 		if (this._shape === "task"){
 			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
@@ -106,6 +109,9 @@ export default class Session extends Task {
 		}
 		delete delta.tasks;
 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
+		// The browser Store's own change line for a field on the session ({"set":{"title":…}}), read as Task.replay_line reads it.
+		// Before, it was kept as one field named "set" (the persistence matrix found it).
+		if (delta.set && typeof delta.set === "object" && !Array.isArray(delta.set)){ for (const [k, v] of Object.entries(delta.set)) this.take(k, v); delete delta.set; }
 		// The owner's answer to a proposed task, from the session page: {"decide":{"task":id,"is":"approve"|"improve"|"reject","note"}}.
 		// One known verb that names its task, so the browser's append passes the schema (a bare {"<id>":{…}} line would not).
 		if (delta.decide && typeof delta.decide === "object"){
@@ -122,7 +128,8 @@ export default class Session extends Task {
 			const kid = delta[k] && typeof delta[k] === "object" && this._tasks ? this.find(k) : undefined;   // at any depth: a bare id may name a grandchild
 			if (kid?.replay_line) { kid.replay_line(delta[k]); delete delta[k]; }
 		}
-		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.put(k, v);
+		// DEPRECATED (2026-10-28): use list deltas (`chat.add`, `place.add`, …); an unknown key falls through to `put` and loses its history. Guide: /framework/core/Session/doc/one-replay-plan.md. Remove when: the one-replay plan is built and the history is replayed through a named shim.
+		for (const [k, v] of Object.entries(delta)) if (k !== "class") this.take(k, v);
 		return this;
 	}
 

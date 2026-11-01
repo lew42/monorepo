@@ -1,4 +1,5 @@
 import is from "../../util/is/is.js";
+import { Property } from "../Property/Property.js";
 
 // ⚠ Capturing is synchronous: `append_fn` restores the previous captor the instant
 // your function RETURNS, which for an `async` function is its first `await`. Nothing
@@ -222,6 +223,50 @@ export default class View {
 		return this;
 	}
 
+	// Keep this view in step with one key of an Item, or with a Property. doc/bind.md
+	//   view.bind(item, "title", v => this.text(v))   view.bind(item, "title")   view.bind(prop, fn)
+	// Runs fn now, then once per animation frame in which the key changed. Returns the unbind;
+	// remove() and empty() run it for you.
+	bind(source, ...rest){
+		const prop = Property.is(source) ? source : source && Property.of(source, rest.shift());
+		if (!prop) throw new Error("view.bind(item, key, fn) or view.bind(property, fn): got " + source);
+		const fn = rest[0] || (v => this.text(v ?? ""));
+
+		let last, live = true, queued = false;
+		const run = v => {
+			last = v;
+			try { fn.call(this, v); } catch (err) { console.error("view.bind: the function threw", err); }
+		};
+		const heard = () => {   // not the event's value: a child's change of the same key bubbles up with ITS value
+			if (queued || !live) return;
+			queued = true;
+			View.frame(() => {
+				queued = false;
+				if (!live) return;
+				const v = prop.get();
+				if (!Object.is(v, last)) run(v);
+			});
+		};
+		const unbind = () => {
+			if (!live) return;
+			live = false;
+			prop.off("change", heard);
+			this._binds.delete(unbind);
+			if (!this._binds.size) View.bound_count--;
+		};
+
+		prop.on("change", heard);
+		if (!this._binds?.size){ View.bound_count++; this.el._bound_view = this; }
+		(this._binds ??= new Set()).add(unbind);
+		run(prop.get());
+		return unbind;
+	}
+
+	unbind_all(){
+		this._binds && [...this._binds].forEach(unbind => unbind());
+		return this;
+	}
+
 	// ONE argument reads, TWO write — the arity, never the value. It tested the value
 	// (`is.def`), which cannot tell `attr("href")` (a question) from `attr("href", url)`
 	// where the url happens to be undefined (a write of nothing): the second fell
@@ -280,6 +325,7 @@ export default class View {
 
 	empty(...args){
 		this.epoch = (this.epoch ?? 0) + 1;
+		View.unbind_within(this, false);   // the views inside are going: let their bindings go
 		this.el.innerHTML = "";
 		this.append(...args);
 		return this;
@@ -332,6 +378,7 @@ export default class View {
 		}
 	}
 	remove(){
+		View.unbind_within(this, true);   // this view and every view inside it
 		this.el.parentNode?.removeChild(this.el);
 		return this;
 	}
@@ -354,6 +401,20 @@ export default class View {
 		});
 
 		return this;
+	}
+
+	// One animation frame, so a burst of changes draws once. Tests replace this with a queue.
+	static frame(cb){
+		return (globalThis.requestAnimationFrame ?? (f => setTimeout(f, 16)))(cb);
+	}
+
+	// Let go of the bindings of `view` (if include_self) and of every bound view inside its element.
+	// Free when nothing is bound anywhere; otherwise one walk of the subtree.
+	static unbind_within(view, include_self){
+		if (!View.bound_count) return;
+		if (include_self) view.unbind_all();
+		const walk = el => { for (const child of el.children ?? []){ child._bound_view?.unbind_all(); walk(child); } };
+		walk(view.el);
 	}
 
 	static set_captor(view){
@@ -478,4 +539,5 @@ export { View, is };
 // ⚠ On the prototype, not class fields — a field would stop a subclass declaring
 // `tag = "other"`, and `capture` has to be readable before the constructor body.
 View.previous_captors = [];
+View.bound_count = 0;   // views with a live bind(); 0 lets remove() and empty() skip the walk
 View.prototype.capture = true;

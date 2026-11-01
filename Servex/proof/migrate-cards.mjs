@@ -43,7 +43,7 @@ const VERDICTS_PATH = arg("verdicts", path.join(REPO, "public/framework/ai/verdi
 
 const { default: Log } = await import("../Log.js");
 const { fold, parse } = await import(pathToFileURL(
-	path.join(REPO, "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js")
+	path.join(REPO, "public/framework/ai/log/fold.js")
 ));
 
 function read(file){

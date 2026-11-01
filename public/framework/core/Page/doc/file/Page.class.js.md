@@ -1,3 +1,5 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 The class. Everything the framework calls "a page" is one `Page` instance: a url
 derived in `naming()`, a tree of children resolved in `declare()`/`child()`, and a
 single memoised `view` built by `render()`. No subclass tier — an arrangement is a

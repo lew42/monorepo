@@ -55,6 +55,70 @@ export class List extends Item {
 	constructor(...args){
 		super(...args);
 		this.items ??= [];
+		this.named();
+	}
+
+	// The member array. Assigning a new one (order(), or a caller swapping it whole) drops the id index below.
+	// ⚠ Never push, splice or sort it in place: find() trusts its Map, so a member added that way is not found. Use a List verb.
+	get items(){ return this._items; }
+	set items(array){ this._items = array; this._by_key = null; Item.generation++; }
+
+	// The owner: setting it tells the owner its lists changed (Item.lists() caches them).
+	get owner(){ return this._owner; }
+	set owner(item){ this._owner = item; if (item){ hide(item, "_lists", null); this.named(); } }
+
+	/* A List made with an owner and a name registers itself on the owner, so `owner.get(name)` finds it even when the owner
+	   keeps it behind a getter (Page's `get pages()` holds `_pages`): before, a `{"pages":{"add":…}}` line replayed as data
+	   (seat g, B7; the plan review). Item.get reads the registry; a later list of the same name replaces the earlier. */
+	named(){
+		const owner = this._owner;
+		if (!owner || typeof this.name !== "string" || !this.name || owner === this) return;
+		if (!Object.hasOwn(owner, "_named")) hide(owner, "_named", new Map());
+		owner._named.set(this.name, this);
+	}
+
+	/* A member wins over a method it spells (an id "save", "root" or "at" was unreachable: set_one called the method). Only
+	   the list's own verbs stay verbs: add, remove, move, order, clear, set, and any method a List subclass defines
+	   (Paragraphs' append and replace). The plan review, 2026-10-28. */
+	set_one(key, value){
+		if (typeof this[key] === "function" && !LIST_VERBS.has(key) && !subclass_verb(this, key)){
+			const kid = this.find(key);
+			if (kid && typeof kid.set === "function") return void kid.set(value);
+		}
+		return super.set_one(key, value);
+	}
+
+	/* ID -> MEMBER, kept in step by every verb below, so a hop is one Map lookup, never a scan (ids-and-paths.md §3).
+	   The first member with a key wins, as Array.find did. A member whose key was empty when it arrived (`_unkeyed`)
+	   and a stale hit (its key changed in place) make find() rebuild the index once and look again. */
+	index(){
+		if (this._by_key) return this._by_key;
+		const map = new Map(), unkeyed = new Set();
+		let dups = false;
+		for (const x of this._items){
+			const k = this.key(x);
+			if (k == null) unkeyed.add(x);
+			else if (map.has(k)) dups = true;
+			else map.set(k, x);
+		}
+		this._unkeyed = unkeyed;
+		this._dups = dups;
+		return this._by_key = map;
+	}
+	indexed(x){   // a member just arrived (anywhere in the array)
+		Item.generation++;
+		if (!this._by_key) return;
+		const k = this.key(x);
+		if (k == null) this._unkeyed.add(x);
+		else if (this._by_key.has(k)) this._by_key = null;   // a second member with that key: its place in the array decides, so rebuild
+		else this._by_key.set(k, x);
+	}
+	unindexed(x){   // a member just left
+		Item.generation++;
+		if (!this._by_key) return;
+		const k = this.key(x);
+		this._unkeyed.delete(x);
+		if (this._by_key.get(k) === x){ this._by_key.delete(k); if (this._dups) this._by_key = null; }
 	}
 
 	get length(){ return this.items.length; }
@@ -66,6 +130,7 @@ export class List extends Item {
 
 	// Back-compat aliases for the pre-rename names — several callers outside this
 	// task's fence still use them; renaming them too is out of fence here.
+	// DEPRECATED (2026-10-28): use `forEach` and `items` (these two aliases are the pre-rename names). Guide: /framework/core/List/readme.md. Remove when: a typed search finds no caller of `List#each` or `List#children`.
 	each(fn){ return this.forEach(fn); }
 	get children(){ return this.items; }
 
@@ -82,6 +147,7 @@ export class List extends Item {
 	append(child){
 		this.adopt(child);
 		this.items.push(child);
+		this.indexed(child);
 		return this;
 	}
 
@@ -90,6 +156,7 @@ export class List extends Item {
 		this.adopt(child);
 		const i = ref ? this.items.indexOf(ref) : -1;
 		i === -1 ? this.items.push(child) : this.items.splice(i, 0, child);
+		this.indexed(child);
 		return this;
 	}
 
@@ -98,6 +165,7 @@ export class List extends Item {
 		const i = this.items.indexOf(child);
 		if (i === -1) return this;
 		this.items.splice(i, 1);
+		this.unindexed(child);
 		if (child.parent === (this.owner ?? this)) delete child.parent;
 		return this;
 	}
@@ -108,8 +176,18 @@ export class List extends Item {
 	// name instead — set as an instance option (`new List({ key: x => x.name })`).
 	key(x){ return x?.id; }
 
-	// By ID, never an index.
-	find(id){ return this.items.find(x => this.key(x) === id); }
+	// A list's members are found by id, in this list only (Item.member searches the lists an Item owns; a List owns none).
+	member(id){ return this.find(id); }
+
+	// By ID, never an index: one Map lookup (index() above).
+	find(id){
+		if (id == null) return this.items.find(x => this.key(x) === id);
+		const map = this.index(), hit = map.get(id);
+		if (hit !== undefined && this.key(hit) === id) return hit;
+		if (hit === undefined && !this._unkeyed.size) return undefined;
+		this._by_key = null;   // stale, or a member that had no key when it arrived: rebuild once
+		return this.index().get(id);
+	}
 
 	// A member's id is a name too: `list.set({"<id>": {"start": {}}})` walks into that member (Item's set_one asks get()).
 	// Without this the delta was stored as plain data on the list and the member never moved (2026-10-22).
@@ -178,6 +256,8 @@ export class List extends Item {
 		if (i === -1) return this.insert(made);
 
 		this.items[i] = made;
+		this._by_key = null;
+		Item.generation++;
 		this.adopt(made);
 		this.released(old);
 		this.adopted(made);
@@ -249,7 +329,7 @@ export class List extends Item {
 			if (typeof idOrX.from === "string"){
 				let host = this.owner;
 				while (host && !host.store && host.parent) host = host.parent;
-				from = idOrX.from === "" ? host : host?.locate?.(idOrX.from);
+				from = idOrX.from === "" ? host : idOrX.from.includes("/") ? host?.locate?.(idOrX.from) : host?.get?.(idOrX.from);   // a dotted path (new) or a "/" path (old lines)
 			}
 			idOrX = idOrX.id;
 		}
@@ -257,6 +337,7 @@ export class List extends Item {
 		const source = from ?? this;
 		const made = typeof idOrX === "object" && idOrX !== null ? idOrX : source.find(idOrX);
 		if (!made) return this;
+		const was = source !== this ? Item.moving?.before(made) : undefined;   // a move to another list changes its path: Ref re-paths (core/Item/Ref.js)
 
 		if (source !== this){ source.take(made); source.released?.(made); }
 		else this.take(made);
@@ -269,6 +350,7 @@ export class List extends Item {
 			after: this.after_of(made),
 			...(source !== this ? { from: source } : {}),
 		});
+		if (was !== undefined) Item.moving.after(made, was);
 		return this;
 	}
 
@@ -300,7 +382,22 @@ export class List extends Item {
 	// order. One rule, not two.
 
 	toJSON(){ return [...this.items]; }
+
+	// Drawn by the default view (ux/Content/Object/DefaultView.js, plan step 2), which draws each member through its own view.
+	// `List.View` is wired in from the browser, as Task.View is (TaskView.js), so this file stays node-safe; never the View a List
+	// would inherit from Item (the icon view), so `List.View` must be List's own. No View here: nothing is drawn (undefined).
+	render(){ return Object.hasOwn(List, "View") ? new List.View({ subject: this, open: 1 }) : undefined; }
 }
+
+const LIST_VERBS = new Set(["add", "remove", "move", "order", "clear", "set"]);
+// Is `key` a method a List subclass defines (below List.prototype), so a verb of that list?
+function subclass_verb(list, key){
+	for (let proto = Object.getPrototypeOf(list); proto && proto !== List.prototype; proto = Object.getPrototypeOf(proto))
+		if (Object.hasOwn(proto, key)) return true;
+	return false;
+}
+// A cache or registry kept on an instance: not enumerable, so lists(), toJSON() and Object.keys never see it.
+const hide = (item, name, value) => Object.defineProperty(item, name, { value, writable: true, configurable: true, enumerable: false });
 
 const warn = (message, key = message) => {
 	if (List.warned.has(key)) return;

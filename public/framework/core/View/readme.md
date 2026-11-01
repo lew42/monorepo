@@ -14,8 +14,11 @@ class NoteView extends View { render(){ p(this.note); } }   // renders div.note
 new NoteView({ note: "hi" });
 ```
 
+**Stay in step with data: `bind`.** `view.bind(item, "title", v => view.text(v))` runs now and once per animation frame in which that key changed; with no function it sets the view's text. `view.bind(property, fn)` takes a `Property` (saved or not). It returns the unbind, and `remove()` / `empty()` run it for every view inside, so leaving a view leaves no listener: [`doc/bind.md`](./doc/bind.md). Test: `node public/framework/core/View/bind.test.mjs`.
+
 ## Watch out
 
+- `bind` is released only by `remove()` or `empty()` (of the view or an ancestor). Taking the element off the page some other way (`el.remove()`, `innerHTML = ""`) leaves the listener: [`doc/bind.md`](./doc/bind.md)
 - Never build DOM after an `await` — the captor is restored the instant your function returns; fill in a callback instead: [`doc/capturing.md`](./doc/capturing.md)
 - `classes = "x"` as a class field arrives too late (`classify()` runs inside `super()`) — name the subclass, or pass it to the constructor: [`doc/lifecycle.md`](./doc/lifecycle.md)
 - Only `p` and `h1`–`h6` turn backticks into `<code>`; every other factory appends strings raw: [`doc/method/backtick_append.md`](./doc/method/backtick_append.md)

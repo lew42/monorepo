@@ -1,12 +1,12 @@
 import { Page, p, h2, h3, pre, div, small, ui } from "/app.js";
-import { fold, parse } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
+import { fold, parse } from "/framework/ai/log/fold.js";
 
 /* THE FOLD, RUN LIVE — the real fold.js, over the real sample.jsonl, in your browser.
  * Nothing here is a transcript of a run that happened somewhere else: the numbers
  * below are computed when this page loads. Parent: ../page.js. */
 
 const SAMPLE = "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/sample.jsonl";
-const SOURCE = "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
+const SOURCE = "/framework/ai/log/fold.js";
 
 // One row per fold rule: what it says, and what the sample log proves about it.
 function rules(out){

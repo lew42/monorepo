@@ -45,6 +45,11 @@ Old lines are never judged; the logs are append-only. Design and proof:
 have to remember. Judgment lines — `log` findings, `now`, `outcome`, `steps` —
 stay hand-written by the session. Node built-ins only, no deps.
 
+Its lines to a record file under `public/` (and `naming-guard.mjs`'s) go through the one writer: `RecordWriter.write`
+posts them to Servex's `/api/item`, which applies each to the file's live root and appends it; only when Servex
+is down does RecordWriter append, once ([one-writer.md](/framework/core/Item/doc/one-writer.md)). The posts are
+collected in `pending` and awaited before the hook exits.
+
 Every event first resolves *this session's task*: the `task.jsonl` under
 `public/` whose **first `assign`** carries the stdin `session_id`. Both shapes
 are found — `public/framework/ai/<date>/<slug>/` and `<page>/ai/<slug>/` — by

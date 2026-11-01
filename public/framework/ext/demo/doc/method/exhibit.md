@@ -1,3 +1,5 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 `demo.exhibit({ page, stage, def, file, note })` is the one shape every detail
 page on the site is built from: the thing running, on a stage you can drag
 narrower; a layout bar wired to it; the definition that built it, open, below.

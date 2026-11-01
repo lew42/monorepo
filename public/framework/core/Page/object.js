@@ -16,6 +16,6 @@ import { view } from "../../ux/Content/Object/DefaultView.js";
  * live, and `/framework/ux/Content/Object/doc/default-view.md` for how the tree
  * itself works.
  */
-export function page_object(page){ return view(page); }
+export function page_object(page){ return view(page, { open: 1 }); }
 
 export default page_object;

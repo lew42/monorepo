@@ -1,0 +1,16 @@
+{
+ "refused": {
+  "ms": 73,
+  "exit": 0,
+  "lines_written": 1
+ },
+ "stalled": {
+  "ms": 3064,
+  "exit": 0,
+  "lines_written": 1
+ },
+ "file": [
+  "{\"log\":{\"at\":\"2026-10-28T22:45:35-05:00\",\"msg\":\"hook probe\"},\"by\":\"append.mjs\",\"ts\":\"2026-10-29T03:45:35.872Z\"}",
+  "{\"log\":{\"at\":\"2026-10-28T22:45:35-05:00\",\"msg\":\"hook probe\"},\"by\":\"append.mjs\",\"ts\":\"2026-10-29T03:45:35.940Z\"}"
+ ]
+}

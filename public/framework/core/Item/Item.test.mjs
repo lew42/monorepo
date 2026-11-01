@@ -80,15 +80,38 @@ n++;
 	kid.set({ title: "hello" });
 	t(kid.parent === parent, "adding to a List makes the owner the child's parent");
 	t(lines.length === 2, "the add and the child's later set both reached the parent's store");
-	t(JSON.stringify(lines[1]) === '{"k":{"set":{"title":"hello"}}}', "the child's delta is nested under the child's id");
+	t(JSON.stringify(lines[1]) === '{"kids":{"k":{"set":{"title":"hello"}}}}', "the child's delta names its list, then its id (every hop names its list)");
 
 	const reloaded = new Foo({ id: "p" });
 	reloaded.kids = new List({ owner: reloaded, name: "kids" });
 	for (const line of lines) reloaded.replay_line(line);
 	t(reloaded.kids.find("k")?.get("title") === "hello", "replaying the parent's lines rebuilds the child and its data");
+
+	reloaded.replay_line({ k: { set: { title: "old line" } } });
+	t(reloaded.kids.find("k").get("title") === "old line", "an old line that names the member by its id alone still replays");
+	reloaded.replay_line({ "kids.k": { set: { title: "dotted" } } });
+	t(reloaded.kids.find("k").get("title") === "dotted" && reloaded.get("kids.k") === reloaded.kids.find("k"), "a dotted path key walks the same hops, and get() reads the same path");
 }
 
-// NOT built: item.set("prop", anotherItem) only stores a snapshot. The child is not adopted, so its later changes are not logged.
+// Two lists on one owner, each with a member "s1" (seat a, E2): the edit lands on the right one, written and replayed.
+{
+	const { default: List } = await import("../List/List.js");
+	const lines = [];
+	const store = new Item.Store({ url: "/x/two.jsonl" });
+	store.append = line => lines.push(line);
+	const make = () => { const o = new Foo({ id: "o" }); o.a = new List({ owner: o, name: "a" }); o.b = new List({ owner: o, name: "b" }); return o; };
+	const live = make();
+	store.attach(live);
+	live.a.add({ id: "s1", title: "sentence" });
+	live.b.add({ id: "s1", title: "card" });
+	live.b.find("s1").set({ title: "card edited" });
+	const again = make();
+	for (const line of JSON.parse(JSON.stringify(lines))) again.replay_line(line);
+	t(again.a.find("s1").get("title") === "sentence" && again.b.find("s1").get("title") === "card edited", "a member of list b is edited in b on replay, never in a");
+}
+
+// item.set("prop", anotherItem) ADOPTS it (seat a, E7/E9): one line saves its shape, its later changes are written under the
+// property's name, and a replay makes it an Item again that the next line walks into.
 {
 	const lines = [];
 	const store = new Item.Store({ url: "/x/p2.jsonl" });
@@ -97,10 +120,13 @@ n++;
 	store.attach(parent);
 	const child = new Foo({ id: "c" });
 	parent.set("child", child);
-	child.set({ title: "lost" });
-	t(lines.length === 1 && lines[0].set?.child?.id === "c", "set(prop, item) logs one snapshot line of the item");
-	t(child.parent === undefined, "set(prop, item) does not adopt the child (known gap, core/Item/readme.md)");
-	t(lines.length === 1, "so the child's later delta is NOT logged to the parent's store (known gap)");
+	child.set({ title: "kept" });
+	t(lines.length === 2 && lines[0].set?.child?.id === "c", "set(prop, item) logs one line of the item, then its own change");
+	t(child.parent === parent && child._slot === "child", "set(prop, item) adopts the child under the property's name");
+	t(JSON.stringify(lines[1]) === '{"child":{"set":{"title":"kept"}}}', "the child's change is written under the property, not flat on the parent");
+	const reloaded = new Foo({ id: "p2" });
+	for (const line of JSON.parse(JSON.stringify(lines))) reloaded.replay_line(line);
+	t(reloaded.get("child") instanceof Foo && reloaded.get("child").get("title") === "kept" && reloaded.get("title") === undefined, "replay makes it a Foo again, with its title, and leaves the parent's title alone");
 }
 
 // A field passed to the constructor lands in data, so a later set() of it is read back (it used to become a shadowing own property).
@@ -108,6 +134,47 @@ n++;
 	const g = new Foo({ title: "first" });
 	g.set({ title: "second" });
 	t(g.title === "second" && g.get_one("title") === "second", "new Foo({title}) then set({title}) reads back the new title");
+}
+
+// The plan review (2026-10-28): (1) a member id that spells a method; (2) a List kept behind a getter; (9) a move's `from` is dotted.
+{
+	const { default: List } = await import("../List/List.js");
+	const lines = [];
+	const store = new Item.Store({ url: "/x/review.jsonl" });
+	store.append = line => lines.push(line);
+	class Holder extends Item {   // its lists live behind getters, like Page's `pages` and Task's `tasks`
+		get kids(){ return this._kids ??= new List({ owner: this, name: "kids" }); }
+		get done(){ return this._done ??= new List({ owner: this, name: "done" }); }
+		constructor(...a){ super(...a); void this.kids; void this.done; }
+	}
+	Item.register(Holder, "Holder-test");
+	const live = new Holder({ id: "h" });
+	store.attach(live);
+	for (const id of ["save", "root", "at"]) live.kids.add({ id, title: id });
+	live.kids.find("save").set({ title: "saved" });
+	live.done.move("root", { after: null, from: live.kids });
+	t(JSON.stringify(lines.at(-2)) === '{"kids":{"save":{"set":{"title":"saved"}}}}', "(1) a member named \"save\" is written under its list like any other");
+	t(lines.at(-1).done?.move?.from === "kids", "(9) a cross-list move writes its `from` as a dotted path (here one name)");
+
+	const again = new Holder({ id: "h" });
+	for (const line of JSON.parse(JSON.stringify(lines))) again.replay_line(line);
+	t(again.kids.find("save")?.get("title") === "saved", "(1) replay walks into the member \"save\" instead of calling the method save()");
+	t(again.done.find("root") && !again.kids.find("root"), "(9) the dotted `from` replays: root moved from kids to done");
+	t(again.get("kids") === again.kids && again.data.kids === undefined, "(2) get(\"kids\") finds a List kept behind a getter, so its lines never land as data");
+	again.replay_line({ kids: { remove: "at" } });
+	t(!again.kids.find("at"), "(1) a list verb is still a verb: {\"kids\":{\"remove\":\"at\"}}");
+	again.replay_line({ done: { move: { id: "save", after: null, from: "kids" } } });
+	again.replay_line({ kids: { move: { id: "save", after: null, from: "done" } } });
+	t(again.kids.find("save"), "(9) a one-name `from` reads the same either way");
+}
+
+// (2) with the real Page: a {"pages":{"add":…}} line reaches page.pages on replay (seat g, B7), not page data.
+{
+	const { register } = await import("node:module");
+	register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
+	const { default: Page } = await import("../Page/Page.class.js");
+	const page = Page.replay([{ title: "P" }, { pages: { add: { id: "kid", name: "kid", stub: true } } }]);
+	t(page.pages.find("kid") && page.data.pages === undefined, "(2) a page's {\"pages\":{\"add\":…}} line adds a sub-page on replay");
 }
 
 console.log(`ok — ${n} assertions passed`);

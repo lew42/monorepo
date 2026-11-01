@@ -1,5 +1,6 @@
 // ChatV2Model.js — a session.jsonl folded into plain objects, in list order. Every field read the chat does is a method here, so a renamed field or the real Prompt/Question classes (core/Task/Prompt.js) change this one file. See readme.md.
 import split from "../../../core/Task/sentences.js";
+import LineKey from "../../../core/Item/LineKey.js";
 const VERB_STATE = { start: "running", pause: "paused", resume: "running", stop: "stopped", complete: "complete", finish: "complete", wait: "waiting" };
 
 export default class ChatV2Model {
@@ -14,6 +15,7 @@ export default class ChatV2Model {
 	// field changed on a node that already exists (`parent` is undefined: there is nothing new to place).
 	apply(line){
 		if (!line || typeof line !== "object") return null;
+		line = LineKey.deep(line);   // `start()` and `#c3` read as start and c3 (D13)
 		// An owner chat line names its prompt: remembered so a later {sent} line (which names the chat line's `at`) finds the prompt.
 		if (line.chat){ const c = line.chat; if (c.from?.kind === "owner" && c.prompt) (this.prompt_of ??= new Map()).set(c.at, c.prompt); return null; }
 		// {sent:{to:"fast"|"smart", at, re:[owner line at…], delay_ms}}: that prompt reached an assistant (Servex Sessions.mark_sent).

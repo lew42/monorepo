@@ -1,0 +1,88 @@
+{
+	"at": "2026-10-31T19:00:22.058Z",
+	"kind": "file",
+	"from": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+	"to": "public/framework/ai/log/fold.js",
+	"status": "done",
+	"files": [
+		{
+			"file": "public/framework/ai/rail/inbox.js",
+			"now": "public/framework/ai/rail/inbox.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 22,
+					"from": "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+					"to": "/framework/ai/log/fold.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold/page.js",
+			"now": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 29,
+					"from": "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+					"to": "/framework/ai/log/fold.js"
+				},
+				{
+					"line": 8,
+					"col": 16,
+					"from": "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+					"to": "/framework/ai/log/fold.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/lifecycle/page.js",
+			"now": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/lifecycle/page.js",
+			"edits": [
+				{
+					"line": 1,
+					"col": 29,
+					"from": "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+					"to": "/framework/ai/log/fold.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/page.js",
+			"now": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/page.js",
+			"edits": [
+				{
+					"line": 110,
+					"col": 118,
+					"from": "./fold.js",
+					"to": "../../../../../../log/fold.js"
+				}
+			]
+		},
+		{
+			"file": "public/framework/ai/v/3/Prompts.js",
+			"now": "public/framework/ai/v/3/Prompts.js",
+			"edits": [
+				{
+					"line": 2,
+					"col": 22,
+					"from": "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+					"to": "/framework/ai/log/fold.js"
+				}
+			]
+		},
+		{
+			"file": "Servex/proof/migrate-cards.mjs",
+			"now": "Servex/proof/migrate-cards.mjs",
+			"edits": [
+				{
+					"line": 45,
+					"col": 18,
+					"from": "public/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js",
+					"to": "public/framework/ai/log/fold.js"
+				}
+			]
+		}
+	],
+	"how": "git"
+}

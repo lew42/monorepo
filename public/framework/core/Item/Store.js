@@ -4,6 +4,9 @@
 // itself avoids (see List.js's own header comment): `class List extends Item`
 // needs Item fully defined, and Item.js's own import of Store.js runs before
 // Item's class body does, so List.js would hit the TDZ instead.
+import RecordWriter from "./RecordWriter.js";
+import Snapshot from "./Snapshot.js";
+
 const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
 
 /* ONE .jsonl file = one object's history. `item.store` loads it, replays each line
@@ -23,7 +26,55 @@ export class Store {
 
 	entries = [];
 	count = 0;
-	static muted = 0;   // > 0 while Item.act runs its verb locally: the `set` lines it makes are not recorded, the verb is
+	/* MUTING (2026-10-31): while Item.act (or Item.as_call) runs a verb, the changes made to THAT item and anything under it are not
+	   recorded (the verb is), and neither are the changes the verb makes in the item's ANCESTORS (the last child completing
+	   completes its parent: Task.child_changed; that is the verb's effect, and a replay of the verb makes it again). A write to any
+	   other item is recorded. `muting` maps an item to how many mutes it holds (a verb may call a verb); `muting_up` does the same
+	   for the ancestors, which are muted as themselves only, not their other children or lists. */
+	static muting = new Map();
+	static muting_up = new Map();
+	// Answers the ancestors it muted; hand them back to unmute() so a verb that moves the item still releases the right ones.
+	static mute(item){
+		Store.muting.set(item, (Store.muting.get(item) ?? 0) + 1);
+		const above = [];
+		for (let n = item.parent; n; n = n.parent){ Store.muting_up.set(n, (Store.muting_up.get(n) ?? 0) + 1); above.push(n); }
+		return above;
+	}
+	static unmute(item, above = []){
+		const n = (Store.muting.get(item) ?? 1) - 1;
+		n > 0 ? Store.muting.set(item, n) : Store.muting.delete(item);
+		for (const up of above){ const m = (Store.muting_up.get(up) ?? 1) - 1; m > 0 ? Store.muting_up.set(up, m) : Store.muting_up.delete(up); }
+	}
+	// Is `node` (the origin of a change: an Item, or a List, whose parent is its owner) inside a muted item's tree, or an ancestor of one?
+	static muted_at(node){
+		if (!Store.muting.size) return false;
+		if (Store.muting_up.has(node)) return true;
+		for (let n = node; n; n = n.parent) if (Store.muting.has(n)) return true;
+		return false;
+	}
+	/* REPLAYING is global too: while ANY store replays a line, nothing is saved by any store. A replayed child's line (read from
+	   its own file) makes its parent derive a consequence (Task.child_changed completes the parent); the parent has its own store,
+	   which is not "replaying", and used to write that line again, in every tab that read the child's file (item-core.test.mjs, 1e). */
+	static replay_depth = 0;
+
+	/* THE LINE SPELLING THE WRITERS USE (D13, core/Item/doc/line-format.md). false (today): a list member's change names it by its
+	   bare id (`{"tasks":{"c3":{…}}}`) and act() saves the bare verb (`{"start":{}}`). true: `#c3` and `start()`. Every reader in
+	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
+	   off until they are updated. */
+	static marked_lines = false;
+	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
+	static get muted(){ return Store.muting.size; }
+
+	// Where a record file's lines (task, session, page, improvements .jsonl) go (core/Item/doc/transport.md). "item_api" (the
+	// default): Servex's POST /api/item first, so its hooks run (Approve starts the agent, an answered request tells the agent that
+	// asked it, a changed process is picked up); only the lines Servex did not take go through the dev socket, numbered and acked.
+	// "socket": the dev socket for them too, as for every other .jsonl, and Servex's hooks do not run. Every other file always
+	// uses the socket.
+	static channel = "item_api";
+
+	/* SNAPSHOTS (doc/snapshots.md): `Item.open` may start from `<log>.snapshot.json` (the item's saved shape and how far into the log it
+	   reaches) and replay only the lines after it. false = always replay the whole log, as before. */
+	static snapshots = true;
 
 	constructor(...args){ this.assign(...args); }
 	assign(...args){ return Object.assign(this, ...args); }
@@ -42,10 +93,53 @@ export class Store {
 	// On localhost: live, two-way (append and tail). Everywhere else: one load, no
 	// writer — ext/JSONL/live.js is imported ONLY here, dynamically, so this file
 	// (and Item.js, which never imports it either) still loads in plain node.
+	// Once per file: a second open() (two references to one file, a reference and a task page) gets the same promise, never
+	// a second stream that would replay every line twice.
 	open(){
-		if (!Store.local()) return this.moved().then(() => this.load());
+		if (this.opening) return this.opening;
+		// On the dev server, bring in the outbox now: loading it is what sends the lines a reloaded tab left unsent (Outbox.js), so a
+		// page that only looks at an item still delivers them. Not awaited, and a failure here must never stop the open.
+		if (Store.local()) import("./Outbox.js").catch(() => {});
+		const opening = !Store.local() ? this.moved().then(() => this.load())
+			: this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+		opening.catch(() => { if (this.opening === opening) this.opening = null; });   // a failed open (server restarting) is not kept: the next open tries again
+		return this.opening = opening;
+	}
 
-		return this.moved().then(() => import("../../ext/JSONL/live.js")).then(live => live.stream(this, () => this.changed()));
+	/* Look for a snapshot of this log and check it still matches (Item.open calls this before open(), only when nobody has opened the
+	   store yet). A good one is kept in `this.snapshot`; `count` and `offset` then start where it ends, so the live tail (dev server)
+	   subscribes from there and a static load asks only for the bytes after it. A snapshot that no longer matches the log is
+	   ignored with one warning: the log is the truth, so the load is simply the old full replay. Answers the snapshot or null. */
+	async use_snapshot(){
+		if (!Store.snapshots || this.opening || this.snapshot !== undefined) return this.snapshot ?? null;
+		this.snapshot = null;
+		try {
+			await this.moved();
+			// On the dev server the folder's listing says whether a sidecar exists, so a log with none costs no request (and no 404 in
+			// the console, which the merge smoke counts). Elsewhere (the static site, node) the sidecar is simply asked for.
+			if (Store.local()){
+				const dir = new URL(this.url, globalThis.location.href).pathname.replace(/[^/]*$/, "");
+				const listed = await (await import("../Router/listing.js")).fetch_names(dir).catch(() => null);
+				if (listed && !listed.includes(Snapshot.url_for(this.url).split("/").pop())) return null;
+			}
+			const found = await Snapshot.fetch(this.url);
+			if (!found) return null;
+			const tail = await found.check(this.url, { tail: !Store.local() });
+			if (tail === null){
+				console.warn(`Item.Store: ${Snapshot.url_for(this.url)} does not match ${this.url} (the log was rewritten or cut before byte ${found.bytes}): snapshot ignored, replaying the whole log.`);
+				return null;
+			}
+			const stale = found.stale_reason((await import("./Item.js")).default);   // dynamic: Item.js imports this file
+			if (stale){
+				console.warn(`Item.Store: ${Snapshot.url_for(this.url)} is ignored, replaying the whole log: ${stale}.`);
+				return null;
+			}
+			this.snapshot = found;
+			this.snapshot_tail = Store.local() ? undefined : tail;
+			this.count = found.lines;
+			this.offset = found.bytes;
+		} catch (error){ console.warn(`Item.Store: could not use the snapshot of ${this.url} (${error?.message ?? error}): replaying the whole log.`); }
+		return this.snapshot;
 	}
 
 	// True on the dev server (localhost, 127.0.0.1, *.localhost); false on the deployed static site and in plain node.
@@ -75,6 +169,11 @@ export class Store {
 	// SPA fallback answers a missing file with index.html at 200 — a real 200 whose
 	// content-type is html is therefore treated as "no file", not "an empty file".
 	async load(){
+		if (this.snapshot){   // only the lines after the snapshot (already fetched when static; the dev server's 1.5 s fallback asks now)
+			const text = this.snapshot_tail ?? await this.snapshot.check(this.url, { tail: true });
+			if (text === null){ this.snapshot = null; this.count = 0; this.offset = 0; }   // changed since use_snapshot(): read it all (a host built from the snapshot would have the same lines twice; rare, reload fixes it)
+			else { this.loaded = true; this.snapshot_tail = undefined; return this.read(this.parse(text)); }
+		}
 		const res = await fetch(this.url).catch(() => null);
 		if (!res?.ok || res.headers.get("content-type")?.includes("html")) return this;
 
@@ -95,17 +194,23 @@ export class Store {
 	// and has not yet seen come back is dropped instead of replayed a second time;
 	// that is how a writer that also tails its own file ignores its own echo.
 	read(entries){
+		const replayed = [];
 		for (const entry of entries){
 			if (this.skip_echo(entry)){ this.count++; continue; }
 
 			if (this.host){
 				this.replaying = true;
-				try { this.host.replay_line(entry); } finally { this.replaying = false; }
+				Store.replay_depth++;
+				try { this.host.replay_line(entry); } finally { Store.replay_depth--; this.replaying = false; }
+				replayed.push(entry);
 			} else {
 				this.entries.push(entry);
 			}
 			this.count++;
 		}
+		// One "read" event on the host per batch it replayed: a replay may change it without a "delta" (Task.replay_line puts
+		// its fields), so a view or a Ref that must redraw on a live line listens for this (core/Item/Ref.js).
+		if (replayed.length) this.host.emit?.("read", replayed);
 		return this;
 	}
 
@@ -125,8 +230,14 @@ export class Store {
 		this.host = host;
 		host.store = this;
 
+		// The host starts from the snapshot (its saved shape, hooks run once per key), then replays the lines after it below.
+		if (this.snapshot){
+			Store.replay_depth++;
+			try { host.restore(this.snapshot.state, this.snapshot.memory); } finally { Store.replay_depth--; }
+		}
+
 		host.on("delta", (line, origin) => {
-			if (this.replaying || Store.muted || owned_below(origin, host)) return;
+			if (this.replaying || Store.replay_depth > 0 || Store.muted_at(origin) || owned_below(origin, host)) return;
 			this.append(this.line_for(line, origin, host));
 		});
 
@@ -151,7 +262,7 @@ export class Store {
 			? { move: { ...line.move, from: address(from, host) ?? "" } }
 			: line;
 
-		return wrap(hops(origin, host), resolved);
+		return wrap(hops(origin, host, Store.marked_lines), resolved);
 	}
 
 	// Queues; one microtask later the whole tick's lines go in ONE call, as an array
@@ -181,45 +292,46 @@ export class Store {
 
 		lines.forEach(one => (this.sent ??= []).push(JSON.stringify(one)));
 
-		// A task's log goes through the item tool's own writer (Servex POST /api/item): validated, stamped by/ts, hooks fire.
-		// Only when Servex does not answer does it fall back to the plain file append (below). Other logs (pages) keep the plain append.
-		const rest = this.via_tool ? await this.post_to_tool(lines) : lines;
-		if (!rest.length) return;
-
-		// The ONE file API: the file itself sends the lines (ext/filesystem/FsFile.js).
-		// Imported here, not at the top — FsFile imports Item, which imports this file.
+		// THE SOCKET (doc/transport.md): the lines go out over the dev server's socket, numbered, and stay queued until the server
+		// acks it (core/Item/Outbox.js, the wire half of ext/filesystem/FsFile.js). Every file does this except a record file while
+		// Store.channel is "item_api" (below). A record file's line is stamped here, as the item tool would have: `by: "owner"` and a
+		// `ts` (a Task reads its times from it).
 		const path = new URL(this.url, "http://localhost").pathname;
-		const { default: FsFile } = await import("../../ext/filesystem/FsFile.js");
-		await new FsFile({ path }).send(rest);
-	}
+		if (!this.via_tool || Store.channel === "socket")
+			return this.deliver(path, this.via_tool ? lines.map(l => ({ ...l, by: l.by ?? "owner", ts: l.ts ?? RecordWriter.stamp() })) : lines);
 
-	get via_tool(){ return /(^|\/)(task|session|improvements)\.jsonl$/.test(this.url); }
-
-	// Posts each line, in order, as one delta. Returns the lines Servex could not be asked (it did not answer): those fall back.
-	// A line Servex answered but refused is dropped with a warning (that is the validation), and its echo entry forgotten.
-	async post_to_tool(lines){
-		const { servex_url } = await import("../../dev/servex_url.js");
-		const path = new URL(this.url, "http://localhost").pathname;
-		for (let i = 0; i < lines.length; i++){
-			let answer;
-			try {
-				const res = await fetch(servex_url("/api/item"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ path, delta: lines[i] }), signal: AbortSignal.timeout(5000) });
-				answer = await res.json();
-				// Not refused for its content but for where it came from (a phone on the LAN: 403; a worktree page: stubbed):
-				// the plain file append still saves it, so the click is never lost.
-				if (res.status === 403 || answer?.stubbed) return lines.slice(i);
-			} catch {
-				if (!Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — Servex did not answer /api/item: writing the file directly (no by/ts, no hooks)."); }
-				return lines.slice(i);
-			}
-			if (answer?.ok === false){
-				const j = (this.sent ?? []).indexOf(JSON.stringify(lines[i]));
-				if (j !== -1) this.sent.splice(j, 1);
-				console.warn(`Item.Store — the item tool refused ${JSON.stringify(lines[i])}: ${answer.why}`);
-			}
+		// ONE WRITER (data-shapes 1d): a record's lines go to the one entry point (RecordWriter.js), which applies each to the file's
+		// live root and appends it. A page's lines go raw; a task's or session's are item-tool verbs (validated, stamped, hooks fire).
+		// Only lines it could not be asked (Servex down, a phone, a worktree page) are appended here, and the dev server's Append
+		// skips any it already holds under their by/ts, so a slow answer and the fallback never make a twin.
+		const { rest, refused, down } = await RecordWriter.post(path, /(^|\/)page\.jsonl$/.test(path) ? { lines } : { deltas: lines });
+		for (const { line, why } of refused){
+			const { by, ts, ...bare } = line, j = (this.sent ?? []).indexOf(JSON.stringify(bare));
+			if (j !== -1) this.sent.splice(j, 1);
+			console.warn(`Item.Store — the entry point refused ${JSON.stringify(bare)}: ${why}`);
 		}
-		return [];
+		if (!rest.length) return;
+		if (down && !Store.warned_no_servex){ Store.warned_no_servex = true; console.warn("Item.Store — the entry point (Servex /api/item) did not take the lines: appending them through the dev server, once."); }
+		await this.deliver(path, rest);
 	}
+
+	// Hand lines to the outbox and wait for the server's ack. The outbox keeps them, and sends them again after a reconnect, until
+	// the server has them. If the server refuses them, no echo will come, so forget the ones this store was waiting to skip.
+	async deliver(path, lines){
+		this.unacked = (this.unacked ?? 0) + lines.length;
+		try {
+			const { default: Outbox } = await import("./Outbox.js");   // imported here, not at the top: it is browser-side wire code
+			const ok = await Outbox.shared().send(path, lines, { item: true });   // an Item's deltas: the server skips the agent-verb schema for these
+			if (!ok) for (const { by, ts, ...bare } of lines){ const j = (this.sent ?? []).indexOf(JSON.stringify(bare)); if (j !== -1) this.sent.splice(j, 1); }
+			return ok;
+		} finally { this.unacked -= lines.length; }
+	}
+
+	// Lines this store has made that the server has not acked: still queued for the next microtask, or sent and waiting. Not 0 while
+	// the socket is down, so a page can show "saving…" or "not saved yet".
+	get pending(){ return (this._queue?.length ?? 0) + (this.unacked ?? 0); }
+
+	get via_tool(){ return RecordWriter.is_record(this.url); }
 
 	get writable(){
 		const host = globalThis.location?.hostname;
@@ -233,31 +345,13 @@ export class Store {
 	reset(){ this.count = 0; return this; }
 }
 
-/* ⚠ Compat only (2026-10-03) — the OLD `/`-separated path, kept ONLY to spell a
-   cross-list move's live `from` reference as a string (that value rides inside
-   the `move` verb's own payload, never as top-level routing, so dropping the
-   `at` key never touched it). Property names and member ids, alternating
-   (`"content"`, `"content/abc"`). `undefined` means `node` IS `host`. */
+/* A cross-list move's `from`: the list the member left, as a DOTTED path from the host,
+   the same hops a line walks (`"cards.c1.notes"`). It rides inside the `move` verb's own
+   payload. Before 2026-10-28 it was a `/` path (`"cards/c1/notes"`); List.move reads both.
+   `undefined` means `node` IS `host`. */
 function address(node, host){
-	if (!node || node === host) return undefined;
-
-	if (is_list(node)){
-		const base = address(node.owner, host);
-		return base ? `${base}/${node.name}` : node.name;
-	}
-
-	const parent = node.parent;
-	if (!parent) return undefined;   // detached from host — best effort, should not happen
-
-	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
-		if ([...list].includes(node)){
-			const base = address(parent, host);
-			const seg = `${name}/${list.key(node)}`;
-			return base ? `${base}/${seg}` : seg;
-		}
-	}
-
-	return address(parent, host);
+	const path = hops(node, host);
+	return path.length ? path.join(".") : undefined;
 }
 
 // A change whose origin sits inside a descendant that has its OWN store belongs to that store (a Task.open_ref stub replaying its own file), or that is marked `_own_file` (a referenced child, even a snapshot copy).
@@ -266,11 +360,17 @@ function owned_below(node, host){
 	return false;
 }
 
-/* The chain of NAMES from `host` down to `node`, each one a child's id — never a
-   list's own property name, because `get()` (Item.js) never needs it either: a
-   member's id is looked up by scanning every list the current node owns, so the
-   wire line skips straight to the id. `[]` means `node` IS `host`. */
-function hops(node, host){
+// A list member's hop: its id, or `#id` when the marked line shape is on (D13, Store.marked_lines).
+const member = (id, marked) => marked ? "#" + id : id;
+
+/* The chain of NAMES from `host` down to `node`, one per level, and EVERY hop names
+   its list (2026-10-28, ids-and-paths.md §3): a member is its list's name, then its
+   id (`{"tasks":{"c3":{…}}}`), so a reader walks one `get()` per name and never
+   searches. An Item held in a property (Item.adopt_slot) is that property's name.
+   Before, a member's hop was its id alone and the reader searched every list for it
+   (`{"c3":{…}}`; two lists with one id misrouted, seat a E2); old lines still replay
+   (Item.set_one). `[]` means `node` IS `host`. */
+function hops(node, host, marked = false){
 	if (!node || node === host) return [];
 
 	// A List IS the origin when the change is one of ITS OWN verbs (add/remove/
@@ -281,15 +381,35 @@ function hops(node, host){
 	// landed on the PAGE itself instead and silently misreplayed (2026-10-03, the
 	// owner: drags onto the Now card wrote top-level `{"move": {...}}` lines).
 	// Mirrors `address()`'s own list branch just above, which already did this.
-	if (is_list(node)) return [...hops(node.owner, host), node.name];
+	if (is_list(node)) return [...hops(node.owner, host, marked), node.name];
 
 	const parent = node.parent;
 	if (!parent) return [];   // detached from host — best effort, should not happen
 
-	for (const list of Object.values(parent.lists?.() ?? {}))
-		if ([...list].includes(node)) return [...hops(parent, host), list.key(node)];
+	// A member of a list with no owner: its parent IS the list (List.adopt), so the hop is its id alone. Before, it found no
+	// list here and was written flat, so a member's change replayed onto the list itself (the persistence matrix found it).
+	if (is_list(parent)){ const key = parent.key(node); if (key != null && parent.find(key) === node) return [...hops(parent, host, marked), member(key, marked)]; }
 
-	return hops(parent, host);
+	for (const [name, list] of Object.entries(parent.lists?.() ?? {})){
+		const key = list.key(node);
+		if (key == null || list.find(key) !== node) continue;
+		const named = list_name(parent, name, list);
+		return named ? [...hops(parent, host, marked), named, member(key, marked)] : [...hops(parent, host, marked), member(key, marked)];
+	}
+
+	if (node._slot != null && parent.get?.(node._slot) === node) return [...hops(parent, host, marked), node._slot];
+	// A child given its parent by hand and held in a plain property (`parent.kid = child`): that property's name, when the
+	// parent's get() finds it there (seat g, B4: it was written flat, as the parent's own field).
+	for (const key of Object.keys(parent)) if (key !== "parent" && !key.startsWith("_") && parent[key] === node && parent.get?.(key) === node) return [...hops(parent, host, marked), key];
+
+	return hops(parent, host, marked);
+}
+
+// The name a reader's `get()` finds `list` under on `owner`: the list's own name, else the key `lists()` gave it.
+// None (a list only reachable by scanning, like an old Page's `_pages`): the id-only hop, which old readers search for.
+function list_name(owner, key, list){
+	for (const name of [list.name, key]) if (name && !name.startsWith("_") && owner.get?.(name) === list) return name;
+	return null;
 }
 
 // Nests `payload` one level per step in `path`, innermost (the payload itself)
@@ -297,5 +417,8 @@ function hops(node, host){
 function wrap(path, payload){
 	return path.length === 0 ? payload : { [path[0]]: wrap(path.slice(1), payload) };
 }
+
+// The dotted path from `host` down to `node` ("tasks.c3"), the one a Ref stores and `host.get(path)` reads back; "" for the host itself.
+Store.address = (node, host) => address(node, host) ?? "";
 
 export default Store;

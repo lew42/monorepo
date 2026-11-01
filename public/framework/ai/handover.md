@@ -32,6 +32,10 @@ d5635f019 servex: log sweep (1 files)
 The dated sections below are written by hand and go stale; this block does not.
 <!-- NOW:end -->
 
+## Waiting to merge: branch `claude/oop-streaming-research` (2026-11-01)
+
+The persistence research and the Item MVP built from it; not merged into `michael/dev` yet. Everything about it: [/framework/research/2026/10/29/persistence-sync/build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once merged.
+
 ## LATEST, 2026-10-25 evening: VS Code tab e00f55c9 wound down after five days (2026-10-20 → 10-25)
 
 The owner moved to dictating in the browser; this tab stopped its half-hourly check. Everything below is a pointer. The record is the truth.

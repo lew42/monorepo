@@ -66,7 +66,8 @@ Never copy log lines into markdown, and never put a conclusion only in a log: wh
 **Design the class architecture before you build** (the owner, 2026-10-08): wrong names and a wrong hierarchy are why built things "don't feel right". Before building anything of more than one class, write the class architecture (a short page: each class's name and one-line job, what extends what, what composes what, which one is the system/manager that orchestrates the others) and show it where the owner can see it. Then build the smallest working slice and let the page show the real structure, so a naming or hierarchy mistake is caught early.
 
 **An old way that lingers is marked, or it gets copied** (the owner, 2026-10-28). Agents learn from the code and docs they read, so a legacy API left unmarked turns into new code built the wrong way.
-- Mark each superseded API **deprecated** where it's defined: one comment line naming its replacement and linking its migration guide.
+- Mark each superseded API **deprecated** where it's defined: one comment line naming its replacement and linking its migration guide, worded the same everywhere so a search finds them all: `// DEPRECATED (YYYY-MM-DD): use <replacement>. Guide: <path>. Remove when: <condition>.` `node Server/Deprecated.mjs` lists every mark with its live caller count.
+- A reader of an old **log line shape** (not an API) is marked too, collected into one named replay shim per class, and kept until a scripted migration has moved the logs; logs are history and are never rewritten by hand.
 - Its docs say plainly that it's the old way.
 - Give it a **migration guide**: what replaces it, the callers (a census script, never a count from memory), and the steps to move them, scripted.
 - Then remove it. Example: `page.children` (`core/Page/Children.js`, a Map-shaped wrapper) is replaced by `page.pages` (a List).

@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import SessionRecord from "./SessionRecord.mjs";
 import Day from "../public/framework/core/Session/Day.js";
 import Task from "../public/framework/core/Task/Task.js";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 import DashRow from "../public/framework/ai/rail/DashRow.js";
 import AskFold from "../public/framework/ai/asks/AskFold.js";
 import AIIndexStream from "./AIIndexStream.mjs";
@@ -51,7 +52,7 @@ export default class AIIndex {
 	// ---- small rules -----------------------------------------------------------------------------------------------
 	/** The owner's local calendar day of a time (this machine's clock). */
 	static day(t){ return Day.of(t); }   // the same rule TaskDirs.day uses
-	static parse(text){ return String(text).split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); }
+	static parse(text){ return String(text).split(/\r?\n/).filter(l => l.startsWith("{")).map(l => { try { return LineKey.deep(JSON.parse(l)); } catch { return null; } }).filter(Boolean); }   // D13: marks off
 	static read_lines(file){ try { return this.parse(fs.readFileSync(file, "utf8")); } catch { return []; } }
 	static first_sentence(md){
 		const s = String(md ?? "").replace(/^[#*\s>-]+/, "").replace(/\*\*/g, "").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").split(/\n/)[0];
@@ -122,6 +123,7 @@ export default class AIIndex {
 
 	/** The state facts of a task from its lines alone: what SessionIndex.reduce and every other caller asks. */
 	static fold(lines, pub){
+		lines = lines.map(l => LineKey.deep(l));   // a caller may hand over marked lines (D13)
 		const t = this.replay(lines, pub), d = t.data, state = t.state;
 		const fin = [...lines].reverse().find(l => (l.finish ?? l.complete) && typeof (l.finish ?? l.complete) === "object");
 		const f = fin ? (fin.finish ?? fin.complete) : {};

@@ -22,7 +22,8 @@ try {
 	ok(new Session("s") instanceof Task, "Session extends Task");
 	const plain = new Task({ id: "p" });
 	plain.tasks.add("Fix the tab bar");
-	ok(plain.tasks.find("fix-the-tab-bar")?.get_one("title") === "Fix the tab bar", "tasks.add(\"a string\") makes a Task titled by it");
+	const made = [...plain.tasks].find(t => t.get_one("title") === "Fix the tab bar");
+	ok(made && /^[a-z][a-z0-9]{7}$/.test(made.id), "tasks.add(\"a string\") makes a Task titled by it, with a short random id (never the title slug)");
 
 	let r = await run_item({ path: URL, delta: { tasks: { add: "Fix the tab bar" } } }, { caller: "t1" });
 	ok(r.ok && r.line && r.now && r.state === undefined && JSON.stringify({ ...r, instructions: undefined }).length < 2000, "a write answers with the line written (small), not the session picture");

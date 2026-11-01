@@ -1,4 +1,5 @@
 // The shim: a Map-shaped view over `page.pages`; `instanceof Map` stays true. (doc/decisions.md)
+// DEPRECATED (2026-10-28): use `page.pages` (a List; `pages.find(name)` returns the stub object where `children.get` returned null). Guide: /framework/core/Page/doc/migration-children-to-pages.md. Remove when: the census (node Server/Deprecated.mjs) shows 0 live `page.children` callers and the docs teach `page.pages`.
 export default class PageChildren extends Map {
 
 	constructor(page){ super(); this.page = page; }

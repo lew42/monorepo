@@ -7,6 +7,7 @@ import { CHECK, read_inbox } from "./Heartbeat.js";
 import Steps from "../Server/Steps.mjs";
 import TaskDirs from "../Server/TaskDirs.mjs";
 import Task from "../public/framework/core/Task/Task.js";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 import Dropped from "./Dropped.js";
 
 /* THE TASK LOOP — nobody should have to remember to land a task.
@@ -218,7 +219,7 @@ export default class TaskLoop {
         let asks = 0, last_ask_at = 0, last_flag_at = 0, flagged = false, last_line_ours = false, blocked = false;
         for (const raw of text.split("\n")){
             if (!raw.trim()) continue;
-            let obj; try { obj = JSON.parse(raw); } catch { continue; }
+            let obj; try { obj = LineKey.deep(JSON.parse(raw)); } catch { continue; }   // D13: marks off
             lines.push(obj);
             if (obj.follow_up) follow_ups.push(obj.follow_up);
             if (obj.spawn) spawned = true;

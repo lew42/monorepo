@@ -109,3 +109,6 @@
 {"file":"layout-check/"}
 {"file":"screenshots/"}
 {"file":"improvements.jsonl"}
+{"file":"FilesTab.css"}
+{"file":"FilesTab.js"}
+{"file":"Listing.test.mjs"}

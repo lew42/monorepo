@@ -6,6 +6,7 @@ import { track } from "../track/track.js";
 import ai_cost from "./weight/ai-cost.js";
 import PageWork from "./ai/PageWork.js";
 import PageInbox from "./PageInbox.js";
+import PageFilesTab from "./FilesTab.js";
 import PageChildren from "./Children.js";
 import PageLogReader from "./Reader.js";
 import PageListing from "./Listing.js";
@@ -59,6 +60,9 @@ export class Page extends Item {
 		return page;
 	}
 
+	// The whole line reaches set(), stamp included, so `jsonl_lines` and the "line" event keep `by`/`ts` (the inbox, the log view).
+	replay_line(line){ return this.set(line); }
+
 	log_label(){ return `page{${this.url ?? "…"}}`; }
 
 	// ════ PAGE.JSONL ══════════════════
@@ -76,6 +80,7 @@ export class Page extends Item {
 
 		(this.jsonl_lines ??= []).push(obj);
 		this.emit("line", obj);
+		if (obj && ("by" in obj || "ts" in obj)){ const { by, ts, ...rest } = obj; obj = rest; }   // the writer's stamp: kept in the line above, never page data (Item.replay_line)
 		obj = this.take_words(obj);
 
 		if ("content" in obj){
@@ -127,6 +132,7 @@ export class Page extends Item {
 
 	get pages(){ return this._pages ??= new List({ owner: this, name: "pages", of: null }); }
 
+	// DEPRECATED (2026-10-28): use `page.pages` (a List). Guide: /framework/core/Page/doc/migration-children-to-pages.md. Remove when: the census (node Server/Deprecated.mjs) shows 0 live `page.children` callers and the docs teach `page.pages`; the config key `children:` is a separate, undecided word.
 	get children(){ return this._children ??= new PageChildren(this); }
 
 	// ⚠ A config `children: […]` is only STAGED here; declare() reads it. A `new Map()` means "forget everything". (doc/watch-out.md)
@@ -379,6 +385,8 @@ export class Page extends Item {
 			if (page) return this.add(name, page).load_all_children(levels);
 		}
 
+		if (name === "files" && known === undefined && !this.no_files && !listing?.folder(name)) return this.add(name, PageFilesTab.route(this)).load_all_children(levels);   // <path>/files/: this folder's file list; a real files/ folder or page wins (doc/files.md)
+
 		if (name === "ai" && known === undefined && !kind && !this.no_ai) return this.add(name, await this.ai_page()).load_all_children(levels);   // <path>/ai/: the Sheet about this page; a real ai/ page wins (ext/drawer/doc/sheet.md)
 
 		if (name === "tasks" && kind !== "js") return this.add(name, await this.tasks_folder()).load_all_children(levels);   // a tasks/ with no page.js of its own: no import probe, no 404 (core/Task/readme.md)
@@ -569,6 +577,8 @@ export class Page extends Item {
 
 		if (this.title && this.url && !this.no_inbox) this.view.append(() => { span.c("page-inbox-chip").append(PageInbox.chip(this)); });
 
+		if (this.title && this.url && !this.no_files) this.view.append(() => { span.c("page-files-chip").append(PageFilesTab.chip(this)); });
+
 		Page.views.set(this.view.el, this);
 		this.emit("render", this.view);
 		return this.view;
@@ -695,6 +705,8 @@ Page.Previews = PagePreviews;
 Page.Columns = PageColumns;
 Page.Links = PageLinks;
 Page.Inbox = PageInbox;
+Page.FilesTab = PageFilesTab;
+PageFilesTab.Page = Page;
 
 track(Page);
 

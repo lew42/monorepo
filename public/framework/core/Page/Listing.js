@@ -65,6 +65,25 @@ export default class PageListing {
 		return null;
 	}
 
+	// The folder's list kept open: `{ listing, reader, close() }`, where `listing` is rebuilt (and `changed(listing)` called) whenever a line
+	// lands in the log. On the dev server the reader tails through the socket; anywhere else it loads once and never changes. Its own
+	// reader, never attached to a page, so the lines stay in `reader.entries`. Read only: nothing here writes. (doc/files.md)
+	static async live(P, url, changed){
+		url = String(url).replace(/\/?$/, "/");
+		const known = await P.listing(url);
+		const log = known?.log ?? "files.jsonl";   // an empty folder has no log yet: its first file creates files.jsonl (PageFiles.settle)
+		const reader = new P.Reader({ url: url + log });
+		const live = { reader, listing: null, close: () => reader.close() };
+
+		const fold = () => live.listing = P.Listing.from(reader.entries, log === "page.jsonl" ? undefined : false, log);
+		reader.changed = () => changed(fold());
+		reader.reset = () => { reader.entries.length = 0; reader.count = 0; delete reader.loaded; return reader; };   // a rewritten file replays from line 1
+
+		await reader.open();
+		fold();
+		return live;
+	}
+
 	// A jsonl page already loaded at `url` (jsonl() registers it): its lines, as a listing.
 	static page_listing(P, url){
 		const page = P.log_pages?.get(url);

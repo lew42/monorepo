@@ -6,6 +6,9 @@ import Subpages from "./Subpages.js";
 import Promote from "./Promote.js";
 import TaskHomes from "../../Server/TaskHomes.mjs";
 import Task from "../../public/framework/core/Task/Task.js";
+import Item from "../../public/framework/core/Item/Item.js";
+import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
+import LogLine from "../../Server/LogLine.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -199,7 +202,7 @@ function stamp_ids(value, ids){
 	const out = {};
 	for (const [key, v] of Object.entries(value)){
 		if (key === "add" && is_plain(v)){
-			const id = v.id ?? crypto.randomUUID();
+			const id = v.id ?? Item.short_id();
 			ids?.push(id);
 			out[key] = { id, ...stamp_ids(v, ids) };
 		} else out[key] = stamp_ids(v, ids);
@@ -226,7 +229,7 @@ const tool = (name, description, properties, required, handler) =>
 	({ name, description, inputSchema: { type: "object", required, properties }, handler });
 
 const PAGE_PATH = { type: "string", description: "The page's url as the browser shows it, e.g. \"/framework/core/Page/tool/\" or a session page \"/framework/ai/sessions/<id>/\" (its file is found for you, even if none exists yet). Omit it to mean YOUR OWN page, /framework/ai/sessions/<your agent id>/." };
-const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a string with slashes or dots. [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
+const TARGET = { type: "array", items: { type: "string" }, description: "The path to the target, as a list of hops — each one a property name (\"content\") or a child's id, never a slash; a hop may be a dotted path (\"tasks.ui.tasks.c3\" is four hops, each level looking up the next with its own get). [] (or omit) targets the PAGE itself. [\"content\"] targets its content list. [\"k2\"] targets the existing item with id \"k2\", wherever it lives. [\"k2\",\"answers\"] walks into k2's own \"answers\" list." };
 
 /* ---------- page_read's COMPUTED state (deliverable 2) ----------
  * No second copy of the page is ever stored: every call re-reads page.jsonl from disk and
@@ -396,11 +399,12 @@ const ITEM_PATH = { type: "string", description: "The item's url, e.g. a task fo
 const ITEM_DESCRIPTION = "THE ITEM TOOL: `item({path, delta})`. `delta` is ONE log line, the exact object Item.set(delta) takes: a key naming a method calls it with the value as its arguments (`{\"start\":{}}`, `{\"wait\":{\"on\":\"owner\"}}`), a key naming a child walks into it (`{\"tasks\":{\"add\":{\"title\":\"x\"}}}`), any other key assigns. `\"a.b\": v` is shorthand for `{a:{b:v}}`. No `delta` = the current state. The first call per class also returns `instructions`; `{\"help\":{}}` returns them again.";
 
 // improvements.jsonl: a folder's proposed fixes and moves, one nested Task each (Servex/agents/roles/mastermind.md, "Improvements").
-const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Task" };
+const FILE_CLASS = { "task.jsonl": "Task", "session.jsonl": "Session", "page.jsonl": "Page", "improvements.jsonl": "Improvements" };
 const LOADERS = {
 	Task: async () => (await import("../../public/framework/core/Task/Task.js")).default,
 	Session: async () => (await import("../../public/framework/core/Session/Session.js")).default,
 	Process: async () => (await import("../../public/framework/core/Task/processes/index.js")).default,
+	Improvements: async () => (await import("../../public/framework/core/Task/Improvements.js")).default,
 };
 /* The real Page, for the page files (LOADERS has only the Task family: Class.replay there means "a task"). The resolve hook lets Page.class.js
  * import in node (site-absolute imports map to public/); parts/kinds.js registers the part types, the ONE list the browser also imports. */
@@ -412,7 +416,34 @@ const page_class = () => page_loaded ??= (async () => {
 	const { PART_TYPES } = await import("../../public/framework/core/Page/parts/kinds.js");
 	return Object.assign(Page, { PART_TYPES });
 })().catch(e => { console.warn(`item tool: Page.class.js did not import in node, so page lines are written unchecked (${e.message})`); return null; });
-const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"] };
+// The class for a kind: the Task family and Page by their loaders, else any class Item.types registers once those have loaded. null = none.
+async function class_for(kind){
+	if (kind === "Page") return page_class();
+	if (LOADERS[kind]) return LOADERS[kind]().catch(() => null);
+	await Promise.all([page_class(), ...Object.values(LOADERS).map(load => load().catch(() => null))]);
+	const Class = Item.types.get(kind);
+	return typeof Class?.replay === "function" ? Class : null;
+}
+
+/* A page's picture from its LIVE root: the page's data and layout words, and its content items flattened to {id, type, ...data},
+ * the shape render_markdown and render_html draw. Measured on the 1167 page.jsonl files in git (2026-10-28): 1137 draw the same as the
+ * old text replay; 19 differ (an untyped item said "item", a nested data card is flattened, a title set by a line now shows, one order);
+ * 11 need a browser to replay at all, and those fall back to the text replay for reading (their writes were already refused). */
+function page_picture(page){
+	const out = { ...page.data };
+	for (const w of ["navigation", "width", "arrangement", "surface", "background", "type_size"]) out[w] ??= page[w] ?? undefined;
+	const items = [...page.content].filter(i => !i.transient).map(i => { const type = i.wire?.(); return { ...i.data, id: i.id, ...(type && type !== "Item" ? { type } : {}) }; });
+	return { page: out, items };
+}
+// The page as text (or html): from the live root when there is one, else (no Page class, or a page node cannot replay) the text replay.
+function page_text(root, file, url, format = "markdown"){
+	let picture = null;
+	if (root) try { picture = page_picture(root()); } catch {}
+	picture ??= replay(parse_lines(file));
+	const base = String(url ?? "").replace(/\/?$/, "/"), subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
+	return format === "html" ? render_html(picture, subpages) : render_markdown(picture, subpages);
+}
+const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"], Improvements: ["core/Task/Improvements.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
 const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
 
@@ -421,7 +452,7 @@ const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "co
 
 // A Process adds its own line-1 field and the lines only ProcessRunner writes (core/Task/doc/process.md).
 const PROMPT_KEYS = [...TASK_KEYS, "raw", "paragraphs", "replies", "subject", "parts", "process", "handled", "text", "from"];   // core/Task/Prompt.js
-const KEYS = { Task: TASK_KEYS, Session: SESSION_KEYS, Prompt: PROMPT_KEYS, Question: [...TASK_KEYS, "text", "from", "answer"], Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
+const KEYS = { Task: TASK_KEYS, Improvements: TASK_KEYS, Session: SESSION_KEYS, Prompt: PROMPT_KEYS, Question: [...TASK_KEYS, "text", "from", "answer"], Process: [...TASK_KEYS, "process", "class", "spawn", "queue", "pulse", "measure"] };
 
 const told = new Map();   // `${caller}|${class}` -> true once its instructions went out
 
@@ -483,7 +514,7 @@ const MODULE_NAME = /^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/;
 const app_path = dir => "/" + path.relative(PUBLIC, dir).split(path.sep).join("/") + "/";
 // The class a new subtask is written as: a known task class it names (session-is-a-task: a Project, a Process, a child Session), else Task.
 const task_type = a => ["Project", "Process", "Session", "Prompt", "Question"].includes(a?.type) ? a.type : "Task";
-export const slug_of = text => Task.slug(text);   // one slug rule, Task's (a string added in the browser gets the same id)
+export const slug_of = text => Task.slug(text);   // one slug rule, Task's: a folder name only (ids are Item.short_id, never a slug)
 
 // Which folder a new module task lives in, and its slug. Never suffixes: `taken` is true when the folder exists, and the caller refuses (offering `free`).
 // A task stays where it is filed: nested in the filing session's (or parent's) task.jsonl. It gets a module folder ONLY when the add carries an explicit
@@ -637,7 +668,8 @@ export async function move_nested_home(record, id, module, by = "PromptTasks"){
 
 /* MOVE AN ITEM TO A NEW HOME (core/Item/tasks/item-move/design.md): a subtask written as lines in a parent's log moves to the folder
  * `to` (a url) with its id, its whole history (each line keeps its by/ts) and ONE reference left behind:
- * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id).
+ * {"task": to, "as": id, "moved_from": "<from>#<id>"}, which Task/Session replay swap for the nested child (same id), then the
+ * forward item.move_to leaves on it ({"tasks": {"<id>": {"moved_to": {url: to, path: ""}}}}) for any Ref to the old place.
  * Order: check everything, then write the new file, the old-home reference and the ledger line. A refusal writes nothing.
  * Returns {from, to, file} or {why}. Callers: the item tool's `move` key, open_task (handoff), move_nested_home. */
 // `entry` ({type, spawn}, a spawn's handoff): the reference left behind is the Session entry, so the subtask is upgraded in place.
@@ -682,6 +714,9 @@ export async function move_item({ from, id, to, by = "agent", module, entry = nu
 	// 5. The old home: one reference, with the id it had here. 6. The ledger.
 	const at = now();
 	write_line(pf, { task: url, as: id, ...(entry?.type ? { type: entry.type } : {}), ...(entry?.spawn ? { spawn: entry.spawn } : {}), moved_from, by, ts: at }, true);
+	// 5b. The forward (item.move_to, the one verb): what stays at the old place says where the task went, so a Ref to its old
+	// path (a parent's session page, SessionTasks.child_refs) follows it to the new file's root instead of showing "gone".
+	write_line(pf, { tasks: { [id]: kid.move_to({ url, path: "" }) }, by, ts: at }, true);   // under tasks: a list hop is Item.set, which keeps any field (a bare {"<id>":…} line goes to Task.replay_line, which keeps only FIELDS)
 	fs.mkdirSync(path.dirname(ledgers.task_moves), { recursive: true });
 	fs.appendFileSync(ledgers.task_moves, JSON.stringify({ at, kind: "task", from: `${rel(pf)}#${id}`, to: rel(dir), session: parent_url, ...(module ? { module } : {}), by, git: false }) + "\n");
 	return { from: moved_from, to: url, file: nf };
@@ -694,7 +729,7 @@ function notify_requests(live, at, body, requests, by){
 	for (const r of requests) if (hooks.requested && r.to) Promise.resolve(hooks.requested(r)).catch(() => {});   // a log with no agent (a VS Code tab's session) has nobody to tell
 	if (!hooks.answered) return;
 	const done = [];
-	if (at.target.length === 1 && body.complete !== undefined) done.push(live._tasks?.find(at.target[0]));
+	if (at.target.length && body.complete !== undefined) done.push(walk(live, at.target));
 	else if (!at.target.length){
 		if (body.complete !== undefined) done.push(live);
 		for (const [k, v] of Object.entries(body)) if (is_plain(v) && v.complete !== undefined) done.push(live._tasks?.find(k));
@@ -735,14 +770,17 @@ export function link_refs(Task){
 /* ONE LIVE INSTANCE PER FILE (plan, Amendments 4): the root is replayed once into `Item.Store.for(url)` and every later call on the
  * path reaches that same object. It is advanced with the line the tool just wrote (the same replay_line a browser's Store.read runs),
  * never re-read, unless the file (or a child file it replayed) changed on disk from outside: size/mtime differ -> replay again. */
+const LIVE_CAP = 1000;   // live roots kept at once: now that every page gets one, a long-lived Servex would otherwise keep every page it ever wrote
 function live_root(Class, file){
-	const store = Class.Store.for("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));
+	const url = "/" + path.relative(PUBLIC, file).split(path.sep).join("/"), all = Class.Store.instances, store = Class.Store.for(url);
+	if (all){ all.delete(url); all.set(url, store); }   // most recently used last
+	if (all?.size > LIVE_CAP) for (const [k] of all){ if (all.size <= LIVE_CAP * 0.9) break; all.delete(k); }   // the least recently used go cold: a later call replays
 	if (store.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s)) return store.host;
 	const deps = [];
 	collect = deps;
 	let root;
 	try { root = Class.replay(parse_lines(file)); } finally { collect = null; }
-	Object.assign(store, { host: root, sig: sig(file), deps, file });
+	Object.assign(store, { host: root, sig: sig(file), deps, file, replaying: true });   // replaying: in node a root only ever replays lines (a page's {"file"} line then imports nothing, Jsonl.js)
 	root.store = store;
 	root.at_path = "/" + path.relative(PUBLIC, path.dirname(file)).split(path.sep).join("/") + "/";   // a session record has no `path` field: its cost is looked up by its folder
 	return root;
@@ -888,10 +926,32 @@ function complete_calls(delta, out = [], trail = []){
 	}
 	return out;
 }
-// The task a target (then a trail of child ids) names, walking `_tasks` one id at a time; the deepest one found (a Question's own rules apply to it, not the session's).
+// The item a target (then a trail of child ids) names, walked level by level through each level's own get (hop, below); the deepest one found (a Question's own rules apply to it, not the session's).
 function node_at(root, ...paths){
+	let node = root, item = root;   // the deepest ITEM on the path (a List between two items is only passed through)
+	for (const key of hops(paths.flat())){ node = hop(node, key); if (node === undefined) break; if (node instanceof Item) item = node; }
+	return item;
+}
+
+/* THE ADDRESS IS A DOTTED PATH (ids-and-paths.md, DECIDED): "tasks.ui.tasks.c3", or the same as a list of hops. Each level takes the
+ * next part with its OWN get (a property, a named List, a List's member; a subclass may look up its own way), never one walker that
+ * knows every shape. An old id-only hop (a member named without its list) still resolves, through member(). */
+const hops = path => [].concat(path ?? []).flatMap(k => String(k).split(".")).filter(Boolean);
+function hop(node, key){
+	if (node == null || typeof node !== "object") return undefined;
+	const got = typeof node.get === "function" ? node.get(key) : undefined;
+	if (got !== null && typeof got === "object") return got;
+	return node.member?.(key) ?? undefined;
+}
+// One walker (cross-review finding 4): the root's own get takes the whole dotted path once, and each level hands the rest on
+// (Item.get). Only when that finds nothing does it go hop by hop, so an old id-only hop still resolves through member().
+function walk(root, path){
+	const parts = hops(path);
+	if (!parts.length) return root;
+	const got = typeof root?.get === "function" ? root.get(parts.join(".")) : undefined;
+	if (got !== null && typeof got === "object") return got;
 	let node = root;
-	for (const id of paths.flat()){ const kid = node?._tasks?.find(id); if (!kid) return node; node = kid; }
+	for (const key of parts){ node = hop(node, key); if (node === undefined) return undefined; }
 	return node;
 }
 
@@ -941,8 +1001,9 @@ const LIST_VERBS = ["add", "remove", "move", "order", "clear"];
 
 // null = not a query delta (run it as a change); {ok:false} = a mix, refused; else the answer. Nothing here writes.
 function ask(root, target, delta){
-	let node = root;
-	for (const id of target){ node = node._tasks?.find(id); if (!node) return { ok: false, why: `no task "${id}" under this path to ask` }; }
+	const node = walk(root, target);
+	if (!node) return { ok: false, why: `no "${hops(target).join(".")}" under this path to ask` };
+	if (!(node instanceof Item)) return null;   // a List: nothing to query, the delta is its verbs
 	const r = walk_queries(node, delta);
 	if (!r.queried) return null;
 	if (r.set.length) return { ok: false, why: `${r.set.join(", ")} ${r.set.length > 1 ? "are queries" : "is a query"}: ${r.set.length > 1 ? "they only read" : "it only reads"} and cannot be set (give {} or an argument object). Nothing was written.` };
@@ -961,7 +1022,7 @@ function validate(Task, task, delta){
 	for (const key of Object.keys(delta)){
 		if (key === "help") continue;
 		if (key.startsWith("_")) return refusal(`"${key}" starts with _ (private)`, Task);
-		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined) continue;
+		if (typeof task[key] === "function" || known.has(key) || task.get(key) !== undefined || task.member?.(key) !== undefined) continue;   // member: a child by id (get() no longer searches lists)
 		return refusal(`"${key}" names no method, field or child of ${Task.name}`, Task);
 	}
 	return null;
@@ -984,8 +1045,9 @@ function bad_page_delta(Page, node, trail = ""){
 async function page_refusal(at, delta){
 	const Page = await page_class();
 	if (!Page) return null;   // a broken Page degrades the check, never the tool
-	let why = bad_page_delta(Page, delta);
-	if (!why) try { Page.replay([...parse_lines(at.file), nest(at.target, delta)]); } catch (e) { why = `the page would not replay with this line (${e.message})`; }
+	// Only the schema here: whether the line replays is tried on the page's live root when it is written (put() in run_item_now),
+	// never by replaying the whole page plus the line.
+	const why = bad_page_delta(Page, delta);
 	return why ? { ok: false, why: `${why}. Nothing was written.` } : null;
 }
 
@@ -1029,6 +1091,53 @@ export const hooks = {
 	prompted: null,   // Servex: an owner Prompt landed on a session page -> PromptTasks files its asks (Servex/agents/PromptTasks.js)
 };
 
+/* THE ONE ENTRY POINT for a raw line (data-shapes plan step 1d; core/Item/RecordWriter.js is the caller's side). Every line bound for a
+ * record file that is not an item-tool verb ends here: a hook's, LogLine's (append.mjs, the `log` tool, dir_log), a browser tab's
+ * page.jsonl line. Each line is applied to the file's live root first, when one is warm, then appended, and the root's signature is
+ * moved past it, so the next item() call does not replay the whole file. A cold file is only appended: its first read replays it.
+ * Skipped: a line already in the tail under its `by` and `ts` (the caller's fallback won the race). Refused, nothing written: a
+ * line that would not replay (it would make the log unreadable), and a page line its schema refuses (what Append.js refused).
+ * Answers {ok, written, skipped, refused: [{i, why}]}. F1 moves this function, unchanged, to the project's dev server. */
+export function record_lines(file, lines){
+	const out = { ok: true, written: 0, skipped: 0, refused: [] };
+	const fresh = new Set(RecordWriter.fresh(RecordWriter.tail_sync(fs, file), lines, { strict: true }));
+	const store = Task.Store.instances?.get("/" + path.relative(PUBLIC, file).split(path.sep).join("/"));   // live_root's own map: warm only if an item() call read it
+	for (const [i, line] of lines.entries()){   // `i` names the caller's own line in a refusal
+		if (!fresh.has(line)){ out.skipped++; continue; }
+		if (!is_plain(line)){ out.refused.push({ i, why: "a line is one object" }); continue; }
+		if (path.basename(file) === "page.jsonl"){ let why = null; try { why = check(file, line); } catch {} if (why){ out.refused.push({ i, why }); continue; } }
+		let warm = store?.host && store.sig === sig(file) && store.deps.every(([f, s]) => sig(f) === s) ? store.host : null;
+		// A page line the browser wrote and its schema passed is kept even when node's live Page cannot apply it (a part only the browser
+		// registers): the warm root is dropped (try_line does that) and the next read replays the file. A task line is still refused.
+		if (warm) try { try_line(warm, line); } catch (e) { if (path.basename(file) !== "page.jsonl"){ out.refused.push({ i, why: e.message }); continue; } warm = null; }
+		write_line(file, line, true);
+		if (warm) warm.store.sig = sig(file);
+		out.written++;
+	}
+	if (out.refused.length) out.ok = out.written > 0 || out.skipped > 0 ? "partly" : false;
+	return out;
+}
+
+// In Servex every LogLine write to a record file goes through record_lines (the `log` tool, dir_log), synchronously, as before.
+LogLine.writer ??= (file, lines) => record_lines(file, lines);
+
+/* THE DOOR, POST /api/item (Servex.js), and the shape F1 keeps: {path, delta, target?, ts?} is one item-tool verb (a tab's button);
+ * {path, lines} is raw lines for record_lines. `root` (node callers send theirs) must be this checkout's: another checkout's post is
+ * answered {stubbed}, so its caller appends to its own file and nothing lands in this tree. */
+export async function serve_item(body = {}, ctx = {}){
+	const { path: url, target, delta, lines, ts, root } = body;
+	if (root && path.resolve(root, "public").toLowerCase() !== PUBLIC.toLowerCase()) return { ok: true, stubbed: true, via: "another checkout" };
+	if (typeof url !== "string") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
+	if (Array.isArray(lines)){
+		const at = await resolve(url, [], true);
+		if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a file under public/` };
+		if (!RecordWriter.is_record(at.file)) return { ok: false, why: `${path.basename(at.file)} is not a record file` };
+		return record_lines(at.file, lines);
+	}
+	if (!delta || typeof delta !== "object") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
+	return run_item({ path: url, target, delta }, { caller: "owner", ...ctx, ...(typeof ts === "string" ? { ts } : {}) });
+}
+
 export async function run_item(args = {}, ctx = {}, alias = false){
 	// A breadcrumb before each call and after a slow one (crumbs.log, only when Servex installed Crumbs): an agent's tool call never passes an
 	// HTTP route, so this is what names an item call that held the event loop.
@@ -1039,10 +1148,26 @@ export async function run_item(args = {}, ctx = {}, alias = false){
 	finally { const ms = Date.now() - t; if (ms > 1000) crumbs?.drop?.(`item< ${ms}ms ${what}`); }
 }
 
+/* D13 marks, read at the door: a delta may spell a call `start()` and a list item `#c3` (core/Item/doc/line-format.md). The tool's
+ * own checks below know the bare spelling (verb names, ids), so the marks come off here and the line is written bare, as before;
+ * core's own readers take both. Applies at every level of the delta, never to a value that is not an object key. */
+function unmark_delta(delta){
+	if (Array.isArray(delta)) return delta.map(unmark_delta);
+	if (!is_plain(delta)) return delta;
+	const out = {};
+	for (const [key, value] of Object.entries(delta)){
+		const bare = key.length > 2 && key.endsWith("()") ? key.slice(0, -2) : key.length > 1 && key.startsWith("#") ? key.slice(1) : key;
+		out[bare in out ? key : bare] = unmark_delta(value);
+	}
+	return out;
+}
+
 async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias = false){
 	url ??= own_page(ctx);
+	delta = unmark_delta(delta);
 	let caller_log = ctx.caller_log ?? null;
 	try { caller_log ??= ctx.resolve_log?.(ctx.caller) ?? null; } catch { caller_log = null; }   // a broken resolver never breaks the call
+	if (target !== undefined) target = hops(target);   // a dotted target is its hops: the line is still written nested
 	let at = await resolve(url, target, true);
 	if (!at || at.why) return { ok: false, why: at?.why ?? `"${url}" is not a page under public/` };
 	// A session route's file is its page.jsonl (cards, tabs). A READ or a query there asks about the session itself, so it reads the record
@@ -1061,33 +1186,30 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		else if (delta !== undefined) return { ok: false, why: `"${url}" has no session record to answer ${Object.keys(delta).join(", ")}, and these keys are never written to its page. Nothing was written.` };
 	}
 
-	const kind = class_of(at.file);
-	const Class = LOADERS[kind] ? await LOADERS[kind]().catch(() => null) : null;
+	// ONE LIVE ROOT PER FILE, for any class Item.types registers (a page, a task, a session, an improvements file): the class named on
+	// line 1, else the one its file name implies. A Task-family root (tasky) also gets the task steps below; every root gets the same write.
+	let kind = class_of(at.file), Class = await class_for(kind);
+	if (!Class){ kind = FILE_CLASS[path.basename(at.file)] ?? "Page"; Class = await class_for(kind); }
+	const tasky = !!Class && (Class === Task || Class.prototype instanceof Task), paged = !!Class && Class === await page_class();
 	if (Class) link_refs(await LOADERS.Task());   // references on a parent resolve to live children
 	const root = () => live_root(Class, at.file);
+	// A write needs the live root; a file the class cannot replay (a page whose lines need a browser) refuses the write, as before.
+	const live_or_refuse = () => { try { return root(); } catch (e) { throw new Refused(`the ${paged ? "page" : "record"} would not replay (${e.message})`); } };
 	const first_time = () => !told.has(`${ctx.caller}|${kind}`) && told.set(`${ctx.caller}|${kind}`, true);
-	const state = () => Class?.replay ? task_state(Class, root()) : (fs.existsSync(at.file) ? render_markdown(replay(parse_lines(at.file)), Subpages.listed(at.file).map(name => ({ name, url: String(url).replace(/\/?$/, "/") + name + "/" }))) : null);
+	const state = () => tasky ? task_state(Class, root()) : !fs.existsSync(at.file) ? null : paged || !Class ? page_text(Class ? root : null, at.file, url) : root().toJSON();
 	const extra = async () => alias ? {} : { ...(first_time() ? { instructions: await instructions_for(kind, Class) } : {}), state: state() };
 
 	if (delta === undefined) return { ok: true, ...(await extra()), ...(alias ? { state: state() } : {}) };
 	if (!is_plain(delta)) return { ok: false, why: "`delta` must be one object (a log line)" };
 	const flat = expand_dots(delta);
-	// A verdict verb given as a bare note ({"approve":"ok"}) would be written but ignored on replay (Task.replay_line reads verbs as objects): make it {note}.
-	for (const v of ["approve", "improve", "reject"]) if (typeof flat[v] === "string") flat[v] = { note: flat[v] };
 	if (Object.keys(flat).length === 1 && flat.help){
 		told.set(`${ctx.caller}|${kind}`, true);
 		return { ok: true, instructions: await instructions_for(kind, Class) };
 	}
-	if (Class?.replay){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
+	if (tasky){ const asked = ask(root(), at.target, flat); if (asked) return asked; }
 	else if (Object.keys(flat).length === 1 && "completion" in flat) return { ok: false, why: `no task record at "${url}" (${path.basename(at.file)} is not a session or task record), so there is no completion to answer. Nothing was written.` };
-	// An improvement proposed again adds weight, never a duplicate (the owner, 2026-10-22; readme-system.md): the same title becomes
-	// {"<id>": {"reinforce": {why}}} on the existing one, and Task.weight counts them.
-	if (path.basename(at.file) === "improvements.jsonl" && is_plain(flat.tasks?.add) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1){
-		const a = flat.tasks.add, id = slug_of(a.id ?? a.title);
-		if (root()._tasks?.find(id)) { delete flat.tasks; flat[id] = { reinforce: { ...(a.why ? { why: a.why } : {}) } }; }
-	}
 	// MOVE (design.md): {"<id>":{"move":{"to":url}}}, {"tasks":{"<id>":{"move":{"to":url}}}} or move on target [<id>]. Handled here, not written as a line.
-	if (Class?.replay){
+	if (tasky){
 		const mv = (id, v) => is_plain(v) && Object.keys(v).length === 1 && is_plain(v.move) ? { id, to: v.move.to } : null;
 		const inner = is_plain(flat.tasks) && Object.keys(flat).length === 1 && Object.keys(flat.tasks).length === 1 ? Object.entries(flat.tasks)[0] : null;
 		const asked = at.target.length === 1 ? mv(at.target[0], flat) : Object.keys(flat).length === 1 ? (inner ? mv(...inner) : mv(...Object.entries(flat)[0])) : null;
@@ -1096,14 +1218,20 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			return r.why ? { ok: false, why: r.why } : { ok: true, moved: { from: r.from, to: r.to }, state: state() };
 		}
 	}
-	if (Class?.replay){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
-	else if (kind === "Page"){ const no = await page_refusal(at, flat); if (no) return no; }
+	if (tasky){ const node = node_at(root(), at.target); const no = validate(node?.constructor ?? Class, node ?? root(), flat); if (no) return no; }
+	else if (paged){ const no = await page_refusal(at, flat); if (no) return no; }
 	// A complete without evidence is refused BEFORE a line is written: a written line would replay as a recorded fact.
-	if (Class?.replay) for (const { args, trail } of complete_calls(flat)){
+	if (tasky) for (const { args, trail } of complete_calls(flat)){
 		const node = node_at(root(), at.target, trail), Own = node?.constructor ?? Class;
 		const why = Own.completion_problem?.(args, node);
 		if (why) return { ok: false, why };
 	}
+
+	// ONE WRITER, NO TWIN (RecordWriter.js): a post that brought its own `ts` is written once. If the caller's fallback already
+	// appended it (this answer came too late), the line is in the file's tail under that `by` and `ts`: nothing more is written.
+	const stamp = () => ctx.ts ?? now();
+	if (ctx.ts && await RecordWriter.tail(at.file).then(tail => !RecordWriter.fresh(tail, [{ by: ctx.caller ?? "agent", ts: ctx.ts }]).length))
+		return { ok: true, ids: [], line: null, already: true };
 
 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
 	const { pages, folder, ...rest } = flat;
@@ -1111,18 +1239,19 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	if (made?.why) return { ok: false, why: made.why, done: made.done };
 
 	const ids = [], homes = [], requests = [], by = ctx.caller ?? "agent";
+	let merged = null;   // adds a class merged into an existing task (Improvements), reported in the answer
 	let line = null, size;
 	// Every write to a Task/Session goes through here: append the line, then advance the live root with it.
 	const put = (l, own = true) => {
-		const live = Class?.replay ? root() : null;   // root BEFORE the write: after it the file's size differs and root() would re-read
-		if (live) try_line(live, l);
+		const live = Class ? live_or_refuse() : null;   // root BEFORE the write: after it the file's size differs and root() would re-read
+		if (live) try_line(live, paged ? structuredClone(l) : l);   // a copy for a page: its replay adopts what it adds, and l is still to be written
 		try { size = write_line(at.file, l, own); } catch (e) { if (live) live.store.host = null; throw e; }
 		if (live) live.store.sig = sig(live.store.file);
 		line = l;
 	};
 
 	let body = pages === undefined && folder === undefined ? flat : rest;
-	if (Class?.replay && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
+	if (tasky && !at.target.length && is_plain(body.tasks) && body.tasks.add !== undefined){
 		const { add, ...others } = body.tasks;
 		// A REQUEST (the owner, 2026-10-22: logs over chat): a task added to another agent's task is a request to that agent. Node stamps
 		// `from` on it, tells the receiver once, and tells the sender when it completes (hooks.requested / hooks.answered, below).
@@ -1135,10 +1264,18 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 			const home = typeof a.process === "string" || Array.isArray(a.steps) ? await process_home(path.dirname(at.file), a) : path.basename(at.file) === "improvements.jsonl" ? null : task_home(path.dirname(at.file), a, ctx.module_root, url);   // an improvement nests in its folder's list (mastermind role readme)
 			if (home?.why) return { ok: false, why: home.why };
 			if (home?.taken) return { ok: false, why: `a task "${home.slug}" already exists under ${home.list.module}/tasks/; nothing was written. Use the id "${home.free}" (or a different title), or work on the existing one.`, suggest: home.free };
-			const id = home ? null : slug_of(a.id ?? a.title);
-			if (id && (root()._tasks?.find(id) || plan.some(p => p.id === id)))
-				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Use the id "${id}-2" (or a different title), or change the existing one.`, suggest: id + "-2" };
-			if (!home && Class?.replay) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
+			// An agent-made id is 8 random characters, redrawn on a clash among siblings (ids-and-paths.md §5); never a slug of the title.
+			// An explicit id is kept, but a dot is refused (a dot is a path) and so is one a sibling already has.
+			const taken = id => root()._tasks?.find(id) || plan.some(p => p.id === id);
+			let id = home ? null : a.id !== undefined ? String(a.id) : Item.short_id();
+			if (id && a.id === undefined) while (taken(id)) id = Item.short_id();
+			if (id && id.includes(".")) return { ok: false, why: `an id never holds a dot ("${id}"): a dot is a path. Nothing was written. Leave the id out and one is made for you.` };
+			if (id && a.id !== undefined && taken(id))
+				return { ok: false, why: `this task already has a subtask "${id}"; nothing was written. Leave the id out (one is made for you), or change the existing one.` };
+			// The same title twice is the same ask (a refinement goes into the existing task): refused, as the title-made id used to be.
+			const same = !home && !Class.merges_same_title && typeof a.title === "string" && [...(root()._tasks ?? []), ...plan.map(p => ({ id: p.id, get_one: k => p.a[k] }))].find(t => Task.same_title(t.get_one("title"), a.title));
+			if (same) return { ok: false, why: `this task already has a subtask titled "${a.title}" (id "${same.id}"); nothing was written. Change that one, or give a different title.`, existing: same.id };
+			if (!home && tasky) try { const { type: _ty, data, ...fields } = a; Class.replay([{ tasks: { add: { type: task_type(a), ...data, ...fields, id } } }]); } catch (e) { return { ok: false, why: `this line would not replay (${e.message}). Nothing was written. Check the fields of "${id}".` }; }
 			plan.push({ a: asker && a.from === undefined ? { ...a, from: asker } : a, home, id });
 		}
 		for (const { a, home, id } of plan){
@@ -1146,7 +1283,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
 				homes.push(h); ids.push(h.id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id: h.id, title: a.title ?? h.id, path: h.path, own_folder: true });
-				put({ task: h.path, by, ts: now() });
+				put({ task: h.path, by, ts: stamp() });
 				await record_new_folder(path.dirname(home.dir), home.slug);
 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
 				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
@@ -1155,13 +1292,19 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const { type: _t, data, ...fields } = a;
 				ids.push(id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
-				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: now() });
+				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: stamp() });
+				// A class whose list merges a repeated title (Improvements) made no new task: say which one it reinforced.
+				if (Class.merges_same_title && !root()._tasks?.find(id)){
+					ids.splice(ids.indexOf(id), 1);
+					const into = [...(root()._tasks ?? [])].find(t => Task.same_title(t.get_one("title"), a.title));
+					(merged ??= []).push({ title: a.title, into: into?.id ?? null, weight: into?.weight ?? null });
+				}
 			}
 		}
 		const { tasks: _t, ...more } = body;
 		body = Object.keys(others).length ? { ...more, tasks: others } : more;
 	}
-	if (folder !== undefined && Class?.replay){
+	if (folder !== undefined && tasky){
 		const g = await give_folder(root(), at, folder, ctx);
 		if (g.why) return { ok: false, why: g.why };
 		homes.push(...g.made);
@@ -1170,33 +1313,33 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	let unchanged = null;
 	if ((pages === undefined && folder === undefined && !homes.length && !ids.length) || Object.keys(body).length){
 		// A verb that does nothing (refused from this state, or its child not found) is still written, but the answer says so.
-		const verb = Class?.replay && !at.target.length ? verb_in(body) : null;
+		const verb = tasky && !at.target.length ? verb_in(body) : null;
 		// Compared without the clocks: a running child's ran_ms (row_of) grows between the two reads, so it would always look changed.
 		const steady = state => JSON.stringify(state, (k, v) => k === "ran_ms" || k === "span_ms" || k === "last_at" ? undefined : v);
 		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
 		const was = verb ? steady(print(root())) : null;
-		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: now() }), !!Class?.replay);
+		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!tasky);
 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.
-	if (Class?.replay && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
+	if (tasky && !at.target.length && body.approve !== undefined && hooks.approved) try { Promise.resolve(hooks.approved(at.file)).catch(() => {}); } catch {}
 	// A process moves on after any write to it, and a new one starts at once (ProcessRunner.step).
 	if (hooks.changed) for (const f of [...(kind === "Process" ? [at.file] : []), ...homes.filter(h => h.process).map(h => h.file)]) try { Promise.resolve(hooks.changed(f)).catch(() => {}); } catch {}
-	if (Class?.replay) try { notify_requests(root(), at, body, requests, by); } catch {}
+	if (tasky) try { notify_requests(root(), at, body, requests, by); } catch {}
 	// Caveats of a task that just completed reach its parent's log (a subtask nested in this file is on this log already).
-	if (Class?.replay && !at.target.length && is_plain(body.complete) && root().state === "complete") try { tell_parent_caveats(path.dirname(at.file), body.complete.caveats, by); } catch {}
+	if (tasky && !at.target.length && is_plain(body.complete) && root().state === "complete") try { tell_parent_caveats(path.dirname(at.file), body.complete.caveats, by); } catch {}
 	// Node records who worked on the task: one appended line carrying the full list, only when the caller is new to it.
-	if (Class?.replay && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
+	if (tasky && Class.FIELDS?.includes("sessions") && ctx.caller && ctx.caller !== "owner") try {
 		const live = root(), list = live.sessions;
-		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: now() }); line = keep; }
+		if (!list.some(s => s?.id === ctx.caller)) { const keep = line; put({ sessions: [...list, { id: ctx.caller, task: live.get_one("path") ?? app_path(path.dirname(at.file)) }], by, ts: stamp() }); line = keep; }
 	} catch {}
 	// A write to a task or session answers with what was written, never the whole picture (session-is-a-task item 12): a session's picture
 	// walks every task's cost and every child agent, which made each write 20 s on a 140 KB record, past the browser Store's 5 s timeout
 	// (it then appended the line itself: a twin). The picture is a read, item({path}) with no delta. A page's write still answers its page.
-	if (Class?.replay){
+	if (tasky){
 		const live = root();
-		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}),
+		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
 	}
 	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias ? await extra() : {}) };
@@ -1222,13 +1365,9 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, target, delta: { [method]: is_plain(args) ? args : {} } }, { resolve_log, ...ctx }, true));   // a task / session: the item path
 
-				const stamped = is_plain(args) ? { ...(method === "add" ? { id: crypto.randomUUID() } : {}), ...stamp_ids(args), by: ctx.caller ?? "agent", ts: now() } : args;
-				const line = nest(at.target, { [method]: stamped });
-				const no = await page_refusal(at, { [method]: stamped });
-				if (no) return JSON.stringify(no);
-
-				const size = write_line(at.file, line);
-				return JSON.stringify({ ok: true, line, size });
+				// The item tool's own write: checked, applied to the page's live root, then appended (an `add` gets its id there).
+				const r = await run_item({ path: url, target, delta: { [method]: is_plain(args) ? { ...args, by: ctx.caller ?? "agent", ts: now() } : args ?? {} } }, { resolve_log, ...ctx }, true);   // by/ts inside a plain argument, as before
+				return JSON.stringify(r.ok ? { ok: true, ...(r.ids?.length ? { ids: r.ids } : {}), line: r.line, size: r.size } : r);
 			}),
 
 		tool("page_add",
@@ -1243,13 +1382,10 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { content: { add: { ...item, ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true));
 
-				const id = item?.id ?? crypto.randomUUID();
-				const add = { ...item, id, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) };
-				const line = nest(at.target, { add });
-				const no = await page_refusal(at, { add });
-				if (no) return JSON.stringify(no);
-
-				const size = write_line(at.file, line);
+				// The item tool's own write (live root, one line); the id is the caller's or 8 random characters.
+				const r = await run_item({ path: url, delta: { content: { add: { ...item, by: ctx.caller ?? "agent", ts: now(), ...(after !== undefined ? { after } : {}) } } } }, { resolve_log, ...ctx }, true);   // by/ts inside the card too, as before (who added it)
+				if (!r.ok) return JSON.stringify(r);
+				const { line, size } = r, id = r.ids?.[0], add = { ts: line?.ts };
 				// An owner prompt (prompt-relay.mjs writes it): Servex files its asks as proposed tasks (Servex/agents/PromptTasks.js).
 				if (item?.type === "Prompt" && typeof item.text === "string" && hooks.prompted)
 					try { Promise.resolve(hooks.prompted({ file: at.file, line: size?.lines ?? null, id, text: item.text, at: add.ts, by: ctx.caller ?? null })).catch(() => {}); } catch {}
@@ -1290,9 +1426,8 @@ export function page_tools(resolve_log = null){
 				if (!at || at.why) return not_a_page(url, at);
 				if (path.basename(at.file) !== "page.jsonl") return JSON.stringify(await run_item({ path: url, delta: { now: { preview: text } } }, { resolve_log, ...ctx }, true));   // a task has no page log: its "now"
 
-				const line = nest(at.target, { log: { text, by: ctx.caller ?? "agent", ts: now() } });
-				const size = write_line(at.file, line);
-				return JSON.stringify({ ok: true, line, size });
+				const r = await run_item({ path: url, delta: { log: { text, by: ctx.caller ?? "agent", ts: now() } } }, { resolve_log, ...ctx }, true);   // through the live root, one line
+				return JSON.stringify(r.ok ? { ok: true, line: r.line, size: r.size } : r);
 			}),
 
 		tool("page_read",
@@ -1307,10 +1442,8 @@ export function page_tools(resolve_log = null){
 				const file = at.file;
 				if (!fs.existsSync(file)) return JSON.stringify({ ok: false, why: `no page.jsonl at "${url}" yet` });
 
-				const state = replay(parse_lines(file));
-				const base = String(url ?? "").replace(/\/?$/, "/");
-				const subpages = Subpages.listed(file).map(name => ({ name, url: base + name + "/" }));
-				return format === "html" ? render_html(state, subpages) : render_markdown(state, subpages);
+				const Page = await page_class();   // the page's live root (one per file, shared with item()), else the text replay
+				return page_text(Page ? () => live_root(Page, file) : null, file, url, format === "html" ? "html" : "markdown");
 			}),
 	];
 }

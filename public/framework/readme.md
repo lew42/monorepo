@@ -17,7 +17,8 @@
 - [util](./util/) — small plain helper functions (no readme yet)
 - [lab](./lab/) — small browser-feature experiments, each a live demo (today: notifications on Android; [PWA state](./lab/doc/pwa-state.md))
 - [dev](./dev/) — local-only live reload and the dev bar
-- [research](./research/) — research programs shown live (no readme yet)
+- [research](./research/) — research projects, filed by date (`research/YYYY/MM/DD/<topic>/`); its readme lists them (read one only when your task needs it)
+- [tasks](./tasks/readme.md) — framework-wide work asked for and not done yet, newest date first
 - [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
 - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable

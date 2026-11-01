@@ -1,3 +1,5 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 What can be shown of a property **without running anything**.
 
 Most properties have no honest declaration. An instance field assigned in the
