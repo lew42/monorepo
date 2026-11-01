@@ -9,7 +9,10 @@ framework/ai/sessions/20*/
 framework/ai/sessions/*-*-*-*-*/
 
 # Bulk screenshot folders anywhere (also gitignored, never needed by the live site).
+# Cloudflare matches these lines IGNORING CASE, so "shots/" also hits the code folder ext/Shots/;
+# the "!" line puts it back (DevBar imports it at startup: without it every page is blank).
 shots/
+!framework/ext/Shots/
 
 # Shots' machine-made round pictures beside each page.
 screenshots/
