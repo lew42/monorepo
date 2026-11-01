@@ -1,4 +1,6 @@
-# The Claude app voice agent ↔ the masterminds: a low-latency bridge, plus one voice-agents doc (you are a mastermind)
+# Voice bridge: talk to a mastermind from the Claude app, fast
+
+Goal: you speak to the Claude app voice agent; it hears a mastermind's answer back within seconds, with an ack in under 1 s. (You are a mastermind.)
 
 **Who's who: never confuse these two.**
 - **The Claude cloud voice agent:** the Claude Android app, in live voice mode, with the Servex MCP connector.
