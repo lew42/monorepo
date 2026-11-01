@@ -1,5 +1,6 @@
 import View, { div, span, button, select, option } from "../../core/View/View.js";
 import { section } from "./parts.js";
+import { servex_url } from "../servex_url.js";
 import { AgentTalk } from "../../ai2/live.js";
 import devbar from "./DevBar.js";
 import devshell from "../DevShell/DevShell.js";
@@ -14,9 +15,6 @@ function normalize_path(path){
 	return path.endsWith("/") ? path : path + "/";
 }
 
-function servex_url(endpoint){
-	return (window.__SERVEX_URL__ ?? `http://${location.hostname}:8090`) + endpoint;
-}
 
 /**
  * Open the dev bar or dev shell directly to the chat tab for a page.

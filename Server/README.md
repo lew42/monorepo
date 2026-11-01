@@ -50,6 +50,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 - `node Server/DoneCheck.mjs [--dry|--list]` — Haiku check of completed owner asks, "marked done, not done" ([completion](../public/framework/core/Task/doc/completion.md)).
 - `node Server/CloseoutWalk.mjs <session> [--dry|--apply|--counts]` — walks a session's open owner asks to done, stopped, or deferred with a home (same doc).
 - `node Server/NavCheck.mjs <worktree>` — the click test: every page a branch adds must have an `a[href]` on its parent page, loaded headless; `merge.mjs` runs it and refuses an unlinked page, `--no-nav "why"` overrides ([`doc/nav-check.md`](./doc/nav-check.md)).
+- `node Server/Tunnel.mjs up|down|status` — the Cloudflare tunnel: `servex.lew42.com` (the voice app's `/mcp/remote`) and `monorepo.lew42.com` (the site from anywhere, through `SiteGateway.mjs`, behind a key cookie); `node Server/TunnelNamed.mjs setup` sets its hosts and DNS ([tunnel doc](../Servex/ext/remote/doc/tunnel.md)).
 - [`git-hooks/`](./git-hooks/) — the git hooks every worktree shares, versioned here with a small installer.
 
 ## Moved to a doc (verbatim)

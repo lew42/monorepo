@@ -1,4 +1,4 @@
-import { servex_url } from "/framework/dev/servex_url.js";
+import { servex_url, DEV_SITE } from "/framework/dev/servex_url.js";
 
 /* SERVEX'S ADDRESS, AND WHETHER IT IS UP — moved here from `ai2/inbox.js` (2026-09-30,
    review #3 of inbox-ext) so the Inbox extension imports nothing from AI 2. `ai2/inbox.js`
@@ -22,7 +22,7 @@ export const servex_base = () => new URLSearchParams(location.search).get("serve
    all). Every Servex call goes through `servex_fetch`, which rejects at once
    when it is down, so a caller's own `.catch` runs and nothing else hits the
    network. Chrome itself prints one line for the one refused probe. */
-const dev_host = /^(localhost|127\.|192\.168\.|10\.|.*\.localhost$)/.test(location.hostname);
+const dev_host = DEV_SITE.test(location.hostname);
 let up = null;
 export const servex_up = () => up ??= ((PINNED_SERVEX || dev_host)
 	? fetch(servex_base() + "/log/features?n=1").then(r => r.ok).catch(() => false)
