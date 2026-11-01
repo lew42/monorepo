@@ -51,6 +51,8 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
 
 **The phone sheet** (✦ at the bottom of every page under 52em): `class Sheet` in [`ext/drawer/Sheet.js`](/framework/ext/drawer/Sheet.js), mounting the one [`chat.js`](chat.js). One layout at every height: a head, a full-width chat well, the mic footer; it opens over the page and snaps open at 90%. **Its connection log:** every lost, retried or restored link to Servex is a `src: "connection"` line in [the Whisper log](/framework/audio/Whisper/log/) (`ai/whisper/bucket.jsonl`). How and why: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md). Proofs: `test/sheet-steps.mjs` (a shot per 40 px of drag), `test/reconnect.mjs` (a Servex restart).
 
+**Replies read aloud:** `chat.js` hands every event on the live wire to `Recite.shared.from_wire(ev)`, and `DictationBar.mount` puts the Recite bar directly above the mic ([audio/Recite](/framework/audio/Recite/)).
+
 **`DictationBar`** (the phone sheet's one big mic that says its state, a Type button, no Send; switch back in one line): [`doc/refine-dictate-tasks.md#the-bar`](doc/refine-dictate-tasks.md).
 
 **Talking to the mastermind from the Claude app's voice mode** (why not a browser bridge; a connector instead): [`doc/voice-bridge.md`](doc/voice-bridge.md).
