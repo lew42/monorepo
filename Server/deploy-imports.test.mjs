@@ -46,7 +46,10 @@ const files = [];
 
 // Root-relative ("/framework/…") and relative ("../x.js") specifiers; bare names (npm) are not served from public/.
 const IMPORT = /(?:^|[\s;])(?:import|export)\s[^'"`]*?from\s*["']((?:\/|\.\.?\/)[^"']+)["']|import\(\s*["']((?:\/|\.\.?\/)[^"']+)["']\s*\)|^\s*import\s*["']((?:\/|\.\.?\/)[^"']+)["']/gm;
-const bad = [];
+// The exact name of every .js / .mjs on disk (readdir gives the real case on Windows too), keyed by lower case,
+// so an import whose case differs from the file is caught here instead of on a case-sensitive host.
+const exact = new Map(files.map(f => { const r = path.relative(PUBLIC, f).split(path.sep).join("/"); return [r.toLowerCase(), r]; }));
+const bad = [], wrong_case = [];
 for (const file of files){
 	const rel = path.relative(PUBLIC, file).split(path.sep).join("/");
 	if (ignored(rel)) continue;
@@ -55,9 +58,13 @@ for (const file of files){
 		const spec = (m[1] || m[2] || m[3]).split(/[?#]/)[0];
 		const target = spec.startsWith("/") ? spec.slice(1) : path.posix.normalize(path.posix.join(path.posix.dirname(rel), spec));
 		if (ignored(target)) bad.push(`${rel} imports ${spec}`);
+		const real = exact.get(target.toLowerCase());
+		if (real && real !== target) wrong_case.push(`${rel} imports ${spec}, but the file is ${real}`);
 	}
 }
 
-const t = new Test("deploy: no uploaded module imports a file the deploy leaves out (.assetsignore)");
-t.eq(bad, [], `every import resolves to an uploaded file (${files.length} files scanned)`);
+const t = new Test("deploy: every import reaches an uploaded file, spelled with its exact case");
+t.eq(bad, [], `no import resolves to a file .assetsignore leaves out (${files.length} files scanned)`);
+// Windows forgives a wrong capital and Cloudflare does not: "ext/Markdown/md.js" for ext/markdown blanked every page (2026-10-31).
+t.eq(wrong_case, [], "no import differs from its file's name only by case");
 t.done();
