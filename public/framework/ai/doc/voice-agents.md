@@ -40,14 +40,17 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
 
 | Path | Ack | Answer | Use it? |
 |---|---|---|---|
-| `ask_mastermind` (waits up to 60 s) | none until the answer | median **13.5 s**, p90 45 s, 2 of 75 over the minute, 4 never answered | Only for a quick question; noise cancels the wait (the answer then comes through `updates`) |
+| **The bridge** (live after the next Servex restart): `ask_mastermind` waits 8 s, then `voice_hear` or any tool result | **3 ms** in the test door, with an honest status | the first words the moment the mastermind writes them: **8.7 s** for Opus with the say-first rule (a cold CLI start included; about 4.7 s once it is up), against a median **40 s** for its first words today | Yes, once live: say the first sentence, keep talking |
+| `ask_mastermind` before the bridge (waited up to 60 s) | none until the answer | median **13.5 s**, p90 45 s, 2 of 75 over the minute, 4 never answered | Only for a quick question; noise cancels the wait (the answer then comes through `updates`) |
 | `ask_mastermind wait:false`, then `updates` | **64–89 ms** (a ticket) | when the app next polls; nothing tells it to | Yes, today's best: fire, keep talking, call `updates` each turn |
 | `send_to_agent` to a running agent | at once | only if that agent answers by `send_to_agent`, then via `updates` | For a named agent you know is live |
 | `wait_for_agent` | none | blocks until the agent's turn ends | Never from voice: it is a long blind wait |
 | A VS Code tab, through its inbox file (`send_to_agent` to `vscode-mastermind`) | at once (the line is written) | the tab **saw it 9 s later** (its Monitor), then answers in its own turn | Yes for the tab, while it keeps a Monitor armed (at most 30 min each, re-armed every turn; filter out `servex-follow` lines) |
 | Claude Code's peer `SendMessage` to a tab | at once ("queued") | **never arrived**: the idle tab `e00f55c9` showed no message and no approval prompt after 12 min | No. Local agents only (the cloud agent has no `SendMessage`), and a tab in another permission mode holds it unseen |
 
-**Today's blocker (2026-11-01, 23:10Z):** every new agent waits at Servex's spawn gate while free memory is under 2.5 GB (`SERVEX_MIN_FREE_MB`, `Global.admit`); it was 1.2 GB, with 137 `node` processes holding 6.7 GB. So an `ask_mastermind` that must spawn its mastermind gets a ticket in 0.1 s and then **no answer at all** until memory frees. Two voice masterminds sat queued that way.
+**Where the time went (59 past voice turns):** the mastermind made its first tool call at a median 10 s, said its first words at 40 s, and ended its turn at 51 s. It worked before it spoke. The bridge asks it to speak first ([first-words.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/first-words.mjs) times it).
+
+**Today's blocker (2026-11-01, 23:10Z):** every new agent waits at Servex's spawn gate while free memory is under 2.5 GB (`SERVEX_MIN_FREE_MB`, `Global.admit`); it was 1.2 GB, with 137 `node` processes holding 6.7 GB. So an `ask_mastermind` that must spawn its mastermind gets a ticket in 0.1 s and then **no answer at all** until memory frees. Two voice masterminds sat queued that way. The bridge says so in its status, and hands the ask to a fallback agent that is already running (`remote.fallback`).
 
 ## 5. "Switch your voice"
 
@@ -56,6 +59,6 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
 
 ## 6. Rules for a cloud voice agent, in short
 
-- Never wait on a slow call: fire it (`wait: false`), say "looking into it", keep talking, and call `updates` at the start of every turn.
+- Never wait in silence: `ask_mastermind` returns within a few seconds with the mastermind's first sentence; say it, keep talking, and its later words ride along on your next tool call (or call `voice_hear`). Call `updates` at the start of every turn.
 - Never call `restart_servex` during a call: it drops your own connection.
 - Log the owner's words first (`cloud_voice_log`), every turn. The full guide: [cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md).

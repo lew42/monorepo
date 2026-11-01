@@ -63,6 +63,12 @@ What the check showed (session `cloud-voice-session-system-test`):
 - ⚠ **Open:** a nested subtask gets a uuid id, while a top-level task gets a slug of its title. Reported to mastermind-item.
 - ⚠ **Open:** a phase that runs `owner` goes to the creator. For you, that is `voice-app`, which is not a Servex agent, so the phase waits on you. Read `updates` to see it.
 
+## Asking without waiting (the bridge, 2026-11-01)
+
+- `ask_mastermind` waits a few seconds. Without an answer it returns a ticket, the mastermind's status and its first sentence: say that sentence, then keep talking.
+- Later words come to you by themselves on your next tool result (your `cloud_voice_log` call every turn carries them), or call `voice_hear({ticket})` to hear them the moment they arrive.
+- `ask_mastermind({question, to: "vscode-mastermind"})` asks the VS Code tab instead. Which agent is which, and the measured paths: [voice-agents.md](../../../../public/framework/ai/doc/voice-agents.md).
+
 ## Caveats
 
 - Never call `restart_servex` or stop Servex during a call: it drops your own connection.
