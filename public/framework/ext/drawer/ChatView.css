@@ -1,7 +1,7 @@
-/* The v2 chip and Chat v2 box (ChatView.js), shared by the ✦ sheet and the desktop drawer's AI tab. */
+/* The chat version dropdown and the Chat v2/v3 box (ChatView.js), shared by the ✦ sheet and the desktop drawer's AI tab.
+   The dropdown wears drawer-ai-switch-btn, styled in drawer.css beside the session dropdown. */
 @layer base, theme, site, util;
 @layer theme {
-	.drawer-rail-sheet-v2-chip[aria-pressed="true"] { background: var(--fill-a16); border-color: var(--ink); font-weight: 600; }
 	.drawer-rail-sheet-v2 { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; padding-inline: 0.6em; }   /* the same inset as the thread it replaces */
 }
 /* util layer: the thread also wears the .flex utility, which would beat a theme-layer display:none */
