@@ -2,6 +2,7 @@
 
 ## Index
 
+- **[Item system status](./core/doc/status.md)** — what's built of the save-and-stream plan, what isn't, the check that sessions and tasks still replay the same, and the next steps (2026-11-01)
 - [live](/live/) — the owner's live voice-work feed (lives at `public/live/`, not in this folder)
 - [core](./core/) — the seven classes under every page (View, Page, Router, App, Sidebar, Item, List); [how a page renders](./core/Page/doc/how-a-page-renders.md)
 - [ext](./ext/) — opt-in addons; core never imports them
@@ -22,7 +23,7 @@
 - [ai](./ai/) — the daily working log and task board (its card rail and inbox are AI 2's old code, being migrated in place; `ai2/` itself is retired)
 - [audit](./audit/) — the 2026-08-15 doc audit, a dated snapshot
 - [old](./old/) — the home page as it stood before the 2026-10-02 sprawl rebuild, kept reachable
-- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below; [doc/git.md](./doc/git.md) is how branches flow to `main` (proposal)
+- [doc](./doc/decisions.md) — framework-wide decisions and doc-system notes; [doc/rules.md](./doc/rules.md) is the long form of the rules below; [doc/git.md](./doc/git.md) is how code gets from a worktree to the live site (proposal)
 
 ## The systems (one line each; each links its own readme)
 - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages

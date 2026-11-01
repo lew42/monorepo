@@ -34,7 +34,7 @@ The dated sections below are written by hand and go stale; this block does not.
 
 ## Just merged into `michael/dev`: `claude/oop-streaming-research`, with `integration/data-shapes-2` (2026-11-01)
 
-The persistence research, the Item MVP built from it, and the whole of `integration/data-shapes-2` are now on `michael/dev` (merged on GitHub from the cloud session). **On the PC, after `git pull`:** restart Servex (`node Servex/sustain.mjs --restart`) and the dev server (never during a voice call), then open `/framework/core/Page/tool/` in two tabs and check an edit in one shows in the other. Everything about the merge: [build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once the PC has pulled and checked.
+The persistence research, the Item MVP built from it, and the whole of `integration/data-shapes-2` are now on `michael/dev` (merged on GitHub from the cloud session). **On the PC, after `git pull`:** restart Servex (`node Servex/sustain.mjs --restart`) and the dev server (never during a voice call), then open `/framework/core/Page/tool/` in two tabs and check an edit in one shows in the other. Everything about the merge: [build.md](/framework/research/2026/10/29/persistence-sync/build.md). Remove this section once the PC has pulled and checked. **Next** (decided in principle the same day): the git and deploy plan, six steps, in [doc/git.md](/framework/doc/git.md#steps-in-order-none-done-yet); every open ask from that session is in [framework/tasks](/framework/tasks/readme.md).
 
 ## LATEST, 2026-10-25 evening: VS Code tab e00f55c9 wound down after five days (2026-10-20 → 10-25)
 

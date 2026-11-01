@@ -40,3 +40,15 @@ If pages, tasks and agent chat live in R2 + Durable Objects, GitHub matters less
 - Durable Object + R2 pattern and costs: `persistence-sync/notes/cloudflare_vs_postgres_platforms.md`
 - Store adapter interface proposal: `persistence-sync/lessons/storage-compaction.md`
 - Git strategy for many agents: `agent-ops/` (in progress)
+
+## Writing files on the hosted site (the owner, 2026-11-01)
+
+Not started; recorded so the questions aren't lost. Context: [doc/git.md](/framework/doc/git.md) (how this repo deploys).
+
+- **Today the hosted site can't write.** Cloudflare serves `public/` as files uploaded at each deploy (Workers static assets); they're read-only until the next deploy. Every change goes through git.
+- **The wish:** on any copy of the site, append to a JSONL file or upload an image into the site's own folders (`site.com/path/image.png`), the way the dev server does on the PC. Appends would be debounced (one write every few seconds, not one per keystroke).
+- **What it would take:** a Worker script in front of the files, plus storage it can write: R2 (Cloudflare's S3-like buckets; S3 came first, in 2006, and R2 copies its interface without fees for downloads). Paths in the bucket can mirror the site's folders.
+- **Catch: R2 and S3 objects can't be appended to, only replaced.** Rewriting a whole file is allowed and quick, and the new version is visible right away; there's just no "add a line to the end" call. So an append is: read the file, add the line, write it back. With two writers at once, one can overwrite the other's line, so appends go through one place (a Worker or a Durable Object that holds the open log), or each batch becomes its own small file. Browsers can't write to R2 directly without a key; a Worker hands out short-lived signed upload addresses.
+- **Catch: the data leaves git.** Files written on the hosted site aren't committed, so the PC and the site drift apart. Something has to sync them back (or the hosted copy becomes the source for that data).
+- **Catch: each address needs its own data.** localhost, staging (`monorepo.lew42.workers.dev`) and production (`lew42.com`) shouldn't write into the same place. Browsers already keep localStorage apart per address; server-side storage needs the same split (a bucket or prefix per environment).
+- **Catch: rollbacks don't roll data back.** Moving production to an older commit serves older code against newer data ([doc/git.md](/framework/doc/git.md#moving-production-and-moving-it-back)).

@@ -26,6 +26,10 @@ Cloud session `e3fd9043`, 2026-10-29 → 11-01. The task record (the owner's wor
 - **The framework page** lists its sections first; stats moved below; Research is a section.
 - **Deploy safety:** `Server/deploy-imports.test.mjs` (no uploaded module may import a file `.assetsignore` leaves out, matched as Cloudflare does) and `Server/PreviewCheck.mjs <url>` (real browser on a deployed preview).
 
+## Against the research's phases
+
+Moved to [core/doc/status.md](/framework/core/doc/status.md) (2026-11-01), with the check that sessions and tasks still replay the same: Phase 0 not done, Phase 1 about half, snapshots from Phase 2.
+
 ## Why every preview page was blank, and the fix (also affects `data-shapes-2` and `michael/dev`, not `main`)
 
 Cloudflare answers a missing file with `index.html`; a module that comes back as HTML stops the whole app. Three causes, all fixed here: `ext/Chat/md.js` imported `ext/Markdown` (folder is `ext/markdown`); `ai/rail/inbox.js` and `ai/v/3/Prompts.js` imported `fold.js` from a session record folder that `.assetsignore` drops (moved to `ai/log/fold.js`); and `.assetsignore`'s `shots/` line dropped the code folder `ext/Shots/`, because Cloudflare matches case-blind (put back with `!framework/ext/Shots/`).
