@@ -1,4 +1,5 @@
 import { div, span, button, p, small, ol, li, input } from "/app.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 import { icon } from "/framework/core/View/View.js";
 import { fold } from "/framework/ai/log/fold.js";
 import { clock } from "./timeline.js";
@@ -27,7 +28,7 @@ import { prompt_modes } from "/framework/ext/Refine/prompt-card.js";
  */
 
 export class Prompts {
-	static base(){ return new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090"; }
+	static base(){ return new URLSearchParams(location.search).get("servex") || servex_url(); }
 
 	/* ONE CONNECTION, however many readers. The view wants the whole thread; the
 	   board wants only the cards, folded onto its normal timeline. Both subscribe

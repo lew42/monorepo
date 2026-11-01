@@ -17,7 +17,9 @@ export default class Socket extends Events {
 
     initialize() {
 		console.log("New socket initialized");
-        this.local = loopback(this.req?.socket?.remoteAddress);   // false = LAN peer: push traffic only
+        // false = LAN peer: push traffic only. `x-lew42-remote` = a browser on the internet, relayed from loopback by
+        // Server/SiteGateway.mjs: it gets the LAN tier too (a header can only lower the tier, never raise it).
+        this.local = loopback(this.req?.socket?.remoteAddress) && !this.req?.headers?.["x-lew42-remote"];
         this.ws.on("message", this.message.bind(this));
         this.ws.on("close", this.close.bind(this));
 
