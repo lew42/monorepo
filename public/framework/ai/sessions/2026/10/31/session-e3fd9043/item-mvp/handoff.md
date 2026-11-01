@@ -33,7 +33,8 @@ Cloudflare answers a missing file with `index.html`; a module that comes back as
 - Core tests 39 of 41 (the other 2 need the live site); Files 70 + move 110 checks; item tool 116; deploy test passes.
 - Real browser on the real preview of `claude/oop-streaming-research` (owner's PC, 2026-11-01, commit b2dfcdcce): 11 pages render with no module errors: `/`, `/framework/`, `/framework/research/`, the new research page and its app, the Replay Lab, a click-through test page, `/framework/ai/`, `ext/Shots`, `core/Item` and its Files tab. The only console error is the dev-server socket, which a static host doesn't have.
 - A Cloudflare-faithful local copy (only committed files, `.assetsignore` matched case-blind) is how to check before pushing; it caught that a new `page.jsonl` page needs its parent's `files.jsonl` line committed.
-- Not yet: `node Server/PreviewCheck.mjs <preview> --all` over every page (the long run timed out through the remote tunnel; run it locally before merging).
+- **No regressions in a 309-page random sample** (2026-11-01, Cloudflare-faithful local copy): served as Cloudflare would, the original `data-shapes-2` is blank on all 309 (the `ext/Shots` fault) and this branch renders 279 of them. The 56 pages with any problem on the branch were then compared with the original served without `.assetsignore` (so it renders): same outcome on all 56. Their problems were already there before this branch (below).
+- Not yet: `node Server/PreviewCheck.mjs <preview> --all` over every page on the real preview (the long run timed out through the remote tunnel; run it on the PC before merging).
 
 ## How to merge (owner: into `michael/dev`, not `main` yet)
 
@@ -47,6 +48,7 @@ Cloudflare answers a missing file with `index.html`; a module that comes back as
 - **Not built:** per-person UI state (D18: tabs, column widths); an Item variant that replays calls by default (experiment); running `Snapshots.mjs` automatically; a `children` array rewrite on moves; rebuilding the research app and the Replay Lab mock with the framework's own classes (the real Replay Lab exists; the research app is copied as-is).
 - **Untested corners:** a line written but its ack lost, then the tab reloads; the crash-recovery undo of a move (`status: "moving"`); Windows-only file behavior (simulated here).
 - **Owner's wider asks, recorded, not started:** a better branch strategy for the many loose `worktree/*` and `integration/*` branches; a whole-system review of where each agent finds the docs it needs (context bloat vs discoverability); a minion audit that every folder's readme indexes its contents (the rule is in `core/Page/doc/navigation.md`).
+- **Broken before this branch (found by the page sample, not fixed):** the experimental site under `core/new/1/` imports `/ui.js`, `/budget/budget.js`, `/perf/ui.js` and `/content/show.js`, which exist nowhere in the repo (about 30 pages); a live demo in `ux/Content/catalog/catalog.json` (entry 65) imports `{ composer }` from `ai/cards/compose.js`, but the file is now `Compose.js` exporting `Compose` (broken on Windows too; the stale `compose.js` line in `ai/cards/files.jsonl` was marked gone on this branch); the `audio/` mic pages need `navigator.mediaDevices`, which a plain-http test host lacks (fine on https).
 - **Known noise:** running the dev server in a Linux clone rewrites many `files.jsonl` lists (catch-up differences from the owner's PC); never commit them blindly.
 
 ## Rules the owner set this session (where they live now)
