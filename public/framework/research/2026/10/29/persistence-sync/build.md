@@ -26,6 +26,18 @@ Cloud session `e3fd9043`, 2026-10-29 → 11-01. The task record (the owner's wor
 - **The framework page** lists its sections first; stats moved below; Research is a section.
 - **Deploy safety:** `Server/deploy-imports.test.mjs` (no uploaded module may import a file `.assetsignore` leaves out, matched as Cloudflare does) and `Server/PreviewCheck.mjs <url>` (real browser on a deployed preview).
 
+## Against the research's phases (checked against the code on `michael/dev`, 2026-11-01)
+
+The research planned six phases ([design/phase-1.md](design/phase-1.md), §16). The MVP was the owner's "build a simple Item MVP": most of Phase 1, one piece of Phase 2, and some things no phase listed.
+
+| Phase | Status |
+|---|---|
+| **0. Stop silent losses** ([design/fixes.md](design/fixes.md) 1–5: newline guard before appends, a client id in the twin key, readers kept through a server restart, crash-safe rewrites, the `add` envelope) | **Not done as a set.** The MVP's progress log doesn't list them; check each before building on the save path. |
+| **1. Solid streaming, robust data, bindings** | **About half.** Done: the D13 line format is read everywhere (`name()`, `#id`, old shapes); `{client, n}` numbering, ack, resend after reconnect, dedupe, unsent lines kept through a reload, a heartbeat; saving no longer depends on views; `act()` mutes only its own tree; `set()` refuses values it can't save; `view.bind` (views update themselves). Partly: *writing* the new line spelling is built but off (`Store.marked_lines`). Not built: `reset`/`epoch` and the gap check after a rewrite, the `unset` verb, a warning on unknown verbs, the `source` tag and `batch()`, typing coalesce, `Room` + `FileJournal`. |
+| **2. The cloud, and more than one person** | **One piece:** snapshots (`<file>.snapshot.json`, loaded as snapshot + tail; made by hand with `Server/Snapshots.mjs`). Not built: presence and soft locks, schema line, Durable Object journal, SQLite journal. |
+| **3–5. Scale and history; throwaway streams; merging** | Not started. |
+| **Not in any phase, built** | The Replay Lab on the real classes; visual tests (`test(name, fn)`); D17 `set_<key>` hooks; D14 `as_call`; the Files tab (list, create, upload, rename, move with undo); the core API overview; deploy safety tests. |
+
 ## Why every preview page was blank, and the fix (also affects `data-shapes-2` and `michael/dev`, not `main`)
 
 Cloudflare answers a missing file with `index.html`; a module that comes back as HTML stops the whole app. Three causes, all fixed here: `ext/Chat/md.js` imported `ext/Markdown` (folder is `ext/markdown`); `ai/rail/inbox.js` and `ai/v/3/Prompts.js` imported `fold.js` from a session record folder that `.assetsignore` drops (moved to `ai/log/fold.js`); and `.assetsignore`'s `shots/` line dropped the code folder `ext/Shots/`, because Cloudflare matches case-blind (put back with `!framework/ext/Shots/`).
