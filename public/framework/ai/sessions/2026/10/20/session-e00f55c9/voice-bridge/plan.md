@@ -16,7 +16,7 @@
 3. **`voice_hear({ticket})`:** a short long-poll (8 s by default, 20 s max). It returns the moment anything changes (first words, a new tool, the answer), else when the time is up. Cancel-safe: every reply carries the whole state so far, so a call cut off by noise loses nothing.
 4. **Answers ride along.** Any tool result on the remote route (`cloud_voice_log`, which the agent calls every turn, included) carries new words from an open ticket. The voice agent hears the answer without asking for it.
 5. **Never wait on a spawn.** `ask_mastermind({to})` sends to any agent (`vscode-mastermind`, a running mastermind). When the connection's own mastermind is queued at the gate, the ask goes to the fallback named in `remote.fallback` (or `REMOTE_MCP_FALLBACK`) and the status says so.
-6. **Effort:** the voice mastermind spawns at effort `medium` (it was the default `high`), for faster first words. `REMOTE_MCP_EFFORT` switches it.
+6. **Effort: unchanged.** A medium-effort spawn was planned for faster first words; measured, Opus said its first sentence at 8.6 s on medium and 8.7 s on high ([first-words.mjs](first-words.mjs)), so it was dropped.
 
 ## Decisions and alternatives
 
