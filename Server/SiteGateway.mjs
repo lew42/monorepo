@@ -13,7 +13,7 @@ import { fileURLToPath } from "url";
  *
  * Why the LAN address: the dev server then sees a LAN PEER, exactly like the owner's phone on Wi-Fi, so its own
  * guards still stand: loopback-only routes (/mcp, /screenshot, /devsource.json, /ai-logs, /recordings) refuse it,
- * and the socket gets push traffic only (no rpc:cmd, no rpc:write; Socket.js). On top of that, four checks here:
+ * and the socket gets push traffic plus `append` only (no rpc:cmd, no rpc:write; Socket.js, doc dev/Socket/doc/lan.md). On top of that, four checks here:
  *   1. The key. `?site_key=<remote.token>` once sets an HttpOnly cookie (an HMAC of the token, never the token);
  *      no cookie, no entry. Cloudflare Access replaces this once it is enabled (doc below).
  *   2. Origin. A write (any method but GET/HEAD) and every WebSocket must come from our own origin.
@@ -21,6 +21,7 @@ import { fileURLToPath } from "url";
  *      /Servex/, /Server/, /ask/turn, /push/send) never pass.
  *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
  * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
+ * A live stream (SSE) gets a comment line after 20 s of silence (the socket gets a ping from Socket.js), so Cloudflare's ~100 s idle cut does not drop it.
  *
  *     node Server/SiteGateway.mjs       run it alone (Tunnel.mjs `up` also starts it in named mode)
  *
@@ -118,6 +119,14 @@ export default class SiteGateway {
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
             h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
             res.writeHead(r.statusCode, h);
+            // A live stream (SSE) that goes quiet is cut by Cloudflare after about 100 s; a comment line every 20 s of silence keeps it open.
+            // EventSource ignores comment lines. Only sent when the upstream has been silent, so it never lands inside an event.
+            if (/text\/event-stream/i.test(String(r.headers["content-type"]))){
+                let last = Date.now();
+                r.on("data", () => { last = Date.now(); });
+                const beat = setInterval(() => { if (Date.now() - last >= 20000) { res.write(": keep-alive\n\n"); last = Date.now(); } }, 10000);
+                res.on("close", () => clearInterval(beat));
+            }
             r.pipe(res);
             r.on("error", () => res.destroy());
         });
@@ -143,7 +152,9 @@ export default class SiteGateway {
         if (!this.has_cookie(req)) return deny("401 Unauthorized");
         if (this.refuse(req.method, p, req.headers.origin, true)) return deny("403 Forbidden");
         let to; try { to = this.dest(); } catch { return deny("502 Bad Gateway"); }
+        socket.setKeepAlive(true, 20000);
         const up = net.connect(to.port, to.host, () => {
+            up.setKeepAlive(true, 20000);
             const h = this.headers(req);
             up.write(`${req.method} ${req.url} HTTP/1.1\r\n` + Object.entries(h).map(([k, v]) => `${k}: ${v}`).join("\r\n") + "\r\n\r\n");
             if (head?.length) up.write(head);
