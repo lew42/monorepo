@@ -112,19 +112,25 @@ export default class SessionFolders {
 		return out;
 	}
 
-	/** Every folder that holds `id` on disk now, the home first: the oldest day (the day the session began), then the most it holds, then the name. */
-	all(id){
-		if (!UUID.test(id ?? "")) return [];
-		const check = () => this.listed(id).map(r => path.join(this.root, r)).filter(dir => { const o = SessionFolders.owner(dir); return o === id || (o === null && ID8.exec(path.basename(dir))?.[1] === id.slice(0, 8)); });
-		let found = this.days.size ? check() : [];
-		if (!found.length || found.length !== this.listed(id).length){ this.refresh(); found = check(); }   // a miss or a stale entry: read the disk again
+	/** The folders that hold `id`, checked on disk, the home first: the oldest day (the day the session began), then the most it holds, then the name. */
+	found(id){
+		const out = this.listed(id).map(r => path.join(this.root, r)).filter(dir => { const o = SessionFolders.owner(dir); return o === id || (o === null && ID8.exec(path.basename(dir))?.[1] === id.slice(0, 8)); });
 		const day = dir => path.relative(this.root, path.dirname(dir)).split(path.sep).join("/");
-		const w = new Map(found.map(d => [d, found.length > 1 ? SessionFolders.weight(d) : 0]));
-		return found.sort((a, b) => day(a).localeCompare(day(b)) || w.get(b) - w.get(a) || path.basename(a).localeCompare(path.basename(b)));
+		const w = new Map(out.map(d => [d, out.length > 1 ? SessionFolders.weight(d) : 0]));
+		return out.sort((a, b) => day(a).localeCompare(day(b)) || w.get(b) - w.get(a) || path.basename(a).localeCompare(path.basename(b)));
 	}
 
-	/** The session's folder, or null. */
-	of(id){ return this.all(id)[0] ?? null; }
+	/** Every folder that holds `id` on disk now, the home first. Reads the disk first (a folder made since the last read is in it). */
+	all(id){ return UUID.test(id ?? "") ? this.refresh().found(id) : []; }
+
+	/** The session's folder, or null. Fast: what the map knows, each answer checked on disk; the disk is read again on a miss, or when a known
+	 *  folder has gone. (A second folder made since the last read is not looked for here: every writer still gets the same, oldest known home,
+	 *  and the twin check finds the second one.) */
+	of(id){
+		if (!UUID.test(id ?? "")) return null;
+		const known = this.days.size ? this.listed(id).length : 0, found = known ? this.found(id) : [];
+		return (found.length && found.length === known ? found : this.refresh().found(id))[0] ?? null;
+	}
 
 	/** of(id), else where a new folder goes on `day` ("YYYY/MM/DD" or an absolute day folder): `name` if given, else session-<id8>, else (when
 	 *  another id holds session-<id8> that day: two ids can share their first 8 hex) the full uuid. Absolute; never made here. */
@@ -139,13 +145,13 @@ export default class SessionFolders {
 	twins(){
 		this.refresh();
 		const out = [];
-		for (const [id, set] of this.ids) if (set.size > 1){ const [home, ...others] = this.all(id); if (others.length) out.push({ id, home, others }); }
+		for (const [id, set] of this.ids) if (set.size > 1){ const [home, ...others] = this.found(id); if (others.length) out.push({ id, home, others }); }
 		return out.sort((a, b) => a.home.localeCompare(b.home));
 	}
 
 	/** Every session in the store once, at its home: [{id, dir}]. */
 	homes(){
 		this.refresh();
-		return [...this.ids].filter(([, set]) => set.size).map(([id, set]) => ({ id, dir: set.size === 1 ? path.join(this.root, [...set][0]) : this.of(id) })).filter(r => r.dir);
+		return [...this.ids].filter(([, set]) => set.size).map(([id, set]) => ({ id, dir: set.size === 1 ? path.join(this.root, [...set][0]) : this.found(id)[0] })).filter(r => r.dir);
 	}
 }
