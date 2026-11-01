@@ -66,7 +66,7 @@ What the check showed (session `cloud-voice-session-system-test`):
 ## Asking without waiting (the bridge, 2026-11-01)
 
 - `ask_mastermind` waits a few seconds. Without an answer it returns a ticket, the mastermind's status and its first sentence: say that sentence, then keep talking.
-- Later words come to you by themselves on your next tool result (your `cloud_voice_log` call every turn carries them), or call `voice_hear({ticket})` to hear them the moment they arrive.
+- The answer comes to you by itself on your next tool result (your `cloud_voice_log` call every turn carries it), or call `voice_hear({ticket})` to hear the status and the answer the moment they change.
 - `ask_mastermind({question, to: "vscode-mastermind"})` asks the VS Code tab instead. Which agent is which, and the measured paths: [voice-agents.md](../../../../public/framework/ai/doc/voice-agents.md).
 
 ## Caveats

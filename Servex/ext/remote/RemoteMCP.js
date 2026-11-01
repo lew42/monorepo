@@ -27,7 +27,7 @@ export default class RemoteMCP {
         "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
         "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
-        "ask_mastermind waits at most a few seconds. If the answer is not in yet it returns a ticket, the mastermind's status and its first words: say those, keep talking, and never wait in silence. New words from an open ticket ride along on your next tool result (cloud_voice_log included), or call voice_hear({ticket}) to hear them the moment they arrive. Every answer also arrives through `updates` with reply_to = its ticket, so skip an answer you already have.",
+        "ask_mastermind waits at most a few seconds. If the answer is not in yet it returns a ticket, the mastermind's status and its first words: say those, keep talking, and never wait in silence. Its answer rides along on your next tool result (cloud_voice_log included), or call voice_hear({ticket}) to hear the status and the answer the moment they change. Every answer also arrives through `updates` with reply_to = its ticket, so skip an answer you already have.",
     ].join("\n");
     // The bridge's listening tool (voice-bridge, 2026-11-01): a short long-poll on one ask's ticket. Remote route only.
     static HEAR = {
@@ -52,7 +52,7 @@ export default class RemoteMCP {
     static CALLER = "voice-app";
     static TOOL = {
         name: "ask_mastermind",
-        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC). It waits a few seconds: you get the answer, or a ticket with the mastermind's status and first words to say while it works (wait:false returns the ticket at once). Later words ride along on your next tool result, or call voice_hear. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
+        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC). It waits a few seconds: you get the answer, or a ticket with the mastermind's status and first words to say while it works (wait:false returns the ticket at once). The answer rides along on your next tool result, or call voice_hear. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
         inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." }, wait: { type: "boolean", description: "Default true (a few seconds). false returns a ticket at once." }, to: { type: "string", description: "Optional: ask this agent instead of your voice mastermind, e.g. vscode-mastermind." } }, required: ["question"] },
     };
 
@@ -61,7 +61,6 @@ export default class RemoteMCP {
     constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = Number(process.env.REMOTE_MCP_WAIT_MS) || 8000, late_ms = 1800000, target } = {}){
         Object.assign(this, { servex, root, token_file, wait_ms, late_ms, target });
         this.tickets = new Map();               // ticket -> what the mastermind has said so far on that ask (see ticket())
-        this.standins = new Map();              // agent id -> the spawn gate's stand-in, while a spawned mastermind is queued
         this.listen();
         this.replies = path.join(path.dirname(token_file), "remote-replies");
         this.sessions_file = path.join(path.dirname(token_file), RemoteMCP.SESSIONS_FILE);
@@ -270,13 +269,10 @@ export default class RemoteMCP {
         return named;
     }
 
-    // why an agent cannot answer yet: the spawn gate's reason while it is queued (the same test as Layers.js `queued`), else null
+    // why an agent cannot answer yet: the spawn gate's reason while it is still in the gate's queue (Servex.js queued_entry), else null
     queued_why(id){
-        const a = this.standins.get(id) ?? this.servex.agents?.live?.get?.(id);
-        const card = a?.card?.();
-        if (a && (a.queued === true || card?.state === "queued")) return card?.reason ?? "queued at the spawn gate";
-        this.standins.delete(id);
-        return null;
+        const held = this.servex.agents?.queued_entry?.(id);
+        return held ? (held.card?.()?.reason ?? "queued at the spawn gate") : null;
     }
 
     dir_of(id){
@@ -312,7 +308,6 @@ export default class RemoteMCP {
         try { card = JSON.parse(await this.servex.cards.tools().find(t => t.name === "create_card").handler({ title: `Voice session ${when}`, type: "note", by: "remote-mcp" })).id; } catch {}
         const prompt = `Load the voice-mastermind skill first. You are the mastermind of voice session ${sid}. Your task dir is ${dir}/ (task.jsonl is already open)${card ? ` and your card is ${card}` : ""}. Each owner question arrives as a message that names a reply file: answer by writing plain text to it. The gateway already writes the question and answer chat lines into your task.jsonl, so skip that part of the skill and log your own work (agents, decisions) there. Wait for the first question.`;
         const agent = this.servex.agents.spawn({ role: "mastermind", name: `voice-${short}`, prompt, model: "claude-opus-5-5", dormant_after: 600, permission_mode: "bypassPermissions", task: { dir, ...(card ? { card } : {}) } });
-        if (agent.queued === true || agent.card?.()?.state === "queued") this.standins.set(agent.id, agent);
         Object.assign(s, { agent: agent.id, dir });
         this.save_sessions();
         return { id: agent.id, dir };
@@ -323,7 +318,7 @@ export default class RemoteMCP {
         const qid = crypto.randomBytes(4).toString("hex");
         const out = path.join(this.replies, qid + ".txt");
         fs.mkdirSync(this.replies, { recursive: true });
-        const t = this.ticket(qid, { sid, agent: id, routed });
+        const t = this.ticket(qid, { sid, agent: id, routed, busy: this.servex.agents?.live?.get?.(id)?.state === "working" });
         // say first (voice-bridge): the sentence before the first tool call is streamed to the voice agent as it is written
         const msg = `The owner asks by voice (question ${qid}): "${question}"\nSAY FIRST: begin your reply with ONE plain sentence, before any tool call: the answer if you know it, else what you are doing and about how long. The voice agent hears it the moment you write it.\nThen, if more is needed, do it and write the full answer for the voice agent, which will decide how to say it aloud: the answer first, then the context it needs to hold a conversation (what it is, where it lives, what is open, alternatives, a link or two); a few short paragraphs at most. Write it as plain text to ${out} (one file write). If your first sentence was the whole answer, skip the file.`;
         try { this.servex.agents.send(id, msg, { from: "owner (voice)" }); }
@@ -332,7 +327,7 @@ export default class RemoteMCP {
             if (used.to || this.override() || !this.sessions[sid]) { this.tickets.delete(qid); throw e; }
             Object.assign(this.sessions[sid], { agent: null, dir: null });
             ({ id, dir, routed } = await this.agent_for(sid));
-            Object.assign(t, { agent: id, routed });
+            Object.assign(t, { agent: id, routed, armed: this.servex.agents?.live?.get?.(id)?.state !== "working" });
             this.servex.agents.send(id, msg, { from: "owner (voice)" });
         }
         used.agent = id;
@@ -375,16 +370,17 @@ export default class RemoteMCP {
         watch();
         this.mark(t);
         const v = this.view(t);
-        return `Not answered yet (ticket ${qid}). ${v.to} is ${v.status}.${v.first ? ` Its first words: "${v.first}"` : ""} Say that, keep talking; new words ride along on your next tool result, or call voice_hear. (${ack})`;
+        return `Not answered yet (ticket ${qid}). ${v.to} is ${v.status}.${v.first ? ` Its first words: "${v.first}"` : ""} Say that, keep talking; the answer rides along on your next tool result, or call voice_hear. (${ack})`;
     }
 
     /* THE BRIDGE (voice-bridge, 2026-11-01; plan: public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/plan.md).
      * One ticket per ask: what the agent has said so far. `first` is its text before its first tool call (the say-first sentence),
-     * `words` all its text this ask, `doing` its latest tool, `rev` bumps on every change so voice_hear and ride() know what is new. */
-    ticket(qid, { sid, agent, routed }){
+     * `words` all its text this ask, `doing` its latest tool, `rev` bumps on every change so voice_hear and ride() know what is new.
+     * `armed` is false while the agent was mid-turn on other work when we asked: that turn's words are not this ask's; it arms at that turn's end. */
+    ticket(qid, { sid, agent, routed, busy = false }){
         const now = Date.now();
         for (const [k, x] of this.tickets) if (now - x.at > this.late_ms) this.tickets.delete(k);
-        const t = { id: qid, sid, agent, routed: routed ?? null, at: now, first: "", words: "", doing: null, tools: 0, answer: null, done: false, turn_done: false, rev: 0, heard: 0, rode: { first: 0, answer: false }, waiters: new Set() };
+        const t = { id: qid, sid, agent, routed: routed ?? null, armed: !busy, at: now, first: "", words: "", doing: null, tools: 0, answer: null, done: false, turn_done: false, rev: 0, heard: 0, rode: { first: 0, answer: false }, waiters: new Set() };
         this.tickets.set(qid, t);
         return t;
     }
@@ -405,7 +401,7 @@ export default class RemoteMCP {
     // the honest state of one ask, in words the voice agent can say
     view(t){
         const why = this.queued_why(t.agent), row = why ? null : this.servex.agents?.live?.get?.(t.agent);
-        const status = t.done ? "done" : why ? `waiting to start: ${why}` : t.doing ? `working (${t.doing})` : row?.state === "working" ? "working" : row ? `${row.state}: the question is queued for it` : "asked";
+        const status = t.stopped && !t.answer ? "stopped before answering" : t.done ? "done" : why ? `waiting to start: ${why}` : t.doing ? `working (${t.doing})` : row?.state === "working" ? "working" : row ? `${row.state}: the question is queued for it` : "asked";
         return { ticket: t.id, to: t.agent, status, routed: t.routed, first: t.first.trim() || null, answer: t.answer, done: t.done, seconds: Math.round((Date.now() - t.at) / 100) / 10 };
     }
 
@@ -431,12 +427,14 @@ export default class RemoteMCP {
         const open = this.open_for(agent?.id);
         const t = open[0];
         if (!t) return;
+        if (!t.armed){ if (event.type === "result") t.armed = true; return; }   // the other work's turn ended; the next turn is ours
+        if (event.type === "result" && event.stopped){ Object.assign(t, { done: true, stopped: true }); return this.changed(t); }   // cut off mid-turn: closed, and its partial words are not an answer
         t.turn_done = false;   // a new turn: its words are not an answer until it ends
         if (event.type === "delta"){ if (!t.tools) t.first += event.text; t.words += event.text; return this.changed(t); }
         if (event.type === "tool"){ t.tools++; t.doing = `${String(event.name).replace(/^mcp__\w+__/, "")} ${event.input ?? ""}`.trim().slice(0, 80); return this.changed(t); }
         if (event.type === "result"){
             // one turn can answer several queued asks; each without a reply file takes the words its turn said
-            for (const x of open) if (x === t || x.words){ x.turn_done = true; x.deliver?.() || this.changed(x); }
+            for (const x of open) if (x.armed && (x === t || x.words)){ x.turn_done = true; x.deliver?.() || this.changed(x); }
         }
     }
 

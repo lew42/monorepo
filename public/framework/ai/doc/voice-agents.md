@@ -42,7 +42,7 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
 |---|---|---|---|
 | **The bridge** (live after the next Servex restart): `ask_mastermind` waits 8 s, then `voice_hear` or any tool result | **3 ms** in the test door, with an honest status | the first words the moment the mastermind writes them: **8.7 s** for Opus with the say-first rule (a cold CLI start included; about 4.7 s once it is up), against a median **40 s** for its first words today | Yes, once live: say the first sentence, keep talking |
 | `ask_mastermind` before the bridge (waited up to 60 s) | none until the answer | median **13.5 s**, p90 45 s, 2 of 75 over the minute, 4 never answered | Only for a quick question; noise cancels the wait (the answer then comes through `updates`) |
-| `ask_mastermind wait:false`, then `updates` | **64–89 ms** (a ticket) | when the app next polls; nothing tells it to | Yes, today's best: fire, keep talking, call `updates` each turn |
+| `ask_mastermind wait:false`, then `updates` | **64–89 ms** (a ticket) | when the app next polls; nothing tells it to | The best path before the bridge; still works |
 | `send_to_agent` to a running agent | at once | only if that agent answers by `send_to_agent`, then via `updates` | For a named agent you know is live |
 | `wait_for_agent` | none | blocks until the agent's turn ends | Never from voice: it is a long blind wait |
 | A VS Code tab, through its inbox file (`send_to_agent` to `vscode-mastermind`) | at once (the line is written) | the tab **saw it 9 s later** (its Monitor), then answers in its own turn | Yes for the tab, while it keeps a Monitor armed (at most 30 min each, re-armed every turn; filter out `servex-follow` lines) |
@@ -59,6 +59,6 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
 
 ## 6. Rules for a cloud voice agent, in short
 
-- Never wait in silence: `ask_mastermind` returns within a few seconds with the mastermind's first sentence; say it, keep talking, and its later words ride along on your next tool call (or call `voice_hear`). Call `updates` at the start of every turn.
+- Never wait in silence: `ask_mastermind` returns within a few seconds with the mastermind's first sentence; say it, keep talking, and its answer rides along on your next tool call (or call `voice_hear`). Call `updates` at the start of every turn.
 - Never call `restart_servex` during a call: it drops your own connection.
 - Log the owner's words first (`cloud_voice_log`), every turn. The full guide: [cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md).

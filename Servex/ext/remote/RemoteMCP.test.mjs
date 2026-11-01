@@ -234,11 +234,13 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
 {
     const live = new Map(), standin = { id: "mastermind-voice-queued", queued: true, card: () => ({ state: "queued", reason: "only 1200 MB of memory is free; waiting for 2560 MB" }) };
     let queue_next = false, script = null;
+    const in_queue = new Set();   // the gate's queue (Servex.js queued_entry): an id leaves it when the gate admits it
     const agents2 = {
         live, watch(){},
+        queued_entry: id => in_queue.has(id) ? standin : null,
         registry_list: () => [], task_dir_for: () => null,
         spawn(spec){
-            if (queue_next) return standin;
+            if (queue_next){ in_queue.add(standin.id); return standin; }
             const a = { id: `mastermind-${spec.name}`, state: "idle", effort: spec.effort };
             live.set(a.id, a); return a;
         },
@@ -246,7 +248,7 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
         send(id, text){
             const a = live.get(id) ?? { id };
             const out = /plain text to (\S+\.txt)/.exec(text)?.[1];
-            const ev = (ms, e) => setTimeout(() => agents2.watch(e, a), ms);
+            const ev = (ms, e) => setTimeout(() => { if (e.type === "result") a.state = "idle"; agents2.watch(e, a); }, ms);   // a real agent is idle once its turn ends
             a.state = "working";
             for (const [ms, e] of script(out)) e === "file" ? setTimeout(() => fs.writeFileSync(out, "the full answer, from the file"), ms) : ev(ms, e);
         },
@@ -301,6 +303,27 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const routed = JSON.parse((await tool2("ask_mastermind", { question: "hello again?", wait: false }, b2)).text);
     delete process.env.REMOTE_MCP_FALLBACK;
     assert.equal(routed.to, "vscode-mastermind"); assert.match(routed.routed, /waiting to start/, "routed to the fallback, and says so");
+    // the gate admits it: the next ask goes to the connection's own mastermind again, and says nothing about waiting
+    in_queue.delete(standin.id); live.set(standin.id, { id: standin.id, state: "idle" });
+    await new Promise(r => setTimeout(r, 300));
+    process.env.REMOTE_MCP_FALLBACK = "vscode-mastermind";
+    script = () => [[100, { type: "delta", text: "Started now." }], [150, { type: "result" }]];
+    const own = JSON.parse((await tool2("ask_mastermind", { question: "now?", wait: false }, b2)).text);
+    delete process.env.REMOTE_MCP_FALLBACK;
+    assert.ok(own.to === standin.id && !/waiting/.test(own.status), `an admitted mastermind is asked directly (${own.to}, ${own.status})`);
+    await new Promise(r => setTimeout(r, 300));
+    // a busy agent: the words of the turn it was already in are not this ask's answer; the next turn's are
+    live.get("vscode-mastermind").state = "working";
+    script = () => [[50, { type: "delta", text: "unrelated work" }], [100, { type: "result" }], [200, { type: "delta", text: "Your answer." }], [250, { type: "result" }]];
+    const busy = (await tool2("ask_mastermind", { question: "busy?", to: "vscode-mastermind" }, b1)).text;
+    assert.equal(busy, "Your answer.", "words from the turn already running are skipped");
+    // stopped mid-turn: partial words are not an answer
+    live.get("vscode-mastermind").state = "idle";
+    script = () => [[50, { type: "delta", text: "half a thou" }], [100, { type: "result", stopped: true }]];
+    const cut = (await tool2("ask_mastermind", { question: "stop?", to: "vscode-mastermind", wait: false }, b1)).text;
+    await new Promise(r => setTimeout(r, 300));
+    const ch = JSON.parse((await tool2("voice_hear", { ticket: JSON.parse(cut).ticket, wait_s: 0 }, b1)).text);
+    assert.ok(ch.done && ch.answer === null && /stopped/.test(ch.status), `a stopped turn closes its ask with no answer (${ch.status})`);
     // 10) `to` asks a named agent directly
     await new Promise(r => setTimeout(r, 400));   // one question at a time: a turn's words belong to the oldest open ask of that agent
     script = () => [[100, { type: "delta", text: "Direct." }], [150, { type: "result" }]];
