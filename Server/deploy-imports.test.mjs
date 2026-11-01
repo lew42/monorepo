@@ -12,16 +12,26 @@ import Test from "../public/framework/core/Test/Test.js";
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = path.join(REPO, "public");
 
-// .assetsignore: gitignore-style folder patterns ("a/b/" from the root, "name/" in any folder), with * globs.
+// .assetsignore: gitignore-style folder patterns ("a/b/" from the root, "name/" in any folder), with * globs,
+// matched the way Cloudflare matches them: IGNORING CASE (so "shots/" also drops "ext/Shots/"; that blanked
+// every page on 2026-10-31), in order, the last matching line wins, and "!pattern" re-includes.
 const patterns = fs.readFileSync(path.join(PUBLIC, ".assetsignore"), "utf8")
 	.split("\n").map(l => l.trim()).filter(l => l && !l.startsWith("#"));
-const glob = s => new RegExp("^" + s.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*") + "$");
-const ignored = rel => patterns.some(p => {
+const glob = s => new RegExp("^" + s.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*") + "$", "i");
+const matches = (p, rel) => {
 	const parts = p.replace(/\/$/, "").split("/").map(glob);
 	const dirs = rel.split("/").slice(0, -1);
 	if (parts.length === 1) return dirs.some(d => parts[0].test(d));        // "shots/": any folder of that name
 	return parts.length <= dirs.length && parts.every((re, i) => re.test(dirs[i]));  // anchored at public/
-});
+};
+const ignored = rel => {
+	let out = false;
+	for (const p of patterns){
+		const neg = p.startsWith("!");
+		if (matches(neg ? p.slice(1) : p, rel)) out = !neg;
+	}
+	return out;
+};
 
 // Live code = every .js / .mjs under public/ that is itself uploaded (an ignored file's own imports don't matter).
 const files = [];
