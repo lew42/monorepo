@@ -650,7 +650,7 @@ for (const rec of records){
 		(m.get(ln.text) ?? m.set(ln.text, []).get(ln.text)).push(`${rec.file}:${i + 1}`);
 	});
 }
-const copyRows = [...copyMap].map(([dest, m]) => ({ dest, lines: m.size, sources: [...new Set([...m.values()].flat().map(s => s.replace(/:\d+$/, "")))], destExists: exists(path.join(REPO, dest)), why: [...m.keys()].map(t => records.flatMap(r => r.lines).find(l => l.text === t)?.dest?.why).find(Boolean) }));
+const copyRows = [...copyMap].map(([dest, m]) => ({ dest, lines: m.size, texts: [...m].map(([text, src]) => ({ text, src })), sources: [...new Set([...m.values()].flat().map(s => s.replace(/:\d+$/, "")))], destExists: exists(path.join(REPO, dest)), why: [...m.keys()].map(t => records.flatMap(r => r.lines).find(l => l.text === t)?.dest?.why).find(Boolean) }));
 const copyLineTotal = copyRows.reduce((n, r) => n + r.lines, 0);
 
 // ---- results object (also for --json) ----
