@@ -1,0 +1,233 @@
+{
+  "dilemma": "list-order",
+  "lens": "precedent",
+  "by": "analyst-order-precedent",
+  "options": [
+    {
+      "id": "after-id",
+      "label": "Name the neighbour (add/move with after: id)",
+      "wins_when": [
+        {
+          "scenario": "An agent or a browser tab adds task c9 after c1, and the line reads {\"tasks\":{\"add\":{\"id\":\"c9\",\"after\":\"c1\"}}}. A person reading page.jsonl can see the intent at once.",
+          "why": "It is the easiest form to read, which the clarity law asks for. It is also the shape List already writes for add and move, so nothing changes on disk."
+        },
+        {
+          "scenario": "Logs already written with move and after lines (for example a tool/page.jsonl with {\"move\":{\"id\":\"talking\",\"after\":null}}) must still load after the change.",
+          "why": "Zero migration. The current replay already reads this shape, so old lines keep working."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "Tab B removes c1 while tab A's add after c1 is still in flight. The anchor is gone, so c9 is appended at the end of tasks.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "The wrong order is written to the log, and a reload replays the same result, so reload does not fix it. The line survives, so one manual move repairs it. lew42/overview.md section 14 already records this 'append at end' rule as by design."
+        },
+        {
+          "scenario": "A line in the middle of page.jsonl is lost or truncated. Every later add or move that named an item from that lost line drifts to the end on replay.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Each position depends on an earlier line, so one loss spreads to many items. An item that holds its own position value would not drift, because its place does not depend on any neighbour."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Yjs Y.Array",
+          "how": "The local API is index-based (insert(index)), but each stored item keeps the id of its left neighbour (origin) and right neighbour (originRight), so the wire form is an id reference. Y.Array has no move operation: a move is a delete followed by an insert.",
+          "src": "https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/INTERNALS.md (items section, origin and originRight); https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/ynode.js#L2342 (typeListInsertGenerics); no move method found in src/ynode.js"
+        },
+        {
+          "tool": "Loro MovableList",
+          "how": "An insert takes Fugue origins, which are ids of the neighbours. A move adds a new position, and each element's winning position is last-writer-wins by (lamport, peer). This is a CRDT, so it solves more than a single-server log needs.",
+          "src": "https://github.com/loro-dev/loro/blob/75e4bf2b9753fbffb60699f6b68460cf1bcdf9d3/loro-js/src/runtime/movable-list.ts#L946; https://github.com/loro-dev/loro/blob/75e4bf2b9753fbffb60699f6b68460cf1bcdf9d3/context/loro-js-movable-list.md"
+        },
+        {
+          "tool": "Meteor DDP ordered messages (addedBefore, movedBefore)",
+          "how": "Each message names the neighbour's id in 'before' (null means the end). The spec itself says Meteor does not use these messages yet, so this is a written spec, not a running precedent.",
+          "src": "https://github.com/meteor/meteor/blob/e587c05d3abd25484adfd5e2e55373fd5c725469/packages/ddp/DDP.md (lines 128-140 and 160-173)"
+        }
+      ]
+    },
+    {
+      "id": "order-array",
+      "label": "The array is the order (whole id list or index)",
+      "wins_when": [
+        {
+          "scenario": "A 6-task page where reorders are rare: one line {\"tasks\":{\"order\":[\"c2\",\"c1\",\"c3\"]}} holds the whole order.",
+          "why": "Easy to read and to check, and it is one line. List already has this verb (order([ids])), so the change is small."
+        },
+        {
+          "scenario": "Only one agent or one tab ever reorders a given list, so no two orders race.",
+          "why": "A whole-array write is exact when nothing else writes the same list."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "An agent and a browser tab both reorder the same list within seconds. The second order line replaces the first, so one move disappears from the live order.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The data is lost from the live state, but the earlier order line is still in the log, so it can be recovered. The order verb also drops unknown ids quietly (lew42/overview.md section 14)."
+        },
+        {
+          "scenario": "Index moves (move from 3 to 1) from two writers. An insert by one writer shifts the indexes the other writer uses, so the item lands beside the wrong neighbour.",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Replay gives the same wrong order, so reload does not fix it; a fresh move does. Colyseus spends code on translating indexes inside a single tick to avoid this (see its precedent entry)."
+        },
+        {
+          "scenario": "A 500-task list is reordered by one drag. The line carries all 500 ids, and long multi-day sessions load more slowly.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Log size grows with the length of the list on every reorder, not with the size of the change."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Colyseus ArraySchema",
+          "how": "Array changes are index-addressed wire operations: ADD, MOVE, MOVE_AND_ADD, DELETE_AND_MOVE. $wireIndex maps a logical index to a wire slot after same-tick shifts, and a comment cites issue #246 for replaced items. This is the closest server-authoritative in-memory list.",
+          "src": "https://github.com/colyseus/schema/blob/390cf3833cf76f588f140a01b1d5daf9e4fd5fbb/src/types/custom/ArraySchema.ts#L50-L80, #L126-L150, #L326-L345; https://github.com/colyseus/schema/blob/390cf3833cf76f588f140a01b1d5daf9e4fd5fbb/src/encoding/spec.ts#L7-L18"
+        },
+        {
+          "tool": "mobx-keystone patches",
+          "how": "Array changes are path-addressed by index: add, remove and replace at [index]. There is no move operation, so a move is a remove plus an add. Lazy index paths only switch on above 1024 items.",
+          "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/patch/Patch.ts#L1-L25; https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/tweaker/tweakArray.ts#L355-L372; https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/parent/arrayPaths.ts#L8"
+        },
+        {
+          "tool": "Backbone collection",
+          "how": "add takes an index (at) and sort takes a comparator. There is no move verb, so order comes from a comparator over stored data, which is close to fractional in spirit.",
+          "src": "https://github.com/jashkenas/backbone/blob/94260d91dcf4050360f055506271b61f7b24e5e3/backbone.js#L918-L925 and #L1100-L1116"
+        },
+        {
+          "tool": "Notion blocks",
+          "how": "Each parent holds an ordered array of child ids, rewritten as a whole array when children change, applied as server-ordered transactions.",
+          "src": "https://www.notion.com/blog/data-model-behind-notion (secondary; as summarised in persistence-sync/notes/collab_app_architectures.md lines 33-35; not re-fetched this run)"
+        }
+      ]
+    },
+    {
+      "id": "fractional",
+      "label": "Sortable key per item (a pos data field)",
+      "wins_when": [
+        {
+          "scenario": "A drag of task c3 between c1 and c2 writes one data line {\"tasks\":{\"#c3\":{\"pos\":\"a1V\"}}}. No new verb is needed, because the decided rule already treats a plain key as data.",
+          "why": "A move is one value write, like any other field, so per-field last-writer-wins handles it without special code."
+        },
+        {
+          "scenario": "A lost or duplicated line for c3 does not move c4 or c5, because each item carries its own position.",
+          "why": "Replay needs no neighbour to exist, so the 'anchor removed, append at end' drift of after-id cannot happen."
+        },
+        {
+          "scenario": "Tab A and tab B drag c3 to different places at nearly the same time. The later pos wins for c3, and c4 keeps its own value.",
+          "why": "This is the framework's own model (last-writer-wins per field, one server copy), with no list-level conflict to resolve."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "Two tabs insert into the same gap at the same moment and both compute the same key.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Two items can swap order on some clients until a tiebreak applies. Figma's answer is for the server to give the second insert a unique position. Servex holds one in-memory copy, so it can do the same before appending. Ties broken by id keep all tabs agreeing in the meantime."
+        },
+        {
+          "scenario": "An agent computes a key from a neighbour list that is stale, after that neighbour has moved.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The item lands in a valid but unintended place, and one more move fixes it. Computing the key in code from the live list avoids this, which is what the compute-don't-recall law asks for."
+        },
+        {
+          "scenario": "A person or agent reads page.jsonl and sees {\"pos\":\"a1V\"} with no visible neighbour. Reading the order needs the list view.",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The log is correct but harder to read. The clarity law counts this against the option unless a view prints the neighbour names."
+        },
+        {
+          "scenario": "Items are always added at the top of one list over many sessions, and keys grow longer each time.",
+          "severity": 1,
+          "recoverable": true,
+          "why": "A size and cosmetic cost. Figma calls growth acceptable. The repo notes have no data on real key lengths after long editing sessions."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Figma (multiplayer)",
+          "how": "Each child gets a fractional position between 0 and 1. The parent link and the position are one property, so they update together. The server rejects cycles and gives a duplicate position a unique one. This is the closest architecture: server-sequenced, last-writer-wins per property, per-object records.",
+          "src": "https://www.figma.com/blog/how-figmas-multiplayer-technology-works/ and https://www.figma.com/blog/realtime-editing-of-ordered-sequences/ (both as cited in persistence-sync/notes/collab_app_architectures.md line 23 and persistence-sync/notes/delta_logs_build_vs_buy.md section 2; not re-fetched this run)"
+        },
+        {
+          "tool": "tldraw (dotcom sync)",
+          "how": "Records carry index: IndexKey. A new workspace sorts above the lowest one using getIndexBelow, and reads use sortByIndex. The sync server holds one room per document, with flat records keyed by id.",
+          "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/dotcom-shared/src/mutators.ts#L388-L400 and #L515-L535 (the canvas-shape index is not in this clone)"
+        },
+        {
+          "tool": "Loro movable tree",
+          "how": "Sibling order is a FractionalIndex on each tree node. A move rewrites that node's position, and get_index_by_fractional_index finds the slot. Loro's own docs say interleaving is acceptable for trees.",
+          "src": "https://github.com/loro-dev/loro/blob/75e4bf2b9753fbffb60699f6b68460cf1bcdf9d3/crates/loro-internal/src/handler/tree.rs#L450-L491"
+        },
+        {
+          "tool": "rocicorp fractional-indexing",
+          "how": "generateKeyBetween(a, b), where null means open-ended. A batch form spaces keys more evenly. Keys sort by plain comparison, not localeCompare. Jitter is optional, for concurrent inserts.",
+          "src": "https://github.com/rocicorp/fractional-indexing (not fetched this run; as summarised in persistence-sync/notes/delta_logs_build_vs_buy.md section 2)"
+        },
+        {
+          "tool": "Excalidraw elements",
+          "how": "Each element has an index fractional-index string for z-order, and elements are re-sorted by it after reconcile. Secondary source only: the local excalidraw clone holds git metadata and no source files.",
+          "src": "persistence-sync/notes/collab_app_architectures.md line 70 (PyShine source tour, secondary)"
+        },
+        {
+          "tool": "Linear issue ordering (UNVERIFIED)",
+          "how": "The brief names a sortOrder float. No local source shows that field, and the fetch was refused, so treat this as a lead to check, not a fact.",
+          "src": "https://github.com/wzhudev/reverse-linear-sync-engine (not fetched this run)"
+        }
+      ]
+    },
+    {
+      "id": "snapshot-order",
+      "label": "Order saved only in snapshots",
+      "wins_when": [
+        {
+          "scenario": "A page that is reordered rarely and edited by one tab only. A drag changes the in-memory array, and the next snapshot saves the new order.",
+          "why": "The log holds the fewest lines, and it stays cheap if snapshots are frequent."
+        },
+        {
+          "scenario": "A folder of pages whose order is only shown, never argued over.",
+          "why": "There are no per-move lines to replay, only a saved list."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A drag, then the tab closes or Servex restarts before the next snapshot.",
+          "severity": 5,
+          "recoverable": false,
+          "why": "The move was never written as a line, so no log holds it. This breaks the rule that every change is one JSON line, and the move is lost for good."
+        },
+        {
+          "scenario": "A snapshot is taken while another tab's move is in flight, and the snapshot's order overwrites that move.",
+          "severity": 4,
+          "recoverable": true,
+          "why": "The move's line is still in the log only if the snapshot records its log position, and later lines are replayed on top of it. If not, the move is gone."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "ZODB PersistentList",
+          "how": "A PersistentList is one persistent object. ZODB's own warning lists PersistentList as a non-scalable structure, because an object's state is written as one record, so the order lives inside that record.",
+          "src": "https://github.com/zopefoundation/ZODB/blob/c50a0941d40b22ff5b6fb30a5eab625fa4beba62/src/ZODB/Connection.py#L1274-L1284 (the warning text; the persistent package itself is not in the clone)"
+        },
+        {
+          "tool": "Figma checkpoints plus journal",
+          "how": "Checkpoints every 30 to 60 seconds encode the whole file. A journal records every change between checkpoints, so the checkpoint is never the only record. This is evidence against snapshot-only ordering.",
+          "src": "https://www.figma.com/blog/making-multiplayer-more-reliable/ (as cited in persistence-sync/notes/collab_app_architectures.md lines 26-27; not re-fetched this run)"
+        },
+        {
+          "tool": "Excalidraw room blob",
+          "how": "Each save writes a whole scene blob ({sceneVersion, iv, ciphertext}), so element order lives inside the blob. It is end-to-end encrypted, so the server cannot order anything. Secondary source.",
+          "src": "persistence-sync/notes/collab_app_architectures.md line 70 (secondary)"
+        }
+      ]
+    }
+  ],
+  "recommended": "fractional",
+  "confidence": 3,
+  "surprise": "Fractional keys make order an ordinary data field (pos), so the decided line format needs no new verb, and the existing add(x, {after}) API can stay the same while the log stores a key. The cost the owner may not have weighed: a person or agent reading page.jsonl sees {\"pos\":\"a1V\"} instead of {\"after\":\"milk\"}, which cuts against the clarity law unless a view prints the neighbour names.",
+  "notes": "Closest architecture is Figma (server-sequenced, one last-writer-wins property per object, parent link and fractional position in one property), then tldraw (flat records with an IndexKey per record, one room per document); both put order in a fractional key, so the precedent verdict is fractional. after-id is what Yjs, Loro and Meteor's DDP spec use, but Yjs and Loro are CRDTs and Meteor does not run its ordered messages, so they say less about a single-sequencer log. The Figma, Notion, Linear and rocicorp sources were not re-fetched in this run (WebFetch was refused), so their claims rest on the local notes, and the Linear sortOrder claim is unverified."
+}

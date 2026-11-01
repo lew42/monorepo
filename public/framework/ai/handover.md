@@ -32,6 +32,10 @@ c0d1fd49c core/Session: build G task record (review, session log, shots)
 The dated sections below are written by hand and go stale; this block does not.
 <!-- NOW:end -->
 
+## The OOP streaming research and the Item MVP (branch `claude/oop-streaming-research`, 2026-10-29 → 11-01)
+
+Research said keep the Item / List / Page core and fix it; the branch builds that (tests, Replay Lab, socket transport, snapshots, a Files tab, `view.bind`, docs) on top of `integration/data-shapes-2`, and fixes why every Cloudflare preview was blank. Not merged yet: check the preview with `node Server/PreviewCheck.mjs <url> --all`, then merge into `michael/dev` (one doc conflict). Everything, including what was asked and not done: [handoff.md](sessions/2026/10/31/session-e3fd9043/item-mvp/handoff.md). The research itself: [/framework/research/2026-10-29-persistence-sync/](/framework/research/2026-10-29-persistence-sync/).
+
 ## LATEST, 2026-10-25 evening: VS Code tab e00f55c9 wound down after five days (2026-10-20 → 10-25)
 
 The owner moved to dictating in the browser; this tab stopped its half-hourly check. Everything below is a pointer. The record is the truth.

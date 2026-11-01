@@ -1,0 +1,318 @@
+{
+  "dilemma": "typing-buffer",
+  "lens": "precedent",
+  "by": "analyst-typing-precedent",
+  "options": [
+    {
+      "id": "client-debounce",
+      "label": "Client debounce: one pending line per field, sent after 300 ms idle, 2 s at most, or on blur",
+      "wins_when": [
+        {
+          "scenario": "Mike types a title or a paragraph on one tab while no other tab or agent is watching that page",
+          "why": "The tab keeps one pending line per field and sends one line per pause, so about 5 keystrokes a second (roughly 60 words a minute) become a few lines a minute. It needs no new frame type and no change to the Room. It is the phase-1 plan already in phase-1.md section 11."
+        },
+        {
+          "scenario": "One writer per field, which is the current model (last writer wins per field, presence locks later)",
+          "why": "Under last-writer-wins a field's middle values are never needed to replay, so sending only the latest value per pause loses no state. Figma (property-level LWW) and tldraw (LWW on the same field) use the same rule."
+        },
+        {
+          "scenario": "A send fails in the middle of typing (network drop, Servex restart)",
+          "why": "Each line carries the whole field value, so the next flush heals a dropped one. The retry is one pending line, not a backlog."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "The tab is killed (crash, OS kill, power loss) while a line is pending",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Up to 2 s of typing exists only in memory, so it is gone for good. A pagehide flush sent with keepalive shrinks this window to a hard kill, but does not remove it."
+        },
+        {
+          "scenario": "A second tab or an agent reads the field while Mike types",
+          "severity": 2,
+          "recoverable": true,
+          "why": "The reader sees the text only at the next flush, up to 2 s late. Live text needs the draft channel, which phase-1 puts in phase 4."
+        },
+        {
+          "scenario": "One field grows to about 5,000 characters over several minutes of typing",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Each flush writes the whole value, so bytes grow with flushes times length. At a 2 s cap the scratchpad model gives about 1.3 MB for one field (a floor, since real pauses add flushes). Coalescing bounds the line count, not the size."
+        },
+        {
+          "scenario": "Two people type into the same field",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Each flush is a whole-value set, so one writer's flush overwrites text the other typed since its last flush. That text was in an earlier flushed line, so the log can recover it, but the field does not show it."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Hocuspocus",
+          "how": "Debounces the store on document updates (2 s quiet, 10 s cap). The save is a whole-state snapshot, not a log. Pending saves run at unload, and a failed store keeps the document in memory.",
+          "src": "https://github.com/ueberdosis/hocuspocus/blob/74c12e670324f7659f7d905df28736a82be0ec9d/packages/server/src/Hocuspocus.ts#L29-L30"
+        },
+        {
+          "tool": "Google Docs (OT, 2010)",
+          "how": "Only one change is in flight per client at a time. Newer edits wait in a pending queue, which is the same coalescing as a pending line, gated by the ack instead of a timer.",
+          "src": "https://idl.uw.edu/future-scholarly-communication/files/2010-GoogleDocs-OT.pdf"
+        },
+        {
+          "tool": "automerge-repo",
+          "how": "Saves are throttled per document on each heads change. The rate is a constructor argument; the research notes say 100 ms by default.",
+          "src": "https://github.com/automerge/automerge-repo/blob/3ab7c33bbc628769e101691e0c32ef4f0c220d5c/packages/automerge-repo/src/StorageSource.ts#L88-L112"
+        }
+      ]
+    },
+    {
+      "id": "stream-then-coalesce",
+      "label": "Stream then coalesce: each key goes live as an unlogged draft frame, and the durable line is merged on a timer",
+      "wins_when": [
+        {
+          "scenario": "Mike types a paragraph while an agent or a second tab shows the same page",
+          "why": "Readers see each key at once through a relayed frame that is never written. Only the settled value reaches the log, so the file stays short. Figma, tldraw and Yjs each split live edits from stored edits in the same way."
+        },
+        {
+          "scenario": "Mike's tab dies mid-paragraph while the Room is up",
+          "why": "The keys already reached the Room, which holds the latest value and writes it on its own timer, so the crash of the sender loses nothing that was sent. Client debounce cannot do this, because its pending text never leaves the tab."
+        },
+        {
+          "scenario": "A reader opens the page halfway through a sentence",
+          "why": "The log holds the last settled value. The reader catches up from its seq and then receives live drafts. Drafts are never needed for replay, so a reload shows the true value."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "The Room and the sender both die in the 0.5 to 1 s between a key and its journal flush",
+          "severity": 5,
+          "recoverable": false,
+          "why": "It takes a double failure, and the window is short. Ack the sender only after the journal flush, so the sender keeps the text until the Room has it durably."
+        },
+        {
+          "scenario": "A draft shows on a reader's screen and the writer then reverts it (undo or a rejected op)",
+          "severity": 3,
+          "recoverable": true,
+          "why": "The reader shows a value that was never durable until the next journal line. A reload shows the true value. Agents must not read drafts back as data."
+        },
+        {
+          "scenario": "Two writers type into the same field",
+          "severity": 5,
+          "recoverable": false,
+          "why": "Drafts are whole values, so a keystroke overwritten by the other writer before a journal flush never reaches the log and is gone for good. Splice lines cut this to a stale-position risk (severity 4), and presence locks (phase 2) avoid it."
+        },
+        {
+          "scenario": "The draft channel and the Room's merge timer are built before the single-writer Room is solid",
+          "severity": 2,
+          "recoverable": true,
+          "why": "This is phase-4 work pulled forward, so it adds a second path to build and test now. Build the durable half first (client debounce), then add drafts on the presence path so there is one relay."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Figma (2022 reliability post)",
+          "how": "Clients send updates about every 33 ms. The journal is written about every 0.5 s, each change gets a per-file sequence number, and 95% of changes persist within about 600 ms. Replaying a range is safe because of last-writer-wins. Taken from the research notes, not re-read at source.",
+          "src": "https://www.figma.com/blog/making-multiplayer-more-reliable/"
+        },
+        {
+          "tool": "Figma (2019 multiplayer post)",
+          "how": "The server is the authority and orders events. Conflicts resolve per property, last writer wins. Values are atomic, so text inside one value cannot merge. This is the closest model to Item get/set.",
+          "src": "https://www.figma.com/blog/how-figmas-multiplayer-technology-works/"
+        },
+        {
+          "tool": "Yjs awareness (y-protocols)",
+          "how": "A separate channel for who is here and cursors. Each client has its own clock, renews its state every 15 s, and is dropped after 30 s without a refresh. It is never written to the document. Source at #L66-L82 of the same file.",
+          "src": "https://github.com/yjs/y-protocols/blob/73b2ff75486c9879843718dc6c7fc52d63aea4fe/src/awareness.js#L13"
+        },
+        {
+          "tool": "tldraw (dotcom sync worker)",
+          "how": "Presence is a separate record scope and is never persisted. Each change calls storage.onChange, which triggers a throttled persist (triggerPersist, throttled at PERSIST_INTERVAL_MS). The notes give 1 fps alone and 30 fps with others for presence, citing TLSyncClient.ts, which is not in the clone.",
+          "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/apps/dotcom/sync-worker/src/TLFileDurableObject.ts#L328-L330"
+        },
+        {
+          "tool": "Hocuspocus (awareness path)",
+          "how": "Awareness updates go through handleAwarenessUpdate, which never calls the store debounce. Only document updates schedule a save, so presence cannot trigger a write.",
+          "src": "https://github.com/ueberdosis/hocuspocus/blob/74c12e670324f7659f7d905df28736a82be0ec9d/packages/server/src/Document.ts#L257"
+        },
+        {
+          "tool": "Excalidraw room (relay)",
+          "how": "Relays only and stores nothing. Pointer data goes out as a volatile broadcast, which is dropped if the socket is not ready. The scene is saved by the clients, elsewhere.",
+          "src": "https://github.com/excalidraw/excalidraw-room/blob/03ff435860b508d7cd9e005cfc90f7977ae2a593/src/index.ts#L80-L89"
+        },
+        {
+          "tool": "Liveblocks (secondary, unverified)",
+          "how": "Presence and storage are separate products with automatic persistence. Only the research notes say so; no primary source was read.",
+          "src": "persistence-sync/notes/collab_app_architectures.md"
+        }
+      ]
+    },
+    {
+      "id": "save-all",
+      "label": "Save all: every keystroke is one line, as the code does today",
+      "wins_when": [
+        {
+          "scenario": "A short field, such as a title or a tag, typed in a few seconds",
+          "why": "A few dozen short lines, no timer, and nothing held in the tab beyond one round trip. Replay matches each keystroke exactly."
+        },
+        {
+          "scenario": "A send fails partway through typing",
+          "why": "Every line carries the whole value, so the next keystroke's line heals the one that was lost. Splice lines do not have this property."
+        },
+        {
+          "scenario": "Per-keystroke undo or a step-by-step history later (phase 3, undo from was)",
+          "why": "Every step is a line, so each one is a step that can be shown or undone. This matches the planned undo design."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "A paragraph-length field typed over minutes",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Each line holds the whole value, so bytes grow with the square of the length. The scratchpad model gives about 530 KB for 1,000 characters and about 12.7 MB for 5,000. Load replays every line through set()."
+        },
+        {
+          "scenario": "Fast typing on a busy page (several fields, one agent writing too)",
+          "severity": 2,
+          "recoverable": true,
+          "why": "About 5 keystrokes a second per field means about 300 lines a minute per field, all through one append path. The Room's write rate and the file size both rise with it."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "lew42 today (the code's own behaviour)",
+          "how": "Writes one line per key, batched only per microtask. The object-model lesson counts this as a gap, and it is the baseline the other options are measured against.",
+          "src": "persistence-sync/lessons/object-model.md"
+        },
+        {
+          "tool": "automerge-repo",
+          "how": "Writes each change as its own incremental chunk, later combines chunks into a snapshot, and deletes only the chunks it loaded. This is save-all with compaction, which phase 3 already plans.",
+          "src": "persistence-sync/lessons/storage-compaction.md"
+        },
+        {
+          "tool": "Google Docs (OT, 2010)",
+          "how": "One op per keystroke, but each op is a small insert or delete, so the log grows with the edits, not with the length of the text. lew42 lines carry the whole value, so the same pattern costs far more here.",
+          "src": "https://idl.uw.edu/future-scholarly-communication/files/2010-GoogleDocs-OT.pdf"
+        }
+      ]
+    },
+    {
+      "id": "crdt-text",
+      "label": "CRDT text: one text field as a Yjs or Automerge document, merged on the client and saved as binary updates",
+      "wins_when": [
+        {
+          "scenario": "Mike and an agent (or a second person) type into the same paragraph at once",
+          "why": "Concurrent inserts merge with no lost words. Last writer wins on the whole value would drop one side's text. This is the one case a CRDT solves that the other options do not, and Figma chose not to solve it for text."
+        },
+        {
+          "scenario": "Editing on two devices offline, then reconnecting",
+          "why": "Both sides' updates merge on reconnect. Phase 5 already plans this for a rich-text field."
+        },
+        {
+          "scenario": "A rich-text field with bold text and links",
+          "why": "Editor-grade text (marks and ranges) needs an editor model. Yjs and Automerge carry those, and a hand-built splice format does not."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "An agent or the item tool sets the whole text field",
+          "severity": 3,
+          "recoverable": true,
+          "why": "A whole-value set must become a replace inside the CRDT, or the document and the CRDT state diverge. The lew42 model would then have two sync rules, one for text and one for everything else, and both must agree."
+        },
+        {
+          "scenario": "Someone reads the log to see what was typed",
+          "severity": 2,
+          "recoverable": true,
+          "why": "Updates are binary, so the JSONL stops being readable. The Hocuspocus notes warn that storing JSON and rebuilding binary duplicates content."
+        },
+        {
+          "scenario": "One update per keystroke is still written",
+          "severity": 2,
+          "recoverable": true,
+          "why": "A CRDT does not remove the need to merge: each keystroke update carries its own IDs, so the log grows linearly but with more bytes per key than a splice. Coalescing is still needed."
+        },
+        {
+          "scenario": "Yjs or Automerge is added as a dependency now",
+          "severity": 2,
+          "recoverable": true,
+          "why": "CLAUDE.md says to ask before any new npm dependency, and phase-1 puts CRDTs in phase 5. The owner should decide this first."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "Hocuspocus with Yjs",
+          "how": "Keeps the live Y.Doc in memory and stores the whole state on a debounce (2 s quiet, 10 s cap). There is no log.",
+          "src": "https://github.com/ueberdosis/hocuspocus/blob/74c12e670324f7659f7d905df28736a82be0ec9d/packages/server/src/Hocuspocus.ts#L29-L30"
+        },
+        {
+          "tool": "Google Docs (OT, 2010)",
+          "how": "Server-ordered text ops, transformed against revisions the client has not seen, with one change in flight per client. It is not a CRDT, but it solves the same concurrent-text problem.",
+          "src": "https://idl.uw.edu/future-scholarly-communication/files/2010-GoogleDocs-OT.pdf"
+        },
+        {
+          "tool": "automerge-repo",
+          "how": "Writes incremental chunks per change, throttles saves, and merges duplicates harmlessly on load.",
+          "src": "persistence-sync/lessons/storage-compaction.md"
+        },
+        {
+          "tool": "Figma (2019, against)",
+          "how": "Chose last-writer-wins over OT or CRDT for objects. Values are atomic, so text inside one value cannot merge, and Figma accepted that.",
+          "src": "https://www.figma.com/blog/how-figmas-multiplayer-technology-works/"
+        }
+      ]
+    },
+    {
+      "id": "splice-lines",
+      "label": "Splice lines: each key writes only the inserted or deleted text and its position, not the whole value (added option)",
+      "wins_when": [
+        {
+          "scenario": "A long text field, such as a paragraph or a prompt, typed over minutes",
+          "why": "Each key adds one small line, so 5,000 characters write about 305 KB instead of 12.7 MB (scratchpad model). Replay re-applies small edits, so loading stays fast."
+        },
+        {
+          "scenario": "The owner reads the history of a field in the log",
+          "why": "Each line says what was typed and where, so the log reads as an edit history rather than a series of whole copies."
+        },
+        {
+          "scenario": "Undo of typed text, planned for phase 3 (undo from was)",
+          "why": "A splice has a clear inverse: the deleted text at the same position. A whole-value line needs the previous value kept beside it."
+        }
+      ],
+      "fails_when": [
+        {
+          "scenario": "Two writers type into the same field at once",
+          "severity": 4,
+          "recoverable": true,
+          "why": "A splice made against stale text lands in the wrong place. The text is garbled, not dropped, and the replayed log shows the damage. Presence locks (phase 2) prevent it."
+        },
+        {
+          "scenario": "A line goes missing (a send fails or a socket drops)",
+          "severity": 4,
+          "recoverable": true,
+          "why": "Every later splice lands wrong, and the next key does not heal it, unlike whole-value lines. The Room's prev gap check catches the gap, but Store.flush drops a line on a failed send and does not re-queue it, so that drop path must be fixed first."
+        },
+        {
+          "scenario": "An old reader meets the new verb",
+          "severity": 3,
+          "recoverable": true,
+          "why": "Today's readers store an unknown verb as data (object-model lesson, gap 6), so an old tab shows junk until it is updated. A schema line guards this."
+        }
+      ],
+      "precedent": [
+        {
+          "tool": "tldraw sync (wire format)",
+          "how": "A string that only grew is sent as append, not as the whole string. The notes cite diff.ts in sync-core, which is not in the clone.",
+          "src": "persistence-sync/lessons/object-model.md"
+        },
+        {
+          "tool": "Google Docs (OT, 2010)",
+          "how": "Insert, delete and apply-style ops per revision. The editor replays the log to render the document.",
+          "src": "https://idl.uw.edu/future-scholarly-communication/files/2010-GoogleDocs-OT.pdf"
+        }
+      ]
+    }
+  ],
+  "recommended": "stream-then-coalesce",
+  "confidence": 4,
+  "surprise": "Whole-value lines make every option except splice grow with the square of the text. A 1,000-character field typed key by key writes about 530 KB under save-all and about 54 KB under client-debounce, and a 5,000-character field about 12.7 MB and 1.3 MB. The 2 s cap cuts the number of lines, not the growth (scratchpad model: /tmp/claude-0/-home-claude/e3fd9043-ad4b-5d36-9e28-17f46c3e0b52/scratchpad/typing-precedent/bytes.py).",
+  "notes": "Closest to Lew42 is Figma (one server process per file, last-writer-wins per property, a journal written about every 0.5 s), and its split between a live path and a durable path, which tldraw presence and Yjs awareness share, is the answer here. Client debounce is only the durable half of that design, so it bounds the number of lines but not their size, and the durable text should be splices merged by the Room (splice-lines, added because no given option changes the line shape). Where I differ from the edge-cases pass: its 5 s save cap is longer than Figma's 0.5 s journal flush, which sets how much a restart can take, and its wait on splices is too long, because splice positions only go stale when two writers edit one field, which the phase-2 lock prevents."
+}

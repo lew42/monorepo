@@ -1,5 +1,7 @@
 # Item MVP: plan
 
+**Handoff (start here when picking this up):** [handoff.md](handoff.md).
+
 **Goal:** turn the persistence research into a working, tested Item system on branch `claude/replay-tests` (off `integration/data-shapes-2`), with visual tests the owner can click through, then design the file system integration. Asks: [requirements.md](requirements.md). Research: github.com/mikelew42/research `design/` (D1–D18).
 
 **Rule for open decisions:** take the recommended option, keep it easy to reverse, and record the alternative in the module's doc. A switch for the other way only where it doesn't make every method work two ways.

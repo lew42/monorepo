@@ -27,6 +27,9 @@ export default new Page({
 	description: "Live research topics — the minions dig, the report moves while you read it.",
 	icon: "travel_explore",
 
+	// Research projects that are pages (a dated folder with a page.jsonl): listed in the framework page's Research section.
+	children: "2026-10-29-persistence-sync",
+
 	content(){
 		p("A topic is one append-only log the minions write while they dig. Open one and it moves as they work — conclusions first, every claim a card you can open forever.");
 
