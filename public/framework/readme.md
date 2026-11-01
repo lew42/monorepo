@@ -80,7 +80,7 @@ p("Hello world.");
 - Files that matter: `/app.js` (the one import), `page.js` (sidebar + walls layout), `framework.css` (the utility vocabulary)
 
 ## Also here (readme audit, 2026-10-13)
-- [audio](./audio/) — microphone building blocks: MicStream, Recorder, Whisper
+- [audio](./audio/) — microphone and voice building blocks: MicStream, Recorder, Whisper, Voice, Recite (reads replies aloud)
 - [code](./code/) — code in the framework: patterns, dos and don'ts
 - [design](./design/) — layout, color, navigation, content and UI decisions
 - [servex](./servex/) — the always-on process: runs agents, starts servers, owns logs

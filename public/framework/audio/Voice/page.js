@@ -32,7 +32,7 @@ export default new Page({
 
 		md("## Watch out");
 		md("- **The voice list can start empty.** `voice.voices()` only fills in once the browser has loaded it, which can happen a moment after the page does — `Voice.Controls` waits for `on_voices_ready()` rather than reading the list once. Until then the picker above just says \"default voice\", which still speaks fine.");
-		md("- **No local engine yet.** This is `window.speechSynthesis` only — see [`../doc/decisions.md`](../doc/decisions.md)'s `d-voice-engine` for why, and what a local engine (paralleling whisper-server) would need.");
+		md("- **This demo is the browser's voice.** The local voice (recite-server, Kokoro) is `voice.render()`, and [Recite](../Recite/) reads whole replies with it.");
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

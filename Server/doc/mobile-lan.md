@@ -9,6 +9,7 @@ When opening the site from a phone (`http://192.168.x.x` or through Tailscale):
 1. **HTTP Routes (`lan()` guard):**
    - Routes like `/whisper/*` (audio dictation) and `/ask/turn` allow connections from RFC 1918 private ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) as defined in [`Server/plugins/MCP.js`](/Server/plugins/MCP.js).
    - Audio dictation sends plain HTTP POST requests to `/whisper/inference` and works reliably from mobile devices.
+   - Read-aloud (`audio/Recite`) uses `/recite/*` (`Server/plugins/Recite.js`) with the same guard: `GET /recite/health`, `GET /recite/voices`, `POST /recite/speak`.
 
 2. **Dev WebSocket (`local_only` gate in `SocketServer.js`, on both the http and the https listener):**
    - Loopback keeps every command; a private-LAN peer (a phone) may connect but the server answers only `hello`, `subscribe`, `unsubscribe` and a read-only `query` of the `sessions` and `tasks` sources (the list is `LAN_OK`/`LAN_QUERY` in `Server/plugins/SocketServer/Socket.js`) and refuses the rest (`rpc:cmd` shell execution, `rpc:write` ...); anything else is refused at the upgrade.

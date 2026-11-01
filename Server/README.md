@@ -17,6 +17,8 @@ The owner-facing server also starts `whisper-server` for dictation on its own â€
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
 [`ux/Dictate`](/framework/ux/Dictate/).
 
+`/recite/*` ([`plugins/Recite.js`](./plugins/Recite.js)) is the same-origin door onto recite-server (text to speech, port 8177), with the same LAN guard as `/whisper/*`. Servex starts recite-server, not the dev server ([Servex/ext/recite/readme.md](../Servex/ext/recite/readme.md)); [`audio/Recite`](/framework/audio/Recite/) calls it.
+
 ## Routes the dev server adds for the pages
 
 - `GET /api/folder-names?dir=/framework/ai/sessions/2026/10/20/` ([`plugins/FolderNames.js`](./plugins/FolderNames.js)) answers `{"names": [...]}`, the entry names of one folder under `public/`, always a 200 (a missing folder is `[]`). `ai/AITask/listing.js` asks it once per folder, so opening a task folder checks `session.jsonl`, `task.jsonl`, `page.js` and `requirements.md` without a 404 probe for each. It is a new route: a dev server started before it landed answers no listing, and the pages fall back to the old probes (and their 404s) until the server restarts.
