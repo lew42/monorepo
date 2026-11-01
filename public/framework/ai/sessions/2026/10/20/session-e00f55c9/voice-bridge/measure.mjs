@@ -2,7 +2,7 @@
  * node measure.mjs [--tunnel] [--asks N] [--bridge]
  * --tunnel: go out through the public tunnel (remote.url) instead of http://localhost
  * --asks N: how many ask_mastermind round trips (default 2; the first one in a session spawns the mastermind)
- * --bridge: use the bridge (voice_ask / voice_hear) instead of ask_mastermind wait:false + updates polling
+ * --bridge: the bridge (ask_mastermind wait:false, then voice_hear long-polls) instead of polling updates
  * Prints one JSON line per step, then a summary line. Never prints the token. */
 import fs from "fs";
 import path from "path";
@@ -38,19 +38,19 @@ const rounds = [];
 for (let i = 0; i < asks; i++){
     const q = `Latency probe ${i + 1} from the voice-bridge task: reply with exactly the word ok${i + 1} and nothing else.`;
     const t0 = performance.now();
-    const fire = bridge ? await tool("voice_ask", { question: q }) : await tool("ask_mastermind", { question: q, wait: false });
+    const fire = await tool("ask_mastermind", { question: q, wait: false });
     let ticket = null;
     try { ticket = JSON.parse(fire.text).ticket; } catch {}
     const r = { ask: i + 1, ack_ms: fire.ms, ticket, polls: 0 };
     // the voice app can only pull: poll the way it would, and note when the first words and the full answer arrive
     while (performance.now() - t0 < 180000){
-        const u = bridge ? await tool("voice_hear", { ticket, wait_ms: 8000 }) : await tool("updates");
+        const u = bridge ? await tool("voice_hear", { ticket, wait_s: 8 }) : await tool("updates");
         r.polls++;
         if (bridge){
             let h = {}; try { h = JSON.parse(u.text); } catch {}
-            if (h.text && r.first_ms == null) r.first_ms = Math.round(performance.now() - t0);
+            if (h.first && r.first_ms == null) r.first_ms = Math.round(performance.now() - t0);
             if (h.status && h.status !== "asked" && r.status_ms == null) r.status_ms = Math.round(performance.now() - t0), r.status = h.status;
-            if (h.done){ r.answer_ms = Math.round(performance.now() - t0); r.answer = String(h.text).slice(0, 60); break; }
+            if (h.done){ r.answer_ms = Math.round(performance.now() - t0); r.answer = String(h.answer).slice(0, 60); break; }
         } else if (ticket && u.text.includes(ticket)){
             r.answer_ms = r.first_ms = Math.round(performance.now() - t0);
             r.answer = u.text.slice(0, 120).replace(/\s+/g, " ");
