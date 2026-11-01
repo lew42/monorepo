@@ -31,6 +31,7 @@ import MCP, { loopback } from "./MCP.js";
 import RemoteMCP from "./ext/remote/RemoteMCP.js";
 import PortRegistry from "./PortRegistry.js";
 import Process from "./Process.js";
+import { recite_runner } from "./ext/recite/recite.js";
 import Project from "./Project.js";
 import ReverseProxy from "./ReverseProxy.js";
 import { launch as launch_gate } from "./gate.mjs";
@@ -367,6 +368,7 @@ export default class Servex extends Events {
 
         this.gate();
         this.whisper();
+        this.recite();
         this.llama();
         if (!process.env.NO_TUNNEL) this.tunnel_keeper = new TunnelKeeper({ say: (m, x) => this.say(m, x), cards: this.cards }).start();
         this.shutdown();
@@ -504,6 +506,16 @@ export default class Servex extends Events {
         });
 
         this.processes.set("whisper", runner);
+        runner.start();
+        return runner;
+    }
+
+    /* recite-server (text to speech, Kokoro on the CPU), supervised the same way
+     * as whisper-server: the four boot cases are in Process.Recite
+     * (Servex/ext/recite/recite.js). Detached, so a restart keeps it. */
+    recite(){
+        const runner = recite_runner(this.log);
+        this.processes.set("recite", runner);
         runner.start();
         return runner;
     }
