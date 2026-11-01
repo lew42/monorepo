@@ -63,12 +63,19 @@ export default class Recite extends Part {
 			const a = this.audio;
 			a.muted = true; a.src = Recite.SILENCE;
 			a.play().then(() => {
-				a.pause(); a.muted = false; this.unlocked = true;
+				a.pause(); a.muted = false; this.unlocked = true; this.trace("unlocked by a tap");
 				kinds.forEach(k => document.removeEventListener(k, unlock, true));
 				if (this.state === "paused" && /tap/.test(this.error)) this.resume();   // the reply the browser refused
-			}, () => { a.muted = false; }).finally(() => { this.unlocking = false; });
+			}, e => { a.muted = false; this.trace("unlock refused", { error: e?.name }); }).finally(() => { this.unlocking = false; });
 		};
 		kinds.forEach(k => document.addEventListener(k, unlock, true));
+	}
+
+	/** One line per step in the Whisper log (the phone already writes there, /framework/audio/Whisper/log/), so a read-aloud that stays
+	 *  silent on a real phone says why: reply heard, skipped and why, speak asked, play() refused. (dictation-v3, 2026-11-01) */
+	trace(kind, fields = {}){
+		if (typeof document === "undefined") return;
+		import("../Whisper/WhisperLog.js").then(m => m.default.event("recite", kind, { state: this.state, auto: this.auto, server: this.server, ...fields })).catch(() => {});
 	}
 
 	/** Calls fn() on every change of state or position; returns an unsubscribe. */
@@ -107,7 +114,8 @@ export default class Recite extends Part {
 		this.audio.src = c.src;
 		this.audio.currentTime = offset;
 		try { await this.audio.play(); }
-		catch (e){ if (token === this.token) this.set("paused", e.name === "NotAllowedError" ? "tap play: the browser wants a tap before it plays sound" : e.message); return; }
+		catch (e){ this.trace("play refused", { error: e.name, msg: String(e.message).slice(0, 120), sentence: i }); if (token === this.token) this.set("paused", e.name === "NotAllowedError" ? "tap play: the browser wants a tap before it plays sound" : e.message); return; }
+		this.trace("playing", { sentence: i });
 		if (token !== this.token) return;
 		this.set("playing", "");
 		this.unlocked = true;   // it played: no tap-unlock needed any more
@@ -118,13 +126,16 @@ export default class Recite extends Part {
 	/** The audio of chunk `i`, once; the same promise for every caller. */
 	render(i){
 		const c = this.chunks[i];
+		const t0 = performance.now();
 		c.pending ??= this.voice.render(c.text, this.url).then(({ blob, seconds }) => {
+			this.trace("spoke", { sentence: i, ms: Math.round(performance.now() - t0), seconds, url: this.url });
 			c.src = URL.createObjectURL(blob);
 			c.seconds = seconds;
 			if (this.server !== "online"){ this.server = "online"; this.error = ""; }
 			this.retime();
 		}, e => {
 			c.pending = null;
+			this.trace("speak failed", { url: this.url, error: String(e?.message ?? e).slice(0, 160) });
 			this.offline(e);
 			throw e;
 		});
@@ -152,19 +163,19 @@ export default class Recite extends Part {
 	/** One event from a session's live wire (ext/Session `Session.stream`): the smart seat's reply is read, the owner's line pauses it.
 	 *  Wire shapes: dictation-notes.md in the voice-recite task. */
 	from_wire(ev){
-		if (ev?.kind === "stream" && ev.role === "smart") return this.partial(ev.text);
+		if (ev?.kind === "stream" && ev.role === "smart"){ if (!this.live && ev.text) this.trace("reply streaming", { text: ev.text.slice(0, 40) }); return this.partial(ev.text); }
 		if (ev?.kind !== "line") return;
 		const line = ev.line ?? {}, chat = line.chat;
 		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
-		if (chat?.from?.kind === "assistant") return chat.from.id === "smart" ? this.final(chat.text) : undefined;
+		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text) : undefined; }
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
 		if (add) return add.by === "smart" ? this.final(add.text) : undefined;
-		if (chat?.text && this.auto && this.barge.on) this.barge.owner_spoke(chat.text);   // ear off = manual playback
+		if (chat?.text && this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text); }   // ear off = manual playback
 	}
 
 	/** A reply still being written, the whole text so far: each sentence is read as soon as it ends. "" = the reply ended. */
 	partial(text){
-		if (!this.auto) return;
+		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
 		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
 		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))) this.live = { text, queued: 0, fresh: true };
 		this.live.text = text;
