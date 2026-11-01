@@ -5,7 +5,7 @@ import { copyFileSync, appendFileSync, rmSync, mkdirSync, readFileSync, existsSy
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];
+const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
 const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
 const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
 const served = process.argv[2] || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
