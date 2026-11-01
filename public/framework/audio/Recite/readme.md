@@ -26,7 +26,7 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 ## How it is wired
 
-- **The server:** recite-server, Kokoro-82M on the CPU, port 8177. Servex starts and watches it ([Servex/ext/recite/readme.md](../../../../Servex/ext/recite/readme.md)).
+- **The server:** recite-server, Kokoro-82M on the CPU, port 8177. Servex starts and watches it (`Servex/ext/recite/readme.md`).
 - **The URL:** `http://127.0.0.1:8177` on this machine; `<origin>/recite` anywhere else, through the dev server's proxy ([Server/plugins/Recite.js](../../../../Server/plugins/Recite.js)).
 - **The chat:** [ux/Dictate/chat.js](../../ux/Dictate/chat.js) passes every event on the session's live wire to `Recite.shared.from_wire(ev)`, and gives barge-in the chat's mic (`barge.use_mic`). [ux/Dictate/DictationBar.js](../../ux/Dictate/DictationBar.js) puts the bar above the mic.
 - **Saved settings:** localStorage keys `lew42.recite.voice`, `.auto`, `.barge`, `.threshold`, per browser.
@@ -36,7 +36,7 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 - **A phone plays sound only after a tap on the page.** Any tap counts (the mic, a button). Until then the bar says to tap play.
 - **Back 10 s needs recite-server.** With the browser's voice it steps by sentence.
 - **Speakers leak into the mic.** Echo cancelling removes most of it, and words that match the sentence being read are ignored. Headphones are best.
-- **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice ([cloud-voice-agent.md](../../../../Servex/ext/remote/doc/cloud-voice-agent.md)). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
+- **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice (`Servex/ext/remote/doc/cloud-voice-agent.md`). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
 - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
 
 ## Files
