@@ -21,7 +21,8 @@
  * network request. `fetch_json` never throws; every caller gets `null` and
  * decides what "nothing yet" looks like.
  */
-const BASE = () => new URLSearchParams(location.search).get("servex") || "http://127.0.0.1:8090";
+import { servex_url } from "/framework/dev/servex_url.js";
+const BASE = () => new URLSearchParams(location.search).get("servex") || servex_url();
 
 async function fetch_json(path){
 	try {

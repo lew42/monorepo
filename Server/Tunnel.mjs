@@ -4,6 +4,7 @@ import http from "http";
 import { spawn, execFileSync } from "child_process";
 import { fileURLToPath } from "url";
 import TunnelNamed from "./TunnelNamed.mjs";
+import SiteGateway from "./SiteGateway.mjs";
 
 /* node Server/Tunnel.mjs up|down|status — a Cloudflare tunnel (quick by default; named servex.lew42.com when remote.tunnel.token exists, see TunnelNamed.mjs) to Servex's /mcp/remote ONLY.
  * cloudflared forwards every path of its origin, so it points at a tiny gateway (below) that passes
@@ -42,6 +43,8 @@ export default class Tunnel {
         const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
         gw.on("error", e => { console.error("gateway port busy: " + e.message); process.exit(1); });
         await new Promise(r => gw.listen(named ? TunnelNamed.PORT : 0, "127.0.0.1", r));
+        // monorepo.lew42.com rides the same tunnel (SiteGateway.mjs). Any failure there (busy port, no LAN, no key) only logs: the MCP tunnel still starts
+        if (named) try { await new SiteGateway().listen(); } catch (e) { console.error("site gateway not started: " + e.message); }
         const port = gw.address().port;
         const args = named ? ["tunnel", "run", "--token", named] : ["tunnel", "--url", `http://127.0.0.1:${port}`];
         const child = spawn("npx", ["--yes", "cloudflared", ...args], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
