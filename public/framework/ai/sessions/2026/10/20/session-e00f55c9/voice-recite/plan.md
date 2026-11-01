@@ -45,7 +45,13 @@ Yes. whisper-server runs with `--vad` (silero), and a clip with no speech comes 
 
 ## 6. Where it plugs into chat
 
-Filled in from the class map (below) once it is read.
+Decided with [dictation-notes.md](dictation-notes.md) (the dictation-map task):
+- **The live wire, not a view.** `ux/Dictate/chat.js` passes every event of `Session.stream` to `Recite.shared.from_wire(ev)`. All three chat views (V1, V2, V3) are fed by that one wire, so it works whichever is on.
+- **Read as it streams.** `{kind:"stream", role:"smart"}` partials: each sentence is queued the moment it ends. The settled `{chat}` line (or a Prompt `replies.add`) is not read twice.
+- **The owner's line pauses it** (new prompt, the rest may not apply).
+- **The bar sits above the phone sheet's mic** (`DictationBar.mount`).
+- **Never two mics:** with the chat's mic on, barge-in listens to that mic's level; the owner's line arriving on the wire is the check.
+- **Alternative not taken:** a ▶ on each reply bubble (V1 `Widget.Thread`, V3 reply row). Easy to add later through `Recite.shared.read(text)`.
 
 ## 7. Steps
 
