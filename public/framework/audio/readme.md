@@ -10,7 +10,7 @@ hold/toggle-to-talk (`mode`); **[Recorder](./Recorder/)** records, plays back an
 The output half: **[Voice](./Voice/)** is one voice (a persona) that turns a sentence into speech, and
 **[Recite](./Recite/)** reads a whole reply aloud with a playhead and pauses when you talk. The local
 voice runs on recite-server (Kokoro, on the CPU), which Servex supervises beside whisper-server
-([Servex/ext/recite/readme.md](../../../Servex/ext/recite/readme.md)).
+(`Servex/ext/recite/readme.md`).
 The [live demo at the top of this page](./) shows all three working together — pick a mic, talk,
 watch the transcript settle, optionally record.
 

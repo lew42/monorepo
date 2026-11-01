@@ -27,5 +27,5 @@ voice.speak("Hello there.");   // the browser's voice: state "speaking", then "i
 
 - [Overview](/framework/audio/Voice/): the browser-voice demo
 - [Recite](../Recite/readme.md): reads replies aloud, the local engine's main user
-- [Servex/ext/recite/readme.md](../../../../Servex/ext/recite/readme.md): recite-server
+- `Servex/ext/recite/readme.md`: recite-server
 - [doc/owner-2026-10-16-voice-conversation.md](doc/owner-2026-10-16-voice-conversation.md): the owner's notes on a full voice loop
