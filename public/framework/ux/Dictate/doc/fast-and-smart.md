@@ -1,5 +1,7 @@
 # The fast and smart seats: who does what in the dictation chat
 
+**Now: the fast seat is off by default** (2026-11-01). `session-assistant.txt` takes `off` (the default), `voice` or `fast` (`Servex/agents/Sessions.js`, `session_assistant()`); with `off`, code files a Question for each "?" sentence and the smart seat is the one voice. Why: [dictation-v3 findings §2](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/findings.md). The table below describes the seat when it is on.
+
 Status: design, 2026-10-25, by the AI system architect. Nothing here is built; it answers the owner's question "what does each seat do, and what should it do?". The wake settings (`every`, `gap_ms`) are another task's (task-mastermind-2) and are not repeated here: [wake-policy.md](wake-policy.md).
 
 **In one line.** Two models listen to every voice session. The **fast seat** tidies and files each piece of speech the moment it arrives. The **smart seat** reads what the fast seat did, then decides what the words mean: titles, a refined prompt, questions, tasks. Code (not a model) cuts the speech into chunks, opens the Prompt and counts what is done.
