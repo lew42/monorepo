@@ -29,6 +29,8 @@ export default class ChildLinks {
 	static sessions(root = SELF_ROOT, rows = {}){
 		const map = new Map(), rec = new SessionRecord({ root });
 		// Which folder is a session's: the store's one finder (core/Session/SessionFolders.mjs). It counts here when it holds a record.
+		// Since 2026-11-01 a tab-era task filed flat under a day (line 1 {"assign"} with no agent) no longer stands for the tab's session:
+		// 69 tab ids pointed at one of their own task folders that way (checked one by one, session-twins-fix); they now resolve to nothing.
 		for (const { id, dir } of SessionFolders.at(path.join(root, "public/framework/ai/sessions")).homes()) if (SessionRecord.file(dir)){ map.set(id, dir); if (!map.has(id.slice(0, 8))) map.set(id.slice(0, 8), dir); }
 		for (const dir of rec.day_children()){
 			const f = SessionRecord.file(dir), name = path.basename(dir);

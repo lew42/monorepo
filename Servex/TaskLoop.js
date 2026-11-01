@@ -156,6 +156,7 @@ export default class TaskLoop {
     /* twins-daily, 2026-11-01 (session-twins-fix): once per local day, the twin check (node Server/SessionConsolidate.mjs --check --write --json):
      * does any session have two folders? It keeps the list in ai/sessions/session-twins.json (gitignored) and says how many ids are new since
      * the last run; a new one is a writer that went around the one finder (core/Session/SessionFolders.mjs), so it posts ONE owner_note risk.
+     * The first run (no list yet) counts none as new and posts one "twin check started" note with the count instead.
      * "Done today" = the file's mtime is today, so a restart never repeats it. Doc: public/framework/ai/sessions/doc/one-folder.md */
     twins_daily(){
         const file = path.join(this.root, "public", "framework", "ai", "sessions", "session-twins.json");
@@ -166,7 +167,8 @@ export default class TaskLoop {
             this.twins_busy = false;
             let r = null; try { r = JSON.parse(String(out).trim().split("\n").pop()); } catch {}
             if (!r) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "twins: " + String(err?.message || err || "no answer") }).catch(() => {});
-            if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
+            if (r.first && r.count) this.servex?.cards?.owner_note?.({ title: `Twin check started: ${r.count} sessions have two folders`, text: `The daily check found ${r.count} sessions held by more than one folder, left from before the one finder (2026-11-01). From tomorrow it reports only new ones. Fold these: node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
+            else if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
         });
     }
 
