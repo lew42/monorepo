@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
 const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
 const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
-const served = process.argv[2] || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
+const served = process.argv[2] || process.env.SITE_URL || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
 const fixture = here + "../v2/fixture/session.jsonl", live = `live-v3-${process.pid}.jsonl`, marked = `live-v3-marked-${process.pid}.jsonl`, real = `live-v3-real-${process.pid}.jsonl`;
 const real_log = [process.env.REAL_LOG, `${main_tree}/public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl`].find(f => f && existsSync(f));
 let pass = 0, fail = 0;
