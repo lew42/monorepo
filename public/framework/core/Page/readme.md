@@ -51,7 +51,7 @@ Opening a page is the same road from offset 0. Off localhost there is no socket:
 
 ## Who changes a page
 
-- **Agents:** `page_set(path, delta)` is the one tool; `page_add`, `page_call`, `page_log`, `page_note` are aliases for common deltas, `page_read(path)` returns the computed state (never read the raw lines). All in `Servex/agents/page_tools.js` (`page_tools()`), which validates and appends one line; the same six also run in-process as the `local` SDK server ([ai/doc/agents/mcp.md](/framework/ai/doc/agents/mcp.md)). A delta's shape: a plain key sets a property, a method key calls it (`{"content":{"add":{…}}}`), a card id walks into that card. Reference: [doc/ai-api.md](doc/ai-api.md).
+- **Agents:** `page_set(path, delta)` is the one tool; `page_add`, `page_call`, `page_log`, `page_note` are aliases for common deltas, `page_read(path)` returns the computed state (never read the raw lines). All in `Servex/agents/page_tools.js` (`page_tools()`), which validates and appends one line; the same six also run in-process as the `local` SDK server ([ai/doc/agents/mcp.md](/framework/ai/doc/agents/mcp.md)). A delta's shape: a plain key sets a property, a method key calls it (`{"content":{"add":{…}}}`), a card id walks into that card. Reference: [doc/ai-api.md](doc/ai-api.md). Watch it work: [tool/](tool/), a page only agents edit (also a tab on this page).
 - **A person or the browser:** `page.js` edits; a change made in a tab is queued by `Item.Store` and appended through `ext/filesystem/FsFile.js`.
 - **Subpages** are `page.jsonl` lines, never a `page.js` edit: [doc/subpages.md](doc/subpages.md).
 

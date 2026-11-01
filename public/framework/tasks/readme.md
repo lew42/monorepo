@@ -20,6 +20,7 @@ Until then: one line per task below, and when one gets a real task folder, link 
 - **A minion audit that every folder's readme indexes its contents** (the rule: [core/Page/doc/navigation.md](../core/Page/doc/navigation.md)), run by Haiku with a script doing the listing.
 - **Where each agent finds its docs:** a whole-system review of discoverability versus context bloat.
 - **A branch strategy:** the proposal and its open decisions (rename `michael/dev` to `compliance`? first promotion to `main`; delete the merged branches it lists): [doc/git.md](../doc/git.md).
+- **`TaskDirs` labels a cloud session as `vscode-tab`** (line 1 of `ai/sessions/2026/10/31/session-e3fd9043/session.jsonl`): it should say `cloud`, so the sessions page tells them apart.
 - **`merge.mjs` names the task in the merge commit** (`Merge qf-5: bold the session title`, not `Merge branch 'worktree/qf-5'`), so history says what each slot branch did: [doc/git.md](../doc/git.md#names).
 - **`main` vs `michael/dev`:** maybe merge into `main` and work on `main` directly, instead of `michael/dev` acting as the main branch; the PC's own working branch could be named for the PC (`compliance`). Not done: merging into `main` deploys production, so it waits for the owner's go.
 - **The Item MVP's open items** (the owner's 10 small calls, what wasn't built, untested corners): [build.md](../research/2026/10/29/persistence-sync/build.md#asked-for-or-planned-not-done-nothing-here-was-started).

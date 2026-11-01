@@ -39,6 +39,8 @@ export default new Doc({
 
 	content(){
 		md("**Every page path is a context.** A card's directory (`ai/<date>/<slug>/`) is not just where its log lives — the moment the owner talks or types on it, Servex mints that path its own fast assistant and its own manager, and both keep the same session id for as long as the card is alive. The five parts below are how that works; [Servex](/framework/servex/) documents the agents themselves.");
+		// The one place an agent's page edit can be watched happening (the owner hadn't found it, 2026-11-01).
+		md("**See it happen:** the [Page tool](../tool/) page is changed only by agents, one line at a time (`page_set(path, delta)`). Open it in two tabs and an edit shows in both without a reload.");
 
 		// [fix-2026-09-29 finding 5] `.ux-content-icard` centres its text, and this
 		// Overview renders inside a catalog's DETAIL column (core's own "content()
