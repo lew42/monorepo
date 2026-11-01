@@ -311,7 +311,9 @@ export default class Recite extends Part {
 			.replace(/https?:\/\/\S+/g, " a link ")
 			.replace(/`([^`]*)`/g, "$1")
 			.replace(/^\s*(#{1,6}|[-*+]|\d+\.)\s+/gm, "")
-			.replace(/[*_~|>]+/g, " ");
+			.replace(/[*~]+/g, "")
+			.replace(/(^|\s)_+|_+(?=\s|$)/g, "$1")   // _emphasis_, but never the _ inside snake_case
+			.replace(/[|>]+/g, " ");
 		const sentences = plain.split(/(?<=[.!?…:;])\s+|\n+/).map(s => s.replace(/\s+/g, " ").trim()).filter(s => /\w/.test(s));
 		const out = [];
 		for (const s of sentences){

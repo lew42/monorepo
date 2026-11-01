@@ -14,7 +14,7 @@ const fake_voice = { name: "Fake", rate: 1, render: async text => ({ blob: typeo
 if (Recite) test("Recite: split, render, timeline, seek", async t => {
 	const parts = Recite.split("# Done\n\nI fixed **the bar**. See [the page](/x/) for more. ```js\nlet a = 1;\n``` Then `node run.mjs` again! Ok.");
 	t.eq(parts[0], "Done", "a heading becomes its own short first sentence (it starts sooner)");
-	t.ok(parts.some(p => p === "I fixed the bar."), "markdown bold is taken out");
+	t.ok(parts.some(p => p.startsWith("I fixed the bar.")), "markdown bold is taken out (a short sentence joins the next one)");
 	t.ok(parts.some(p => p.includes("See the page for more.")), "a link reads as its text");
 	t.ok(parts.join(" ").includes("(a code block)"), "a code block is named, not read");
 	t.ok(parts.join(" ").includes("node run.mjs again!"), "inline code is read plainly");
