@@ -322,8 +322,8 @@ export default class AISessionIndex {
 		const fresh = !before && Date.now() - Date.parse(snap.first_at ?? 0) < 600000;
 		if (!fresh && !(before && (before.state !== snap.state || before.title !== snap.title))) return;
 		try {
-			const dir = "public/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));
-			AIIndexStream.append(this.root, "session", { id: snap.id, path: dir, url: "/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8)) + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
+			const at = this.dirs.has(snap.id) ? path.relative(this.root, this.dirs.get(snap.id)).split(path.sep).join("/") : snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));   // the folder dir_of found: its day can be before snap.day
+			AIIndexStream.append(this.root, "session", { id: snap.id, path: "public/framework/ai/sessions/" + at, url: "/framework/ai/sessions/" + at + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
 		} catch (e){ this.log("AISessionIndex: day stream — " + e.message); }
 	}
 
