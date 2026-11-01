@@ -455,7 +455,8 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	await page.close();
 
 	// Every warn/log line, deduped, split into what the allow-list already covers and what
-	// it doesn't. Over budget on the uncovered ones fails the page, same as a real error.
+	// it doesn't. Over budget is a WARNING, never a failure (the owner, 2026-11-01: a merge that adds one Servex tool was
+	// refused because /framework/ai2/ logged 6 lines instead of 5, the same on the live site). Real errors still fail.
 	const uniq_noise = [...new Set(noise)];
 	const covered = uniq_noise.filter(allowed);
 	const uncovered = uniq_noise.filter(t => !allowed(t));
@@ -469,7 +470,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 	if (dictate_socket_lines.length > 1)
 		uniq.push(`dictate: ${dictate_socket_lines.length} Dictate engines ran their own whisper health check on one page load (expected 1)`);
 	if (uncovered.length > CONSOLE_BUDGET)
-		uniq.push(`console warn/log budget exceeded: ${uncovered.length} > ${CONSOLE_BUDGET} (not in console-allow.jsonl)`);
+		warns.push(`console warn/log budget exceeded: ${uncovered.length} > ${CONSOLE_BUDGET} (not in console-allow.jsonl)`);
 
 	const from = foundOn ? `  (link found on ${foundOn})` : "";
 	if (uniq.length && uncommitted_in_main(p)) { console.log(`skip ${p}${from}  (skipped: exists uncommitted in the main tree)`); uniq = []; links = []; continue; }
