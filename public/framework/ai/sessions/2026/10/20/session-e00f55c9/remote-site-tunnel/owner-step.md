@@ -1,3 +1,3 @@
-Owner step: none needed to get monorepo.lew42.com working (checked 2026-11-01: the API token already edits the tunnel and DNS; the named tunnel `servex` is healthy). Optional, for a real login instead of a secret link: in dash.cloudflare.com open Zero Trust, pick a team name and the Free plan (Access is "not enabled" on the account today), then edit the API token in My Profile → API Tokens and add Account → Access: Apps and Policies → Edit.
+Owner step: none. The token works: `node Server/TunnelNamed.mjs setup` added monorepo.lew42.com (DNS CNAME + tunnel ingress to the site gateway on 127.0.0.1:8192) on 2026-11-01; no trycloudflare address is used.
 
-Until then the site sits behind a long secret token (a one-time `?key=` link that sets a cookie), as the brief allows.
+Optional, later, for a real login instead of the key link: dash.cloudflare.com → Zero Trust → pick a team name and the Free plan (Access is "not enabled" on the account today), then add Account → Access: Apps and Policies → Edit to the same token. Until then the site sits behind the secret key link (`site.url` in `%LOCALAPPDATA%\lew42\servex\`, sets a 30-day cookie).
