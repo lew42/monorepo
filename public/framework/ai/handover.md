@@ -5,28 +5,28 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-10-31 00:02 UTC, last 24 h)
+## NOW (computed 2026-11-01 00:02 UTC, last 24 h)
 
-**Pace:** Week: 16% used · 27% gone · 60% of pace (room to spend, 5 days 2 hours left)
+**Pace:** Week: 25% used · 41% gone · 61% of pace (room to spend, 4 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
 **Landed (0):**
 - none
 
-**Open, touched in the window (1):**
-- [Research question from the owner (Mike), for his vanilla-JS framework Lew42 (Item/List/Page objects; every cha](/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/) (minion-replay-research)
+**Open, touched in the window (0):**
+- none
 
 **Latest commits on this branch:**
 ```
-04f4e2867 servex: log sweep (7 files)
-67112d42a servex: log sweep (1 files)
-d966eef03 servex: log sweep (5 files)
-eb3080c53 servex: log sweep (1 files)
-e6ef94cb5 servex: log sweep (5 files)
-b9569b3bd servex: log sweep (1 files)
-a71586c1c servex: log sweep (5 files)
-5c4c20ae5 servex: log sweep (1 files)
+db3c0b8f1 servex: log sweep (3 files)
+c3007851d servex: log sweep (1 files)
+2bcdbb9ed servex: log sweep (3 files)
+28bd1e66e servex: log sweep (1 files)
+fc48d46f6 servex: log sweep (4 files)
+d5635f019 servex: log sweep (1 files)
+21caaf661 servex: log sweep (5 files)
+61e8f49ee servex: log sweep (1 files)
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
