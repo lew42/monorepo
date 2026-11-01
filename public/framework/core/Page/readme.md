@@ -18,6 +18,8 @@ export default new Page({ meta: import.meta, title: "Hello", content(){ h1("Hell
 
 Then add `"hello"` to the **parent** page's `children:`. A page nobody declares still opens by its url (`Page.child()` imports its `page.js`), but it is missing from the parent's tabs, menus and cards. Agents make pages with the `create_page` tool; load the `page` skill first.
 
+**Then index it, twice:** link the new page from the pages that should point to it (parent, section page, framework page, readmes; be generous), and list its own contents near its top as links. Load it in a real browser before sending the link to anyone. The rule: [`doc/navigation.md`](./doc/navigation.md#when-you-add-a-page-index-it-twice-the-owner-2026-11-01).
+
 ## On disk: a page is a folder, and the folder is its storage
 
 | File | What | Written by | Read by |
