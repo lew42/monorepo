@@ -1,0 +1,25 @@
+{
+ "at": "2026-11-01T22:38:35.644Z",
+ "removed_files": 1560,
+ "from_backup": 1496,
+ "from_head": 64,
+ "distinct_lines": 1260,
+ "found_again": 404,
+ "stale_cache_summary": 773,
+ "listing": 31,
+ "pointer_values_in_store": 52,
+ "LOST": 0,
+ "lost_sample": [],
+ "removed_index_ids": 794,
+ "ids_missing_now": 0,
+ "ids_in_two_folders_now": 0,
+ "run_started": "2026-11-01T22:29:39.727Z",
+ "sessions_begun_during_the_run": [
+  {
+   "id": "88c481e1-fcea-4c89-b0c0-0bfbb3c1d6e8",
+   "folder": "public/framework/ai/sessions/2026/11/01/session-88c481e1"
+  }
+ ],
+ "appended_lines": 815,
+ "appended_files": 9
+}

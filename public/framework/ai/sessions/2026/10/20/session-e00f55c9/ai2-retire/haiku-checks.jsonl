@@ -1,0 +1,15 @@
+{"batch":"01","rows_checked":111,"cache_rows":48,"cache_all_lines_in_kept":0,"cache_superseded_only":48,"index_rows":63,"index_ok":63,"problems":[]}
+{"batch":"02","rows_checked":103,"cache_rows":18,"cache_all_lines_in_kept":0,"cache_superseded_only":17,"index_rows":85,"index_ok":85,"problems":[{"n":122,"deleted":"public/framework/ai/sessions/2026/10/08/ai-system-docs-fa3e829d/cache.jsonl","why":"deleted summaries run to 2026-10-12T06:25 (up to 368 msgs) but no kept line reaches past 2026-10-09T09:27 (max 322 msgs), so none is superseded"}]}
+{"batch":"03","rows_checked":115,"cache_rows":54,"cache_all_lines_in_kept":0,"cache_superseded_only":54,"index_rows":61,"index_ok":61,"problems":[]}
+{"batch":"04","rows_checked":114,"cache_rows":51,"cache_all_lines_in_kept":0,"cache_superseded_only":51,"index_rows":63,"index_ok":63,"problems":[]}
+{"batch":"05","rows_checked":109,"cache_rows":55,"cache_all_lines_in_kept":0,"cache_superseded_only":55,"index_rows":54,"index_ok":54,"problems":[]}
+{"batch":"06","rows_checked":110,"cache_rows":55,"cache_all_lines_in_kept":0,"cache_superseded_only":55,"index_rows":55,"index_ok":55,"problems":[],"missing_n":[]}
+{"batch":"07","rows_checked":109,"cache_rows":54,"cache_all_lines_in_kept":0,"cache_superseded_only":54,"index_rows":55,"index_ok":55,"problems":[]}
+{"batch":"08","rows_checked":110,"cache_rows":55,"cache_all_lines_in_kept":0,"cache_superseded_only":55,"index_rows":55,"index_ok":55,"problems":[]}
+{"batch":"09","rows_checked":109,"cache_rows":55,"cache_all_lines_in_kept":0,"cache_superseded_only":55,"index_rows":54,"index_ok":54,"problems":[]}
+{"batch":"10","rows_checked":109,"cache_rows":54,"cache_all_lines_in_kept":0,"cache_superseded_only":54,"index_rows":55,"index_ok":55,"problems":[]}
+{"batch":"11","rows_checked":110,"cache_rows":55,"cache_all_lines_in_kept":0,"cache_superseded_only":55,"index_rows":55,"index_ok":55,"problems":[]}
+{"batch":"12","rows_checked":110,"cache_rows":55,"cache_all_lines_in_kept":0,"cache_superseded_only":55,"index_rows":55,"index_ok":55,"problems":[]}
+{"batch":"13","rows_checked":102,"cache_rows":51,"cache_all_lines_in_kept":0,"cache_superseded_only":51,"index_rows":51,"index_ok":51,"problems":[]}
+{"batch":"14","rows_checked":65,"cache_rows":32,"cache_all_lines_in_kept":0,"cache_superseded_only":32,"index_rows":33,"index_ok":33,"problems":[]}
+{"batch":"recheck-18","rows_checked":18,"cache_rows":18,"cache_all_lines_in_kept":0,"cache_superseded_only":18,"index_rows":0,"index_ok":0,"problems":[]}

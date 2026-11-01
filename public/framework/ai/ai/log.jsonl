@@ -45,3 +45,6 @@
 {"session":{"id":"v-g6wux1j","event":"ended","title":"Voice check on AI page","file":"/framework/ai/ai/v-g6wux1j.jsonl","at":"2026-10-19T22:42:06.911-05:00"}}
 {"session":{"id":"v-lhvz99u","event":"started","title":null,"file":"/framework/ai/sessions/2026/10/20/v-lhvz99u/session.jsonl","at":"2026-10-20T21:51:49.074-05:00"}}
 {"session":{"id":"v-lhvz99u","event":"ended","title":null,"file":"/framework/ai/sessions/2026/10/20/v-lhvz99u/session.jsonl","at":"2026-10-20T21:58:22.326-05:00"}}
+{"session":{"id":"v-9dvbbrn","event":"started","title":null,"file":"/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl","at":"2026-10-26T15:39:37.539-05:00"}}
+{"session":{"id":"v-9dvbbrn","event":"ended","title":null,"file":"/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl","at":"2026-10-26T18:08:41.466-05:00"}}
+{"session":{"id":"v-0kfikyu","event":"started","title":"Duplicate chat bubbles bug","file":"/ai/v-0kfikyu.jsonl","at":"2026-10-08T14:14:10.158-05:00"}}

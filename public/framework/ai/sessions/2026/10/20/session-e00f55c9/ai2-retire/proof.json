@@ -1,0 +1,34 @@
+{
+ "before": {
+  "session_folders": 11897,
+  "session_ids": 11103,
+  "ids_in_two_folders": 794,
+  "usd_every_folder": 24702.9,
+  "usd_once_per_id_live": 18948.51,
+  "usd_once_per_id_max": 19353.22,
+  "jsonl_files": 24891,
+  "jsonl_lines": 370174,
+  "store_jsonl_lines": 340907
+ },
+ "after": {
+  "session_folders": 11104,
+  "session_ids": 11104,
+  "ids_in_two_folders": 0,
+  "usd_every_folder": 18959.73,
+  "usd_once_per_id_live": 18959.73,
+  "usd_once_per_id_max": 18959.73,
+  "jsonl_files": 24165,
+  "jsonl_lines": 370093,
+  "store_jsonl_lines": 341381
+ },
+ "removed_files_distinct_lines": 1251,
+ "found_again": 389,
+ "not_found_but_explained": {
+  "stale_cache_summaries": 773,
+  "ai2_pointer_or_folded": 54,
+  "listings": 39
+ },
+ "LOST": 0,
+ "lost_sample": [],
+ "extra_folders_left": []
+}
