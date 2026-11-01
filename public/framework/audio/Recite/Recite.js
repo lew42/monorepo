@@ -127,6 +127,7 @@ export default class Recite extends Part {
 	render(i){
 		const c = this.chunks[i];
 		const t0 = performance.now();
+		if (!c.pending) this.trace("speak asked", { sentence: i, url: this.url });
 		c.pending ??= this.voice.render(c.text, this.url).then(({ blob, seconds }) => {
 			this.trace("spoke", { sentence: i, ms: Math.round(performance.now() - t0), seconds, url: this.url });
 			c.src = URL.createObjectURL(blob);
@@ -184,7 +185,8 @@ export default class Recite extends Part {
 
 	/** A settled reply. Read whole, unless its stream was already read. The newest reply replaces what was playing. */
 	final(text){
-		if (!this.auto || !text) return;
+		if (!text) return;
+		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: text.slice(0, 40) }); return; }
 		const key = Recite.norm(text);
 		if (this.done.has(key)) return;
 		this.done.add(key);

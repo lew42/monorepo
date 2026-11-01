@@ -39,6 +39,10 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 - **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice (`Servex/ext/remote/doc/cloud-voice-agent.md`). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
 - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
 
+## Why it was silent
+
+Every read-aloud step writes one `recite` line to [the Whisper log](/framework/audio/Whisper/log/) (`trace()`): reply heard, not read because 🗣 is off, speak asked / spoke / failed, play refused, unlocked by a tap. Open the log to see where a silent phone stopped.
+
 ## Files
 
 - [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [Recite.css](Recite.css), [page.js](page.js) (the demo)
