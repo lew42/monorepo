@@ -1,4 +1,4 @@
-# Web dictation: V3 shows replies and live words, the fast seat paused, and read-aloud folded into one chat with voice settings (you are a mastermind)
+# Web dictation V3: show replies and live words, pause the fast seat, merge read-aloud (you are a mastermind)
 
 This is the web dictation system, NOT the Claude app voice agent (see `../voice-bridge/requirements.md`, "Who's who"). Read [../dictation-map/](../dictation-map/) (`map.md`, `answers.md`, `plan.md`) and [../voice-recite/handoff.md](../voice-recite/handoff.md) first.
 
@@ -28,3 +28,8 @@ Build in a worktree after the merge of `voice-recite` lands (`git log michael/de
 - Never restart Servex during a voice call. No `python`. Commit by path.
 - **You may spawn** helpers with `spawn_agent`.
 - **Budget:** about $35.
+
+## Added by the owner, relayed 2026-11-01 17:05
+
+- **Voice quality:** Kokoro sounds robotic. A short `voice-models.md` (beside `audio/Recite`): what Kokoro is, its real RAM and disk use, why it runs on the CPU; the best local GPU options that fit beside Whisper's 2 GB in 12 GB (Chatterbox, Orpheus, Sesame CSM, Dia, F5, XTTS, anything newer); the cloud options (what the Claude app uses if knowable, ElevenLabs, OpenAI TTS). Quality, VRAM, latency, controls (speed, pitch, emotion). Recite's `Voice` class takes more than one engine, so a better model plugs in. Speed and any other voice parameters in settings, with a sample button.
+- **Document as you build:** each new class and module gets its readme and class doc in the same commit ([doc/rules.md](/framework/doc/rules.md)), without being asked.
