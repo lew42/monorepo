@@ -1968,3 +1968,15 @@
 {"at":"2026-11-01T22:45:12.881Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-01T22:46:13.944Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/requirements.md","verdict":"spawned","to":"clarity-session-twins-fix"}
 {"at":"2026-11-01T16:50:00-06:00","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/requirements.md","verdict":"sent","what":"long undefined-jargon title, finder told in prose, landing not a checklist: rewrite sent","to":"mastermind-session-twins"}
+{"at":"2026-11-01T23:02:53.531Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/merge-remote-voice/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T23:02:54.600Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T23:02:55.767Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T23:03:54.584Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/merge-remote-voice/requirements.md","verdict":"spawned","to":"clarity-merge-remote-voice"}
+{"at":"2026-11-01T23:03:55.673Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/requirements.md","verdict":"spawned","to":"clarity-voice-bridge"}
+{"at":"2026-11-01T23:03:56.820Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/requirements.md","verdict":"spawned","to":"clarity-dictation-v3"}
+{"at":"2026-11-01T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/merge-remote-voice/requirements.md","verdict":"rewrote","what":"title was 20+ words; cut to 5 words with the goal on its own line","to":"requirements.md"}
+{"at":"2026-11-01T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/requirements.md","verdict":"rewrote","what":"title cut from 31 to 17 words; text-check clean","to":"requirements.md"}
+{"at":"2026-11-01T17:05:00-06:00","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/requirements.md","verdict":"sent","what":"title too long (25 words); sent rewrite: short title, one-line goal, who's-who as a table, link agent names","to":"mastermind-voice-bridge"}
+{"at":"2026-11-01T23:06:33.749Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/voice-models/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T23:08:26.255Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-view/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-01T23:08:43.638Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/recite-voice/requirements.md","verdict":"queued","kind":"proposal"}
