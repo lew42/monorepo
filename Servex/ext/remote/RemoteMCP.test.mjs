@@ -335,6 +335,15 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.equal((await tool2("ask_mastermind", { question: "you?", to: "vscode-mastermind" }, b1)).text, "Direct.");
     // 11) the real fallback kind: a tab reached through its inbox, which streams nothing; its reply file is the answer
     assert.equal((await tool2("ask_mastermind", { question: "tab?", to: "vscode-tab-test" }, b1)).text, "From the tab, by file.", "a non-streaming target's file answer is returned");
+    // 12) two asks in a row: the second is sent while the first's turn runs; each gets its own turn's words, none by file
+    script = () => [[50, { type: "delta", text: "Answer A." }], [300, { type: "result" }]];
+    const qa = JSON.parse((await tool2("ask_mastermind", { question: "first?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    script = () => [[400, { type: "delta", text: "Answer B." }], [450, { type: "result" }]];
+    const qb = JSON.parse((await tool2("ask_mastermind", { question: "second?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    await new Promise(r => setTimeout(r, 650));
+    const heard = async q => JSON.parse((await tool2("voice_hear", { ticket: q, wait_s: 0 }, b1)).text);
+    assert.equal((await heard(qa)).answer, "Answer A.", "the first ask gets its own turn's words");
+    assert.equal((await heard(qb)).answer, "Answer B.", "the second ask, sent mid-turn, gets the next turn's words");
     console.log("bridge:", JSON.stringify({ ack_ms, first_ms, answer_ms }));
     srv2.close();
 }

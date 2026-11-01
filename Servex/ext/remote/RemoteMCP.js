@@ -306,7 +306,7 @@ export default class RemoteMCP {
         const when = `${day} ${now.toTimeString().slice(0, 5)}`;
         let card;
         try { card = JSON.parse(await this.servex.cards.tools().find(t => t.name === "create_card").handler({ title: `Voice session ${when}`, type: "note", by: "remote-mcp" })).id; } catch {}
-        const prompt = `Load the voice-mastermind skill first. You are the mastermind of voice session ${sid}. Your task dir is ${dir}/ (task.jsonl is already open)${card ? ` and your card is ${card}` : ""}. Each owner question arrives as a message that names a reply file: answer by writing plain text to it. The gateway already writes the question and answer chat lines into your task.jsonl, so skip that part of the skill and log your own work (agents, decisions) there. Wait for the first question.`;
+        const prompt = `Load the voice-mastermind skill first. You are the mastermind of voice session ${sid}. Your task dir is ${dir}/ (task.jsonl is already open)${card ? ` and your card is ${card}` : ""}. Each owner question arrives as a message: say one plain sentence first, before any tool call (it is streamed to the voice agent), then write the full answer to the reply file the message names; follow that message's wording. The gateway already writes the question and answer chat lines into your task.jsonl, so skip that part of the skill and log your own work (agents, decisions) there. Wait for the first question.`;
         const agent = this.servex.agents.spawn({ role: "mastermind", name: `voice-${short}`, prompt, model: "claude-opus-5-5", dormant_after: 600, permission_mode: "bypassPermissions", task: { dir, ...(card ? { card } : {}) } });
         Object.assign(s, { agent: agent.id, dir });
         this.save_sessions();
@@ -318,7 +318,7 @@ export default class RemoteMCP {
         const qid = crypto.randomBytes(4).toString("hex");
         const out = path.join(this.replies, qid + ".txt");
         fs.mkdirSync(this.replies, { recursive: true });
-        const t = this.ticket(qid, { sid, agent: id, routed, busy: this.servex.agents?.live?.get?.(id)?.state === "working" });
+        const t = this.ticket(qid, { sid, agent: id, routed, ahead: this.ahead(id) });
         // say first (voice-bridge): the sentence before the first tool call is streamed to the voice agent as it is written. Only a Servex
         // agent streams; a VS Code tab (reached through its inbox file) streams nothing, so it always writes the reply file.
         const streams = !!this.servex.agents?.live?.get?.(id);
@@ -332,7 +332,7 @@ export default class RemoteMCP {
             if (used.to || this.override() || !this.sessions[sid]) { this.tickets.delete(qid); throw e; }
             Object.assign(this.sessions[sid], { agent: null, dir: null });
             ({ id, dir, routed } = await this.agent_for(sid));
-            Object.assign(t, { agent: id, routed, armed: this.servex.agents?.live?.get?.(id)?.state !== "working" });
+            Object.assign(t, { agent: id, routed, ahead: this.ahead(id) });
             this.servex.agents.send(id, msg, { from: "owner (voice)" });
         }
         used.agent = id;
@@ -381,11 +381,12 @@ export default class RemoteMCP {
     /* THE BRIDGE (voice-bridge, 2026-11-01; plan: public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/plan.md).
      * One ticket per ask: what the agent has said so far. `first` is its text before its first tool call (the say-first sentence),
      * `words` all its text this ask, `doing` its latest tool, `rev` bumps on every change so voice_hear and ride() know what is new.
-     * `armed` is false while the agent was mid-turn on other work when we asked: that turn's words are not this ask's; it arms at that turn's end. */
-    ticket(qid, { sid, agent, routed, busy = false }){
+     * `ahead` counts the turns the agent must finish before this ask's own turn (the one running, plus messages queued before ours):
+     * their words are about other work, so the ticket ignores them, and every turn end counts one off. */
+    ticket(qid, { sid, agent, routed, ahead = 0 }){
         const now = Date.now();
         for (const [k, x] of this.tickets) if (now - x.at > this.late_ms) this.tickets.delete(k);
-        const t = { id: qid, sid, agent, routed: routed ?? null, armed: !busy, at: now, first: "", words: "", doing: null, tools: 0, answer: null, done: false, turn_done: false, rev: 0, heard: 0, rode: { first: 0, answer: false }, waiters: new Set() };
+        const t = { id: qid, sid, agent, routed: routed ?? null, ahead, at: now, first: "", words: "", doing: null, tools: 0, answer: null, done: false, turn_done: false, rev: 0, heard: 0, rode: { first: 0, answer: false }, waiters: new Set() };
         this.tickets.set(qid, t);
         return t;
     }
@@ -413,6 +414,13 @@ export default class RemoteMCP {
     // what this caller has now been told: ride() only repeats what is new
     mark(t){ t.heard = t.rev; t.rode = { first: t.first.trim().length, answer: !!t.answer }; }
 
+    // turns an agent must finish before a message sent now is answered: the running one plus those already queued
+    // (a priority message can jump the queue; then the count is one high and that ask's answer arrives by its reply file)
+    ahead(id){
+        const a = this.servex.agents?.live?.get?.(id);
+        return a?.state === "working" ? 1 + (a.queue?.items?.length ?? 0) : 0;
+    }
+
     // the open tickets of an agent, oldest first: its stream belongs to the oldest ask it has not finished
     open_for(agent_id){ return [...this.tickets.values()].filter(t => t.agent === agent_id && !t.done); }
 
@@ -430,17 +438,20 @@ export default class RemoteMCP {
     heard_event(event, agent){
         if (event.nested || !this.tickets.size || !["delta", "tool", "result"].includes(event.type)) return;
         const open = this.open_for(agent?.id);
-        const t = open[0];
+        if (!open.length) return;
+        const t = open.find(x => !x.ahead);   // the oldest ask whose turn has come; asks still behind other turns ignore this one
+        if (event.type === "result"){
+            const behind = open.filter(x => x.ahead);   // every ask still waiting: a turn ahead of each of them just ended
+            if (t && event.stopped) Object.assign(t, { done: true, stopped: true }), this.changed(t);   // cut off mid-turn: closed, and its partial words are not an answer
+            // the turn's words go to the oldest open ask only; a later ask the same turn answered arrives by its reply file
+            else if (t) for (const x of open) if (!x.ahead && (x === t || x.words)){ x.turn_done = true; x.deliver?.() || this.changed(x); }
+            for (const x of behind) x.ahead--;
+            return;
+        }
         if (!t) return;
-        if (!t.armed){ if (event.type === "result") t.armed = true; return; }   // the other work's turn ended; the next turn is ours
-        if (event.type === "result" && event.stopped){ Object.assign(t, { done: true, stopped: true }); return this.changed(t); }   // cut off mid-turn: closed, and its partial words are not an answer
         t.turn_done = false;   // a new turn: its words are not an answer until it ends
         if (event.type === "delta"){ if (!t.tools) t.first += event.text; t.words += event.text; return this.changed(t); }
         if (event.type === "tool"){ t.tools++; t.doing = `${String(event.name).replace(/^mcp__\w+__/, "")} ${event.input ?? ""}`.trim().slice(0, 80); return this.changed(t); }
-        if (event.type === "result"){
-            // the turn's words go to the oldest open ask only; a later ask the same turn answered arrives by its reply file
-            for (const x of open) if (x.armed && (x === t || x.words)){ x.turn_done = true; x.deliver?.() || this.changed(x); }
-        }
     }
 
     /* voice_hear: a short long-poll on one ticket (default: this connection's latest). Returns at the first change, at wait_s,
