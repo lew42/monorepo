@@ -1,11 +1,11 @@
 # Follow-up: every task of the last 10 days
 
-839 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
+837 tasks, flagged first. Summary: [follow-up.md](follow-up.md).
 
 | task | group | session | model | started | last log | step | state bucket | outcome | branch | agent | flags |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | [sessions-tab-polish](/framework/ai/sessions/2026/10/03/sessions-tab-polish/sessions-tab-polish/) | - | 8de620c5 | sonnet-5 | 10-03 22:04 | 10-23 02:29 | 11/7 | landed | yes | 12 ahead | dormant | unmerged |
-| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | prompt-t | - | 10-23 01:31 | 10-31 00:02 | 0/0 | stale | no | - | unknown | quiet |
+| [session-e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/) | - | prompt-t | - | 10-23 01:31 | 11-01 00:02 | 0/0 | stale | no | - | unknown | quiet |
 | [cloud-voice-app-20261027](/framework/ai/sessions/2026/10/27/cloud-voice-app-20261027/) | - | - | - | 10-28 04:33 | 10-30 04:52 | 0/0 | stale | no | - | unknown | quiet |
 | [session-174601a8](/framework/ai/sessions/2026/10/26/session-174601a8/) | - | - | - | 10-26 21:07 | 10-29 04:59 | 0/0 | stale | no | - | unknown | quiet |
 | [session-dcd4f3bc](/framework/ai/sessions/2026/10/26/session-dcd4f3bc/) | - | - | - | 10-26 21:06 | 10-29 04:59 | 0/0 | stale | no | - | unknown | quiet |
@@ -196,15 +196,15 @@
 | [ai-system-mastermind](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/process-system/ai-system-mastermind/) | - | - | - | 10-24 01:26 | 10-24 01:26 | 0/0 | stale | no | - | unknown | quiet |
 | [compact-before-sleep](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/compact-before-sleep/) | - | - | - | 10-24 00:45 | 10-24 00:45 | 0/0 | stale | no | - | unknown | quiet |
 | [asks-to-tasks](/framework/ext/Refine/tasks/asks-to-tasks/) | - | mastermi | - | 10-23 05:33 | 10-23 07:04 | 0/0 | stale | yes | - | unknown | quiet |
-| [minion-replay-research](/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/) | - | 1f880f6b | sonnet-5-5 | 10-30 23:20 | 10-31 04:42 | 0/0 | stale | yes | - | stopped | ok |
-| [cloud-voice-app-20261029](/framework/ai/sessions/2026/10/29/cloud-voice-app-20261029/) | - | - | - | 10-29 23:37 | 10-31 04:32 | 0/0 | stale | no | - | unknown | ok |
-| [cloud-voice-app-20261030](/framework/ai/sessions/2026/10/30/cloud-voice-app-20261030/) | - | - | - | 10-30 07:32 | 10-31 04:32 | 0/0 | stale | no | - | unknown | ok |
-| [minion-usage-check](/framework/ai/sessions/2026/10/29/spawned/minion-usage-check/) | - | 10d51243 | haiku-5-5 | 10-29 23:17 | 10-31 04:12 | 0/0 | stale | yes | - | stopped | ok |
-| [deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/) | - | d9c3caec | opus-5-5 | 10-24 00:01 | 10-31 00:02 | 0/0 | waiting | yes | branch gone | dormant | ok |
+| [cloud-voice-app-20261029](/framework/ai/sessions/2026/10/29/cloud-voice-app-20261029/) | - | - | - | 10-29 23:37 | 11-01 04:32 | 0/0 | stale | no | - | unknown | ok |
+| [cloud-voice-app-20261030](/framework/ai/sessions/2026/10/30/cloud-voice-app-20261030/) | - | - | - | 10-30 07:32 | 11-01 04:32 | 0/0 | stale | no | - | unknown | ok |
+| [sessions-and-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/) | ai-sessions | e00f55c9 | fable-5-1 | 10-20 20:03 | 11-01 00:02 | 0/0 | stopped | yes | - | unknown | ok |
+| [minion-usage-check](/framework/ai/sessions/2026/10/29/spawned/minion-usage-check/) | - | 10d51243 | haiku-5-5 | 10-29 23:17 | 10-31 20:12 | 0/0 | stopped | yes | - | stopped | ok |
+| [minion-replay-research](/framework/ai/sessions/2026/10/30/spawned/minion-replay-research/) | - | 1f880f6b | sonnet-5-5 | 10-30 23:20 | 10-31 07:42 | 0/0 | stopped | yes | - | stopped | ok |
+| [deputy](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/deputy/) | - | d9c3caec | opus-5-5 | 10-24 00:01 | 10-31 00:02 | 0/0 | stopped | yes | branch gone | dormant | ok |
 | [chat-v2](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-v2/) | - | 8d26211f | opus-5-5 | 10-25 07:19 | 10-31 00:02 | 0/0 | landed | yes | - | dormant | ok |
 | [dictation-debug](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/) | - | 3158646c | opus-5-5 | 10-25 06:44 | 10-31 00:02 | 2/5 | waiting | yes | - | dormant | ok |
 | [minion-usage](/framework/ai/sessions/2026/10/29/spawned/minion-usage/) | - | 7c606504 | haiku-5-5 | 10-30 00:25 | 10-30 07:18 | 0/0 | stopped | yes | - | stopped | ok |
-| [sessions-and-tasks](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/) | ai-sessions | e00f55c9 | fable-5-1 | 10-20 20:03 | 10-29 23:35 | 0/0 | waiting | yes | - | unknown | ok |
 | [mastermind-ai](/framework/ai/sessions/2026/10/28/spawned/mastermind-ai/) | - | fd5441b2 | sonnet-5-5 | 10-29 03:28 | 10-29 03:31 | 0/0 | landed | yes | - | dormant | ok |
 | [mastermind-system-map](/framework/ai/sessions/2026/10/26/spawned/mastermind-system-map/) | - | 264f7d21 | sonnet-5-5 | 10-26 22:48 | 10-28 04:53 | 0/0 | landed | yes | - | dormant | ok |
 | [task-mastermind-2](/framework/ai/sessions/2026/10/25/session-e06424f1/task-mastermind-2/) | - | d3ed399d | sonnet-5-5 | 10-25 22:15 | 10-27 05:55 | 0/0 | waiting | yes | - | dormant | ok |
@@ -841,11 +841,25 @@
 | [v-lhvz99u](/framework/ai/sessions/2026/10/20/v-lhvz99u/) | - | - | - | 10-22 05:02 | 10-22 05:02 | 0/0 | stopped | no | - | unknown | ok |
 | [v-7bnqmeh](/framework/ai/sessions/2026/10/20/v-7bnqmeh/) | - | - | - | 10-22 05:02 | 10-22 05:02 | 0/0 | stopped | no | - | unknown | ok |
 | [cloud-voice-task-system-and-voice-agent-exploration](/framework/ai/sessions/2026/10/20/cloud-voice-task-system-and-voice-agent-exploration/) | - | - | - | 10-22 05:02 | 10-22 05:02 | 0/0 | stopped | no | - | unknown | ok |
-| [prompt-audit-system](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit-system/) | - | 12c360cd | opus-5-5 | 10-21 23:42 | 10-22 00:02 | 0/0 | landed | yes | - | dormant | ok |
-| [prompt-audit](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/prompt-audit/) | - | 0dbc4c6f | sonnet-5-5 | 10-21 23:21 | 10-21 23:29 | 0/0 | landed | yes | - | dormant | ok |
 
 ## Unworked tasks (open, untouched over 7 days)
 
+- [agent-rules-skills-usage-and-the-health](/framework/ai/tasks/agent-rules-skills-usage-and-the-health/): idle, 2026-10-25
+- [design-vision-loop-screenshot-read-chang](/framework/ai/tasks/design-vision-loop-screenshot-read-chang/): idle, 2026-10-25
+- [now-page-topic-sub-cards-from-refined-pr](/framework/ai/tasks/now-page-topic-sub-cards-from-refined-pr/): idle, 2026-10-25
+- [youtube-channel-planning-the-owner-s-own](/framework/ai/tasks/youtube-channel-planning-the-owner-s-own/): idle, 2026-10-25
+- [ai-folder-cleanup-date-folder-two-year-t](/framework/ai/tasks/ai-folder-cleanup-date-folder-two-year-t/): idle, 2026-10-25
+- [docs-architecture-md-per-module-the-syst](/framework/ai/tasks/docs-architecture-md-per-module-the-syst/): idle, 2026-10-25
+- [inbox-and-sessions-one-data-source-date](/framework/ai/tasks/inbox-and-sessions-one-data-source-date/): idle, 2026-10-25
+- [models-expiry-aware-token-use-and-what-t](/framework/ai/tasks/models-expiry-aware-token-use-and-what-t/): idle, 2026-10-25
+- [sessions-store-use-shrink-and-archive-th](/framework/ai/tasks/sessions-store-use-shrink-and-archive-th/): idle, 2026-10-25
+- [prompt-refinement-hand-off-to-a-mastermi](/framework/ai/tasks/prompt-refinement-hand-off-to-a-mastermi/): idle, 2026-10-25
+- [session-costs-newest-first-condensed-old](/framework/ai/tasks/session-costs-newest-first-condensed-old/): idle, 2026-10-25
+- [sessions-page-layout-fixes-after-the-vie](/framework/ai/tasks/sessions-page-layout-fixes-after-the-vie/): idle, 2026-10-25
+- [steps-and-nudges-make-the-process-struct](/framework/ai/tasks/steps-and-nudges-make-the-process-struct/): idle, 2026-10-25
+- [repo-size-backup-and-worktree-cleanup](/framework/ai/tasks/repo-size-backup-and-worktree-cleanup/): idle, 2026-10-25
+- [sessions-page-performance-audit-lag-unde](/framework/ai/tasks/sessions-page-performance-audit-lag-unde/): idle, 2026-10-25
+- [surface-stored-session-information-that](/framework/ai/AISession/tasks/surface-stored-session-information-that/): idle, 2026-10-24
 - [the-review-page-should-be-an-existing-pa](/framework/ai/sessions/tasks/the-review-page-should-be-an-existing-pa/): idle, 2026-10-24
 - [make-miller-column-list-items-more-compa](/framework/core/Page/tasks/make-miller-column-list-items-more-compa/): waiting, 2026-10-24
 - [try-resizing-the-columns-slightly-so-the](/framework/core/Page/tasks/try-resizing-the-columns-slightly-so-the/): waiting, 2026-10-24
