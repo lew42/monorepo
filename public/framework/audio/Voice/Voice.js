@@ -5,19 +5,14 @@ import Part, { PartView } from "../Part.js";
 View.stylesheet(import.meta, "Voice.css");
 
 /**
- * class Voice extends Part — text to speech, the output half of the mic pair:
- * `Transcriber` turns speech INTO text, `Voice` turns text BACK into speech.
- * `window.speechSynthesis` (the browser's own `SpeechSynthesisUtterance`) is
- * the whole engine here — built into every modern browser, nothing to
- * install, nothing to run — the same zero-dependency tier as
- * `Transcriber.Browser` (its speech-to-text twin). Why not a local engine
- * like whisper-server: `doc/decisions.md`'s `d-voice-engine` — there is no
- * local TTS binary on this machine today, so there is nothing yet to wrap.
+ * class Voice extends Part — one voice, a persona (name, recite-server voice id, speed).
+ * Two engines: render(text, url) gets one sentence as a WAV from recite-server (local
+ * Kokoro; audio/Recite uses it), and speak(text) uses the browser's own speechSynthesis.
+ * readme.md has both; Voice.PERSONAS lists the personas.
  *
- *   const voice = new Voice();
- *   voice.speak("Hello there.");    // → voice.state === "speaking", then "idle" when done
- *   voice.rate = 1.3;                // takes effect on the NEXT speak()
- *   voice.pick(voice.voices()[2]);   // choose a voice by its SpeechSynthesisVoice object
+ *   const voice = Voice.persona("George");
+ *   await voice.render("Hello.", recite.url);   // {blob, seconds}
+ *   voice.speak("Hello there.");                // the browser's voice
  */
 export default class Voice extends Part {
 
@@ -27,6 +22,8 @@ export default class Voice extends Part {
 	volume = 1;            // 0 .. 1
 	text = "";             // the last text given to speak()
 	chosen_voice = null;   // a SpeechSynthesisVoice, or null = the browser's own default
+	name = "Heart";        // the persona's name, what a picker shows
+	id = "af_heart";       // the recite-server (Kokoro) voice id; render() uses it, speak() does not
 
 	constructor(...args){
 		super(...args);
@@ -69,7 +66,7 @@ export default class Voice extends Part {
 	 *  different `Voice` instance's speech — `window.speechSynthesis` is one
 	 *  shared browser queue, so two `Voice`s both calling `speak()` still take
 	 *  turns at the browser level; this class does not try to hide that. */
-	speak(text){
+	speak(text, done){
 		if (!window.speechSynthesis){ this.on_error?.(new Error("This browser has no window.speechSynthesis — text to speech is not available here.")); return; }
 		window.speechSynthesis.cancel();
 		this.text = text;
@@ -77,7 +74,7 @@ export default class Voice extends Part {
 		u.rate = this.rate; u.pitch = this.pitch; u.volume = this.volume;
 		if (this.chosen_voice) u.voice = this.chosen_voice;
 		u.onstart = () => { this.state = "speaking"; this.on_change?.(); };
-		u.onend = () => { this.state = "idle"; this.on_change?.(); };
+		u.onend = () => { this.state = "idle"; this.on_change?.(); done?.(); };   // done: Recite's browser fallback moves to its next sentence
 		u.onerror = e => { this.state = "idle"; this.on_change?.(); this.on_error?.(e); };
 		u.onboundary = e => { this.on_boundary?.(e); };
 		this.utterance = u;
@@ -89,11 +86,38 @@ export default class Voice extends Part {
 	pause(){ if (this.state !== "speaking") return; window.speechSynthesis.pause(); this.state = "paused"; this.on_change?.(); }
 	resume(){ if (this.state !== "paused") return; window.speechSynthesis.resume(); this.state = "speaking"; this.on_change?.(); }
 
+	/** The local engine: the audio of `text` in this voice, from recite-server
+	 *  (`url` is `Recite.url`). Returns {blob, seconds}; throws one plain line
+	 *  when the server is down or refuses. One sentence or paragraph per call. */
+	async render(text, url, signal){
+		const r = await fetch(url + "/speak", { method: "POST", headers: { "content-type": "application/json" },
+			body: JSON.stringify({ text, voice: this.id, speed: this.rate }), signal: signal ?? AbortSignal.timeout(20000) });
+		if (!r.ok) throw new Error((await r.json().catch(() => null))?.error ?? `recite-server answered ${r.status}`);
+		return { blob: await r.blob(), seconds: Number(r.headers.get("x-recite-seconds")) || 0 };
+	}
+
+	/** A persona by name (`Voice.PERSONAS`), as a new Voice. */
+	static persona(name){
+		const p = Voice.PERSONAS.find(v => v.name === name) ?? Voice.PERSONAS[0];
+		return new Voice({ ...p });
+	}
+
 	/** Stops now, with nothing queued after it — the Stop button's verb. */
 	stop(){ window.speechSynthesis?.cancel(); this.state = "idle"; this.on_change?.(); }
 }
 
 track(Voice);
+
+/** A few personas: a recite-server voice id and a speed each (the 54 ids: GET /recite/voices). */
+Voice.PERSONAS = [
+	{ name: "Heart", id: "af_heart", rate: 1 },
+	{ name: "Bella", id: "af_bella", rate: 1 },
+	{ name: "Nicole", id: "af_nicole", rate: 1 },
+	{ name: "Puck", id: "am_puck", rate: 1 },
+	{ name: "Fenrir", id: "am_fenrir", rate: 1 },
+	{ name: "George", id: "bm_george", rate: 1 },
+	{ name: "Emma", id: "bf_emma", rate: 1 },
+];
 
 /**
  * `Voice.Controls` — the text box + Speak/Pause/Stop buttons + a voice

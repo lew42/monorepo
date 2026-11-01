@@ -1,4 +1,5 @@
 import { View, span, button } from "../../core/View/View.js";
+import Recite from "/framework/audio/Recite/Recite.js";
 
 View.stylesheet(import.meta, "DictationBar.css");
 
@@ -30,6 +31,7 @@ export default class DictationBar extends View {
 		if (box) box.placeholder = "type, then Enter to send";
 		const bars = [];
 		new View({ el: compose, capture: false }).append(() => { bars.push(new this({ mic, compose })); });
+		compose.before(Recite.shared.bar.el);   // the read-aloud line, directly above the mic (audio/Recite)
 		if (live){
 			const row = live.el ?? live;
 			new View({ el: row, capture: false }).append(() => { bars.push(new this({ mic, compose, compact: true })); });

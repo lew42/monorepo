@@ -5,6 +5,7 @@ import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
 import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
 import DictateHealth from "./DictateHealth.js";
+import Recite from "/framework/audio/Recite/Recite.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
 
 // One chat box, every surface: doc/chat-notes.md
@@ -207,6 +208,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 				: Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
 		});
 	});
+	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
 	function draw(line){
@@ -298,6 +300,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			else if (kind === "line_failed") DictateHealth.fail("page", d.error, `drawing line ${d.n} of the session log`);
 		} });
 		stop_stream = Session.stream(owner.ctl.session, ev => {
+			Recite.shared.from_wire(ev);   // the smart seat's reply is read aloud as it streams (audio/Recite/readme.md)
 			if (ev.kind === "stream"){ panel.stream(ev.role, ev.text); if (ev.text) DictateHealth.set("llm", "ok", `${ev.role} is writing an answer…`, { quiet: true }); }
 			else if (ev.kind === "line") draw(ev.line);
 			// The session's own title just changed (session_summary/rename_session, Sessions.js). No title

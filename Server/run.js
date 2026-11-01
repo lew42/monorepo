@@ -28,6 +28,7 @@ import ServexProxy from "./plugins/ServexProxy.js";
 import Start from "./plugins/Start.js";
 import Push from "./plugins/Push.js";   // Web Push for the notifications lab � Server/plugins/Push.js
 import Whisper from "./plugins/Whisper.js";
+import Recite from "./plugins/Recite.js";
 import HttpsLan from "./plugins/HttpsLan.js";   // https beside http for the phone mic - Server/plugins/HttpsLan.js
 import Tab from "./plugins/SocketServer/Tab.js";
 import Tail from "./plugins/SocketServer/Tail.js";
@@ -60,6 +61,7 @@ Server.use(Research);   // registers its tools on MCP — after it
 Server.use(Screenshots);
 Server.use(Push);
 Server.use(Whisper);    // starts whisper-server for ux/Dictate — Server/plugins/Whisper.js
+Server.use(Recite);     // /recite/* -> recite-server (text to speech) — Server/plugins/Recite.js
 Server.use(HttpsLan);
 Server.use(ServexProxy);   // /servex/* → Servex, for a phone on the LAN — Server/plugins/ServexProxy.js
 Server.use(AskRoute);   // POST /ask/turn — the AI drawer's one Claude turn, for a phone on the LAN — Server/plugins/Ask.js
