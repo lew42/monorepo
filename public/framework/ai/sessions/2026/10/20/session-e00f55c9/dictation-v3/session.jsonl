@@ -12,3 +12,11 @@
 {"decision":{"at":"2026-11-01T17:17:46-06:00","what":"mastermind builds V3 view and Recite pieces itself","why":"spawn gate blocked on machine RAM; no file conflicts with a running builder","options":["wait for RAM (unknown time)","free RAM by stopping other agents' worktree servers (not mine to stop)"]}}
 {"commit":"543469921c94","by":"append.mjs","ts":"2026-11-01T23:19:20.043Z"}
 {"commit":"76700f3e7eaa","by":"append.mjs","ts":"2026-11-01T23:21:41.036Z"}
+{"commit":"243d46bfe08d","by":"append.mjs","ts":"2026-11-01T23:31:51.736Z"}
+{"action":{"at":"2026-11-01T17:33:19-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/tap-unlock/review.md"]},"by":"ledger","ts":"2026-11-01T23:33:19.360Z"}
+{"commit":"33a24c67e3e5","by":"append.mjs","ts":"2026-11-01T23:33:47.815Z"}
+{"commit":"8025aedccb1c","by":"append.mjs","ts":"2026-11-01T23:34:38.474Z"}
+{"log":{"at":"2026-11-01T17:37:45-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-01T23:37:45.768Z"}
+{"log":{"at":"2026-11-01T17:42:43-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-01T23:42:43.352Z"}
+{"action":{"at":"2026-11-01T17:50:25-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/recite-trace/review.md"]},"by":"ledger","ts":"2026-11-01T23:50:25.468Z"}
+{"log":{"at":"2026-11-01T17:52:54-06:00","msg":"landed on michael/dev: tap unlock (057f98333) and V1 reads every reply + recite trace (merge worktree/qf-9). Queue for after the walk: plan.md 'Queued'. Waiting on the owner's phone trace lines."}}
