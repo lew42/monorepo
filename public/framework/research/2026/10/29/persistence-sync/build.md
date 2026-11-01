@@ -38,6 +38,13 @@ Cloudflare answers a missing file with `index.html`; a module that comes back as
 - **No regressions in a 309-page random sample** (2026-11-01, Cloudflare-faithful local copy): served as Cloudflare would, the original `data-shapes-2` is blank on all 309 (the `ext/Shots` fault) and this branch renders 279 of them. The 56 pages with any problem on the branch were then compared with the original served without `.assetsignore` (so it renders): same outcome on all 56. Their problems were already there before this branch (below).
 - Not run: `node Server/PreviewCheck.mjs <preview> --all` over every page on the real preview (the long run timed out through the remote tunnel). Optional; the sample above covers the risk.
 
+## How the branches and repos flowed (2026-10-29 → 11-01)
+
+1. **The research** started in its own GitHub repo, `mikelew42/research` (2026-10-29 → 31). It was copied into this monorepo on 2026-11-01, filed at `public/framework/research/2026/10/29/persistence-sync/`; the old repo's README points here and can be archived.
+2. **`integration/data-shapes-2`** was built by the VS Code tab's integration mastermind (all nine data-shapes builds on one branch, `9ba46ee87`, 2026-10-28), ready to merge but never merged.
+3. **This session branched from it** as `claude/replay-tests` and built the Item MVP there. **Renamed `claude/oop-streaming-research`** on 2026-11-01 (the owner's better name). The old remote name `claude/replay-tests` still exists on GitHub, for the owner to delete.
+4. **Merged into `michael/dev` on 2026-11-01** (merge commit `9e849d788`, on top of `9bc81edc4`), which brought `integration/data-shapes-2` into `michael/dev` with it. Not merged into `main` (production): that waits for the owner.
+
 ## How to merge (owner: into `michael/dev`, not `main` yet)
 
 **Done 2026-11-01:** merged on GitHub into `michael/dev` (merge commit `9e849d788`, from the cloud session); the one conflict was resolved by keeping both sides. The PC pulls `michael/dev`, then restarts Servex and the dev server ([handover](/framework/ai/handover.md)). The steps below are what was planned.
