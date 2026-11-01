@@ -230,3 +230,9 @@ public/framework/core/Test/save-results.jsonl
 
 # ChatV2.test.mjs writes a per-run live copy of its fixture and deletes it at the end; a killed run would leave it
 public/framework/ext/Chat/v2/fixture/live-*.jsonl
+
+# the twin check (Server/SessionConsolidate.mjs --check --write, run daily by Servex/TaskLoop.js): rebuilt from the folders each run, so machine state
+public/framework/ai/sessions/session-twins.json
+# the session-folder finder's saved map (core/Session/SessionFolders.mjs): a cache of what each day folder holds, checked against the folders on every read
+public/framework/ai/sessions/session-folders.json
+public/framework/ai/sessions/session-folders.json.*.tmp

@@ -90,6 +90,7 @@ export default class TaskLoop {
             // worktree-down, 2026-09-29: a landed+merged task's dev server goes down (Server/worktree-sweep.mjs), hidden child so it never blocks this tick.
             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
             this.follow_up_daily();
+            this.twins_daily();
             this.handover_daily();
             this.undone_asks_daily();
             await this.read_inboxes(this.servex.agents.registry_list(), this.clock()).catch(e => this.servex.say?.(`task-loop: inbox sweep failed: ${e.message || e}`));
@@ -150,6 +151,23 @@ export default class TaskLoop {
             const flagged = ["unmerged", "merged-not-landed", "quiet", "no-outcome", "asks"].reduce((t, k) => t + (n[k] || 0), 0);
             this.servex?.cards?.owner_note?.({ title: `Follow-up ${day}: ${flagged} flagged`, text: `${flagged} rows fell through today (${n.healthy ?? "?"} healthy)${n.unworked ? `; ${n.unworked} open tasks untouched over 7 days` : ""}: see the list`, kind: "risk", links: ["/framework/ai/doc/follow-up.md"], by: "task-loop" })?.catch?.(() => {});
         }));
+    }
+
+    /* twins-daily, 2026-11-01 (session-twins-fix): once per local day, the twin check (node Server/SessionConsolidate.mjs --check --write --json):
+     * does any session have two folders? It keeps the list in ai/sessions/session-twins.json (gitignored) and says how many ids are new since
+     * the last run; a new one is a writer that went around the one finder (core/Session/SessionFolders.mjs), so it posts ONE owner_note risk.
+     * "Done today" = the file's mtime is today, so a restart never repeats it. Doc: public/framework/ai/sessions/doc/one-folder.md */
+    twins_daily(){
+        const file = path.join(this.root, "public", "framework", "ai", "sessions", "session-twins.json");
+        let m = 0; try { m = fs.statSync(file).mtimeMs; } catch {}
+        if (this.date_id(new Date(m)) === this.date_id(new Date()) || this.twins_busy) return;
+        this.twins_busy = true;
+        execFile(process.execPath, [path.join(this.root, "Server", "SessionConsolidate.mjs"), "--check", "--write", "--json"], { cwd: this.root, windowsHide: true, timeout: 120000 }, (err, out) => {
+            this.twins_busy = false;
+            let r = null; try { r = JSON.parse(String(out).trim().split("\n").pop()); } catch {}
+            if (!r) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "twins: " + String(err?.message || err || "no answer") }).catch(() => {});
+            if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
+        });
     }
 
     /* handover-daily, 2026-10-17: once per UTC day, run Server/HandoverNow.mjs --write so the NOW block at the top of handover.md stays computed.

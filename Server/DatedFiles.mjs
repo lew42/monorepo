@@ -166,7 +166,9 @@ export default class DatedFiles extends Dated {
 		return { ok: !missing.length && !stale.length, folders: have.size, rows: latest.size, missing, stale };
 	}
 
-	/** Sessions: ok when no top folder sits under the wrong day (misfiled) and no index row points at a folder that is gone (stale). A folder without a row is not a fault: watch() and the transcript indexer fill rows in. */
+	/** Sessions: ok when no top folder sits under the wrong day (misfiled), no index row points at a folder that is gone (stale), and no session
+	 *  is held by two folders (twins: SessionFolders.twins(); fold them with node Server/SessionConsolidate.mjs --all). A folder without a row is
+	 *  not a fault: watch() and the transcript indexer fill rows in. */
 	check_sessions(){
 		const R = DatedFiles, latest = new Map(), have = new Set();
 		for (const { day, dir } of this.day_folders()){
@@ -174,7 +176,8 @@ export default class DatedFiles extends Dated {
 			try { for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) have.add(R.rel(path.join(dir, e.name))); } catch {}
 		}
 		const moves = this.misfiled({ since: DatedFiles.LOCAL_DAY_SINCE }).moves.filter(m => m.source !== "folder birth time"), stale = [...latest.values()].filter(r => r.path && !fs.existsSync(path.isAbsolute(r.path) ? r.path : R.abs(r.path))).map(r => r.path);
-		return { ok: !moves.length && !stale.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale };
+		const twins = this.folders().twins().map(t => ({ id: t.id, home: R.rel(t.home), others: t.others.map(o => R.rel(o)) }));
+		return { ok: !moves.length && !stale.length && !twins.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale, twins: twins.length, twin_examples: twins.slice(0, 5) };
 	}
 
 	// ── the sessions collection: <ai/sessions>/YYYY/MM/DD/<session or task folder>/ (TaskDirs is its thin alias) ──

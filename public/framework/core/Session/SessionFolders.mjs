@@ -15,6 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, ID8 = /^session-([0-9a-f]{8})$/;
+const mtime = p => { try { return fs.statSync(p).mtimeMs; } catch { return 0; } };
 const dirs = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
 
 export default class SessionFolders {
@@ -53,31 +54,61 @@ export default class SessionFolders {
 
 	constructor(root){
 		this.root = root;
-		this.days = new Map();   // "YYYY/MM/DD" -> Map(folder name -> id, or null when it names none)
+		this.days = new Map();   // "YYYY/MM/DD" -> { mt: the day folder's mtime when read, names: Map(folder name -> id, or null when it names none) }
 		this.ids = new Map();    // id -> Set of "YYYY/MM/DD/<name>"
+		this.quiet = new Map();  // "YYYY/MM/DD/<name>" of a folder that names no id -> its mtime when read (a claim arrives as a new file, which moves it)
+		this.file = path.join(root, "session-folders.json");   // what was read, so a one-shot process (the SessionStart hook, TaskDirs --new) need not read every folder again
 	}
 
-	/** Bring the map up to what is on disk: every day's folder names are listed (cheap); only a new name, or one that named no id yet, is read. */
+	/** Bring the map up to what is on disk. Every day's folder names are listed every time: that is the part correctness rests on (a folder
+	 *  added, removed or renamed is seen at once). What a folder says it holds is read again only when it is new, when it named no id and
+	 *  has changed since, or when its day folder's mtime moved (a folder removed and made again under the same name). */
 	refresh(){
-		const seen = new Set();
+		if (!this.days.size) this.load();
+		const seen = new Set(); let changed = false;
+		const forget = (day, name, id) => { this.quiet.delete(`${day}/${name}`); if (id) this.ids.get(id)?.delete(`${day}/${name}`); };
 		for (const y of dirs(this.root)) if (/^\d{4}$/.test(y)) for (const m of dirs(path.join(this.root, y))) if (/^\d\d$/.test(m)) for (const d of dirs(path.join(this.root, y, m))) if (/^\d\d$/.test(d)){
-			const day = `${y}/${m}/${d}`, have = this.days.get(day) ?? new Map(), now = new Set(dirs(path.join(this.root, y, m, d)));
-			seen.add(day); this.days.set(day, have);
-			for (const [name, id] of have) if (!now.has(name)){ have.delete(name); if (id) this.ids.get(id)?.delete(`${day}/${name}`); }
-			for (const name of now) if (!have.has(name) || have.get(name) === null){
-				const id = SessionFolders.owner(path.join(this.root, day, name));
-				have.set(name, id);
-				if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(`${day}/${name}`);
+			const day = `${y}/${m}/${d}`, dd = path.join(this.root, y, m, d), mt = mtime(dd), rec = this.days.get(day) ?? { mt: null, names: new Map() };
+			const same = rec.mt === mt, have = rec.names, now = new Set(dirs(dd));
+			seen.add(day); this.days.set(day, rec);
+			for (const [name, id] of have) if (!now.has(name)){ have.delete(name); forget(day, name, id); changed = true; }
+			for (const name of now){
+				const key = `${day}/${name}`, dir = path.join(dd, name), was = have.get(name);
+				if (same && have.has(name) && (was !== null || this.quiet.get(key) === mtime(dir))) continue;
+				const id = SessionFolders.owner(dir);
+				if (have.has(name) && was === id && id !== null) continue;
+				forget(day, name, was); have.set(name, id); changed = true;
+				if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(key); else this.quiet.set(key, mtime(dir));
 			}
+			if (rec.mt !== mt){ rec.mt = mt; changed = true; }
 		}
-		for (const [day, have] of this.days) if (!seen.has(day)){ for (const [name, id] of have) if (id) this.ids.get(id)?.delete(`${day}/${name}`); this.days.delete(day); }
+		for (const [day, rec] of this.days) if (!seen.has(day)){ for (const [name, id] of rec.names) forget(day, name, id); this.days.delete(day); changed = true; }
+		if (changed) this.save();
 		return this;
+	}
+
+	/** The saved map (session-folders.json, gitignored machine state). Only a starting point: refresh() checks it against the folders. */
+	load(){
+		let j = null; try { j = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { return; }
+		if (j?.v !== 1) return;
+		for (const [day, { mt, names }] of Object.entries(j.days ?? {})){
+			const rec = { mt, names: new Map(Object.entries(names)) };
+			this.days.set(day, rec);
+			for (const [name, id] of rec.names) if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(`${day}/${name}`);
+		}
+		for (const [key, mt] of Object.entries(j.quiet ?? {})) this.quiet.set(key, mt);
+	}
+	save(){
+		const days = {}; for (const [day, rec] of this.days) days[day] = { mt: rec.mt, names: Object.fromEntries(rec.names) };
+		const tmp = `${this.file}.${process.pid}.tmp`;
+		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet) })); fs.renameSync(tmp, this.file); }
+		catch { try { fs.rmSync(tmp, { force: true }); } catch {} }   // a cache: another process writing it at the same moment is fine
 	}
 
 	/** The folders the map says hold `id` (relative "YYYY/MM/DD/<name>"), plus any session-<id8> that names no id (an old folder: the caller's). */
 	listed(id){
 		const out = [...(this.ids.get(id) ?? [])], short = "session-" + id.slice(0, 8);
-		for (const [day, have] of this.days) if (have.has(short) && have.get(short) === null) out.push(`${day}/${short}`);
+		for (const [day, { names }] of this.days) if (names.has(short) && names.get(short) === null) out.push(`${day}/${short}`);
 		return out;
 	}
 
