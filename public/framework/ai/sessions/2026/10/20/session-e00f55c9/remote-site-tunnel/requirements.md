@@ -1,5 +1,7 @@
 # The monorepo site from anywhere: monorepo.lew42.com → this PC (you are a mastermind)
 
+**In short:** open `monorepo.lew42.com` on a phone and the whole site works, with edits, live updates, dictation and voice. Only the owner can get in. Order of work: tell the owner what Cloudflare needs, put up a temporary link, map the network, build the permanent route.
+
 **The owner (2026-11-01, before a walk):** "basically a tunnel so that things that we're making on the PC, where we have file writes and Claude Code and all this stuff, work remotely… go to, for example, monorepo.lew42.com and have that traffic properly routed to the monorepo. And the dev server socket should work. The Servex… there's posts going to Servex… any voice agent stuff, any WebSocket stuff… Map the whole networking… servers, Servexes, IP addresses, any kind of need for forwarding… There is a reverse proxy for Servex. Maybe you could tap into that… hopefully quickly. And if you need something from me to get Cloudflare working, you got to tell me quickly."
 
 The owner said "monorepo.lu42.com"; the zone is `lew42.com`.

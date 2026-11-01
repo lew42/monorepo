@@ -1,6 +1,6 @@
 # SocketServer — the dev server's websocket and what it does for the tabs
 
-One websocket per browser tab, opened on `server.js`'s own http port. This folder is the server half; the browser half is [`dev/Socket`](/framework/dev/Socket/) (its wire reference: [`doc/wire.md`](/framework/dev/Socket/doc/wire.md)). Only localhost and the private LAN may connect, and a LAN peer (a phone) gets push traffic only ([`doc/lan.md`](/framework/dev/Socket/doc/lan.md)).
+One websocket per browser tab, opened on `server.js`'s own http port. This folder is the server half; the browser half is [`dev/Socket`](/framework/dev/Socket/) (its wire reference: [`doc/wire.md`](/framework/dev/Socket/doc/wire.md)). Only localhost and the private LAN may connect, and a LAN peer (a phone) gets push traffic only; a socket relayed by the site gateway (header `x-lew42-remote` from this PC's own address) gets that plus `append` ([`doc/lan.md`](/framework/dev/Socket/doc/lan.md)).
 
 ## The files
 
@@ -45,5 +45,6 @@ How the tab sends, retries and catches up, the exact shapes, and what Servex's `
 
 - `node Server/plugins/SocketServer/Tail.test.mjs` — one offset per socket, no line lost, none applied twice
 - `node Server/plugins/SocketServer/Stream.test.mjs` — a file append reaches a Page
+- `node Server/plugins/SocketServer/Socket.test.mjs` — which tier a peer gets (loopback, LAN, the gateway) and what each may send
 - `node Server/plugins/SocketServer/Append.test.mjs` — the schema check on a plain append
 - `node public/framework/core/Item/transport.test.mjs` — two real tabs over this real server: numbered batches, a lost line, a lost ack, catch-up (the numbered `Append` is tested here, with real sockets)

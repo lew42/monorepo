@@ -1,4 +1,6 @@
-# Merge the remote site and voice read-aloud, so the owner can use them from the phone (the owner: "go ahead and merge them")
+# Merge remote site and voice read-aloud
+
+Goal: the owner uses both from the phone (the owner: "go ahead and merge them").
 
 1. **Merge,** in this order:
    1. `node Server/merge.mjs C:/Code/lew42/worktrees/remote-site-tunnel`;

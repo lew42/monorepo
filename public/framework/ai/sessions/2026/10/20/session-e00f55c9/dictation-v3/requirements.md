@@ -33,3 +33,11 @@ Build in a worktree after the merge of `voice-recite` lands (`git log michael/de
 
 - **Voice quality:** Kokoro sounds robotic. A short `voice-models.md` (beside `audio/Recite`): what Kokoro is, its real RAM and disk use, why it runs on the CPU; the best local GPU options that fit beside Whisper's 2 GB in 12 GB (Chatterbox, Orpheus, Sesame CSM, Dia, F5, XTTS, anything newer); the cloud options (what the Claude app uses if knowable, ElevenLabs, OpenAI TTS). Quality, VRAM, latency, controls (speed, pitch, emotion). Recite's `Voice` class takes more than one engine, so a better model plugs in. Speed and any other voice parameters in settings, with a sample button.
 - **Document as you build:** each new class and module gets its readme and class doc in the same commit ([doc/rules.md](/framework/doc/rules.md)), without being asked.
+
+## The owner's priorities, relayed 2026-11-01 17:25 (these order the work)
+
+1. **Kokoro read-aloud working end to end** as the reliable fallback: a reply read aloud in the web chat over `monorepo.lew42.com`, and a back-and-forth conversation. "It's not quite working yet": find out why first, once voice-recite is merged.
+2. **Chatterbox-Turbo as a second engine** behind one adapter (`Voice` takes an engine), switchable in settings, on the GPU (about 2–3 GB beside Whisper's 2 GB).
+3. **Servex supervises the models:** only ONE voice engine loaded at a time (switching unloads the other), and an idle shutdown (about 10 minutes unused, then stopped; started again on demand) for the voice engine AND whisper-server. No zombies: a Servex restart leaves exactly one of each, or none.
+
+Document each piece as it is built.

@@ -10,7 +10,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 
 ## Watch out
 
-- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic and read-only queries (`LAN_OK`, `LAN_QUERY`), anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
+- Tries every host (`wss` on https); the server decides: loopback gets everything, a private LAN peer push traffic and read-only queries (`LAN_OK`, `LAN_QUERY`), a socket relayed by the site gateway the same plus `append` (one JSONL line),  anything else is refused and the client retries quietly. [doc/lan.md](./doc/lan.md) Production stays static: with no server behind it the socket never opens. [doc/localhost.md](./doc/localhost.md)
 - Never reject `.ready` — a `send()` awaiting a server restart must land, not throw; a rejected `ready` breaks every later `send()` for the life of the page. [doc/backoff.md](./doc/backoff.md)
 - Reconnect from `close` only — a failed connect fires `error` *and* `close`; acting on both made a connection storm. [doc/backoff.md](./doc/backoff.md)
 - `reload()`, `changed()`, `eval()` are called BY the server through `message()` — a grep finds no callers; they are the live path, not dead code. [doc/wire.md](./doc/wire.md)
@@ -27,7 +27,7 @@ new App({ socket: Socket.singleton() });   // public/app.js — the one call sit
 - `mark_stale()` shows a fixed "This page is out of date — reload" pill when a reload was refused (Block) or postponed (mic busy). One click reloads. A postponed reload (mic busy) does reload by itself once the page has been quiet for `QUIET_MS` (30 s, `Socket.js:19`), never sooner. Before any reload `stash()` emits a `stash` event (`:263`) so a view can add what it needs back (the AI sheet: its size), and the new page reads it once as `socket.restored` (`:276`). Cause it fixes: a refused/deferred reload left old code on screen with no sign.
 - `window.$BLOCKRELOAD` never affected `.jsonl` streaming — a real 2026-09-19 bug that LOOKED like it did was `ext/JSONL/live.js` keying its stream registry by whatever url a caller passed (`import.meta.resolve()` returns one WITH an origin; the server's replies never carry one), so the subscribe reply never matched and the reader silently went deaf after one fallback fetch. Fixed in `live.js` and defensively in `Server/plugins/SocketServer/Tail.js`.
 - Editing `public/index.html` reloads nothing — it is a navigation entry, not a resource entry. Hard-reload by hand. [doc/method/changed.md](./doc/method/changed.md)
-- `reconnect()` never reloads the page by itself, only on disconnect — it only retries with backoff. A restart used to look like the page died because nothing said otherwise; `show_reconnecting()`/`hide_reconnecting()` now put a small fixed strip up the moment a retry is scheduled and take it down the moment `open()` fires. [doc/backoff.md](./doc/backoff.md)
+- `reconnect()` never reloads the page by itself, only on disconnect — it only retries with backoff. A restart used to look like the page died because nothing said otherwise; `show_reconnecting()`/`hide_reconnecting()` now put a small fixed strip up once the socket has been down 5 s (a short blip never shows it) and take it down the moment `open()` fires. [doc/backoff.md](./doc/backoff.md)
 
 ## More
 

@@ -107,7 +107,8 @@ export default class Socket {
 			this.ready = promise();
 		}
 
-		if (this.ever_connected) this.show_reconnecting();
+		// Only a drop that lasts says "restarting": a blip (a tunnel reconnect, a sleeping phone) is healed before the strip would show.
+		if (this.ever_connected && !this.strip_timer) this.strip_timer = setTimeout(() => { this.strip_timer = null; if (!this.connected) this.show_reconnecting(); }, 5000);
 
 		// Never connected here (a static host, a refused peer): back off to a minute, say so once, let
 		// send()/request() return instead of parking, and give up after about five minutes.
@@ -130,6 +131,8 @@ export default class Socket {
 	}
 
 	hide_reconnecting() {
+		clearTimeout(this.strip_timer);
+		this.strip_timer = null;
 		this.strip?.remove();
 		this.strip = null;
 	}

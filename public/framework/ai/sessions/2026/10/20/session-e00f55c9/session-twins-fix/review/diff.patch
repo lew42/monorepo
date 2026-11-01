@@ -1,0 +1,1064 @@
+diff --git a/.gitignore b/.gitignore
+index 1f2c2b746..52373734c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -230,3 +230,9 @@ public/framework/core/Test/save-results.jsonl
+ 
+ # ChatV2.test.mjs writes a per-run live copy of its fixture and deletes it at the end; a killed run would leave it
+ public/framework/ext/Chat/v2/fixture/live-*.jsonl
++
++# the twin check (Server/SessionConsolidate.mjs --check --write, run daily by Servex/TaskLoop.js): rebuilt from the folders each run, so machine state
++public/framework/ai/sessions/session-twins.json
++# the session-folder finder's saved map (core/Session/SessionFolders.mjs): a cache of what each day folder holds, checked against the folders on every read
++public/framework/ai/sessions/session-folders.json
++public/framework/ai/sessions/session-folders.json.*.tmp
+diff --git a/Server/AskIndex.mjs b/Server/AskIndex.mjs
+index 130527d6d..b0fc80795 100644
+--- a/Server/AskIndex.mjs
++++ b/Server/AskIndex.mjs
+@@ -18,6 +18,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
+ import ModuleInbox from "../Servex/agents/ModuleInbox.js";
+ import SessionRecord from "./SessionRecord.mjs";
+ import TaskDirs from "./TaskDirs.mjs";
++import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
+ 
+ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const FW = "public/framework";
+@@ -47,18 +48,13 @@ export default class AskIndex {
+ 
+ 	// ---- where things live -----------------------------------------------------------------------
+ 
+-	/** A session's folder: a uuid-named one anywhere in the day tree, else `session-<first 8>`; made (under `day`) when none exists. */
++	/** A session's folder, from the store's one finder (core/Session/SessionFolders.mjs: any folder that holds the id, slug-named too, checked on
++	 *  disk every call); made (session-<id8> under `day`) when none exists. */
+ 	session_dir(session, day){
+-		if (this._dirs.has(session)) return this._dirs.get(session);
+-		const want = [session, "session-" + session.slice(0, 8)], ls = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
+-		let found = null;
+-		for (const y of ls(this.sessions)) if (/^\d{4}$/.test(y)) for (const m of ls(path.join(this.sessions, y))) for (const d of ls(path.join(this.sessions, y, m))){
+-			const names = ls(path.join(this.sessions, y, m, d));
+-			for (const w of want) if (names.includes(w) && (!found || w === session)) found = path.join(this.sessions, y, m, d, w);
+-		}
+-		if (!found){ found = path.join(this.sessions, TaskDirs.ymd(String(day ?? TaskDirs.day()).slice(0, 10)), "session-" + session.slice(0, 8)); fs.mkdirSync(found, { recursive: true }); }
+-		this._dirs.set(session, found);
+-		return found;
++		if (this._dirs.has(session)) return this._dirs.get(session);   // a folder pinned by hand (a test fixture); a lookup is never kept here
++		const dir = SessionFolders.at(this.sessions).home(session, TaskDirs.ymd(String(day ?? TaskDirs.day()).slice(0, 10)));
++		fs.mkdirSync(dir, { recursive: true });
++		return dir;
+ 	}
+ 
+ 	/** A refiner's module name → a real module folder (repo-relative), or null (site-wide, unknown, or no such folder). */
+diff --git a/Server/ChildLinks.mjs b/Server/ChildLinks.mjs
+index 0ba3978d3..c97f2889d 100644
+--- a/Server/ChildLinks.mjs
++++ b/Server/ChildLinks.mjs
+@@ -11,6 +11,7 @@ import fs from "node:fs";
+ import path from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import SessionRecord from "./SessionRecord.mjs";
++import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
+ import { role_readme_path } from "../Servex/agents/roles.js";
+ 
+ const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+@@ -23,15 +24,15 @@ export default class ChildLinks {
+ 	/** The cached session folders of a root: Map<id | id8, dir>. Rebuilt when a lookup misses and the cache is older than 10 s. */
+ 	static cache = new Map();
+ 
+-	/** Every session folder under `root` keyed by its full id (folder name, or line 1: assign.session_id / session.id) and by its first 8 characters.
+-	 *  Where one session has folders on several days, the earliest one that holds a record wins. */
++	/** Every session's RECORD folder under `root`, keyed by its full id and its first 8 characters, plus every day folder by its name.
++	 *  A session's folder is the one SessionFolders picks (the oldest day first). */
+ 	static sessions(root = SELF_ROOT, rows = {}){
+ 		const map = new Map(), rec = new SessionRecord({ root });
+-		const line1 = f => { try { return JSON.parse(fs.readFileSync(f, "utf8").split("\n", 1)[0]); } catch { return null; } };
++		// Which folder is a session's: the store's one finder (core/Session/SessionFolders.mjs). It counts here when it holds a record.
++		for (const { id, dir } of SessionFolders.at(path.join(root, "public/framework/ai/sessions")).homes()) if (SessionRecord.file(dir)){ map.set(id, dir); if (!map.has(id.slice(0, 8))) map.set(id.slice(0, 8), dir); }
+ 		for (const dir of rec.day_children()){
+-			const f = SessionRecord.file(dir), l = f && line1(f), name = path.basename(dir);
+-			const id = l?.assign?.session_id ?? l?.session?.id ?? (UUID.test(name) ? name : null);
+-			const keys = [id, id && id.slice(0, 8), /^session-([0-9a-f]{8})$/.exec(name)?.[1], name].filter(Boolean);   // the folder name too: a voice record v-<id> is its own parent_session
++			const f = SessionRecord.file(dir), name = path.basename(dir);
++			const keys = [/^session-([0-9a-f]{8})$/.exec(name)?.[1], name].filter(Boolean);   // the folder name too: a voice record v-<id> is its own parent_session
+ 			for (const k of keys) if (!map.has(k) || (f && !SessionRecord.file(map.get(k)))) map.set(k, dir);
+ 		}
+ 		// An agent session's own record is its task folder (Agents.open_task), wherever that sits: the registry knows it.
+diff --git a/Server/DatedFiles.mjs b/Server/DatedFiles.mjs
+index 523821032..13cad42ca 100644
+--- a/Server/DatedFiles.mjs
++++ b/Server/DatedFiles.mjs
+@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import AIIndexStream from "./AIIndexStream.mjs";
+ import SessionRecord from "./SessionRecord.mjs";
++import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
+ import Day from "../public/framework/core/Session/Day.js";
+ import Dated from "../public/framework/core/Item/Dated.js";
+ import Query from "../public/framework/ext/Query/Query.js";
+@@ -165,7 +166,9 @@ export default class DatedFiles extends Dated {
+ 		return { ok: !missing.length && !stale.length, folders: have.size, rows: latest.size, missing, stale };
+ 	}
+ 
+-	/** Sessions: ok when no top folder sits under the wrong day (misfiled) and no index row points at a folder that is gone (stale). A folder without a row is not a fault: watch() and the transcript indexer fill rows in. */
++	/** Sessions: ok when no top folder sits under the wrong day (misfiled), no index row points at a folder that is gone (stale), and no session
++	 *  is held by two folders (twins: SessionFolders.twins(); fold them with node Server/SessionConsolidate.mjs --all). A folder without a row is
++	 *  not a fault: watch() and the transcript indexer fill rows in. */
+ 	check_sessions(){
+ 		const R = DatedFiles, latest = new Map(), have = new Set();
+ 		for (const { day, dir } of this.day_folders()){
+@@ -173,7 +176,8 @@ export default class DatedFiles extends Dated {
+ 			try { for (const e of fs.readdirSync(dir, { withFileTypes: true })) if (e.isDirectory()) have.add(R.rel(path.join(dir, e.name))); } catch {}
+ 		}
+ 		const moves = this.misfiled({ since: DatedFiles.LOCAL_DAY_SINCE }).moves.filter(m => m.source !== "folder birth time"), stale = [...latest.values()].filter(r => r.path && !fs.existsSync(path.isAbsolute(r.path) ? r.path : R.abs(r.path))).map(r => r.path);
+-		return { ok: !moves.length && !stale.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale };
++		const twins = this.folders().twins().map(t => ({ id: t.id, home: R.rel(t.home), others: t.others.map(o => R.rel(o)) }));
++		return { ok: !moves.length && !stale.length && !twins.length, folders: have.size, rows: latest.size, misfiled: moves.map(m => m.old), stale, twins: twins.length, twin_examples: twins.slice(0, 5) };
+ 	}
+ 
+ 	// ── the sessions collection: <ai/sessions>/YYYY/MM/DD/<session or task folder>/ (TaskDirs is its thin alias) ──
+@@ -191,32 +195,17 @@ export default class DatedFiles extends Dated {
+ 		for (const y of ls(root, /^\d{4}$/)) for (const m of ls(path.join(root, y), /^\d{2}$/)) for (const d of ls(path.join(root, y, m), /^\d{2}$/)) out.push(path.join(root, y, m, d));
+ 		return out;
+ 	}
+-	/** A session's folder without a scan: `session-<id8>` or the uuid, the oldest that holds the id (the day it began); else where a new one goes, on `day`. Absolute.
+-	 *  A `session-<id8>` folder that names ANOTHER full id is not ours: two ids can share their first 8 hex (the hand-picked a1c1d1e1-000N ids of
+-	 *  2026-09-19 put three sessions' costs in one folder), so a clash gets a folder named by the full uuid. Doc: core/Session/doc/identity.md. */
++	/** A session's folder: the one SessionFolders finds (core/Session/SessionFolders.mjs, the store's only finder: any folder that holds the id,
++	 *  slug-named ones too, the oldest first), else where a new one goes on `day` (session-<id8>, or the full uuid when another id holds that name). Absolute.
++	 *  Doc: public/framework/ai/sessions/doc/one-folder.md. */
+ 	session_dir(id, day = new Date()){
+-		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day, short = "session-" + id.slice(0, 8);
+-		// One session, one folder (2026-10-25): the OLDEST folder that holds the id, the day the session began, however long ago.
+-		// Until then it looked back a fixed number of days, newest first: a tab resumed on its fifth day got a second folder (session-e00f55c9 on 10/20 and 10/24).
+-		for (const d of this.days()){
+-			if (fs.existsSync(path.join(d, id))) return path.join(d, id);
+-			if (fs.existsSync(path.join(d, short)) && [id, null].includes(DatedFiles.owner(path.join(d, short)))) return path.join(d, short);
+-		}
+-		const home = path.join(this.day_dir(t), short);
+-		return fs.existsSync(home) ? path.join(this.day_dir(t), id) : home;   // reached only when session-<id8> belongs to another id
+-	}
+-	/** The full session id a session folder says it holds, or null when it does not say (then it is taken to be the caller's).
+-	 *  The same sources, in the same order, as Session.scan: index.json, the cache summary, then line 1 of the record or page. */
+-	static owner(dir){
+-		const read = f => { try { return fs.readFileSync(path.join(dir, f), "utf8"); } catch { return ""; } };
+-		const first = f => { try { return JSON.parse(read(f).split("\n")[0] || "null"); } catch { return null; } };
+-		let id = null;
+-		try { id = JSON.parse(read("index.json") || "null")?.id ?? null; } catch {}
+-		if (!id) try { id = JSON.parse(read("cache.jsonl").split("\n").find(l => l.startsWith('{"summary"')) ?? "null")?.summary?.id ?? null; } catch {}
+-		if (!id){ const l = first("session.jsonl") ?? first("task.jsonl"); id = l?.session?.id ?? l?.assign?.session_id ?? null; }
+-		if (!id){ const l = first("page.jsonl"); id = typeof l?.session === "string" ? l.session : null; }
+-		return typeof id === "string" && DatedFiles.UUID.test(id) ? id : null;
++		const t = typeof day === "string" ? new Date(day + "T12:00:00") : day;
++		return this.folders().home(id, this.day_dir(t));
+ 	}
++	/** The finder of this collection's store. */
++	folders(){ return SessionFolders.at(DatedFiles.abs(this.root)); }
++	/** The full session id a folder says it holds, or null (SessionFolders.owner: the claim rule, in one place). */
++	static owner(dir){ return SessionFolders.owner(dir); }
+ 	/** Where a new task folder goes: inside its session when one is given, else straight under the day. Absolute, not created. `parent` is resolved by the caller. */
+ 	home({ slug, session_id, parent, day } = {}){
+ 		if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug ?? "")) throw new Error("a slug is [a-z0-9-], got " + JSON.stringify(slug));
+diff --git a/Server/SessionConsolidate.mjs b/Server/SessionConsolidate.mjs
+index 82d8f3bf9..84aba96e3 100644
+--- a/Server/SessionConsolidate.mjs
++++ b/Server/SessionConsolidate.mjs
+@@ -1,56 +1,60 @@
+ #!/usr/bin/env node
+-// Server/SessionConsolidate.mjs — one session, one folder. Finds every folder that holds one session and folds the others into
+-// the oldest one (the day it began), with a manifest of every move, append and rewrite. Doc: public/framework/core/Session/doc/identity.md
+-// ("One session, one folder, one URL").
++// Server/SessionConsolidate.mjs — one session, one folder. Finds every folder that holds one session and folds the others into its home,
++// with a manifest of every move, append and rewrite; and checks the whole store for a session held twice. Doc: public/framework/ai/sessions/doc/one-folder.md.
+ //
+-//   node Server/SessionConsolidate.mjs <session uuid> [--repo <path>]                    dry run: prints the plan, writes nothing
+-//   node Server/SessionConsolidate.mjs <session uuid> --apply --manifest <file.json> [--repo <path>]
++//   node Server/SessionConsolidate.mjs <session uuid> [--repo <path>]                     dry run: prints the plan, writes nothing
++//   node Server/SessionConsolidate.mjs <session uuid> --apply --manifest <file.json>
++//   node Server/SessionConsolidate.mjs --all [--repo <path>]                              dry run for every session held twice: counts, and what is held
++//   node Server/SessionConsolidate.mjs --all --apply --manifest <file.json>               fold every group that is not held
++//   node Server/SessionConsolidate.mjs --check [--write] [--json]                         the twin check: exit 1 when any session is held twice;
++//                                                                                          --write keeps the list in sessions/session-twins.json and says which ids are new
+ //
+-// What counts as a second folder: a dated session folder (ai/sessions/YYYY/MM/DD/<session-id8 or uuid>/) that says it holds this id
+-// (DatedFiles.owner), and the old card-tree folder the prompt hook wrote to until 2026-10-25 (ai/YYYY/MM/DD/session-<id8>/).
+-// What happens to each thing in a second folder:
+-//   - a subfolder moves into the home folder under the same name (refused if the name is taken); the move is a `task` line in
+-//     ai/sessions/task-moves.jsonl, the ledger TaskMove.mjs and StoreFolder already read, so its old URL redirects;
+-//   - a .jsonl file's lines are appended to the home's file of the same name, in order, minus the second folder's line-1 session
++// Which folders hold a session, and which is the home, is the store's one finder (core/Session/SessionFolders.mjs): any day folder that
++// says it holds the id (its uuid name, index.json, the cache summary, line 1 {session} or {assign} with an agent, page.jsonl), the home
++// being the oldest day, then the folder that holds the most. Plus the old card-tree folder the prompt hook wrote to until 2026-10-25
++// (ai/YYYY/MM/DD/session-<id8>/). What happens to each thing in a second folder:
++//   - a subfolder moves into the home under the same name (held if the name is taken); a `task` line in ai/sessions/task-moves.jsonl
++//     (the ledger TaskMove.mjs and StoreFolder read) so its old URL redirects;
++//   - index.json and cache.jsonl are machine state the session indexer rebuilds from the transcript (gitignored): the FRESHER copy stays
++//     (cache: newest summary by last_at, then messages; index: last_activity, then mtime), and every line of the other must be in it or be
++//     an older summary, else the group is held. (The rule move-ai2.mjs used for the 2026-11-01 cleanup, ai2-retire/move-report.md.)
++//   - any other .jsonl file's lines are appended to the home's file of the same name, in order, minus the second folder's line-1 session
+ //     marker, `{"file"}` lines the home already has, and exact duplicates; its URLs are rewritten to the home's;
+-//   - any other file moves in under its name (refused if taken);
+-//   - every original file is first copied aside to %LOCALAPPDATA%/lew42/servex/moved-aside/<run>/ (page.jsonl is gitignored, so git
+-//     cannot undo it), and the empty second folder is removed (never recursively);
++//   - any other file moves in under its name; one already there is dropped when byte-identical, else the group is held;
++//   - every original file is first copied aside to %LOCALAPPDATA%/lew42/servex/moved-aside/<run>/ (index.json, cache.jsonl and page.jsonl
++//     are gitignored, so git cannot undo them), the home's own replaced copies too; the empty second folder is removed (never recursively);
+ //   - one `redirect` line per second folder maps its old URL to the home.
+-// Links in .md/.js/.mjs/.html files under public/, Server/, Servex/, .claude/ are rewritten from each second folder's URL to the home's
+-// (CLAUDE.md is never written). .jsonl history elsewhere keeps the old URL; the redirect answers it.
++// Links in .md/.js/.mjs/.html files under public/, Server/, Servex/, .claude/ are rewritten from each second folder's URL to the home's,
++// in one pass for the whole run (CLAUDE.md is never written). .jsonl history elsewhere keeps the old URL; the redirect answers it.
+ import fs from "node:fs";
+ import os from "node:os";
+ import path from "node:path";
+ import crypto from "node:crypto";
+-import { pathToFileURL } from "node:url";
+ 
+ const args = process.argv.slice(2), flag = n => args.includes(n), val = n => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
+ const ID = args.find(a => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(a));
+ const REPO = path.resolve(val("--repo") ?? path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1")), ".."));
+ const slash = p => p.split(path.sep).join("/");
+-const rel = abs => slash(path.relative(REPO, abs));
+-const url = abs => "/" + slash(path.relative(path.join(REPO, "public"), abs)) + "/";
+ const sha1 = f => crypto.createHash("sha1").update(fs.readFileSync(f)).digest("hex");
+-const lines = f => fs.readFileSync(f, "utf8").split("\n").filter(l => l.trim());
++const lines = f => fs.readFileSync(f, "utf8").split("\n").map(l => l.replace(/\r$/, "")).filter(l => l.trim());
++const STORE = "public/framework/ai/sessions";
+ 
+ export default class SessionConsolidate {
+-	constructor(id, repo = REPO){ this.id = id; this.repo = repo; }
++	static REGEN = { "index.json": "AISessionIndex rebuilds it from the transcript", "cache.jsonl": "AISession.save() rebuilds its summary from the transcript" };
++
++	constructor(id, repo = REPO){ this.id = id; this.repo = path.resolve(repo); }
++	rel(abs){ return slash(path.relative(this.repo, abs)); }
++	url(abs){ return "/" + slash(path.relative(path.join(this.repo, "public"), abs)) + "/"; }
+ 
+ 	async load(){
+-		const { default: DatedFiles } = await import("./DatedFiles.mjs");   // this checkout's rules, pointed at --repo
+-		DatedFiles.ROOT = this.repo;
+-		this.DatedFiles = DatedFiles;
++		const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
++		this.store = SessionFolders.at(path.join(this.repo, STORE));
+ 		return this;
+ 	}
+ 
+-	/** Every folder that holds this session, oldest first; the first is the home. */
++	/** Every folder that holds this session, the home first. */
+ 	folders(){
+-		const D = this.DatedFiles, id = this.id, short = "session-" + id.slice(0, 8), out = [];
+-		for (const day of D.sessions.days()) for (const name of [id, short]){
+-			const dir = path.join(day, name);
+-			if (fs.existsSync(dir) && (name === id || D.owner(dir) === id)) out.push(dir);
+-		}
++		const out = this.store.all(this.id), short = "session-" + this.id.slice(0, 8);
+ 		const cards = path.join(this.repo, "public/framework/ai");
+ 		for (const y of fs.readdirSync(cards).filter(n => /^\d{4}$/.test(n))) for (const m of ls(path.join(cards, y))) for (const d of ls(path.join(cards, y, m))){
+ 			const dir = path.join(cards, y, m, d, short);
+@@ -59,48 +63,63 @@ export default class SessionConsolidate {
+ 		return out;
+ 	}
+ 
+-	/** The plan: no write. */
++	/** > 0 when copy a of a machine-state file is fresher than copy b. */
++	static fresher(a, b, base){
++		const key = p => {
++			if (base === "cache.jsonl") return lines(p).filter(l => l.startsWith('{"summary"')).map(l => { try { const j = JSON.parse(l); return [j.summary?.last_at ?? "", String(j.summary?.messages ?? 0).padStart(9, "0"), j.at ?? ""].join("|"); } catch { return ""; } }).sort().pop() ?? "";
++			let j = {}; try { j = JSON.parse(fs.readFileSync(p, "utf8")); } catch {}
++			return (j.last_activity ?? "") + "|" + String(Math.round(fs.statSync(p).mtimeMs)).padStart(15, "0");
++		};
++		const ka = key(a), kb = key(b); return ka > kb ? 1 : ka < kb ? -1 : 0;
++	}
++
++	/** The plan: no write. `held` lists why a group cannot be folded without losing something; a held plan is never applied. */
+ 	plan(){
+-		const [home, ...dups] = this.folders();
++		const [home, ...dups] = this.folders(), held = [];
+ 		if (!home) throw new Error(`no folder holds ${this.id}`);
+ 		const steps = [], seen = new Set();
+ 		for (const dup of dups){
+-			const from_url = url(dup), to_url = url(home);
++			const from_url = this.url(dup), to_url = this.url(home);
+ 			for (const e of fs.readdirSync(dup, { withFileTypes: true })){
+-				const src = path.join(dup, e.name), dst = path.join(home, e.name);
++				const src = path.join(dup, e.name), dst = path.join(home, e.name), there = fs.existsSync(dst) || seen.has(dst);
+ 				if (e.isDirectory()){
+-					if (fs.existsSync(dst) || seen.has(dst)) throw new Error(`refused: ${rel(dst)} already exists; rename ${rel(src)} first`);
+-					steps.push({ do: "move", kind: "task", from: rel(src), to: rel(dst) }); seen.add(dst);
++					if (there){ held.push(`${this.rel(dst)} already exists; rename ${this.rel(src)} first`); continue; }
++					steps.push({ do: "move", kind: "task", from: this.rel(src), to: this.rel(dst) }); seen.add(dst);
++				} else if (SessionConsolidate.REGEN[e.name] && there){
++					const win_is_src = SessionConsolidate.fresher(src, dst, e.name) > 0, win = win_is_src ? src : dst, lose = win_is_src ? dst : src;
++					const keep = new Set(lines(win)), lost = e.name.endsWith(".jsonl") ? lines(lose).filter(l => !keep.has(l)) : [];
++					if (lost.some(l => !l.startsWith('{"summary"'))){ held.push(`${this.rel(lose)}: lines the fresher copy lacks`); continue; }
++					steps.push(win_is_src ? { do: "replace", from: this.rel(src), to: this.rel(dst), why: "fresher; " + SessionConsolidate.REGEN[e.name] }
++						: { do: "drop", from: this.rel(src), why: "staler than " + this.rel(dst) + "; " + SessionConsolidate.REGEN[e.name] });
+ 				} else if (e.name.endsWith(".jsonl")){
+ 					const have = fs.existsSync(dst) ? new Set(lines(dst)) : new Set();
+ 					const keep = [], skipped = { marker: 0, file: 0, duplicate: 0 };
+ 					lines(src).forEach((l, i) => {
+ 						const out = l.split(from_url).join(to_url);
+-						if (i === 0 && /^\{"session":/.test(l)) return skipped.marker++;
++						if (i === 0 && /^\{"session":/.test(l) && fs.existsSync(dst)) return skipped.marker++;
+ 						if (/^\{"file":/.test(l) && have.has(out)) return skipped.file++;
+ 						if (have.has(out)) return skipped.duplicate++;
+ 						have.add(out); keep.push(out);
+ 					});
+-					steps.push({ do: "append", from: rel(src), to: rel(dst), lines: lines(src).length, appended: keep.length, skipped, sha1: sha1(src), keep });
+-				} else {
+-					if (fs.existsSync(dst) || seen.has(dst)) throw new Error(`refused: ${rel(dst)} already exists; rename ${rel(src)} first`);
+-					steps.push({ do: "move", kind: "file", from: rel(src), to: rel(dst) }); seen.add(dst);
+-				}
++					steps.push({ do: "append", from: this.rel(src), to: this.rel(dst), lines: lines(src).length, appended: keep.length, skipped, sha1: sha1(src), keep });
++				} else if (there){
++					if (fs.existsSync(dst) && fs.readFileSync(src).equals(fs.readFileSync(dst))) steps.push({ do: "drop", from: this.rel(src), why: "byte-identical to " + this.rel(dst) });
++					else held.push(`${this.rel(src)} differs from ${this.rel(dst)} and is not a log`);
++				} else { steps.push({ do: "move", kind: "file", from: this.rel(src), to: this.rel(dst) }); seen.add(dst); }
+ 			}
+-			steps.push({ do: "redirect", from: rel(dup), to: rel(home) });
++			steps.push({ do: "redirect", from: this.rel(dup), to: this.rel(home) });
+ 			steps.push({ do: "relink", from: from_url, to: to_url });
+ 		}
+-		return { session: this.id, home: rel(home), duplicates: dups.map(rel), steps };
++		return { session: this.id, home: this.rel(home), duplicates: dups.map(d => this.rel(d)), held, steps };
+ 	}
+ 
+-	/** Do the plan; returns the manifest (the plan with what happened). */
+-	apply(plan){
+-		const run = new Date().toISOString(), aside = path.join(process.env.LOCALAPPDATA || os.tmpdir(), "lew42/servex/moved-aside", run.replace(/[:.]/g, "-"));
+-		const ledger = path.join(this.repo, "public/framework/ai/sessions/task-moves.jsonl"), at = () => new Date().toISOString();
+-		const abs = r => path.join(this.repo, r);
+-		for (const dup of plan.duplicates){   // a full copy first: the one undo for gitignored files
+-			fs.cpSync(abs(dup), path.join(aside, dup), { recursive: true });
+-		}
++	/** Do the plan; returns the manifest (the plan with what happened). Relinks unless `relink: false` (the batch relinks once for all). */
++	apply(plan, { run = new Date().toISOString(), relink = true } = {}){
++		if (plan.held?.length) throw new Error(`refused: ${plan.session} is held (${plan.held.join("; ")})`);
++		const aside = path.join(process.env.LOCALAPPDATA || os.tmpdir(), "lew42/servex/moved-aside", run.replace(/[:.]/g, "-"));
++		const ledger = path.join(this.repo, STORE, "task-moves.jsonl"), at = () => new Date().toISOString();
++		const abs = r => path.join(this.repo, r), keep_aside = r => fs.cpSync(abs(r), path.join(aside, r), { recursive: true });
++		for (const dup of plan.duplicates) keep_aside(dup);   // a full copy first: the one undo for gitignored files
+ 		for (const s of plan.steps){
+ 			if (s.do === "move"){
+ 				fs.renameSync(abs(s.from), abs(s.to));
+@@ -110,29 +129,68 @@ export default class SessionConsolidate {
+ 					if (t.includes(from_url)) fs.writeFileSync(f, t.split(from_url).join(to_url));
+ 				}
+ 			}
++			else if (s.do === "replace"){ keep_aside(s.to); fs.renameSync(abs(s.from), abs(s.to)); }   // the home's staler copy goes aside too
++			else if (s.do === "drop") fs.rmSync(abs(s.from));   // its copy is in moved-aside
+ 			else if (s.do === "append"){
+ 				if (s.keep.length) fs.appendFileSync(abs(s.to), s.keep.join("\n") + "\n");
+-				fs.rmSync(abs(s.from));   // its copy is in moved-aside
++				fs.rmSync(abs(s.from));
+ 			}
+ 			else if (s.do === "redirect"){
+ 				fs.appendFileSync(ledger, JSON.stringify({ at: at(), run, kind: "redirect", from: s.from, to: s.to, session: this.id }) + "\n");
+ 				try { fs.rmdirSync(abs(s.from)); } catch (e){ s.left = e.code; }   // never recursive: anything left behind stays and is reported
+ 			}
+-			else if (s.do === "relink") s.files = this.relink(s.from, s.to);
++			else if (s.do === "relink" && relink) s.files = SessionConsolidate.relink(this.repo, [[s.from, s.to]]);
+ 		}
+ 		for (const s of plan.steps) delete s.keep;
+ 		return { ...plan, run, moved_aside: aside };
+ 	}
+ 
+-	/** Rewrite one URL to another in the repo's .md/.js/.mjs/.html files (CLAUDE.md never). Returns the files changed. */
+-	relink(from, to){
++	/** Rewrite each [from, to] URL pair in the repo's .md/.js/.mjs/.html files (CLAUDE.md never), in one walk. Returns the files changed. */
++	static relink(repo, pairs){
+ 		const changed = [];
+-		for (const d of ["public", "Server", "Servex", ".claude"]) for (const f of walk(path.join(this.repo, d), [".md", ".js", ".mjs", ".html"])){
+-			const t = fs.readFileSync(f, "utf8");
+-			if (t.includes(from)){ fs.writeFileSync(f, t.split(from).join(to)); changed.push(rel(f)); }
++		if (!pairs.length) return changed;
++		for (const d of ["public", "Server", "Servex", ".claude"]) for (const f of walk(path.join(repo, d), [".md", ".js", ".mjs", ".html"])){
++			if (path.basename(f) === "CLAUDE.md") continue;
++			let t = fs.readFileSync(f, "utf8"), was = t;
++			for (const [from, to] of pairs) if (t.includes(from)) t = t.split(from).join(to);
++			if (t !== was){ fs.writeFileSync(f, t); changed.push(slash(path.relative(repo, f))); }
+ 		}
+ 		return changed;
+ 	}
++
++	/** Every session held by more than one folder, with its plan: {groups, foldable, held}. No write. */
++	static async all(repo = REPO){
++		const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
++		const twins = SessionFolders.at(path.join(repo, STORE)).twins(), plans = [];
++		for (const t of twins){
++			const c = await new SessionConsolidate(t.id, repo).load();
++			try { plans.push(c.plan()); } catch (e){ plans.push({ session: t.id, home: c.rel(t.home), duplicates: t.others.map(d => c.rel(d)), held: [e.message], steps: [] }); }
++		}
++		return { groups: plans.length, foldable: plans.filter(p => !p.held.length), held: plans.filter(p => p.held.length) };
++	}
++
++	/** Fold every foldable group of all(); relinks once at the end. Returns the manifest. */
++	static async apply_all(repo = REPO){
++		const { foldable, held } = await this.all(repo), run = new Date().toISOString(), done = [], pairs = [];
++		for (const p of foldable){
++			const c = await new SessionConsolidate(p.session, repo).load();
++			done.push(c.apply(p, { run, relink: false }));
++			for (const s of p.steps) if (s.do === "relink") pairs.push([s.from, s.to]);
++		}
++		const relinked = this.relink(repo, pairs);
++		return { run, folded: done.length, held: held.map(h => ({ session: h.session, why: h.held })), relinked, groups: done };
++	}
++
++	/** The twin check: every session held twice now, and (with `write`) the ids not in the last list. File: sessions/session-twins.json. */
++	static async check(repo = REPO, { write = false } = {}){
++		const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
++		const file = path.join(repo, STORE, "session-twins.json"), twins = SessionFolders.at(path.join(repo, STORE)).twins();
++		let last = []; try { last = JSON.parse(fs.readFileSync(file, "utf8")).ids ?? []; } catch {}
++		const was = new Set(last), ids = twins.map(t => t.id), fresh = twins.filter(t => !was.has(t.id));
++		const rel = p => slash(path.relative(path.join(repo, STORE), p));
++		if (write) fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), count: ids.length, ids }) + "\n");
++		return { ok: !ids.length, count: ids.length, new: fresh.length, examples: fresh.concat(twins).slice(0, 5).map(t => ({ id: t.id, home: rel(t.home), others: t.others.map(rel) })) };
++	}
+ }
+ 
+ function ls(d){ try { return fs.readdirSync(d).filter(n => /^\d{2}$/.test(n)); } catch { return []; } }
+@@ -145,14 +203,36 @@ function walk(dir, exts = null){
+ }
+ 
+ if (process.argv[1] && path.resolve(process.argv[1]).endsWith(path.join("Server", "SessionConsolidate.mjs"))){
+-	if (!ID) { console.error("usage: node Server/SessionConsolidate.mjs <session uuid> [--apply --manifest <file.json>] [--repo <path>]"); process.exit(1); }
++	const out = val("--manifest"), write_manifest = m => { fs.writeFileSync(out, JSON.stringify(m, null, 1)); console.log(`manifest ${out}`); };
++	if (flag("--check")){
++		const r = await SessionConsolidate.check(REPO, { write: flag("--write") });
++		if (flag("--json")) console.log(JSON.stringify(r));
++		else console.log(r.ok ? "ok: every session has one folder" : `${r.count} sessions are held by more than one folder (${r.new} new since the last check). Fold them: node Server/SessionConsolidate.mjs --all, then --all --apply --manifest <file.json>\n` + r.examples.map(e => `  ${e.id}  ${e.home}  +  ${e.others.join(", ")}`).join("\n"));
++		process.exit(r.ok ? 0 : 1);
++	}
++	if (flag("--all")){
++		if (flag("--apply")){
++			if (!out) { console.error("--apply needs --manifest <file.json>"); process.exit(1); }
++			const m = await SessionConsolidate.apply_all(REPO);
++			console.log(`folded ${m.folded} sessions into one folder each; ${m.held.length} held; ${m.relinked.length} files relinked`);
++			write_manifest(m);
++		} else {
++			const r = await SessionConsolidate.all(REPO), count = (op) => r.foldable.reduce((n, p) => n + p.steps.filter(s => s.do === op).length, 0);
++			console.log(`${r.groups} sessions held twice: ${r.foldable.length} can be folded, ${r.held.length} held.\n  steps: ${["move", "replace", "drop", "append", "redirect"].map(op => `${count(op)} ${op}`).join(", ")}`);
++			for (const h of r.held.slice(0, 20)) console.log(`  HELD ${h.session}: ${h.held.join("; ")}`);
++			if (out) write_manifest({ dry_run: true, ...r });
++			console.log("dry run: nothing written. Add --apply --manifest <file.json>.");
++		}
++		process.exit(0);
++	}
++	if (!ID) { console.error("usage: node Server/SessionConsolidate.mjs <session uuid> | --all | --check  [--apply --manifest <file.json>] [--repo <path>]"); process.exit(1); }
+ 	const c = await new SessionConsolidate(ID).load(), plan = c.plan();
+-	const brief = s => s.do === "append" ? `append ${s.appended} of ${s.lines} lines  ${s.from} → ${s.to}  (skipped ${JSON.stringify(s.skipped)})` : s.do === "relink" ? `relink ${s.from} → ${s.to}` : `${s.do} ${s.from} → ${s.to}`;
+-	console.log(`home: ${plan.home}\nsecond folders: ${plan.duplicates.join(", ") || "none"}\n` + plan.steps.map(s => "  " + brief(s)).join("\n"));
++	const brief = s => s.do === "append" ? `append ${s.appended} of ${s.lines} lines  ${s.from} → ${s.to}  (skipped ${JSON.stringify(s.skipped)})` : s.do === "relink" ? `relink ${s.from} → ${s.to}` : s.do === "drop" ? `drop ${s.from} (${s.why})` : `${s.do} ${s.from} → ${s.to}`;
++	console.log(`home: ${plan.home}\nsecond folders: ${plan.duplicates.join(", ") || "none"}\n` + plan.steps.map(s => "  " + brief(s)).join("\n") + (plan.held.length ? `\nHELD: ${plan.held.join("; ")}` : ""));
+ 	if (flag("--apply")){
+-		const out = val("--manifest"); if (!out) { console.error("--apply needs --manifest <file.json>"); process.exit(1); }
++		if (!out) { console.error("--apply needs --manifest <file.json>"); process.exit(1); }
+ 		const manifest = c.apply(plan);
+-		fs.writeFileSync(out, JSON.stringify(manifest, null, 1));
+-		console.log(`applied; manifest ${out}; originals copied to ${manifest.moved_aside}`);
++		write_manifest(manifest);
++		console.log(`applied; originals copied to ${manifest.moved_aside}`);
+ 	} else console.log("dry run: nothing written. Add --apply --manifest <file.json>.");
+ }
+diff --git a/Server/SessionIdentity.mjs b/Server/SessionIdentity.mjs
+index e6944a18d..44162d5c0 100644
+--- a/Server/SessionIdentity.mjs
++++ b/Server/SessionIdentity.mjs
+@@ -8,6 +8,7 @@ import os from "node:os";
+ import path from "node:path";
+ import readline from "node:readline";
+ import { fileURLToPath, pathToFileURL } from "node:url";
++import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
+ 
+ const HERE = path.dirname(fileURLToPath(import.meta.url));
+ const DEFAULT_REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));
+@@ -61,14 +62,9 @@ export default class SessionIdentity {
+ 		return r;
+ 	}
+ 
+-	/** Every dated folder for the id: sessions/YYYY/MM/DD/session-<first 8> or the full uuid. */
++	/** Every dated folder that holds the id, the home first: the store's one finder (core/Session/SessionFolders.mjs), slug-named folders too. */
+ 	folders_of(id){
+-		const out = [], names = new Set([`session-${id.slice(0, 8)}`, id]);
+-		const kids = dir => { try { return fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch { return []; } };
+-		for (const y of kids(this.sessions)) if (/^\d{4}$/.test(y))
+-			for (const m of kids(path.join(this.sessions, y))) for (const d of kids(path.join(this.sessions, y, m))) for (const n of kids(path.join(this.sessions, y, m, d)))
+-				if (names.has(n)) out.push({ dir: path.join(this.sessions, y, m, d, n), day: `${y}/${m}/${d}`, name: n });
+-		return out;
++		return SessionFolders.at(this.sessions).all(id).map(dir => ({ dir, day: path.relative(this.sessions, path.dirname(dir)).split(path.sep).join("/"), name: path.basename(dir) }));
+ 	}
+ 
+ 	/** The newest {"summary"} line of a folder's cache.jsonl. */
+diff --git a/Server/TaskMove.test.mjs b/Server/TaskMove.test.mjs
+index 1250db730..bbe0862b6 100644
+--- a/Server/TaskMove.test.mjs
++++ b/Server/TaskMove.test.mjs
+@@ -21,7 +21,7 @@ const linkTo = (fromFile, toFile) => { const l = slash(path.relative(path.dirnam
+ // TaskMove.sessions() loads core/Session/Session.js from INSIDE the chosen --repo (one scanner, not two) —
+ // the fixture needs its own copy, same relative path, so the fake repo is self-contained.
+ const realCore = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public", "framework", "core");
+-fs.cpSync(realCore, path.join(repo, "public", "framework", "core"), { recursive: true, filter: src => fs.statSync(src).isDirectory() ? !/[\/](tasks|ai|doc|shots)$/.test(src) : src.endsWith(".js") });
++fs.cpSync(realCore, path.join(repo, "public", "framework", "core"), { recursive: true, filter: src => fs.statSync(src).isDirectory() ? !/[\/](tasks|ai|doc|shots)$/.test(src) : /\.m?js$/.test(src) });   // .mjs too: Session.js asks core/Session/SessionFolders.mjs
+ 
+ // ---- fixture: a session store, two day folders, three task shapes, loose day files, a collision, and real relative links ----
+ 
+diff --git a/Server/doc/dated-files.md b/Server/doc/dated-files.md
+index a04cbb073..f4d207780 100644
+--- a/Server/doc/dated-files.md
++++ b/Server/doc/dated-files.md
+@@ -39,7 +39,7 @@ Reads in the browser go through `Dated.Index.open(url)`, which tails the day fil
+ 
+ | Method | What it does | Called by |
+ |---|---|---|
+-| `day_dir(day)`, `session_dir(id, day)` | the day's folder; a session's folder (`session-<id8>`, up to 3 days back) | `TaskDirs`, `Agents.default_task`, the SessionStart hook |
++| `day_dir(day)`, `session_dir(id, day)` | the day's folder; a session's folder, from `SessionFolders` (any folder that holds the id, on any day), else a new `session-<id8>` on `day` | `TaskDirs`, `Agents.default_task`, the SessionStart hook |
+ | `home({slug, session_id, parent, day})`, `make(dir)` | where a new task goes; make it, refusing a folder that already holds a record | `TaskDirs.dir/make` (`node Server/TaskDirs.mjs --new`) |
+ | `day_folders()`, `start(dir)`, `misfiled({since})` | every day folder; a folder's own start time; folders under the wrong day | `TaskDirs.list`, `SessionDayMove` (keeps apply/undo and its manifest) |
+ | `session_row(dir)`, `sync(dir)`, `watch()` | the row built from the record (id, path, url, title, state open/done); written when new or changed; `fs.watch` on the store | tests; start-up call pending |
+diff --git a/Server/session-dir-clash.test.mjs b/Server/session-dir-clash.test.mjs
+index 6cd79b740..e5e8a6ec9 100644
+--- a/Server/session-dir-clash.test.mjs
++++ b/Server/session-dir-clash.test.mjs
+@@ -34,10 +34,10 @@ try {
+ 	ok(DatedFiles.sessions.session_dir(A, "2026-10-25") === short, "36 days later, with a second folder on 10/24, the oldest folder (the day it began) wins");
+ 
+ 	// Session.locate: the same rule from the class side (an AISessionIndex cache write).
+-	class S extends Session { static days = new Map(); static slugs = new Map(); static scanned = true; static root_url(){ return pathToFileURL(path.join(TMP, "sessions") + path.sep); } }
+-	S.days.set(A, "2026/09/19"); S.slugs.set(A, "session-a1c1d1e1");
+-	const url = await S.locate(B, "2026-09-19T18:00:00");
+-	ok(url.href.endsWith(`/2026/09/19/${B}/`), "locate gives the second id its full uuid");
++	// The folders on disk are the truth (SessionFolders): A holds session-a1c1d1e1 on 09/19, so a new B that day gets its full uuid.
++	class S extends Session { static days = new Map(); static slugs = new Map(); static scanned = false; static root_url(){ return pathToFileURL(path.join(TMP, "public/framework/ai/sessions") + path.sep); } }
++	const D2 = "a1c1d1e1-0003-4a19-9b01-000000000003", url = await S.locate(D2, "2026-09-19T18:00:00");
++	ok(url.href.endsWith(`/2026/09/19/${D2}/`), "locate gives the second id its full uuid");
+ 	const C = "cccccccc-0001-4a19-9b01-000000000001";
+ 	ok((await S.locate(C, "2026-09-19T18:00:00")).href.endsWith("/2026/09/19/session-cccccccc/"), "an id with no clash keeps session-<id8>");
+ } finally { DatedFiles.ROOT = ROOT; fs.rmSync(TMP, { recursive: true, force: true }); }
+diff --git a/Server/session-twins.test.mjs b/Server/session-twins.test.mjs
+new file mode 100644
+index 000000000..58621fc9d
+--- /dev/null
++++ b/Server/session-twins.test.mjs
+@@ -0,0 +1,60 @@
++// One session, one folder: the two ways a session got a second folder (session-twins-fix, 2026-11-01), each a case that failed before the fix.
++// `node Server/session-twins.test.mjs`. Doc: public/framework/ai/sessions/doc/one-folder.md.
++//   1. a session whose only folder is a slug got a new session-<id8> folder from DatedFiles.session_dir (TaskDirs --new, open_task);
++//   2. a cached folder that was moved or removed came back: Session.locate kept its scan, AISessionIndex.dir_of its map, and write() made it again.
++import assert from "node:assert";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++import DatedFiles from "./DatedFiles.mjs";
++import Session from "../public/framework/core/Session/Session.js";
++import AISessionIndex from "../public/framework/ai/AISession/AISessionIndex.mjs";
++
++let n = 0;
++const SOFT = process.env.SOFT === "1", bad = [];   // SOFT=1: report every case instead of stopping at the first (how the failing-first proof was run)
++const ok = (c, m) => { if (SOFT && !c){ bad.push(m); console.log("FAIL", m); return; } assert.ok(c, m); n++; console.log("ok", m); };
++const A = "5e55a0f1-0001-4a19-9b01-000000000001", B = "5e55b0f2-0002-4a19-9b01-000000000002", T = "7ab7ab70-0003-4a19-9b01-000000000003";
++const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "session-twins-")), ROOT = DatedFiles.ROOT;
++const put = (dir, file, obj) => { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(path.join(dir, file), JSON.stringify(obj) + "\n"); };
++try {
++	DatedFiles.ROOT = TMP;
++	const S = DatedFiles.sessions, store = path.join(TMP, "public/framework/ai/sessions");
++
++	// 1. A slug folder is found by the id it holds, on any later day.
++	const slug = path.join(S.day_dir("2026-10-03"), "mastermind-servex-10");
++	put(slug, "session.jsonl", { session: { id: A, kind: "vscode-tab", at: "2026-10-03T10:00:00" } });
++	ok(S.session_dir(A, "2026-11-01") === slug, "a session whose only folder is a slug gets that slug, not a new session-<id8>");
++	const voice = path.join(S.day_dir("2026-10-16"), "voice-20261016");
++	put(voice, "session.jsonl", { assign: { session_id: B, agent: "mastermind-voice-20261016" } });
++	ok(S.session_dir(B, "2026-10-16") === voice, "a Servex record folder (line 1 assign with an agent) is its session's folder");
++	const flat = path.join(S.day_dir("2026-09-04"), "decision-data");
++	put(flat, "session.jsonl", { assign: { session_id: T, tab: "monorepo", request: "a task the tab ran" } });
++	ok(S.session_dir(T, "2026-09-04") === path.join(S.day_dir("2026-09-04"), "session-7ab7ab70"), "a tab-era task folder (assign with no agent) is a task of that session, not its folder");
++
++	// 2a. Session.locate: a folder renamed after the scan is found again where it is now, never made again where it was.
++	class TS extends Session { static days = new Map(); static slugs = new Map(); static scanned = false; static root_url(){ return pathToFileURL(store + path.sep); } }
++	const C = "c0ffee00-0004-4a19-9b01-000000000004", was = path.join(S.day_dir("2026-10-09"), C), now = path.join(S.day_dir("2026-10-09"), "a-slug-for-c");
++	put(was, "cache.jsonl", { summary: { v: 2, id: C, first_at: "2026-10-09T09:00:00" } });
++	ok(fileURLToPath(await TS.locate(C, "2026-10-09T09:00:00")) === was + path.sep, "locate finds the uuid folder");
++	fs.renameSync(was, now);
++	ok(fileURLToPath(await TS.locate(C, "2026-10-09T09:00:00")) === now + path.sep, "after a rename under a running process, locate gives the new folder");
++	ok(!fs.existsSync(was), "and the old path is not made again");
++
++	// 2b. AISessionIndex: the cached folder is gone (a cleanup removed the twin); the write goes to the folder that holds the id now.
++	const D = "d0d0d0d0-0005-4a19-9b01-000000000005", gone = path.join(S.day_dir("2026-10-09"), D), keeper = path.join(S.day_dir("2026-10-09"), "keeper-for-d");
++	put(keeper, "index.json", { id: D, first_at: "2026-10-09T09:00:00" });
++	const ix = Object.assign(Object.create(AISessionIndex.prototype), { root: store, dirs: new Map([[D, gone]]), snaps: new Map([[D, { id: D, first_at: "2026-10-09T09:00:00", usd: 1 }]]), writes: new Map(), log(){} });
++	await ix.write(D);
++	ok(!fs.existsSync(gone), "AISessionIndex.write never brings a vanished cached folder back");
++	ok(JSON.parse(fs.readFileSync(path.join(keeper, "index.json"), "utf8")).usd === 1, "it writes into the folder that holds the id");
++
++	// 3. Two folders holding one id are reported, the home first; a tab's flat tasks are not.
++	const twin = path.join(S.day_dir("2026-10-03"), "session-5e55a0f1");
++	put(twin, "cache.jsonl", { summary: { v: 2, id: A } });
++	const { default: SessionFolders } = await import("../public/framework/core/Session/SessionFolders.mjs");
++	const tw = SessionFolders.at(store).twins();
++	ok(tw.length === 1 && tw[0].id === A && tw[0].home === slug && tw[0].others[0] === twin, "twins() names the one id held twice, its home first (the record beats a cache-only folder on the same day)");
++	ok(S.session_dir(A, "2026-11-01") === slug, "every writer still picks the same home while the twin waits to be folded");
++} finally { DatedFiles.ROOT = ROOT; fs.rmSync(TMP, { recursive: true, force: true }); }
++console.log(`${n} passing${bad.length ? `, ${bad.length} failing` : ""}`); if (bad.length) process.exit(1);
+diff --git a/Servex/TaskLoop.js b/Servex/TaskLoop.js
+index f564a2e15..6a614083b 100644
+--- a/Servex/TaskLoop.js
++++ b/Servex/TaskLoop.js
+@@ -90,6 +90,7 @@ export default class TaskLoop {
+             // worktree-down, 2026-09-29: a landed+merged task's dev server goes down (Server/worktree-sweep.mjs), hidden child so it never blocks this tick.
+             try { spawn(process.execPath, [path.join(this.root, "Server", "worktree-sweep.mjs")], { detached: true, stdio: "ignore", windowsHide: true }).unref(); } catch {}
+             this.follow_up_daily();
++            this.twins_daily();
+             this.handover_daily();
+             this.undone_asks_daily();
+             await this.read_inboxes(this.servex.agents.registry_list(), this.clock()).catch(e => this.servex.say?.(`task-loop: inbox sweep failed: ${e.message || e}`));
+@@ -152,6 +153,23 @@ export default class TaskLoop {
+         }));
+     }
+ 
++    /* twins-daily, 2026-11-01 (session-twins-fix): once per local day, the twin check (node Server/SessionConsolidate.mjs --check --write --json):
++     * does any session have two folders? It keeps the list in ai/sessions/session-twins.json (gitignored) and says how many ids are new since
++     * the last run; a new one is a writer that went around the one finder (core/Session/SessionFolders.mjs), so it posts ONE owner_note risk.
++     * "Done today" = the file's mtime is today, so a restart never repeats it. Doc: public/framework/ai/sessions/doc/one-folder.md */
++    twins_daily(){
++        const file = path.join(this.root, "public", "framework", "ai", "sessions", "session-twins.json");
++        let m = 0; try { m = fs.statSync(file).mtimeMs; } catch {}
++        if (this.date_id(new Date(m)) === this.date_id(new Date()) || this.twins_busy) return;
++        this.twins_busy = true;
++        execFile(process.execPath, [path.join(this.root, "Server", "SessionConsolidate.mjs"), "--check", "--write", "--json"], { cwd: this.root, windowsHide: true, timeout: 120000 }, (err, out) => {
++            this.twins_busy = false;
++            let r = null; try { r = JSON.parse(String(out).trim().split("\n").pop()); } catch {}
++            if (!r) return this.servex?.log?.append("servex", { type: "task-loop-error", error: "twins: " + String(err?.message || err || "no answer") }).catch(() => {});
++            if (r.new) this.servex?.cards?.owner_note?.({ title: `${r.new} sessions got a second folder`, text: `${r.count} sessions are held by more than one folder, ${r.new} new since the last check (e.g. ${r.examples[0]?.others?.[0] ?? "?"}). A writer went around SessionFolders; fold them with node Server/SessionConsolidate.mjs --all --apply --manifest <file>.`, kind: "risk", links: ["/framework/ai/sessions/doc/one-folder.md"], by: "task-loop" })?.catch?.(() => {});
++        });
++    }
++
+     /* handover-daily, 2026-10-17: once per UTC day, run Server/HandoverNow.mjs --write so the NOW block at the top of handover.md stays computed.
+      * "Done today" = the date in the block's own "computed <date>" stamp (the file is hand-edited too, so its mtime says nothing); a restart never repeats it.
+      * LogSweeper (ALLOW) commits handover.md. Doc: Servex/doc/task-loop.md */
+diff --git a/public/framework/ai/AISession/AISessionIndex.mjs b/public/framework/ai/AISession/AISessionIndex.mjs
+index 04c6c9752..7a351a134 100644
+--- a/public/framework/ai/AISession/AISessionIndex.mjs
++++ b/public/framework/ai/AISession/AISessionIndex.mjs
+@@ -16,6 +16,7 @@ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+ import Day from "../../core/Session/Day.js";
+ import AISession from "./AISession.js";
++import SessionFolders from "../../core/Session/SessionFolders.mjs";
+ import AIIndexStream from "../../../../Server/AIIndexStream.mjs";
+ import { files_of, registry_rows } from "../../../../Server/session-summary.mjs";
+ import { links_of, children_map } from "../../../../Server/session-links.mjs";
+@@ -207,20 +208,8 @@ export default class AISessionIndex {
+ 		return out;
+ 	}
+ 
+-	/** Every dated session folder: [{ id, dir }]. A uuid-named folder is its own id; a slug-named one says its id in index.json (or its cache summary).
+-	 *  The old flat folders and other named ones are not sessions of this shape. */
+-	async session_dirs(){
+-		const out = [], ls = async p => fsp.readdir(p, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
+-		for (const y of await ls(this.root)) if (/^\d{4}$/.test(y)) for (const m of await ls(path.join(this.root, y))) for (const d of await ls(path.join(this.root, y, m)))
+-			for (const name of await ls(path.join(this.root, y, m, d))){
+-				const dir = path.join(this.root, y, m, d, name); let id = UUID.test(name) ? name : null;
+-				if (!id) try { id = JSON.parse(await fsp.readFile(path.join(dir, "index.json"), "utf8")).id; } catch {}
+-				if (!id) try { id = JSON.parse((await fsp.readFile(path.join(dir, "cache.jsonl"), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
+-				if (id && UUID.test(id)) out.push({ id, dir });
+-			}
+-		return out;
+-	}
+-
++	/** Every session in the store once, at its home: [{ id, dir }], from the store's one finder (core/Session/SessionFolders.mjs). */
++	async session_dirs(){ return SessionFolders.at(this.root).homes(); }
+ 	async each(list, fn, width = 48){
+ 		let i = 0;
+ 		await Promise.all(Array.from({ length: Math.min(width, list.length) }, async () => { while (i < list.length) { const item = list[i++]; try { await fn(item); } catch (e){ this.log("AISessionIndex: " + e.message); } } }));
+@@ -333,8 +322,8 @@ export default class AISessionIndex {
+ 		const fresh = !before && Date.now() - Date.parse(snap.first_at ?? 0) < 600000;
+ 		if (!fresh && !(before && (before.state !== snap.state || before.title !== snap.title))) return;
+ 		try {
+-			const dir = "public/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));
+-			AIIndexStream.append(this.root, "session", { id: snap.id, path: dir, url: "/framework/ai/sessions/" + snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8)) + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
++			const at = this.dirs.has(snap.id) ? path.relative(this.root, this.dirs.get(snap.id)).split(path.sep).join("/") : snap.day + "/" + (snap.folder ?? "session-" + snap.id.slice(0, 8));   // the folder dir_of found: its day can be before snap.day
++			AIIndexStream.append(this.root, "session", { id: snap.id, path: "public/framework/ai/sessions/" + at, url: "/framework/ai/sessions/" + at + "/", title: snap.title ?? snap.agent ?? snap.id.slice(0, 8), state: snap.state });
+ 		} catch (e){ this.log("AISessionIndex: day stream — " + e.message); }
+ 	}
+ 
+@@ -363,9 +352,11 @@ export default class AISessionIndex {
+ 		} catch (e){ this.log("AISessionIndex: write day " + day + " — " + e.message); }
+ 	}
+ 
++	/** The folder to write `id` into, asked of the store's one finder on EVERY write (SessionFolders, checked on disk). this.dirs is only
++	 *  what the last answer was: a folder moved or removed since (a rename, a cleanup) is never written to, so never made again. */
+ 	async dir_of(id, snap){
+-		let dir = this.dirs.get(id);
+-		if (!dir){ dir = fileURLToPath(await AISession.locate(id, snap.first_at)); this.dirs.set(id, dir); }
++		const dir = SessionFolders.at(this.root).home(id, AISession.day(snap.first_at) ?? AISession.day(new Date()));
++		this.dirs.set(id, dir);
+ 		if (snap.folder !== path.basename(dir)) snap.folder = path.basename(dir);   // the folder name travels with the snapshot, so the browser can find the folder
+ 		return dir;
+ 	}
+@@ -375,7 +366,7 @@ export default class AISessionIndex {
+ 		const snap = this.snaps.get(id); if (!snap) return;
+ 		try {
+ 			const dir = await this.dir_of(id, snap);
+-			await fsp.mkdir(dir, { recursive: true });
++			await fsp.mkdir(dir, { recursive: true });   // dir_of just found it on disk, or it is the new home of a session that has none: never a remembered path
+ 			const tmp = path.join(dir, "index.tmp.json"), file = path.join(dir, "index.json");   // a .json name: the dev watcher ignores it
+ 			await fsp.writeFile(tmp, JSON.stringify(snap));
+ 			try { await fsp.rename(tmp, file); } catch { await new Promise(r => setTimeout(r, 50)); await fsp.rename(tmp, file); }
+diff --git a/public/framework/ai/sessions/doc/one-folder.md b/public/framework/ai/sessions/doc/one-folder.md
+new file mode 100644
+index 000000000..c892851dd
+--- /dev/null
++++ b/public/framework/ai/sessions/doc/one-folder.md
+@@ -0,0 +1,57 @@
++# One folder per session, and the one function that finds it
++
++A session is kept in exactly **one folder** in the sessions store. A second folder for the same session (a "twin") splits its record, its cost and its tasks across two pages. This page says what the store looks like, which single function answers "where is session X", and how a twin is caught the day it appears. Verified against the code on 2026-11-01 ([the task](/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/)).
++
++## The store's one shape
++
++```
++public/framework/ai/sessions/
++  YYYY/MM/DD/                  the day the session BEGAN (local day)
++    <folder>/                  ONE SESSION, directly under its day
++      session.jsonl            its record (line 1 says whose it is)
++      index.json, cache.jsonl  its numbers (gitignored; rebuilt from the transcript)
++      <task>/                  its task folders, nested inside it
++```
++
++- **The folder name** is `session-<first 8 hex of the id>` for a new session, the full uuid when another session already holds that name on that day (two ids can share 8 hex), or a slug: a folder renamed on 2026-10-09 (`ux-screens`), a named record (`voice-20261016`), a page-tool folder (`<agent>-<id8>`).
++- **Not a second folder:** a spawned agent's record lives in a task folder nested under its parent's session; its own `session-<id8>` folder holds only its transcript numbers. That is one session folder plus one task. Neither is a tab-era task filed straight under a day with a line 1 `{"assign"}` that has no `agent`: that line names the session that *ran* the task, not the folder's own session.
++
++## How a folder says whose it is
++
++`SessionFolders.owner(dir)` reads, in order, and the first answer wins:
++
++| Source | Written by |
++|---|---|
++| the folder's name, when it is a uuid | `Session.locate` (a clash), old folders |
++| `index.json` `id` | `AISessionIndex` (only ever into a session's own folder) |
++| `cache.jsonl` `{"summary":{"id"}}` | `AISession.save()` |
++| line 1 of `session.jsonl` / `task.jsonl`: `{"session":{"id"}}` | the SessionStart hook, `TaskDirs`, `SessionRecord.link_parent` |
++| line 1: `{"assign":{"session_id","agent"}}` (with an agent) | `Agents.open_task` (a Servex record) |
++| line 1 of `page.jsonl`: `{"session":"<id>"}` | the page tool |
++
++A `session-<id8>` folder that names no id is taken to be the asker's (very old folders).
++
++## The one finder
++
++```
++session id ──▶ SessionFolders.at(<store>).of(id) ──▶ its one folder (or null)
++                    │                 .home(id, day) ──▶ of(id), else where a new one goes (not made)
++                    ├─ DatedFiles.session_dir   ← TaskDirs --new, Agents.open_task, the SessionStart hook, prompt-relay
++                    ├─ Session.locate / scan    ← AISession.save, the page tool, PromptLog, TaskMove
++                    ├─ AISessionIndex.dir_of    ← every index.json write
++                    ├─ ChildLinks.sessions      ← a child's link on its parent's record
++                    ├─ AskIndex.session_dir     ← asks.jsonl
++                    ├─ SessionIdentity.folders_of ← TrackingCheck
++                    └─ SessionConsolidate       ← the fold and the twin check
++```
++
++Code: [`core/Session/SessionFolders.mjs`](/framework/core/Session/SessionFolders.mjs) (node only). **When two folders hold one id**, the home is the oldest day (the day it began), then the folder holding the most (a task subfolder, then a record, then `index.json`, then `cache.jsonl`), then the name. Every writer gets the same answer, so a twin never grows while it waits to be folded.
++
++**Why a cached path can no longer come back.** The finder checks its answer on disk on every call: a folder that moved or was removed is never returned, so no writer `mkdir`s it back (what happened on 2026-10-09, when a running Servex kept writing into renamed folders). Its memory, `sessions/session-folders.json` (gitignored), is only a starting point: every day folder is listed again on each lookup that misses, and a day whose mtime moved is read again in full. Speed on the live store (13,547 folders): a hit under 2 ms, a miss about 40 ms, a cold start 4 to 17 s depending on load, then 62 ms from the saved map.
++
++## The twin check, and the fold
++
++- **Check:** `node Server/SessionConsolidate.mjs --check` exits 1 and lists any session held by two folders. Servex runs it once a day (`TaskLoop.twins_daily`, `--write` keeps the list in `sessions/session-twins.json`) and posts one risk note when an id is new since the last run: a new twin means a writer went around the finder. `DatedFiles.sessions.check()` reports `twins` too.
++- **Fold:** `node Server/SessionConsolidate.mjs --all` (dry run), then `--all --apply --manifest <file.json>`. Task folders move into the home; `index.json` and `cache.jsonl` keep the fresher copy; other logs are appended without duplicates; every original is copied to `%LOCALAPPDATA%/lew42/servex/moved-aside/<run>/` first; a `redirect` line in `task-moves.jsonl` keeps old URLs working.
++- **Today (2026-11-01):** 1,408 sessions are held twice, nearly all left from the 2026-10-09 rename (a uuid folder holding a stale `cache.jsonl` beside the slug). All 1,408 can be folded. Proved on a copy of their folders: 0 twins after, 1,408 session ids before and after, **0 of 16,445 lines lost** (15,019 found again, 1,412 older cache summaries and 13 older index snapshots where a fresher copy stays, 1 repeated line-1 marker): [fold-proof.json](/framework/ai/sessions/2026/10/20/session-e00f55c9/session-twins-fix/fold-proof.json).
++- **Run the fold only after** this code is live in Servex and the dev server (`node Servex/sustain.mjs --restart`, then the dev server's restart), so no old process still holds a folder map.
+diff --git a/public/framework/ai/sessions/readme.md b/public/framework/ai/sessions/readme.md
+index 7d447aa39..d050b5737 100644
+--- a/public/framework/ai/sessions/readme.md
++++ b/public/framework/ai/sessions/readme.md
+@@ -25,6 +25,8 @@ sessions/
+ 
+ When a day's `index.jsonl` gets its first row, the writer adds the day to its month's list; a month's first day adds the month to the year's list; a year's first month adds the year to the root list.
+ 
++**One session, one folder.** Which folder holds a session is answered by one function, `SessionFolders` (`core/Session/SessionFolders.mjs`); every writer asks it, and `node Server/SessionConsolidate.mjs --check` (daily, from Servex) reports any session held by two folders: [doc/one-folder.md](doc/one-folder.md).
++
+ A session folder is one of three kinds:
+ 
+ | Kind | Folder name | Files | Written by |
+diff --git a/public/framework/core/Session/Session.js b/public/framework/core/Session/Session.js
+index e7c0092c7..1d7919a09 100644
+--- a/public/framework/core/Session/Session.js
++++ b/public/framework/core/Session/Session.js
+@@ -141,32 +141,32 @@ export default class Session extends Task {
+ 	// Sync: the dated folder when the day is known, else the old flat one.
+ 	static dir_url(id, day = this.days.get(id)){ return new URL(day ? `./${day}/${this.slugs.get(id) ?? id}/` : `./${id}/`, this.root_url()); }
+ 
+-	// Node, async: read every dated folder once to learn which folder holds which session. A uuid-named folder is its own id; any other
+-	// folder says its id in index.json, in its cache summary, or in the first line of its page.jsonl ({"session":uuid}, made by the page tool).
++	// Node, async: the store's finder (core/Session/SessionFolders.mjs, the only one: which folder holds which session, read from disk).
++	static async folders(){
++		const [{ default: SessionFolders }, { fileURLToPath }] = await Promise.all([import("./SessionFolders.mjs"), import("node:url")]);
++		return SessionFolders.at(fileURLToPath(this.root_url()));
++	}
++	// Node, async: fill `days` and `slugs` with every session's home, so dir_url() answers without a read. A filler only: locate() never trusts
++	// it, because a map read before a folder moved would send a write to a folder that is gone (the 2026-10-09 twins).
+ 	static async scan(){
+ 		if (Object.hasOwn(this, "scanned") ? this.scanned : false) return;
+ 		this.scanned = true;
+-		const fs = await import("node:fs/promises"), root = this.root_url(), UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+-		const ls = async u => fs.readdir(u, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
+-		for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root))) for (const name of await ls(new URL(`./${y}/${m}/${d}/`, root))){
+-			const dir = new URL(`./${y}/${m}/${d}/${name}/`, root);
+-			let id = UUID.test(name) ? name : null;
+-			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
+-			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
+-			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
+-			for (const log of ["session.jsonl", "task.jsonl"]) if (!id) try { id = JSON.parse((await fs.readFile(new URL(log, dir), "utf8")).split("\n")[0]).session?.id; } catch {}   // a tab's folder: the SessionStart hook writes only line 1, {"session":{"id"}}
+-			if (!id || !UUID.test(id)) continue;
+-			this.days.set(id, `${y}/${m}/${d}`);
+-			if (name !== id) this.slugs.set(id, name);
+-		}
++		const store = await this.folders();
++		for (const { id, dir } of store.homes()) this.remember(id, dir, store.root);
++	}
++	static remember(id, dir, root){
++		const rel = dir.slice(root.length + 1).split(/[\\/]/), name = rel.pop();
++		if (rel.length !== 3) return;
++		this.days.set(id, rel.join("/"));
++		if (name !== id) this.slugs.set(id, name); else this.slugs.delete(id);
+ 	}
+ 
+-	// Node, async: the folder to WRITE into. Where the session already lives (found by scan), else an old flat uuid folder (moved into its
+-	// day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
++	// Node, async: the folder to WRITE into. Where the session lives now (SessionFolders, checked on disk every call), else an old flat
++	// uuid folder (moved into its day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
+ 	static async locate(id, first_at, slug){
+-		const fs = await import("node:fs/promises"), root = this.root_url();
+-		if (!this.days.has(id)) await this.scan();
+-		if (this.days.has(id)) return this.dir_url(id);
++		const fs = await import("node:fs/promises"), root = this.root_url(), store = await this.folders();
++		const found = store.of(id);
++		if (found){ this.remember(id, found, store.root); return this.dir_url(id); }
+ 		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
+ 		let day = this.day(first_at);
+ 		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
+@@ -176,11 +176,9 @@ export default class Session extends Task {
+ 			if (!day) return flat;
+ 		}
+ 		day ??= this.day(new Date());
+-		this.days.set(id, day);
+-		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return this.dir_url(id); }
+-		// Two ids can share their first 8 hex (hand-picked test ids did, 2026-09-19): a default name another id already holds that day becomes the full uuid.
+-		const short = "session-" + id.slice(0, 8), taken = !slug && [...this.slugs].some(([o, s]) => o !== id && s === short && this.days.get(o) === day);
+-		if (!taken) this.slugs.set(id, slug || short);
++		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); this.days.set(id, day); this.slugs.delete(id); return this.dir_url(id); }
++		// Two ids can share their first 8 hex (hand-picked test ids did, 2026-09-19): home() gives the second one its full uuid.
++		this.remember(id, store.home(id, day, slug), store.root);
+ 		return this.dir_url(id);
+ 	}
+ }
+diff --git a/public/framework/core/Session/SessionFolders.mjs b/public/framework/core/Session/SessionFolders.mjs
+new file mode 100644
+index 000000000..757722e93
+--- /dev/null
++++ b/public/framework/core/Session/SessionFolders.mjs
+@@ -0,0 +1,151 @@
++// SessionFolders — the ONE answer to "which folder holds session X" in a dated store (<root>/YYYY/MM/DD/<folder>/). Node only.
++// Every writer asks it: DatedFiles.session_dir (TaskDirs, open_task, the SessionStart hook), Session.locate (AISession.save, the page
++// tool, PromptLog), AISessionIndex, ChildLinks, AskIndex, TaskMove, SessionConsolidate. Doc: public/framework/ai/sessions/doc/one-folder.md.
++//
++//   SessionFolders.at(root)        the finder of one store (one per absolute root, kept for the process)
++//   .of(id)                        the session's folder, or null; checked on disk on every call, so a moved or removed folder is never returned
++//   .home(id, day, name)           of(id), else where a new one goes: <day>/<name or session-<id8>> (the full uuid when another id holds session-<id8>). Not made.
++//   .all(id)                       every folder that holds the id, the home first (more than one is a twin)
++//   .twins()                       [{id, home, others}] for every id held by more than one folder
++//   SessionFolders.owner(dir)      the id a folder says it holds (the claim rule below), or null
++//
++// Why it exists (2026-11-01): five finders each had their own rule and their own cache. One knew only <uuid> and session-<id8> names,
++// so a session whose folder was a slug got a second one; the others cached a folder and wrote into it after it had moved, making it again.
++import fs from "node:fs";
++import path from "node:path";
++
++const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, ID8 = /^session-([0-9a-f]{8})$/;
++const mtime = p => { try { return fs.statSync(p).mtimeMs; } catch { return 0; } };
++const dirs = d => { try { return fs.readdirSync(d, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name); } catch { return []; } };
++
++export default class SessionFolders {
++	static UUID = UUID;
++	static stores = new Map();
++	static at(root){ root = path.resolve(root); return this.stores.get(root) ?? this.stores.set(root, new this(root)).get(root); }
++
++	/** The id a folder holds, or null. In order: its name when that is a uuid; index.json `id` and the cache.jsonl summary (the session indexer
++	 *  writes those only into a session's own folder); line 1 of session.jsonl / task.jsonl as {session:{id}} (a tab, the SessionStart hook,
++	 *  TaskDirs) or {assign:{session_id, agent}} (a Servex agent's record, Agents.open_task); line 1 of page.jsonl {session} (the page tool).
++	 *  An {assign} with no `agent` is a tab-era task filed flat under the day: it names the session that RAN it, not the folder's own session. */
++	static owner(dir){
++		const name = path.basename(dir);
++		if (UUID.test(name)) return fs.existsSync(dir) ? name : null;   // a folder that is gone holds nothing
++		const read = f => { try { return fs.readFileSync(path.join(dir, f), "utf8"); } catch { return ""; } };
++		const first = f => { try { return JSON.parse(read(f).split("\n")[0] || "null"); } catch { return null; } };
++		let id = null;
++		try { id = JSON.parse(read("index.json") || "null")?.id ?? null; } catch {}
++		if (!id) try { id = JSON.parse(read("cache.jsonl").split("\n").find(l => l.startsWith('{"summary"')) ?? "null")?.summary?.id ?? null; } catch {}
++		for (const f of ["session.jsonl", "task.jsonl"]) if (!id){ const l = first(f); id = l?.session?.id ?? (l?.assign?.agent ? l.assign.session_id : null) ?? null; }
++		if (!id){ const l = first("page.jsonl"); id = typeof l?.session === "string" ? l.session : null; }
++		return typeof id === "string" && UUID.test(id) ? id : null;
++	}
++
++	/** How much a folder holds, to pick the home among folders on one day: a subfolder (a task) 8, a record 4, index.json 2, cache.jsonl 1. */
++	static weight(dir){
++		let w = 0, es; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return -1; }
++		for (const e of es){
++			if (e.isDirectory()) w |= 8;
++			else if (["session.jsonl", "task.jsonl", "page.jsonl"].includes(e.name)) w |= 4;
++			else if (e.name === "index.json") w |= 2;
++			else if (e.name === "cache.jsonl") w |= 1;
++		}
++		return w;
++	}
++
++	constructor(root){
++		this.root = root;
++		this.days = new Map();   // "YYYY/MM/DD" -> { mt: the day folder's mtime when read, names: Map(folder name -> id, or null when it names none) }
++		this.ids = new Map();    // id -> Set of "YYYY/MM/DD/<name>"
++		this.quiet = new Map();  // "YYYY/MM/DD/<name>" of a folder that names no id -> its mtime when read (a claim arrives as a new file, which moves it)
++		this.file = path.join(root, "session-folders.json");   // what was read, so a one-shot process (the SessionStart hook, TaskDirs --new) need not read every folder again
++	}
++
++	/** Bring the map up to what is on disk. Every day's folder names are listed every time: that is the part correctness rests on (a folder
++	 *  added, removed or renamed is seen at once). What a folder says it holds is read again only when it is new, when it named no id and
++	 *  has changed since, or when its day folder's mtime moved (a folder removed and made again under the same name). */
++	refresh(){
++		if (!this.days.size) this.load();
++		const seen = new Set(); let changed = false;
++		const forget = (day, name, id) => { this.quiet.delete(`${day}/${name}`); if (id) this.ids.get(id)?.delete(`${day}/${name}`); };
++		for (const y of dirs(this.root)) if (/^\d{4}$/.test(y)) for (const m of dirs(path.join(this.root, y))) if (/^\d\d$/.test(m)) for (const d of dirs(path.join(this.root, y, m))) if (/^\d\d$/.test(d)){
++			const day = `${y}/${m}/${d}`, dd = path.join(this.root, y, m, d), mt = mtime(dd), rec = this.days.get(day) ?? { mt: null, names: new Map() };
++			const same = rec.mt === mt, have = rec.names, now = new Set(dirs(dd));
++			seen.add(day); this.days.set(day, rec);
++			for (const [name, id] of have) if (!now.has(name)){ have.delete(name); forget(day, name, id); changed = true; }
++			for (const name of now){
++				const key = `${day}/${name}`, dir = path.join(dd, name), was = have.get(name);
++				if (same && have.has(name) && (was !== null || this.quiet.get(key) === mtime(dir))) continue;
++				const id = SessionFolders.owner(dir);
++				if (have.has(name) && was === id && id !== null) continue;
++				forget(day, name, was); have.set(name, id); changed = true;
++				if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(key); else this.quiet.set(key, mtime(dir));
++			}
++			if (rec.mt !== mt){ rec.mt = mt; changed = true; }
++		}
++		for (const [day, rec] of this.days) if (!seen.has(day)){ for (const [name, id] of rec.names) forget(day, name, id); this.days.delete(day); changed = true; }
++		if (changed) this.save();
++		return this;
++	}
++
++	/** The saved map (session-folders.json, gitignored machine state). Only a starting point: refresh() checks it against the folders. */
++	load(){
++		let j = null; try { j = JSON.parse(fs.readFileSync(this.file, "utf8")); } catch { return; }
++		if (j?.v !== 1) return;
++		for (const [day, { mt, names }] of Object.entries(j.days ?? {})){
++			const rec = { mt, names: new Map(Object.entries(names)) };
++			this.days.set(day, rec);
++			for (const [name, id] of rec.names) if (id) (this.ids.get(id) ?? this.ids.set(id, new Set()).get(id)).add(`${day}/${name}`);
++		}
++		for (const [key, mt] of Object.entries(j.quiet ?? {})) this.quiet.set(key, mt);
++	}
++	save(){
++		const days = {}; for (const [day, rec] of this.days) days[day] = { mt: rec.mt, names: Object.fromEntries(rec.names) };
++		const tmp = `${this.file}.${process.pid}.tmp`;
++		try { fs.writeFileSync(tmp, JSON.stringify({ v: 1, at: new Date().toISOString(), days, quiet: Object.fromEntries(this.quiet) })); fs.renameSync(tmp, this.file); }
++		catch { try { fs.rmSync(tmp, { force: true }); } catch {} }   // a cache: another process writing it at the same moment is fine
++	}
++
++	/** The folders the map says hold `id` (relative "YYYY/MM/DD/<name>"), plus any session-<id8> that names no id (an old folder: the caller's). */
++	listed(id){
++		const out = [...(this.ids.get(id) ?? [])], short = "session-" + id.slice(0, 8);
++		for (const [day, { names }] of this.days) if (names.has(short) && names.get(short) === null) out.push(`${day}/${short}`);
++		return out;
++	}
++
++	/** Every folder that holds `id` on disk now, the home first: the oldest day (the day the session began), then the most it holds, then the name. */
++	all(id){
++		if (!UUID.test(id ?? "")) return [];
++		const check = () => this.listed(id).map(r => path.join(this.root, r)).filter(dir => { const o = SessionFolders.owner(dir); return o === id || (o === null && ID8.exec(path.basename(dir))?.[1] === id.slice(0, 8)); });
++		let found = this.days.size ? check() : [];
++		if (!found.length || found.length !== this.listed(id).length){ this.refresh(); found = check(); }   // a miss or a stale entry: read the disk again
++		const day = dir => path.relative(this.root, path.dirname(dir)).split(path.sep).join("/");
++		const w = new Map(found.map(d => [d, found.length > 1 ? SessionFolders.weight(d) : 0]));
++		return found.sort((a, b) => day(a).localeCompare(day(b)) || w.get(b) - w.get(a) || path.basename(a).localeCompare(path.basename(b)));
++	}
++
++	/** The session's folder, or null. */
++	of(id){ return this.all(id)[0] ?? null; }
++
++	/** of(id), else where a new folder goes on `day` ("YYYY/MM/DD" or an absolute day folder): `name` if given, else session-<id8>, else (when
++	 *  another id holds session-<id8> that day: two ids can share their first 8 hex) the full uuid. Absolute; never made here. */
++	home(id, day, name = null){
++		const found = this.of(id); if (found) return found;
++		const dd = path.isAbsolute(day) ? day : path.join(this.root, ...String(day).split("/")), short = path.join(dd, "session-" + id.slice(0, 8));
++		if (name) return path.join(dd, name);
++		return fs.existsSync(short) ? path.join(dd, id) : short;   // of() found nothing, so an existing session-<id8> belongs to another id
++	}
++
++	/** Every id held by more than one folder: [{id, home, others}], absolute paths, the home as all() picks it. */
++	twins(){
++		this.refresh();
++		const out = [];
++		for (const [id, set] of this.ids) if (set.size > 1){ const [home, ...others] = this.all(id); if (others.length) out.push({ id, home, others }); }
++		return out.sort((a, b) => a.home.localeCompare(b.home));
++	}
++
++	/** Every session in the store once, at its home: [{id, dir}]. */
++	homes(){
++		this.refresh();
++		return [...this.ids].filter(([, set]) => set.size).map(([id, set]) => ({ id, dir: set.size === 1 ? path.join(this.root, [...set][0]) : this.of(id) })).filter(r => r.dir);
++	}
++}
+diff --git a/public/framework/core/Session/doc/identity.md b/public/framework/core/Session/doc/identity.md
+index 21e32e63e..d6825ce7a 100644
+--- a/public/framework/core/Session/doc/identity.md
++++ b/public/framework/core/Session/doc/identity.md
+@@ -27,9 +27,9 @@ Every session has one dated folder, `public/framework/ai/sessions/YYYY/MM/DD/<na
+ | **Servex agent** (SDK) | Servex: `Agents.spawn` mints a uuid and hands it to the SDK as `sessionId`. | `open_task` writes the **task** folder's line 1, `{"assign":{"session_id",…}}`. The **transcript** folder `session-<id8>/` (cache only) is made by `AISessionIndex` through `Session.locate`. |
+ | **Record session** (voice call, named agent) | Its writer | `RemoteMCP.voice_session`, `append.mjs`: a name such as `voice-20261016`. |
+ 
+-**Two code paths name the same folder**, `DatedFiles.session_dir` (Server side) and `Session.locate` (the class). They agree on the name `session-<id8>`. Both now check that a `session-<id8>` folder found on disk belongs to the id: `DatedFiles.owner(dir)` reads `index.json`, the cache summary, then line 1 of the record, the same sources `Session.scan` uses. If it belongs to another id, the new session gets a folder named by its full uuid. Folding the two paths into one is a ⬜ on [core/Session's readme](../readme.md).
++**One function finds the folder** (2026-11-01): `SessionFolders` ([SessionFolders.mjs](../SessionFolders.mjs)). `DatedFiles.session_dir`, `Session.locate`, `AISessionIndex`, `ChildLinks`, `AskIndex`, `SessionIdentity` and `SessionConsolidate` all ask it, so they cannot disagree. It finds a session in any folder that says it holds the id, slug-named ones too, and checks on disk every call. A `session-<id8>` name another id holds gives the new session its full uuid. The store's shape, the claim rule and the twin check: [ai/sessions/doc/one-folder.md](/framework/ai/sessions/doc/one-folder.md).
+ 
+-**A session stays on the day it began.** `session_dir` walks every day folder oldest first and takes the first one that holds the id (`DatedFiles.days()`: 66 days, 6 ms). Until 2026-10-24 it looked back 4 days, then 31, newest first, so `TaskDirs --new` found or opened a later folder: this tab was split across `2026/10/20/session-e00f55c9/` and `2026/10/24/session-e00f55c9/`. The check below reports a split as `split`.
++**A session stays on the day it began.** When two folders hold one id, `SessionFolders` takes the oldest day first. Until 2026-10-24 it looked back 4 days, then 31, newest first, so `TaskDirs --new` found or opened a later folder: this tab was split across `2026/10/20/session-e00f55c9/` and `2026/10/24/session-e00f55c9/`. The check below reports a split as `split`.
+ 
+ ## One session, one folder, one URL (2026-10-25)
+ 
+@@ -177,7 +177,7 @@ These change Servex's lifecycle, so they go to `ai-system-mastermind` as proposa
+ - ⬜ Run `Server/SessionConsolidate.mjs` over every session the check reports as `split` (e00f55c9 is folded first, by hand, once its hook fix is live).
+ - ⬜ Give a VS Code tab's MCP connection its caller, so `item` with no `path` finds its own page (above).
+ - ⬜ Re-index `2026/09/19/session-a1c1d1e1/`: move its mixed `cache.jsonl` aside so the indexer rebuilds one folder per id. Low value: these were test sessions.
+-- ⬜ Fold `DatedFiles.session_dir` and `Session.locate` into one naming rule.
++- ✅ Fold `DatedFiles.session_dir` and `Session.locate` into one rule: `SessionFolders` (2026-11-01, [one-folder.md](/framework/ai/sessions/doc/one-folder.md)).
+ - ⬜ Compaction: auto-compact threshold and timeout (above), proposed to `ai-system-mastermind`.
+ - ⬜ Find why the SDK's `total_cost_usd` runs 1.3 to 1.7 times the `AISession` price of the same transcript (likely the cache-write price or the model's rate), and why a turn near a renewal lands on the session before. Numbers above; one session pair is enough to test.
+ - ⬜ Give every Servex child a `task_dir` (or link it by `parent_session` alone), so `minion-process-page` and its kind are reachable from the parent's record.
+diff --git a/public/framework/core/Session/readme.md b/public/framework/core/Session/readme.md
+index 62b097149..91f4968b1 100644
+--- a/public/framework/core/Session/readme.md
++++ b/public/framework/core/Session/readme.md
+@@ -29,8 +29,10 @@ class Session extends Task                       // ../Task/Task.js (Task extend
+   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
+   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
+   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
+-  static async scan()       // node: reads every dated folder once, learns id -> day/slug
+-  static async locate(id, first_at?, slug?)  // node: the folder to WRITE into; never makes a second one
++  static async scan()       // node: fills days/slugs with every session's home, from SessionFolders (a filler; locate never trusts it)
++  static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
++
++// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .all(id), .twins(); static owner(dir)
+ 
+ // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
+ ```
+@@ -94,9 +96,9 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
+ **References.**
+ - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
+ - A task is named by its **path**: `{"task": "<folder url>"}`.
+-- `Session.locate(id)` turns an id into its folder.
++- `Session.locate(id)` turns an id into its folder, by asking `SessionFolders` (`SessionFolders.mjs`, node only): the store's one finder, checked on disk every call ([one-folder.md](/framework/ai/sessions/doc/one-folder.md)).
+ 
+-**A session stays on the day it began.** `DatedFiles.session_dir` looks back 31 days for the session's folder before it makes one (4 until 2026-10-24, which split session-e00f55c9 across 10/20 and 10/24). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
++**A session stays on the day it began.** `DatedFiles.session_dir` asks `SessionFolders`, which finds the session's folder on any day, slug-named too, before it names a new one (until 2026-11-01 it knew only `<uuid>` and `session-<id8>` names, so a slug-only session got a second folder). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
+ 
+ **One source of truth: the file.**
+ - The `.jsonl` record is the only truth.

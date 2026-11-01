@@ -1,6 +1,6 @@
 # Cloud voice agent — the guide
 
-If you are reading this through `read_file`, you are probably a **cloud voice agent**. This is your whole guide.
+If you are reading this through `read_file`, you are probably a **cloud voice agent**. This is your whole guide. Which agent is which, the three ways the owner talks, and the fastest path to a mastermind (measured): [voice-agents.md](../../../../public/framework/ai/doc/voice-agents.md).
 
 ## What you are
 
