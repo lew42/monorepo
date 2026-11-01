@@ -122,7 +122,7 @@ safety model: any method on the socket is reachable by the other end, acceptable
 | frame | means | captured example |
 |---|---|---|
 | `changed` | these files changed — deduped and debounced ~300ms server-side. A missing array, or a `null` inside one, means *"unknown — reload everything"* | `{"method":"changed","args":[["/framework/dev/Socket/doc/wire.md"]]}` |
-| `jsonl` | appended complete lines of a subscribed `.jsonl` (raw strings, no trailing `\n`); the trailing number is the server byte `offset` **after** these lines | see below |
+| `jsonl` | appended complete lines of a subscribed `.jsonl` (raw strings, no trailing `\n`), then `offset` (the server byte offset **after** these lines), `from` (where these lines began) and `ends` (each line's end offset) | see below |
 | `jsonl_reset` | the file shrank or was rewritten — drop replayed state and re-subscribe from `0` | `{"method":"jsonl_reset","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl"]}` |
 | `eval` | run `code` in this tab and answer with `eval_result` carrying the same `token`. MCP's `eval` tool | `{"method":"eval","args":["1 + 1","617a136a-b620-4a1d-959c-6ea8f9df0c42"]}` |
 | `reload` | reload unconditionally | *no current sender* — see below |
@@ -149,6 +149,14 @@ it, only echoes back one the server sent:
       "{\"log\": {\"at\": \"2026-08-15T20:15:30-05:00\", …}}"], 1807]}
 ```
 
+(Those captures predate 2026-10-28; the second frame now ends `…], 1807, 737, [<each line's end offset>]]`.)
+
+**One offset per socket** (2026-10-28). `Tail.js` keeps each subscriber's own offset, so two tabs on one file never share a
+read (a shared one lost an update). Each frame carries `from` and `ends`, so a reader already past `from` (its own echo, or a
+second subscribe) keeps only the lines that end past its offset (`ext/JSONL/live.js`): no line is applied twice. An older
+server sends no `from`/`ends`, and the reader takes every line as before. Test: `node Server/plugins/SocketServer/Tail.test.mjs`
+(it fails on the old Tail).
+
 `.jsonl` paths never appear in `changed`. That is the whole point of the split
 (`Server/plugins/SocketServer/Tail.js` routes them): an append streams, everything
 else reloads.
@@ -162,6 +170,7 @@ else reloads.
 | `subscribe` | stream a `.jsonl` from byte offset `from` (`0` = the whole file). Answered immediately with one `jsonl`, then kept streaming | `{"method":"subscribe","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl",0]}` |
 | `unsubscribe` | stop streaming that file. Optional — closing the socket cleans up | `{"method":"unsubscribe","args":["/framework/ai/sessions/2026/08/15/wire-reference/task.jsonl"]}` |
 | `ls` · `write` · `rm` | the `Runtime` plugin's file commands, sent via `rpc` / `async_rpc` | see reply shape below |
+| `append` | one batch of lines added to a `.jsonl` (`Append.js`). With a third argument `{client, n}` the batch is numbered: written once, acked `{index, response, client, n, offset}`, answered again with `dup: true` when resent | `{"method":"append","args":["/x/y.jsonl",[{"set":{"a":1}}],{"client":"3e83f2c0.x7q2","n":14}],"index":5}`. Whole story: [core/Item/doc/transport.md](/framework/core/Item/doc/transport.md) |
 
 Those last three are the only frames that use the **`{ index, response }` reply
 shape**. A real `ls` round trip, captured — the browser stamps an `index`, the

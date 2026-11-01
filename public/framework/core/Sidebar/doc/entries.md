@@ -1,5 +1,7 @@
 # What an entry is
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 Anything answering `.label ?? .title` and `.url`. So a real `Page` and a plain POJO
 both work, and a site can list sections it doesn't want to eager-load.
 

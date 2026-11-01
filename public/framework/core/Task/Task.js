@@ -30,27 +30,27 @@ const FIELDS = ["title", "expected", "module", "mode", "now", "description", "wa
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
 const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
+// DEPRECATED (2026-10-28): use `complete` (the `finish` verb and `Task#finish`). Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated; no live code calls `Task#finish`.
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
+const VERDICTS = new Set(["approve", "improve", "reject"]);
 
 export class Task extends Item {
 
-	constructor(...args){
-		super(...args);
-		// Running-time bookkeeping: `_ran_ms` is time already banked (from past
-		// running spans, replayed from `data.ran_ms`); `_ran_since` is a plain
-		// Date.now() marking a CURRENTLY open span, kept in memory only — it is not
-		// itself a saved fact, just "is the clock running right now", reset to null
-		// on load. A reload mid-run loses only the open span's few seconds, never
-		// the banked total; fixing that fully means persisting `_ran_since` too,
-		// left for later (Law 1: fastest working version first).
-		this._ran_ms = this.data.ran_ms ?? 0;
-		this._ran_since = null;
+	/* Running time is SAVED data, so a reload (or another tab) reads it back (D18): `ran_ms` is the time banked by earlier running
+	   spans, and `ran_since` (an ISO time, or null) is when the span that is open right now began. Both are written by the verbs
+	   below in the same set() as the state, so a change line carries them and a verb line makes them again. Old lines have no
+	   `ran_since`: such a task loads with no open span (its time reads the banked part only). */
+	get _ran_ms(){ return this.data.ran_ms ?? 0; }
+	get _ran_since(){
+		const at = this.data.ran_since, ms = typeof at === "string" ? Date.parse(at) : NaN;
+		return Number.isNaN(ms) ? null : ms;
 	}
 
 	// Made on first use (a replayed log rarely has subtasks). `_tasks` is hidden from
 	// `lists()` below so the saved key is still "tasks", which `hydrate()` assigns back.
 	get tasks(){
-		if (!this._tasks){ this._tasks = new Task.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
+		// A subclass may bring its own list (Improvements merges a repeated title); its members are plain Tasks.
+		if (!this._tasks){ this._tasks = new this.constructor.List({ owner: this, name: "tasks" }); this._tasks.of = Task; this.watch(this._tasks); }
 		return this._tasks;
 	}
 	set tasks(list){ this._tasks = list; this.watch(list); }
@@ -59,13 +59,15 @@ export class Task extends Item {
 	static List = class TaskList extends List {
 		make(x){
 			if (typeof x !== "string") return super.make(x);
-			let id = Task.slug(x);
-			for (let n = 2; this.find?.(id); n++) id = `${Task.slug(x)}-${n}`;   // the same title twice gets "-2", as the item tool suggests
+			let id = Item.short_id();
+			while (this.find?.(id)) id = Item.short_id();   // a clash among siblings is redrawn (ids-and-paths.md §5), as the item tool does
 			return super.make({ id, title: x });
 		}
 	};
-	// The id a title makes: the item tool's slug_of (Servex/agents/page_tools.js) is the same rule.
+	// A folder name a title makes (a task with its own folder); ids are never made from titles (Item.short_id).
 	static settled(t){ return t.state === "complete" || t.state === "stopped"; }   // done, or dropped with its reason: neither blocks a parent
+	// One rule for "the same title": trimmed, spaces collapsed, any case (the item tool's refusal, Improvements' merge).
+	static same_title(a, b){ return typeof a === "string" && typeof b === "string" && a.trim().replace(/\s+/g, " ").toLowerCase() === b.trim().replace(/\s+/g, " ").toLowerCase(); }
 	static slug(text){ return String(text ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "task"; }
 	// Item.get() skips a prototype getter, so a fresh Task answered undefined for "tasks" and {tasks:{add}} was stored as data (2026-10-22; child-verb.test.mjs).
 	get(key){ return key === "tasks" ? this.tasks : super.get(key); }
@@ -122,7 +124,7 @@ export class Task extends Item {
 	ms(){ const at = this._at ?? Task.clock; return at ? Date.parse(at) : Date.now(); }
 	// The time of the line a PARENT is replaying (Session.replay_line sets it), so a nested task's verbs stamp the line's time,
 	// not the time the log is read (2026-10-23: twelve tasks of session-e00f55c9 all read completed at the moment of the read).
-	static clock = null;
+	// `Task.clock` is `Item.clock` (Item.js): one clock for every Item, set while a line replays.
 
 	// The view is wired in by TaskView.js (browser only), like Item.view; a subclass overrides render() to draw itself.
 	render(){
@@ -207,7 +209,7 @@ export class Task extends Item {
 	   reference node has not replayed, when its folder holds session.jsonl (`session_resolver`). */
 	static session_resolver = null;
 	get is_session(){ return false; }
-	static is_child_session(t){ return !!t && (t.is_session || !!Task.session_resolver?.(t.get_one("path"))); }
+	static is_child_session(t){ return !!t && (t.is_session || !!t._session_file || !!Task.session_resolver?.(t.get_one("path"))); }   // _session_file: the browser read the folder's session.jsonl (open_ref), what session_resolver tells node
 	/* The child sessions in my task tree, at any depth: a Session entry nests under the task that caused it, so it is found below that
 	   task, not only in my own list. A child session's own children are its `children`, never mine. Computed on read, never stored. */
 	sessions_below(){
@@ -331,8 +333,7 @@ export class Task extends Item {
 	start(){
 		if (!CAN.start.has(this.state)) return this.warn(`start(): can't start from "${this.state}"`);
 		const reopen = this.state === "complete";
-		this._ran_since = this.ms();
-		this.set({ state: "running", started_at: this.data.started_at ?? this.stamp(), ...(reopen ? { reopened_at: this.stamp(), reopen_count: (this.data.reopen_count ?? 0) + 1 } : {}) });
+		this.set({ state: "running", ran_since: this.stamp(), started_at: this.data.started_at ?? this.stamp(), ...(reopen ? { reopened_at: this.stamp(), reopen_count: (this.data.reopen_count ?? 0) + 1 } : {}) });
 		this.start_children();
 		return this;
 	}
@@ -340,25 +341,20 @@ export class Task extends Item {
 	pause(){
 		if (!CAN.pause.has(this.state)) return this.warn(`pause(): can't pause from "${this.state}"`);
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
-		this.set({ state: "paused", ran_ms });
+		this.set({ state: "paused", ran_ms, ran_since: null });
 		return this;
 	}
 
 	resume(){
 		if (!CAN.resume.has(this.state)) return this.warn(`resume(): can't resume from "${this.state}"`);
-		this._ran_since = this.ms();
-		this.set({ state: "running" });
+		this.set({ state: "running", ran_since: this.stamp() });
 		return this;
 	}
 
 	stop(why){
 		if (!CAN.stop.has(this.state)) return this.warn(`stop(): can't stop from "${this.state}"`);
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
-		this.set({ state: "stopped", stopped_at: this.stamp(), ran_ms, why: why ?? null });
+		this.set({ state: "stopped", stopped_at: this.stamp(), ran_ms, ran_since: null, why: why ?? null });
 		return this;
 	}
 
@@ -368,10 +364,8 @@ export class Task extends Item {
 	wait({ on, what, decide_by, deferred } = {}){
 		if (!CAN.wait.has(this.state)) return this.warn(`wait(): can't wait from "${this.state}"`);
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
 		const defer = deferred || decide_by ? { deferred: true, decide_by: decide_by ?? null } : { deferred: null, decide_by: null };
-		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms, ...defer });
+		this.set({ state: "waiting", waiting_on: on ?? null, waiting_what: what ?? null, waiting_since: this.stamp(), ran_ms, ran_since: null, ...defer });
 		return this;
 	}
 
@@ -380,10 +374,8 @@ export class Task extends Item {
 		if (!CAN[is].has(this.state)) return this.warn(`${is}(): can't ${is} from "${this.state}"`);
 		const { by, note } = typeof arg === "object" && arg ? arg : { note: arg };
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = state === "running" ? this.ms() : null;
 		this.put("verdict", { is, note: note ?? null, by: by ?? null });
-		this.set({ waiting_on: null, ...extra, ran_ms, state });
+		this.set({ waiting_on: null, ...extra, ran_ms, ran_since: state === "running" ? this.stamp() : null, state });
 		return this;
 	}
 	// approve: the task is ACCEPTED (waiting -> idle: worth doing, queued, nobody on it yet). The agent's own start() begins it
@@ -431,15 +423,14 @@ export class Task extends Item {
 		}
 
 		const ran_ms = this.duration();
-		this._ran_ms = ran_ms;
-		this._ran_since = null;
 		const c = completion ?? complete;
 		const claim = evidence === undefined ? {} : { evidence: [].concat(evidence), confidence: confidence ?? "medium", caveats: [].concat(caveats ?? []) };
-		this.set({ completed_at: this.stamp(), ran_ms, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), ...claim, state: "complete" });
+		this.set({ completed_at: this.stamp(), ran_ms, ran_since: null, ...(c !== undefined ? { completion: c } : {}), ...(outcome !== undefined ? { outcome } : {}), ...claim, state: "complete" });
 		return this;
 	}
 
 	// Old name, kept for old callers and old logs; nothing new writes it.
+	// DEPRECATED (2026-10-28): use `complete(args)`. Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated by script.
 	finish(args){ return this.complete(args); }
 
 	// ---- Replay: Item.replay / Item.Store.read drive these; only the legacy mapping lives here ----
@@ -506,6 +497,7 @@ export class Task extends Item {
 			const s = this.Store.for(dir + b);
 			try { await s.open(); if (s.host || s.count) store = s; } catch { /* still missing */ }
 		}
+		if (store.url.endsWith("/session.jsonl") && (store.host || store.count)) kid._session_file = true;   // a session's record: a child session, as node's session_resolver says
 		if (store.host){   // another reader (TaskPage) is already attached and live: this stub takes a snapshot of the same file
 			const res = await fetch(store.url).catch(() => null);
 			const entries = res?.ok ? store.parse(await res.text()) : [];
@@ -531,15 +523,18 @@ export class Task extends Item {
 
 	// Time comes from the lines (`at`, else the item tool's `ts`, `assign.at|landed_at|requested_at`), never the wall clock. Server/doc/state.md
 	replay_line(line){
+		line = Item.unmark(Item.dots(line));   // {"start()":{}} and {"#c3":{…}} read like {"start":{}} and {"c3":{…}} below (D13)
 		const rp = this._rp ??= { at: null, explicit: false };
 		if (typeof (line.ts ?? line.at) === "string") this._last_ts = line.ts ?? line.at;   // for Task.rank
 		const a = line.assign && typeof line.assign === "object" ? line.assign : null;
-		const verb = VERBS.find(v => line[v] && typeof line[v] === "object");
+		// A verdict may be a bare note ({"approve":"ok"}): the verb takes a string itself, so the line is written as given.
+		const verb = VERBS.find(v => line[v] && (typeof line[v] === "object" || (VERDICTS.has(v) && typeof line[v] === "string")));
 		rp.at = line.at ?? line.ts ?? a?.at ?? a?.landed_at ?? a?.requested_at ?? line[verb]?.at ?? rp.at;
 		if (a){
 			// put(), not set(): set() reads `at` as a path (and drops the line) and calls any key that names a method.
 			const { state, session_id, at: _t, ...rest } = a;
 			for (const [k, v] of Object.entries(rest))
+				// DEPRECATED (2026-10-28): use per-field deltas (`completed_at`, `completion`, `session`). Guide: /framework/core/Task/readme.md. Remove when: no history log carries `assign.finished_at` or a numeric `assign.complete` and the others are migrated by script.
 				this.put(k === "finished_at" ? "completed_at" : k === "complete" && typeof v === "number" ? "completion" : k, v);   // old folders
 			if (session_id !== undefined) this.put("session", session_id);
 		}
@@ -558,8 +553,8 @@ export class Task extends Item {
 		}
 		if (line.content && typeof line.content === "object") this.content.set(line.content);
 		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
-		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.put(k, line[k]);   // a plain field line, e.g. one the item tool wrote
-		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.put(k, v);   // the browser Store's own change line
+		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.take(k, line[k]);   // a plain field line, e.g. one the item tool wrote
+		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.take(k, v);   // the browser Store's own change line
 		// A subtask given its own folder: {"file":"<child>/task.jsonl"} swaps the nested child for that file's task (same id).
 		if (typeof line.file === "string" && line.file.endsWith("/task.jsonl") && typeof this.data.path === "string"){
 			const kid = Task.from_ref(this.data.path.replace(/\/?$/, "/") + line.file.slice(0, -"task.jsonl".length));
@@ -583,6 +578,7 @@ export class Task extends Item {
 			this._applying = true;
 			try {
 				if (verdict) this[verdict.is]({ by: verdict.by, note: verdict.note });
+				else if (typeof line[verb] === "string") this[verb](line[verb]);
 				else { const { at: _a, ...args } = line[verb]; this[verb](verb === "stop" ? args.why : args); }
 			} finally { this._at = null; this._applying = false; }   // so a live Store.read never leaves the clock pinned
 		}
@@ -591,13 +587,28 @@ export class Task extends Item {
 
 	// No explicit verb line anywhere: infer the state from the old fields.
 	replay_end(){
+		this._legacy = !this._rp?.explicit; this._fresh = !!this._rp?.fresh;   // kept (and in a snapshot's memory) so a restored task knows whether its state was read from verbs or inferred
 		if (!this._rp?.explicit) this.replay_legacy(!!this._rp?.fresh);
 		this._at = null;
 		this._rp = null;
 		return this;
 	}
 
+	// A task with no verb line has its state INFERRED from old fields at the end of the replay. A later verb line would meet that
+	// inferred state, where a full replay of the longer log meets the idle one, so a snapshot of it cannot be continued.
+	snapshot_unsafe(){ return this._legacy ? "its state is inferred from old fields (no start/complete/... line yet): lines added later would replay differently from a snapshot" : null; }
+
+	// Started from a snapshot (Item.restore): its state is already final. A task whose state came from verb lines must not have it
+	// inferred again from old fields when the lines after the snapshot end; a legacy task (no verbs) still infers it, as a full replay does.
+	restore(state, memory){
+		super.restore(state, memory);
+		if (this._legacy === undefined) return this;   // not read through Task.replay_line (a Session's record shape): nothing of Task's reading to carry on
+		this._rp = { at: null, explicit: !this._legacy, fresh: !!this._fresh };
+		return this;
+	}
+
 	// landed -> complete (landed_at alone, outcome or not: Server/doc/state.md), closed -> stopped, else running (today's chasing)
+	// DEPRECATED (2026-10-28): use explicit state verbs in the log; this infers state for old folders with none. Guide: /framework/core/Task/readme.md. Remove when: no history log needs the state inference (not true today: 46+ non-dated logs and many dated ones have no explicit verb).
 	replay_legacy(partial){
 		const d = this.data;
 		if (d.landed_at) this.set({ state: "complete", completed_at: d.landed_at });

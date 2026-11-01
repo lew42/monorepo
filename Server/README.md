@@ -11,6 +11,7 @@ Slow or crashing again (2026-10-09 first look): [`doc/perf-2026-10-09.md`](./doc
 Dictation failing while the page will not reload: Whisper died with a Servex restart, now fixed, with the loop that reproduces it: [`doc/transcription-crash-2026-10-12.md`](./doc/transcription-crash-2026-10-12.md).
 Clear out landed worktrees, with a plan first and a manifest (`node Server/Worktrees.mjs --plan`): [`doc/worktrees.md`](./doc/worktrees.md).
 Every task log held in memory and queryable (module, landed, text, raw-log paths): [`doc/session-index.md`](./doc/session-index.md).
+The dev socket's server half (`Tail`, `Append`, the numbered append that never writes a line twice): [`plugins/SocketServer/readme.md`](./plugins/SocketServer/readme.md).
 
 The owner-facing server also starts `whisper-server` for dictation on its own —
 [`plugins/Whisper.js`](./plugins/Whisper.js), `NO_WHISPER=1` to opt out; see
@@ -22,9 +23,14 @@ The owner-facing server also starts `whisper-server` for dictation on its own �
 
 ## Scripts (one line each; the full paragraph for every one is in [`doc/script-notes.md`](./doc/script-notes.md))
 
+- `node Server/Snapshots.mjs <file-or-folder> [--write]` — writes `task.snapshot.json` beside a `task.jsonl` / `session.jsonl` (the item's final state and how far into the log it covers) after proving it loads the same as a full replay; dry run unless `--write`; doc `public/framework/core/Item/doc/snapshots.md`.
+- `Server/moves/` — one JSON manifest per rename or move made from the Files tab (`<time>-<name>-<hex>.json`: every old to new path, and every link edit with its line and column). Written by `Files.js` through `ModuleMove.mjs`, read by `move_undo` and by `node Server/ModuleMove.mjs --undo <manifest>`; committed on purpose, they are the undo. Folder is made by the first move. Design: [`core/Page/doc/files.md`](../public/framework/core/Page/doc/files.md).
+- `node Server/ModuleMove.mjs <from> <to>` — dry run of moving one folder and relinking every path into it; `--apply --manifest <file>`; `--undo <manifest>`. Falls back to a plain rename when git does not track the folder; an undo checks every file before it writes any.
 - `node Server/ModuleLog.mjs <path>` — one folder's work log, graded against git; beside `PastWork.mjs`.
+- `node Server/Deprecated.mjs` — the deprecation census: every `DEPRECATED (` mark in live code with its live caller count (dry run by default; `--json`, `--write <file>`); test `Deprecated.test.mjs`. The rule: [framework/doc/rules.md](/framework/doc/rules.md).
 - `node Server/health.mjs` — optional watcher that headless-checks a page after a file that could break it changes ([health readme](/framework/ai/health/)).
 - `node Server/layout-check.mjs <url...>` — shoots pages at four widths, flags wasted space; `on-landing.mjs` runs it on every landing.
+- `node Server/PreviewCheck.mjs <deployed url> [--all | /page/ …]` — loads pages of a Cloudflare preview (or production) in a real headless browser and lists every page that is blank, throws, or gets HTML where a JavaScript module should be; exit 1 if any. Optional: use it when you can't open the deploy in a browser yourself (a cloud session, a long list of pages). **Overlaps `smoke.mjs`** (both load pages and read the console; smoke.mjs is the merge gate): fold them into one, a [framework task](../public/framework/tasks/readme.md). Its fast static twin is `node Server/deploy-imports.test.mjs`: no uploaded module may import a file `public/.assetsignore` leaves out (matched as Cloudflare does: case-blind, `!` re-includes).
 - `node Server/merge.mjs <worktree>` — finds changed pages, smoke-tests them and their links, merges; `--quick` is the fast path for a one-line voice fix ([`doc/review.md`](./doc/review.md#which-widths)).
 - `node Server/window-lint.mjs` — repo-wide sweep for a `spawn`/`exec` missing `windowsHide: true`; `Browser.mjs` is the one Chromium launcher; `window-watch.mjs` is the live catcher ([`doc/browser.md`](./doc/browser.md)).
 - `node Server/padding-check.mjs <url>` — does any text sit at 0 from an edge; non-zero exit when it does.

@@ -1,4 +1,4 @@
-import { Page, View, div, p, span, pre } from "/app.js";
+import { Page, View, div, p, span, pre, a } from "/app.js";
 import TestResults from "./TestResults.js";
 
 /* The latest result per test file, failures first. Written by TestRunner.mjs (see readme.md). */
@@ -7,8 +7,10 @@ export default new Page({
 	title: "Test",
 	icon: "fact_check",
 	description: "Is it passing? The latest run of every node test, failures first.",
+	children: "view",
 
 	content(){
+		p.c("pad", () => { a("Watch a test run").href("/framework/core/Test/view/"); span(": Item, List and Task step by step, every object drawn live, the same steps node runs."); });
 		const $box = div.c("pad");
 		const results = new TestResults({ url: new URL("./results.jsonl", import.meta.url).pathname });
 		const draw = () => $box.empty(() => {

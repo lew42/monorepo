@@ -1,5 +1,5 @@
 import { Page, View, div, h3, small, strong, button } from "/app.js";
-import "/framework/ux/Content/ContentModule.js";   // loads the card styles `inspect()` uses
+import "/framework/ux/Content/ContentModule.js";   // the Content card styles (inspect() itself is the default view now, ux/Content/Object/DefaultView.js)
 import { inspect } from "/framework/ux/Content/Object/Inspect.js";
 import Session from "../../AISession/AISession.js";
 import SessionView from "../../AISession/AISessionView.js";

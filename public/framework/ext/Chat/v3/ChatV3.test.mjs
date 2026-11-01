@@ -5,11 +5,11 @@ import { copyFileSync, appendFileSync, rmSync, mkdirSync, readFileSync, existsSy
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];
+const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
 const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
 const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
-const served = process.argv[2] || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
-const fixture = here + "../v2/fixture/session.jsonl", live = `live-v3-${process.pid}.jsonl`, real = `live-v3-real-${process.pid}.jsonl`;
+const served = process.argv[2] || process.env.SITE_URL || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
+const fixture = here + "../v2/fixture/session.jsonl", live = `live-v3-${process.pid}.jsonl`, marked = `live-v3-marked-${process.pid}.jsonl`, real = `live-v3-real-${process.pid}.jsonl`;
 const real_log = [process.env.REAL_LOG, `${main_tree}/public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl`].find(f => f && existsSync(f));
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
@@ -46,6 +46,12 @@ try {
 		await page.setViewportSize({ width: 1920, height: 1000 });
 	}
 
+	// 1b. the marked spelling (D13, Store.marked_lines on): {"#id": {...}} is the prompt <id>, read like the bare line
+	copyFileSync(fixture, served + marked);
+	appendFileSync(served + marked, JSON.stringify({ "#p-1761382800000": { title: "Marked line" } }) + "\n");
+	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(marked)}`); await ready();
+	check("a marked line ({\"#id\": …}) updates the card like a bare one", (await page.textContent(first + " .chat-v3-title")) === "Marked line", await page.textContent(first + " .chat-v3-title"));
+
 	// 2. live: a Prompt appended after load shows in light gray while it moves, then settles solid; a new word is appended to the same card
 	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(live)}`); await ready();
 	await page.evaluate(() => { window.__no_reload = true; });
@@ -76,7 +82,7 @@ try {
 	check("the log file was only ever appended to", readFileSync(served + live, "utf8").startsWith(before));
 	check("no page errors", errors.length === 0, errors);
 } finally {
-	rmSync(served + live, { force: true }); rmSync(served + real, { force: true });
+	rmSync(served + live, { force: true }); rmSync(served + marked, { force: true }); rmSync(served + real, { force: true });
 	await page.close();
 }
 console.log(`${pass} passed, ${fail} failed`);

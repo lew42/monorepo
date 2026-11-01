@@ -1,0 +1,103 @@
+{
+  "dilemma": "binding",
+  "lens": "edge-cases",
+  "by": "analyst-binding-edge",
+  "options": [
+    {
+      "id": "events",
+      "label": "Events, wired by hand (today)",
+      "wins_when": [
+        {"scenario": "A 1,000-member list loads from the log. List.insert is quiet (List.js L146: loading a member is not a change), so no add events fire, and a view bound after load draws once.", "why": "No per-row work during load, and nothing new to build."},
+        {"scenario": "A new item class needs saving and drawing with no extra code: its change event already reaches the root store (Item.js L157) and is the same event the view uses.", "why": "One path serves both saves and views, so they cannot disagree about what changed."},
+        {"scenario": "A view is dropped with drop() (Template.js L118) and its listeners are counted.", "why": "The owner's binding measurement (Page/doc/binding.md, section 3) shows 0 listeners after drop for every strategy, so leaks can be tested."},
+        {"scenario": "An AI debugs a stale title: grep for on('change') finds every listener, and the stack trace runs from set() straight to the handler.", "why": "Explicit wiring is greppable; there is no implicit graph to reconstruct."}
+      ],
+      "fails_when": [
+        {"scenario": "A view's change listener throws, for example by reading a DOM node that is gone. Item.set_one emits change (Item.js L156) before delta (L157), and Events.emit has no try/catch (Events.js L24), so the save never runs.", "severity": 5, "recoverable": false, "why": "The value changes in memory but never reaches page.jsonl, so no replay can restore it, and it survives only until the tab reloads. A listener removed during the same emit still runs once, because emit walks a copy of the list."},
+        {"scenario": "The same throw during load. The loader calls set() per line, so the replay stops at that line unless the loader catches per line (not checked here).", "severity": 3, "recoverable": true, "why": "The page shows a partial document while the lines stay in the log; a fixed view reloads cleanly."},
+        {"scenario": "A Session view binds title by hand. Item.set emits change(key, value, old) with no origin (Item.js L156), and change bubbles to the parent (Events.js L29: bubbles() defaults to true), so renaming a child task changes the Session title on screen.", "severity": 3, "recoverable": true, "why": "Wrong text shows until reload. Property.of has the same trap: it filters by key only (Property.js L155), as binding.md section 4 notes."},
+        {"scenario": "Two items or views write each other: a.set(b+1) and b.set(a+1). A loop that converges stops at the old !== value check (Item.js L155). One that diverges recurses until the stack overflows, and no message names the chain.", "severity": 3, "recoverable": true, "why": "The value on screen is wrong until reload. Whether partial lines are saved before the overflow was not checked; fixes.md already lists this cycle as an open gap."},
+        {"scenario": "A tail reconnect or reload replays 20,000 lines while 50 rows are on screen. Each line emits change at once, and core has no batch() yet (decision D12 is planned).", "severity": 2, "recoverable": true, "why": "Slow load with the same final state."},
+        {"scenario": "An input is bound two-way and the user keeps typing while an echo of an earlier save, or a remote change, arrives. Each hand-wired view must skip its own echo itself (phase-1, rule 3).", "severity": 3, "recoverable": true, "why": "The caret jumps and typed characters not yet sent are overwritten. Nothing already saved is wrong."},
+        {"scenario": "list.replace() is a quiet swap that never emits (List.js L174). A direct list.items.push() emits nothing either. A ListView bound to add, remove and move keeps the old row.", "severity": 3, "recoverable": true, "why": "The screen differs from the saved list until reload. Quiet is right for loads, so the list needs one rebuild event that quiet paths also fire."},
+        {"scenario": "Views are removed with plain DOM removal instead of drop(), or a list is rebuilt on every filter click without unbinding. 50 clicks over 1,000 rows leave 50,000 handlers on the items.", "severity": 2, "recoverable": true, "why": "Memory and event time grow over a multi-day session. The owner's binding doc names this as the watch-out, and reload clears it."},
+        {"scenario": "An AI writes the view without the on('change') line. The title shows its construction-time value and never updates; no error appears.", "severity": 3, "recoverable": true, "why": "The framework already has 75 hand-written change listeners outside tests and session pages, so this is a habit AIs would repeat."}
+      ],
+      "precedent": [
+        {"tool": "Backbone", "how": "listenTo(model, 'change', render); change fires once at the end of the outermost batch, and a while loop catches changes made inside handlers", "src": "research/persistence-sync/tools/backbone.md (Code facts)"},
+        {"tool": "lew42 binding doc", "how": "events with an unbind returned per binding; measured on 1,000 rows, a shared update takes about 8 ms against 38 ms for a full redraw, and 0 listeners remain after drop", "src": "public/framework/core/Page/doc/binding.md"}
+      ]
+    },
+    {
+      "id": "props",
+      "label": "Property objects (item.props)",
+      "wins_when": [
+        {"scenario": "A card with five fields: the view is handed item.prop('title') and binds it itself, so the binding code lives once, in the view class.", "why": "Callers cannot forget a binding, because there is no subscribe line to write."},
+        {"scenario": "One Prop shown in a sidebar and in a card at the same time.", "why": "One object, one listener and one write path (Prop.set), so every place stays in sync."},
+        {"scenario": "A session where most fields are never shown: under the lazy rule (Property.Map.prop in Property.js) only bound fields get a Prop.", "why": "Unseen fields cost nothing, as the lazy column in binding.md section 3 shows."}
+      ],
+      "fails_when": [
+        {"scenario": "A caller passes item.get('title') where item.prop('title') was meant. The view draws once and never updates, and no error appears.", "severity": 3, "recoverable": true, "why": "Plain and live values look alike; the owner's props note says never to mix them in one namespace."},
+        {"scenario": "A value lives in data for some items and in props for others. A reader that checks only one of them (a snapshot writer, the item tool's read, search) drops it.", "severity": 4, "recoverable": true, "why": "The lines stay in the log, so the value is recoverable while the log keeps them; a snapshot taken while the value sits in props would drop it from that snapshot."},
+        {"scenario": "A Prop is stored inside an item's data. Item.set hands the new value to the Prop, which emits neither change nor delta (binding doc, section 4), so the edit is never saved.", "severity": 5, "recoverable": false, "why": "Rare if props keep their own namespace, as the owner asked, but when it happens the edit exists nowhere else."},
+        {"scenario": "A Prop cached on the item keeps its listeners until someone calls off. The cache has no owner, so nothing removes it when its views die.", "severity": 2, "recoverable": true, "why": "The same leak as events, one level down, and the cache hides it from a listener count."},
+        {"scenario": "One Prop per bound field: 1,000 rows with three live fields make 3,000 Props.", "severity": 2, "recoverable": true, "why": "binding.md measured 1.3 MB of JS heap for the lazy approach against 0.5 MB for a full redraw; the gap grows over a long session."}
+      ],
+      "precedent": [
+        {"tool": "lew42 Property.Map", "how": "data and props layers; a value stays plain until a view binds it, and its Prop is made on demand and cached on the layer that owns the value", "src": "public/framework/core/Property/Property.js"},
+        {"tool": "Knockout observables", "how": "one observable per property; observableArray tracks which objects are in the array, not the state of those objects", "src": "research/persistence-sync/notes/signals_reactivity_lists.md (section 6)"}
+      ]
+    },
+    {
+      "id": "signals",
+      "label": "Signals (auto-tracked get)",
+      "wins_when": [
+        {"scenario": "A view reads item.get('status') inside a helper that render() calls. It updates with no subscribe code, so the AI cannot forget the binding.", "why": "Every read during render is tracked automatically, including reads made inside helpers."},
+        {"scenario": "A footer total or an 'overdue' flag computed from 1,000 tasks.", "why": "Computed values are read-only by type, so a derived value cannot write back and start a loop."},
+        {"scenario": "A 500-line burst from the tail, wrapped in batch(), should draw each view once.", "why": "Batching is built in; core has no batch() today."},
+        {"scenario": "A view effect writes a value it also reads.", "why": "Signal libraries usually detect a loop that keeps re-triggering itself and throw a named error. This is from general knowledge and was not verified against source here."}
+      ],
+      "fails_when": [
+        {"scenario": "A helper called from render reads item.get('date'), or a list effect maps all 1,000 items in one pass. Any title change then reruns the whole list.", "severity": 2, "recoverable": true, "why": "Janky redraws; rows rebuilt mid-typing lose focus and any uncommitted text."},
+        {"scenario": "A list add is written as a signal bump with no add event emitted, or the reverse. Views and the saved file then disagree.", "severity": 3, "recoverable": true, "why": "Saving needs events and views would need signals, so every write has two paths to keep in step, and law 6 asks for one of everything."},
+        {"scenario": "A row is removed but its effect is not disposed. The signal keeps a strong reference to the effect and it keeps running.", "severity": 2, "recoverable": true, "why": "The same leak as events, but harder to see: there is no listener count to check."},
+        {"scenario": "A value is read in a constructor, a timer or an event handler and then used later.", "severity": 3, "recoverable": true, "why": "Reads outside an effect are plain snapshots. The AI gets no warning, and the rule is invisible in the code."},
+        {"scenario": "A row shows the wrong value and an AI asks why it re-rendered.", "severity": 2, "recoverable": true, "why": "The dependency graph is implicit; there is no grep for who subscribed, so debugging needs introspection tools."},
+        {"scenario": "A list of rows is rebuilt on every add because the list signal holds a plain array and nothing keys the rows.", "severity": 2, "recoverable": true, "why": "Focus and scroll are lost on each add unless keyed mapping is written (a mapArray style), which is more code in every list view."}
+      ],
+      "precedent": [
+        {"tool": "Vue ref, alien-signals, @preact/signals-core", "how": "get() records the reader and set() notifies it; effectScope or createModel disposes effects together with their owner", "src": "research/persistence-sync/notes/signals_reactivity_lists.md (sections 3 and 6)"},
+        {"tool": "Solid For and Preact For", "how": "rows keyed by item identity, so a moved row is moved, not rebuilt", "src": "research/persistence-sync/notes/signals_reactivity_lists.md (section 8, concession F)"},
+        {"tool": "tldraw store.listen", "how": "listeners filter changes by source (user or remote) and scope, and receive added, updated and removed diffs", "src": "research/persistence-sync/notes/signals_reactivity_lists.md (section 6)"}
+      ]
+    },
+    {
+      "id": "bind-helper",
+      "label": "Bind helper on events (view.bind)",
+      "wins_when": [
+        {"scenario": "A view binds one field in one line: view.bind(task, 'title', text => this.title.text(text)). The call returns its unbind, and drop() runs it, the same way Template.show() already files unbinds.", "why": "Wiring is one line, and cleanup belongs to the view that owns it."},
+        {"scenario": "A 1,000-row list: each row holds one listener on its item and dispatches by key, so 1,000 rows cost 1,000 listeners instead of one per field.", "why": "Fewer listeners, and the helper can check the emitter, which fixes the parent and child trap."},
+        {"scenario": "A bound view's handler throws during a change.", "why": "The helper can catch and report errors from its own handlers, so one bad bound view cannot stop the save. Hand-wired listeners would still stop it, which is why the helper should be the only way to bind."},
+        {"scenario": "A burst of 500 replayed lines touches 50 bound rows.", "why": "The helper can coalesce to one render per microtask (the Lit pattern) and skip a view's own echo through the source tag decided in D12."},
+        {"scenario": "A derived value, such as done of total, is bound through the helper and then written back by mistake.", "why": "The helper runs every bound handler, so it can count nested change dispatch and throw a readable error naming the chain before the stack overflows."}
+      ],
+      "fails_when": [
+        {"scenario": "An AI forgets the bind call, and the title shows its construction-time value.", "severity": 3, "recoverable": true, "why": "A helper cannot force a call to happen. Only a test that compares rendered text with stored fields would catch it, and none exists yet."},
+        {"scenario": "Hand-wired on('change') still works, so there are two ways to do one job (75 sites today).", "severity": 2, "recoverable": true, "why": "Law 6 says one of everything. A node test that fails on a new on('change') inside a view would enforce the helper."},
+        {"scenario": "A test sets a value and reads the text at once.", "severity": 2, "recoverable": true, "why": "Microtask coalescing shows the old text until the flush, so tests need an explicit flush or a sync option."},
+        {"scenario": "A list bound through the helper is changed by replace(), a load, or a direct items push.", "severity": 3, "recoverable": true, "why": "The helper can bind only to what a list announces, the same as events. Fix it once: quiet paths fire one rebuild event."},
+        {"scenario": "An item is dropped from a future instance cache while a view still holds it. The view keeps the orphan, and its edits may not save.", "severity": 4, "recoverable": true, "why": "Recoverable if the orphan's edits reached the log. The helper can pin an item by counting its bound views, so eviction skips it."}
+      ],
+      "precedent": [
+        {"tool": "lew42 Template.js", "how": "show() binds a value and files its unbind on the view; drop() runs every unbind and removes the element", "src": "public/framework/core/Page/Template/Template.js (lines 26-31, 44, 118)"},
+        {"tool": "Lit", "how": "property changes are batched to a microtask, so a view renders once per turn", "src": "research/persistence-sync/notes/signals_reactivity_lists.md (section 8, concession D)"},
+        {"tool": "Backbone listenTo and stopListening", "how": "the subscription and its removal are paired through the listener's owner, so the owner can remove everything it subscribed", "src": "research/persistence-sync/tools/backbone.md (Events mixin)"},
+        {"tool": "tldraw store.listen", "how": "a source filter lets a listener skip local or remote changes", "src": "research/persistence-sync/notes/signals_reactivity_lists.md (section 6)"}
+      ]
+    }
+  ],
+  "recommended": "bind-helper",
+  "confidence": 4,
+  "surprise": "The save runs after the views: Item.set_one emits change (Item.js L156) before delta (L157), and Events.emit has no try/catch (Events.js L24), so one throwing view listener leaves the edit in memory and out of the log, whichever option is chosen.",
+  "notes": "Recommend bind-helper: it keeps the event path that saving already uses and gives every edge rule one home (origin check, try/catch so a bad view cannot stop the save, drop-safe unbinds, echo skip, microtask coalescing, loop depth guard), which matches the owner's Template.js. Signals fix the AI-forgets case but fail quietly on over-subscription, disposal and debugging, and they would add a third reactivity system beside Events and Property. Keep signals as a later swap behind the same bind call; CLAUDE.md asks before any new npm dependency, so it would mean vendoring a file or writing about 50 lines of our own."
+}

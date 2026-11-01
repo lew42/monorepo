@@ -17,6 +17,10 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 (A readme states what the thing is, its on-disk structure, which tool writes it and which class reads it: no history.)`;
 	/** Keys a writer may put beside a line's verb (string values only: `session` as an OBJECT is a verb). */
 	static META = ["by", "session", "origin"];
+	/** The one writer of record files (data-shapes 1d): in Servex, page_tools.js sets it to record_lines (applies each line to the
+	 *  file's live root, then appends). Elsewhere it is null and `append` writes the file itself; append.mjs posts instead (`prepare`). */
+	static writer = null;
+	static RECORD = /[\\/](task|session|page|improvements)\.jsonl$/;
 
 	static now(){
 		const d = new Date(), off = -d.getTimezoneOffset(), a = Math.abs(off);
@@ -39,7 +43,26 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 
 	/** Append `lines` (one object or an array) to `target`. Returns {file, appended, at, bad, total, notes, landing}.
 	 *  Throws Error with .code 3 and the schema's reason on a refusal (nothing written). `by`/`session`/`origin` land beside each line's verb. */
-	static append(target, lines, { by, session, origin, source = "the lines" } = {}){
+	static append(target, lines, opts = {}){
+		const p = this.prepare(target, lines, opts);
+		const via = this.writer && this.RECORD.test(p.target) ? this.writer(p.target, p.filled) : null;
+		if (via?.ok === false) throw Object.assign(new Error(via.refused.map(r => `REFUSED line ${r.i + 1}: ${r.why}`).join("\n") + `\nNothing was written to ${p.target}.`), { code: 3, notes: p.notes });
+		if (!via) this.write(p);
+		for (const r of via?.refused ?? []) p.notes.push(`REFUSED line ${r.i + 1} (not written): ${r.why}`);
+		return this.report(p, via?.written);
+	}
+
+	/** Lines Servex itself writes, already whole (its own `log` and `assign` lines): a record file goes through the one writer, so
+	 *  the file's live root sees them; anything else, or a process with no writer, is appended here. No schema check, no stamping. */
+	static raw(target, lines){
+		const filled = [lines].flat();
+		if (this.writer && this.RECORD.test(target)) return this.writer(target, filled);
+		this.write({ target, filled });
+		return { ok: true, written: filled.length };
+	}
+
+	/** Everything before the write: the path followed, the lines filled and stamped, the schema checked (throws code 3, nothing written). */
+	static prepare(target, lines, { by, session, origin, source = "the lines" } = {}){
 		const notes = [], t = this.now();
 		const abs = resolve_path(target);
 		const m = /[\\/]public[\\/]framework[\\/]ai[\\/](\d{4}-\d{2}-\d{2})[\\/]day\.jsonl$/.exec(abs);
@@ -80,6 +103,11 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 			throw Object.assign(new Error(msg + `\nNothing was written to ${target}.`), { code: 3, notes });
 		}
 
+		return { target, list, filled, notes, t };
+	}
+
+	/** The raw append, newline-safe: used where no one writer is wired, and by append.mjs as the fallback when the entry point is down. */
+	static write({ target, filled }){
 		let out = filled.map(o => JSON.stringify(o)).join("\n") + "\n";
 		if (existsSync(target) && statSync(target).size > 0){
 			const size = statSync(target).size, fd = openSync(target, "r"), buf = Buffer.alloc(1);
@@ -87,10 +115,14 @@ BEFORE THIS TASK CLOSES (CLAUDE.md law 9), answer both:
 			if (buf[0] !== 0x0a) out = "\n" + out;
 		}
 		appendFileSync(target, out, "utf8");
+	}
+
+	/** What `append` answers, read back from the file: lines appended, the file's total, any unparsed line, a landing. */
+	static report({ target, list, filled, notes, t }, written = list.length){
 		const all = readFileSync(target, "utf8").split(/\r?\n/).filter(l => l.trim());
 		let bad = 0;
 		all.forEach((l, i) => { try { JSON.parse(l); } catch { bad++; notes.push(`BAD line ${i + 1}: ${l.slice(0, 100)}`); } });
 		const landing = !bad && filled.some(o => o?.assign?.landed_at || o?.landed_at);
-		return { file: target, appended: list.length, at: t, bad, total: all.length, notes, landing, lines: filled };
+		return { file: target, appended: written, at: t, bad, total: all.length, notes, landing, lines: filled };
 	}
 }

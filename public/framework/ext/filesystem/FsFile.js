@@ -151,18 +151,14 @@ export default class FsFile {
 		return this.send(list);
 	}
 
-	// The raw append: an array of objects, one RPC, no store. `Item.Store`'s own
-	// batched flush ends here; nothing else should need it.
+	// The raw append: an array of objects, no store. It goes through the page's Outbox (core/Item/Outbox.js): numbered, kept until
+	// the server acks it, sent again after a reconnect. `Item.Store`'s own batched flush ends in the same place. Returns true
+	// once the server has the lines.
 	async send(lines){
-		const socket = await FsFile.socket();
-		if (!socket) return false;
-
-		const reply = await socket.async_rpc("append", this.url, lines).catch(() => null);
-		if (reply?.response !== "append successful"){
-			console.warn(`FsFile: the server refused to append to ${this.url} (${reply?.response ?? "no reply"}).`);
-			return false;
-		}
-		return true;
+		const { default: Outbox } = await import("../../core/Item/Outbox.js");
+		const ok = await Outbox.shared().send(this.url, lines);
+		if (!ok) console.warn(`FsFile: the server did not take the lines for ${this.url}.`);
+		return ok;
 	}
 }
 

@@ -1,5 +1,7 @@
 # The six page words — a page's shape, said instead of coded
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 **A page can describe its own shape in six words.** Every one is optional, every default
 writes nothing at all, and a page that says none of them renders exactly what it rendered
 before the words existed. Say one and core builds a *frame*: chrome where the

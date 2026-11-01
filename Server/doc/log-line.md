@@ -7,6 +7,8 @@ LogLine.append("<session folder>/session.jsonl", { task: { title: "build it", st
 // -> {"task":{"at":"…","title":"build it","state":"open"},"by":"minion-x","session":"<uuid>","origin":"/framework/ai/..."}
 ```
 
+**A record file is not appended here directly** (data-shapes 1d, [one-writer.md](/framework/core/Item/doc/one-writer.md)). `append` is `prepare` (path, fill, schema check), then the write, then `report`. In Servex, `LogLine.writer` is `record_lines`, so a `session`, `task`, `page` or `improvements.jsonl` line is applied to the file's live root, then appended. `append.mjs` runs `prepare` and posts the lines through `RecordWriter.write`; only when Servex is down does it append, once. Other files, and a process with no writer set, use `LogLine.write`.
+
 `by`, `session` and `origin` (strings) land beside the verb. The schema ignores string-valued `by`/`session`/`origin` keys; `session` as an object is still a verb.
 
 ## The three doors

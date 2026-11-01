@@ -25,7 +25,7 @@ try {
 	const lines = all.filter(l => l.tasks?.add);   // the item tool also stamps one `sessions` line registering the caller
 	assert.equal(lines.length, 2);
 	for (const l of lines) assert.ok(l.by === "refine-queue" && l.ts && l.tasks.add.source?.session === SESSION && l.tasks.add.title, "stamped add line holds the source");
-	assert.deepEqual(lines.map(l => l.tasks.add.id), ["make-the-mic-dot-bigger", "log-each-prompt-once"]);
+	assert.ok(lines.every(l => /^[a-z][a-z0-9]{7}$/.test(l.tasks.add.id)) && lines[0].tasks.add.id !== lines[1].tasks.add.id, "each ask's task gets a random 8-character id (Item.short_id), never a slug of its title");
 
 	const again = idx.after_refine(ref, parsed);
 	assert.equal(again.recorded, 0);

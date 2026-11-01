@@ -118,7 +118,7 @@ export default class InstanceTree extends View {
 				});
 			});
 
-			if (this.shown.has(subject)) div.c("instance-props", () => view(subject));
+			if (this.shown.has(subject)) div.c("instance-props", () => view(subject, { open: 1 }));
 			if (open) div.c("instance-kids", () => kids.forEach(kid => this.node(kid, active, depth + 1)));
 		});
 	}

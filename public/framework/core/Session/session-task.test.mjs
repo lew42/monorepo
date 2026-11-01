@@ -22,10 +22,11 @@ t.eq(JSON.stringify(s.progress()), JSON.stringify({ done: 1, total: 2, stopped: 
 t.eq(s.completion, 0.5, "completion is computed from the tasks");
 
 s.tasks.add("Name the module");
-t.eq(s.tasks.find("name-the-module")?.get_one("title"), "Name the module", "tasks.add(\"a string\") makes a Task titled by it");
+const named = () => [...s.tasks].filter(t => t.get_one("title") === "Name the module");
+t.ok(named().length === 1 && /^[a-z][a-z0-9]{7}$/.test(named()[0].id), "tasks.add(\"a string\") makes a Task titled by it, with a short random id");
 t.eq(s.completion, 1 / 3, "a new task changes the totals at once");
 s.tasks.add("Name the module");
-t.ok(s.tasks.find("name-the-module-2")?.get_one("title") === "Name the module", "the same title twice gets a second id, never two tasks with one id");
+t.ok(named().length === 2 && named()[0].id !== named()[1].id, "the same title twice gets a second id, never two tasks with one id");
 
 // Tokens are bucketed by the task open at the time: the one started last wins; none open is untracked.
 const ms = (h, m) => Date.parse(at(h, m));

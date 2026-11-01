@@ -1,6 +1,6 @@
 import { JSONL } from "/framework/ext/JSONL/JSONL.js";
 import Socket from "/framework/dev/Socket/Socket.js";
-import { fold } from "/framework/ai/sessions/2026/09/22/session-66db742f/log-model/fold.js";
+import { fold } from "/framework/ai/log/fold.js";
 import { Fold } from "../cards/Fold.js";
 import CardDir from "../cards/CardDir.js";
 import { AskFold } from "../asks/AskFold.js";

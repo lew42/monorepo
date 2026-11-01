@@ -99,3 +99,5 @@
 {"file":"failures.jsonl"}
 {"file":"count.mjs"}
 {"file":"count.mjs","gone":true}
+{"file":"failures.jsonl","gone":true}
+{"file":"tasks/"}

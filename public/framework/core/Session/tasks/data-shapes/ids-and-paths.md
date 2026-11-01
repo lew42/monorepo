@@ -10,7 +10,7 @@ The owner's questions (2026-10-28), following [flow-and-ids.md](flow-and-ids.md)
 
 ## DECIDED by the owner (2026-10-28): dots, and each level decides for itself
 
-This replaces the `/` proposal in §4, §6 and §8 below.
+This replaces the `/` proposal in §4, §6 and §8 below. *Built in the item tool on `worktree/item-generic` (build I, not merged): dotted `target` and keys walked through each level's `get`, `Item.short_id()` for every id an agent or a click makes ([Servex/doc/item-tool.md](/Servex/doc/item-tool.md)).*
 
 1. **A path uses dots, never slashes:** `{"tasks.ui.tasks.c3":{"complete":{}}}`. That form is read everywhere and typed by people and tools; the store itself keeps writing nested lines (§4). A slash looks like a file-system path. A dot reads as what it is, an in-memory JavaScript object path. Slashes stay for things that really are on disk.
 2. **`set` walks the path through `get`, one level at a time, and each level decides how to look up the next part.**
@@ -131,7 +131,7 @@ The rule from the synthesis: **one owner per item, and everyone else holds a ref
    - **Another file:** open that file's Store, `Item.open(url)`, which replays it once and keeps one root per url (`Store.for`, `core/Item/Store.js`, already does this), then `get(path)` on that root.
 3. **A target that can't be found** draws a visible "gone" row naming the path. It's never silently empty.
 
-**Today's gap:** resolving a reference to another file works only in node (`Task.resolver`, `core/Task/Task.js:454`). The browser needs the same step, which is just `Item.open(url)` over the live tail it already has.
+**Built (build E, 2026-10-28, branch `worktree/browser-refs`):** `Ref` resolves in the browser too, through `Item.open(url)` over the live tail, with the id fallback, backlinks and forwards below: [core/Item/doc/ref.md](../../../Item/doc/ref.md). Before it, only node resolved one (`Task.resolver`).
 
 ### Moves: the options
 

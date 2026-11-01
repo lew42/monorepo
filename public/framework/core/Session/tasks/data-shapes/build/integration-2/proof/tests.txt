@@ -1,0 +1,9 @@
+base: 158 passed, 3 failed (0 timed out), 161 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m1: 164 passed, 3 failed (0 timed out), 167 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m2: 165 passed, 3 failed (0 timed out), 168 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m3: 166 passed, 3 failed (0 timed out), 169 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m4: 167 passed, 3 failed (0 timed out), 170 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m5: 169 passed, 4 failed (0 timed out), 173 total | .claude/hooks/jsonl-schema.test.mjs Servex/ProcessRunner.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m5b: 170 passed, 3 failed (0 timed out), 173 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+m6: 171 passed, 3 failed (0 timed out), 174 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 
+fixes: 171 passed, 3 failed (0 timed out), 174 total | .claude/hooks/jsonl-schema.test.mjs Servex/agents/PromptLines.test.mjs Servex/agents/layers.test.mjs 

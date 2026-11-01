@@ -32,6 +32,8 @@ Servex holds port 80 and starts the site the first time you visit it (`Servex/re
 
 ## Cloudflare Previews
 
+How branches flow from a worktree to `michael/dev` to `main`, and the open decisions about it: [public/framework/doc/git.md](public/framework/doc/git.md) (proposal, 2026-11-01).
+
 The current `main` branch is deployed at: https://monorepo.lew42.workers.dev/
 
 Branches will be deployed at https://branch-name-monorepo.lew42.workers.dev/

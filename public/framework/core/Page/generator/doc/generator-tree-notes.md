@@ -1,5 +1,7 @@
 # tree.js — design notes and removed commentary
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 ## Overview and entry point
 
 The module generates a nested page tree from spec text. Spec text → **page configs**, the nested-POJO form `Page.declare()` already takes:

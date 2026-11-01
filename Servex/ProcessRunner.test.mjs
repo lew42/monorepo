@@ -8,6 +8,7 @@ import TaskHomes from "../Server/TaskHomes.mjs";
 import ProcessRunner from "./ProcessRunner.js";
 import Task from "../public/framework/core/Task/Task.js";
 import "../public/framework/core/Task/processes/index.js";
+import Improvements from "../public/framework/core/Task/Improvements.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const REL = "public/framework/ai/sessions/2026/10/22/.process-test-" + process.pid;
@@ -129,8 +130,10 @@ try {
 	const IMP = URL + "improvements.jsonl", add = why => item({ tasks: { add: { title: "Move X into Y", why } } }, "mm1", IMP);
 	await add("X is a tool"); r = await add("seen again");
 	const imp = read(path.join(DIR, "improvements.jsonl")), state = (await run_item({ path: IMP }, { caller: "mm1" })).state;
-	ok(r.ok && imp.filter(l => l.tasks?.add).length === 1 && imp.some(l => l["move-x-into-y"]?.reinforce?.why === "seen again"), "an improvement proposed again is a reinforce line, not a duplicate");
-	ok(Task.replay(imp)._tasks.find("move-x-into-y").weight === 2 && state.tasks.length === 1, "its weight is 2, computed on replay");
+	// Since the item-generic build the add is written as sent (ids are Item.short_id, never a title slug) and the replay merges it (core/Task/Improvements.js).
+	const merged = [...Improvements.replay(imp)._tasks];
+	ok(r.ok && imp.filter(l => l.tasks?.add).length === 2 && merged.length === 1, "an improvement proposed again merges on replay, not a duplicate task");
+	ok(merged[0].weight === 2 && merged[0].data.reinforced?.at(-1)?.why === "seen again" && state.tasks.length === 1, "its weight is 2, computed on replay");
 
 	r = await run_item({ path: PURL }, { caller: "mm1" });
 	ok(r.state.class === "Process" && r.state.state === "complete" && r.state.tasks.length === 8, "item({path}) reads the process back: class, state, steps");
@@ -146,10 +149,10 @@ try {
 	ok(S.some(l => l["write-the-note"]?.start) && sent.at(-1).id === "mm1" && sent.at(-1).text.includes("write note.md") && sent.at(-1).text.includes(`"write-the-note": {"complete"`), "node starts step 1 and prompts the creator with it");
 	await item({ "write-the-note": { complete: { outcome: "note.md written", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.length === sent0 + 1 && sent.at(-1).text.includes("read note.md back") && sent.at(-1).text.includes("note.md written"), "step 1 returns: node prompts step 2, with step 1's outcome");
-	await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL); await settle(SF);
+	const added = (await item({ tasks: { add: { title: "Add a step", do: "a step added while it runs" } } }, "mm1", SURL)).ids[0]; await settle(SF);   // a title add gets an Item.short_id (item-generic), never the slug "add-a-step"
 	await item({ "check-the-note": { complete: { outcome: "checked", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(sent.at(-1).text.includes("a step added while it runs"), "a step added while the process runs is run after the others");
-	await item({ "add-a-step": { complete: { outcome: "done", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
+	await item({ [added]: { complete: { outcome: "done", evidence: ["test"] } } }, "mm1", SURL); await settle(SF);
 	ok(Task.replay(read(SF)).state === "complete" && Task.replay(read(SESSION))._tasks.find("two-steps"), "every step done: the process is complete, and its session references it");
 
 	// The evidence rule on a build → review process: a complete with no evidence is refused and written nowhere; with it, each step's outcome and evidence are recorded.

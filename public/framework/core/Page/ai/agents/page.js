@@ -43,14 +43,14 @@ export default new Page({
 				// down inside it.
 				rows.forEach(row => details.c("ai-row", () => {
 					summary(`${row.id} · ${row.role} · ${row.state}`);
-					div.c("ai-row-body", () => view(row));
+					div.c("ai-row-body", () => view(row, { open: 1 }));
 				}));
 			}));
 		});
 
 		h2("The host object's shape");
 		md("`Servex/agents/Agents.js` — one instance per Servex process (`export const agents = new Agents()`). Not importable here: it is server-only Node code (file system, the Claude SDK). Read from the source, not fetched.");
-		div.c("card pad", () => view(HOST_SHAPE));
+		div.c("card pad", () => view(HOST_SHAPE, { open: 1 }));
 
 		md("Detail: [Sessions and the SDK](/framework/core/Page/ai/doc/sessions/).");
 	},

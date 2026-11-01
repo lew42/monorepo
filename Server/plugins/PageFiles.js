@@ -98,6 +98,15 @@ export default class PageFiles {
     static covers = covers;
     static skip = skip;
 
+    /* For a caller that has just changed a folder itself (the Files tab's rename and move) and should not depend on the watcher
+     * reporting it: catch that folder's list up now. Same code the watcher runs, and it writes a line only if the list is wrong,
+     * so doing it twice is harmless. */
+    static settle_folder(dir) {
+        const page_files = Object.create(PageFiles.prototype);
+        page_files.pending = new Map();
+        return page_files.settle(dir);
+    }
+
     static setup(server) {
         new PageFiles(server);
     }

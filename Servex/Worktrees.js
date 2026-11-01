@@ -7,6 +7,7 @@ import { stamp, place } from "./home.js";
 import TaskDirs from "../Server/TaskDirs.mjs";
 import SessionRecord from "../Server/SessionRecord.mjs";
 import Landed from "./Landed.js";
+import WorktreePreview from "../Server/WorktreePreview.mjs";
 
 /* WORKTREE CLEAN-UP — a worktree is temporary (process-monitor, 2026-09-30).
  *
@@ -27,12 +28,14 @@ import Landed from "./Landed.js";
  *                card folders under public/framework/ai/. Before a worktree with only
  *                noise is removed, the noise is copied to Servex's
  *                `salvage/worktrees/<name>-<date>/` (a diff plus the new files).
- *   (closing)    a worktree with leftovers or unmerged commits whose task has landed (and its agent stopped),
- *                or that nothing touched for 2 days, is CLOSED: leftovers committed to its own branch, the folder
- *                removed, the branch kept; unmerged commits become a line in ready-to-merge.jsonl.
- *   open         its branch holds commits michael/dev does not, and no landed task owns it.
- *   finished     its branch is merged into michael/dev (or applied by merge.mjs), or
- *                the task that took it has landed and no agent of it is alive.
+ *   open         its branch holds commits michael/dev does not. `waiting: true` when its task has LANDED
+ *                but the branch is not merged: it is HELD until the merge, so the owner can still open it
+ *                (build F, 2026-10-28; Servex/doc/worktree-preview.md). A task that asked for a preview
+ *                (`{"assign":{"preview":true}}`) also has its dev server bound to the LAN while it waits.
+ *   (closing)    a worktree with leftovers whose task has landed (and its agent stopped), or that nothing
+ *                touched for 2 days (the backstop, merged or not), is CLOSED: leftovers committed to its own
+ *                branch, the folder removed, the branch kept; unmerged commits become a line in ready-to-merge.jsonl.
+ *   finished     its branch is merged into michael/dev (or applied by merge.mjs).
  *
  * A FINISHED worktree is removed: its dev server stopped, `git worktree remove`
  * (--force only when every change is log noise already saved; otherwise git
@@ -55,6 +58,7 @@ export default class Worktrees extends Events {
 		this.close_hours ??= Number(process.env.SERVEX_WORKTREE_CLOSE_HOURS) || 48;   // quiet this long: close it even if the task never landed
 		this.removed = [];       // { at, name, branch, why }
 		this.servers_stopped = 0;   // how many worktrees had their dev server and/or health watcher stopped, this Servex run
+		this.lan = new Set();       // worktree names whose dev server answers the LAN: a preview waiting for its merge
 		this.last = null;        // the latest pass: { at, items, junctions }
 	}
 
@@ -90,6 +94,13 @@ export default class Worktrees extends Events {
 		if (/^qf-\d+$/.test(wt.name)) return { state: "pool", why: "the quick-fix pool recycles it" };
 		if (wt.locked) return { state: "locked", why: "locked with git worktree lock" };
 		if (wt.prunable || !fs.existsSync(wt.path)) return { state: "finished", why: "its folder is already gone", prune: true };
+		// HOLD UNTIL MERGE (build F): a landed task's unmerged branch keeps its folder for review, until the backstop
+		const task0 = tasks.get(norm(wt.path));
+		if (wt.branch && task0?.landed && !(await this.merged(wt))){
+			const q = this.quiet_min(wt);
+			if (q === null || q < this.close_hours * 60) return { state: "open", waiting: true, preview: task0.preview ?? null,
+				why: `its task ${task0.key} landed; ${wt.branch} waits for its merge (kept until it merges, or ${this.close_hours} quiet hours)` };
+		}
 		const agent = this.agent_in(wt.path);
 		if (agent) return { state: "in use", why: `${agent.id} (${agent.state}) works in it` };
 		if (!wt.branch) return { state: "no branch", why: "a detached HEAD; its commits would have no name" };
@@ -99,7 +110,6 @@ export default class Worktrees extends Events {
 		if (quiet < this.quiet_hours * 60) return { state: "in use", why: `git was used in it ${quiet} min ago (waits for ${this.quiet_hours} quiet hours)` };
 		const changes = await this.changes(wt.path);
 		const real = changes.filter(c => !noise(c));
-		const task0 = tasks.get(norm(wt.path));
 		const closing = task0?.landed && !this.alive(task0.agent) ? `its task ${task0.key} landed and ${task0.agent ?? "its owner"} has stopped`
 			: quiet >= this.close_hours * 60 ? `nothing touched it for ${Math.round(quiet / 60)} hours` : null;
 		if (closing && (real.length || !(await this.merged(wt)))) return { state: "finished", commit: true, noise: [], why: `${closing}; ${real.length ? real.length + " leftover file(s) and " : ""}${wt.branch} is saved first` };
@@ -108,13 +118,38 @@ export default class Worktrees extends Events {
 			why: why + (changes.length ? ` (plus ${changes.length} log file(s) its own server wrote, kept in salvage)` : "") });
 		if ((await this.git(["merge-base", "--is-ancestor", wt.branch, this.base])).ok) return done(`${wt.branch} is merged into ${this.base}`);
 		if (this.applied(wt.head)) return done(`${wt.branch} was applied to ${this.base} by merge.mjs`);
-		const task = tasks.get(norm(wt.path));
-		if (task?.landed && !this.alive(task.agent)) return done(`its task ${task.key} landed and ${task.agent ?? "its owner"} has stopped`);
-		return { state: "open", why: `${wt.branch} holds commits ${this.base} does not` + (task ? `, for ${task.key}${task.landed ? "" : " (not landed)"}` : "") };
+		return { state: "open", why: `${wt.branch} holds commits ${this.base} does not` + (task0 ? `, for ${task0.key}${task0.landed ? "" : " (not landed)"}` : "") };
 	}
 
 	async merged(wt){
 		return (await this.git(["merge-base", "--is-ancestor", wt.branch, this.base])).ok || this.applied(wt.head);
+	}
+
+	/* PREVIEW ON THE PHONE (build F, 2026-10-28): a worktree whose task asked for a preview and now waits for its
+	 * merge gets its dev server on the LAN (`HOST=0.0.0.0`, read by Servex.host()) and kept running, so the link on
+	 * the ready-to-merge card opens on the phone. `this.lan` is the one list Servex.host() reads. A server whose
+	 * worktree stops waiting (merged, closed) goes back to loopback. Never a pool slot or a locked worktree:
+	 * judge() never says `waiting` for those. The LAN socket stays push-only (dev/Socket/doc/lan.md). */
+	async serve_previews(items){
+		const want = new Set(items.filter(i => i.waiting && i.preview).map(i => i.name));
+		const going = new Set(items.filter(i => i.state === "finished").map(i => i.name));   // remove() stops these in a moment: no restart first
+		const before = this.lan;
+		this.lan = want;
+		for (const name of new Set([...before, ...want])){
+			if (going.has(name)) continue;
+			const host = want.has(name) ? "0.0.0.0" : "127.0.0.1";
+			const runner = this.servex?.runner?.(name);
+			if (!runner) continue;
+			const was = runner.env?.HOST;
+			if (runner.env) runner.env.HOST = host;
+			const up = runner.status && runner.status !== "stopped" && runner.status !== "errored";
+			try {
+				if (was !== host && up) await runner.restart();
+				else if (want.has(name) && !up) await runner.start();
+				else continue;
+				this.log({ msg: `worktrees: ${name} dev server ${want.has(name) ? "on the LAN for its preview" : "back to loopback"} (${host})`, worktree: name });
+			} catch (e){ this.log({ msg: `worktrees: ${name} preview server on ${host} failed: ${e.message}` }); }
+		}
 	}
 
 	/* Leftovers go into the worktree's own branch, so nothing is lost when the folder goes. Returns the file count. */
@@ -167,6 +202,7 @@ export default class Worktrees extends Events {
 		let count = 0;
 		for (const item of items){
 			if (/^qf-\d+$/.test(item.name) || item.state === "locked" || item.state === "no branch") continue;
+			if (this.lan.has(item.name)) continue;   // a preview the owner may open from the phone: the proxy cannot restart a direct LAN port
 			const reason = this.idle_enough({ name: item.name, path: item.path }, tasks.get(norm(item.path)));
 			if (!reason) continue;
 			let did = false;
@@ -257,7 +293,7 @@ export default class Worktrees extends Events {
 				}
 				if (!state.worktree) continue;
 				const landed = Landed.of_dir(dir);
-				out.set(norm(state.worktree), { key: `${day}/${slug}`, landed, paused: !!state.paused, agent: state.agent ?? null, worktree: state.worktree });
+				out.set(norm(state.worktree), { key: `${day}/${slug}`, landed, paused: !!state.paused, agent: state.agent ?? null, worktree: state.worktree, preview: WorktreePreview.page(state) });
 			}
 		}
 		return out;
@@ -277,6 +313,7 @@ export default class Worktrees extends Events {
 			this.common ??= path.resolve(this.main, (await this.git(["rev-parse", "--git-common-dir"])).out || ".git");
 			const tasks = this.tasks(), items = [];
 			for (const wt of await this.list()) items.push({ name: wt.name, path: wt.path, branch: wt.branch, ...(await this.judge(wt, tasks)) });
+			await this.serve_previews(items).catch(e => this.log({ msg: `worktrees: serve_previews failed: ${e.message}` }));
 			if (this.stopping) await this.stop_idle(items, tasks).catch(e => this.log({ msg: `worktrees: stop_idle failed: ${e.message}` }));
 			const finished = items.filter(i => i.state === "finished");
 			let junctions = null;
@@ -351,7 +388,8 @@ export default class Worktrees extends Events {
 			finished: count("finished"), removed_today: this.removed.filter(r => new Date(r.at).toDateString() === today).length,
 			servers_stopped: this.servers_stopped,
 			junctions_ok: this.last?.junctions ? this.last.junctions.ok : null,
-			items: items.map(({ name, branch, state, why }) => ({ name, branch, state, why }))
+			waiting: items.filter(i => i.waiting).length, lan: [...this.lan],
+			items: items.map(({ name, branch, state, why, waiting }) => ({ name, branch, state, why, ...(waiting ? { waiting } : {}) }))
 		};
 	}
 

@@ -18,7 +18,7 @@ export default new Doc({
 
 	subject: Panel,
 	properties: "defaults shared",
-	methods:    "get set leaf divide split restyle close absorb mirror master copies bequeath",
+	methods:    "set leaf divide split restyle close absorb mirror master copies bequeath",
 	notes:      "architecture decisions sizing templates generator focus overlays flow words",
 	files:      "Panel.js workspace.js vocab.js focus.js overlays.js paint.js random.js glyphs.js size.js grip.js seam.js tools.js split.js insert.js repeat.js text.js persist.js display.js PanelDrag.js flow.js flow.css focus.css panel.css controls.css size.css grip.css tools.css split.css insert.css repeat.css text.css display.css templates.js templates.css properties.js generate.js page.js readme.md",
 

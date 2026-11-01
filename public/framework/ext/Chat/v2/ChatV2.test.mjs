@@ -4,12 +4,12 @@ import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const base = process.argv[2] ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
+const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
 // The live copy goes in the tree the site at `base` serves: with no url that is the main tree (first in `git worktree list`), even when
 // this file runs from a worktree or merge.mjs's .merge-base checkout; with a url, this checkout. One name per run, so two runs never share a file.
 const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
 const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
-const served = process.argv[2] || !main_tree ? here + "fixture/" : `${main_tree}/${rel}`;
+const served = process.argv[2] || process.env.SITE_URL || !main_tree ? here + "fixture/" : `${main_tree}/${rel}`;
 const dir = here + "fixture/", name = `live-${process.pid}.jsonl`, copy = served + name, src = `/framework/ext/Chat/v2/fixture/${name}`;
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };

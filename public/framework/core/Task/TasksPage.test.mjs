@@ -3,7 +3,7 @@
 import assert from "node:assert";
 import Browser from "../../../../Server/Browser.mjs";
 
-const base = (process.argv[2] ?? "http://monorepo.localhost/").replace(/\/?$/, "/");
+const base = (process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost/").replace(/\/?$/, "/");
 let n = 0;
 const ok = (c, m) => { assert.ok(c, m); n++; console.log("ok -", m); };
 

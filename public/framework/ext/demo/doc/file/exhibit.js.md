@@ -1,3 +1,5 @@
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 The detail-page SHAPE: `demo.exhibit()` itself, plus the two sugars built
 directly over it, `demo.page()` and `demo.tree()`. Since demo-merge step 4 none of
 them draws a demo — `demo.exhibit()` is `page.demo({ run: … })` plus the two

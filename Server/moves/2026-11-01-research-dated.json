@@ -1,0 +1,28 @@
+{
+	"at": "2026-11-01T19:16:03.366Z",
+	"kind": "folder",
+	"from": "public/framework/research/2026-10-29-persistence-sync",
+	"to": "public/framework/research/2026/10/29/persistence-sync",
+	"status": "done",
+	"files": [
+		{
+			"file": "public/framework/ai/handover.md",
+			"now": "public/framework/ai/handover.md",
+			"edits": [
+				{
+					"line": 36,
+					"col": 530,
+					"from": "/framework/research/2026-10-29-persistence-sync",
+					"to": "/framework/research/2026/10/29/persistence-sync"
+				},
+				{
+					"line": 36,
+					"col": 580,
+					"from": "/framework/research/2026-10-29-persistence-sync",
+					"to": "/framework/research/2026/10/29/persistence-sync"
+				}
+			]
+		}
+	],
+	"how": "git"
+}

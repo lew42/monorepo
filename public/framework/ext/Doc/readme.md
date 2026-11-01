@@ -19,9 +19,13 @@ export default new Doc({
     content(){ /* the overview */ },
 });
 ```
+(A `ClassDoc` with a `method_list` swaps the API tab for **Methods**, at `methods/<name>/`; see below.)
 Empty section, no tab. Nothing at the call site says "tab" — a different shape overrides `sections()`.
 
+**A class page that shows before it tells:** `new ClassDoc({…})` ([ClassDoc.js](./ClassDoc.js)) adds a live instance, the life cycle, the core test step by step and a Methods tab routed at `methods/<name>/`. Used by [Item](/framework/core/Item/) and [List](/framework/core/List/): [doc/class-doc.md](./doc/class-doc.md).
+
 ## Watch out
+- The API tab, `/api/<name>/` and the member pages below are a plain Doc's. A `ClassDoc` with a `method_list` shows Methods instead (`methods/<name>/`, notes from the same `doc/method/<name>.md`), and its old `/api/<name>/` urls land there: [doc/class-doc.md](./doc/class-doc.md)
 - A class's API tab opens on a **ClassCard**: title card, Core API (the Doc's `core: "name:weight …"`), own members, then inherited groups read off the prototype chain: [doc/class-card.md](./doc/class-card.md)
 - A note name may nest (`"guide/setup"`) — each interior segment becomes its own real, bookmarkable page, and the Docs tab draws a folder tree instead of its usual vertical tab bar the moment any note does: [doc/tree/nesting.md](./doc/tree/nesting.md)
 - `.../docs/...` resolves to `.../doc/...` automatically and fixes the address bar, so a typed-out-of-habit "docs" doesn't 404: [doc/tree/redirect/docs.md](./doc/tree/redirect/docs.md)
@@ -40,7 +44,7 @@ Empty section, no tab. Nothing at the call site says "tab" — a different shape
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [`doc/Doc-notes.md`](./doc/Doc-notes.md) — implementation details, design decisions, key patterns
 - [Overview](/framework/ext/Doc/) · [`doc/decisions.md`](./doc/decisions.md) the record — verdicts, traps, open items · [`doc/rail.md`](./doc/rail.md) why the Overview is a catalog · [`doc/reflection.md`](./doc/reflection.md) why the lists are hand-typed · [`doc/files.md`](./doc/files.md) why files are declared · [`doc/tree/redirect/history.md`](./doc/tree/redirect/history.md) why the address-bar fix uses `replaceState`, not `pushState`
-- `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file. The page is at `/api/<name>/` (the tab) and, since this fix, also cold-loads at `/doc/method/<name>/` or `/doc/property/<name>/` — the same address the `.md` file itself sits at. A note (`doc/<name>.md`) has just the one address, `/doc/<name>/`. A file's is `/files/`.
+- `doc/method/`, `doc/property/`, `doc/file/` — one prose file per listed member or file. On a plain Doc the page is at `/api/<name>/` (the tab; a ClassDoc's is `/methods/<name>/`) and, since this fix, also cold-loads at `/doc/method/<name>/` or `/doc/property/<name>/` — the same address the `.md` file itself sits at. A note (`doc/<name>.md`) has just the one address, `/doc/<name>/`. A file's is `/files/`.
 - Files that matter: `Doc.js` (the class, every seam), `Doc.css` (well, panel height), `page.js` (Doc documenting Doc), `decisions.js` (the ⋯ menu, above)
 
 - **Tasks tab:** every Doc page lists its module's `tasks/task.jsonl` (ranked by `Task.rank`), built when the tab opens; `no_tasks: true` opts out.

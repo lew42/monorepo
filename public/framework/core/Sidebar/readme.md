@@ -1,5 +1,7 @@
 # Sidebar — a brand over a TREE of links, resizable by its own edge, over a footer that stays put; the one component `core/` ships, for any page that wants site nav
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 ## Use
 
 ```js

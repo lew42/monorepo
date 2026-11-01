@@ -1,5 +1,7 @@
 # InstanceTree — the live instance hierarchy (built 2026-10-13)
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 `InstanceTree extends View` (`../InstanceTree.js`): root = `App`, each node = class icon + class name + `title`, children = `page.children`, the current page highlighted, a `view` button opens that instance's `DefaultView`. Demo: `/framework/ux/Content/Object/instance-tree/`. Also the dev bar `page` tab (section "instances").
 
 **What updates live:** a child mounted with `page.add()` (the one hook: `InstanceTree.install()` wraps `Page.prototype.add` to fire a window event), a field change on any page shown (`page.on("change")`), and every route change (`install(app)` wraps `app.navigated` once per app, never per tree). Redraws are batched to one per frame.

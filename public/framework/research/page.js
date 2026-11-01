@@ -1,4 +1,4 @@
-import { Page, div, p, a, span } from "/app.js";
+import { Page, div, p, a, span, md } from "/app.js";
 import { Research, ResearchJSONL } from "/framework/ext/Research/Research.js";
 
 /* ⚠ The SPA fallback answers every miss with index.html — content-type is the 404. */
@@ -13,7 +13,7 @@ async function topics(base){
 	const dir = await json("/framework/directory.json");
 
 	return Promise.all((dir?.files?.find(f => f.name === "research")?.children ?? [])
-		.filter(kid => kid.type === "dir")
+		.filter(kid => kid.type === "dir" && !/^\d{4}$/.test(kid.name))   // year folders hold dated projects, not topic logs
 		.map(async kid => ({
 			name: kid.name,
 			url: base + kid.name + "/",
@@ -27,15 +27,24 @@ export default new Page({
 	description: "Live research topics — the minions dig, the report moves while you read it.",
 	icon: "travel_explore",
 
-	content(){
-		p("A topic is one append-only log the minions write while they dig. Open one and it moves as they work — conclusions first, every claim a card you can open forever.");
+	// Research is filed by date: research/YYYY/MM/DD/<topic>/ (each date level is a small page.js of links).
+	children: "2026",
 
+
+	content(){
+		// Projects first, newest on top (filed by date: research/YYYY/MM/DD/<topic>/). Kept by hand for now;
+		// listing the dated folders automatically is a framework task (framework/tasks/readme.md).
+		md("**Projects, newest first**\n- 2026-10-29 · [Persistence & sync: build or buy](2026/10/29/persistence-sync/) — keep the Item / List / Page core and fix it.");
+
+		// Live topic logs (ext/Research): listed from the dev server's directory.json, so they show only there.
 		div.c("research-topics flex v gap", async $t => {
 			const list = await topics(this.url);
+			if (!list.length) return;
 
-			$t.append(() => list.length
-				? list.forEach(topic => this.topic(topic))
-				: p.c("muted", "No topics yet — a topic is a dir under here holding a `research.jsonl`."));
+			$t.append(() => {
+				md("**Live topics.** A topic is one append-only log the minions write while they dig. Open one and it moves as they work — conclusions first, every claim a card you can open forever.");
+				list.forEach(topic => this.topic(topic));
+			});
 
 			this.app?.router?.mark_links();
 		});

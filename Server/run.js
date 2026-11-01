@@ -32,6 +32,7 @@ import HttpsLan from "./plugins/HttpsLan.js";   // https beside http for the pho
 import Tab from "./plugins/SocketServer/Tab.js";
 import Tail from "./plugins/SocketServer/Tail.js";
 import Append from "./plugins/SocketServer/Append.js";
+import Files from "./plugins/SocketServer/Files.js";   // rpc:page_add / upload / set_aside - the Files tab's writes
 import DatedFiles from "./DatedFiles.mjs";
 
 DevSocket.Socket.use(Runtime);
@@ -43,6 +44,7 @@ DevSocket.Socket.use(AISessionSub);   // pushes changed session snapshots - ai/A
 DevSocket.Socket.use(QueryServer);   // rpc:query over in-memory sources - ext/Query
 DevSocket.Socket.use(Tail);
 DevSocket.Socket.use(Append);
+DevSocket.Socket.use(Files);   // the Files tab: make a page, upload a file, set one aside - core/Page/doc/files.md
 DevSocket.Socket.use(DatedFiles);   // rpc:dated_create / dated_move / dated_query - Server/DatedFiles.mjs
 Server.use(DevSocket);
 Server.use(Directory);

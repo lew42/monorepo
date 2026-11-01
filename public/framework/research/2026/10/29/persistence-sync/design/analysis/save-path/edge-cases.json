@@ -1,0 +1,76 @@
+{
+  "dilemma": "save-path",
+  "lens": "edge-cases",
+  "by": "analyst-save-edge",
+  "options": [
+    {
+      "id": "bubble-events",
+      "label": "Bubbling delta event (today)",
+      "wins_when": [
+        {"scenario": "A test or tool records every line a tree writes: how-deltas-flow.md capture(a) hooks one delta event on the root and gets every change under it, including changes deep inside lists.", "why": "One listener on the root sees the whole tree, so the table-driven line test needs no wiring per class. Direct calls would need a separate capture hook on the store."},
+        {"scenario": "An item is moved with move_to or a list move, and then set() is called on it.", "why": "The path is read from the live parent chain at delta time, so no cached path can go stale. This is the only option where a move needs no bookkeeping."},
+        {"scenario": "A new level is added to a session tree (sub-tasks under a task) and must save with no extra wiring.", "why": "The delta climbs whatever levels exist, so a new level needs no code of its own."}
+      ],
+      "fails_when": [
+        {"scenario": "A view's change listener throws during a field edit, for example a TaskView bug.", "severity": 5, "recoverable": false, "why": "set_one (Item.js L156-L157) emits change before delta, so the throw skips the delta and the root's save. The value is in memory only, and a reload loses it. Events.emit (Events.js L23-L25) has no try/catch, so nothing isolates the failure."},
+        {"scenario": "Any listener on the climb throws on a delta, for example a Reader or a new audit hook.", "severity": 5, "recoverable": false, "why": "The throw aborts the rest of that node's listeners and every ancestor's, including the root's store listener. One bad listener starves the saves of every change under it."},
+        {"scenario": "A child is flagged _own_file but its store never attaches, or the flag is left set after the child moves out of its own file.", "severity": 5, "recoverable": false, "why": "owned_below (Store.js L264-L266) returns true on the flag alone. The parent's store skips the change and the child's store never hears it, so no file gets the line."},
+        {"scenario": "A page runs act() on a verb.", "severity": 3, "recoverable": true, "why": "PageLogReader.attach (Page/Reader.js L33-L34) listens for delta on the page and checks only this.replaying. It skips Store.muted and owned_below, which Store.attach checks (Item/Store.js L128-L129). The inner set lines that act() is meant to mute appear to be written too. Read from the code, not run; a test would confirm."},
+        {"scenario": "A replayed line triggers a side effect, such as a Ref re-path or a task auto-complete, and every open tab writes the follow-up line.", "severity": 3, "recoverable": true, "why": "replaying is cleared when the replay loop ends (Store.js L102-L103), and the read listeners run after that, so each tab's side effect saves its own copy. This is known gap 1 in lessons/object-model.md. Only a source tag on every delta fixes it."},
+        {"scenario": "A loop of 500 set() calls on members of a 500-item list inside one tick.", "severity": 2, "recoverable": true, "why": "Each change climbs every ancestor, and hops() copies each list at each level ([...list].includes, Store.js L290). Estimated from the code at about 500 x 500 element copies per loop; not measured. Each set() also makes its own line, so batching must merge lines that are already wrapped."},
+        {"scenario": "Someone asks why a change did not save.", "severity": 2, "recoverable": true, "why": "The answer is spread across replaying, Store.muted, owned_below, _own_file and every delta listener on the climb. No single place records a reason, and a missing listener breaks the chain with no error. This is what makes the silent windows above hard to find."}
+      ],
+      "precedent": [
+        {"tool": "mobx-keystone", "how": "Patches bubble up, gaining one path segment per level, and the root collects them.", "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/patch/emitPatch.ts#L309-L337"},
+        {"tool": "Yjs", "how": "observeDeep hears nested changes on the same bubble, so one listener sees a whole subtree.", "src": "https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/ynode.js#L977-L990"}
+      ]
+    },
+    {
+      "id": "direct-call",
+      "label": "Direct store.change() call; events for views only (owner F6, D2 recommends)",
+      "wins_when": [
+        {"scenario": "A button, an agent (item tool) and a browser tab each change task.done.", "why": "All three reach one store.change() call. A save is a call, not a listener, so a view bug cannot stop it when the save runs before the views are told."},
+        {"scenario": "A loop of 500 set() calls on one field in one tick.", "why": "The store receives (item, key, value) and can keep only the last value per item and key before any path is built. Merging wrapped lines (bubble) is harder. Structural lines (add, remove, move) must flush pending values first, to keep their order."},
+        {"scenario": "Someone asks why a change did not save.", "why": "Every write passes one function, which can record a reason for each call (saved, skipped:replay, skipped:no-store, refused:name) in a small buffer on the store. That is law 7 (compute, do not recall) applied to debugging."},
+        {"scenario": "An embedded tab page (bubbles() is false) edits a field.", "why": "Its events stop at the page, so today it does not save (gap 9). The nearest-store lookup finds the store and saves."}
+      ],
+      "fails_when": [
+        {"scenario": "An own-file child whose store is not attached. D2's sketch get store(){ return this._store ?? this.parent?.store } falls back to the parent's store.", "severity": 4, "recoverable": true, "why": "The child's change is written into the parent's file, as a line with a path from the parent down. The child's own file never gets it, and the two logs then disagree. The getter must return nothing (and warn) for an item that declares its own file, never the parent."},
+        {"scenario": "An own-file item is moved into an embedded place, and its cached _store is not cleared.", "severity": 4, "recoverable": true, "why": "Later edits keep saving to the old file. Clear the cache in move_to, or find the store by walking parents with no cache (cheap, because depth is small). Test both moves."},
+        {"scenario": "A side effect runs after replay has ended, in a microtask, a timer or after an await.", "severity": 3, "recoverable": true, "why": "It reads store.applying, which is null by then, and treats its own change as local, re-creating gap 1 from every tab. The source has to travel with the call stack or the event arguments, not sit in a flag that is cleared earlier."},
+        {"scenario": "A listener on an ancestor needs item-level changes through the bubbling delta event.", "severity": 3, "recoverable": true, "why": "It stops hearing them once delta no longer bubbles. Today the listeners on delta are Store.attach (Store.js L128), PageLogReader (Page/Reader.js L33), the act() counter (Item.js L100), and TaskView, which listens only to its own list's announcements (TaskView.js L25-L26). D2's both option keeps delta for listeners, which must not also save."},
+        {"scenario": "A batch(fn) that throws halfway through.", "severity": 5, "recoverable": false, "why": "Lines buffered by the batch are dropped if the flush is not in a finally, while the in-memory changes stay on screen. A reload then loses them. Put the flush in a finally inside the store, so the file matches the screen (partly applied, but true)."},
+        {"scenario": "A second tab writes the path it last saw (todo.c1) after another tab moved c1 to done.", "severity": 4, "recoverable": true, "why": "All three options build the path from the local tree, so the line lands in the wrong list. A rename can then be lost, which is the stale-edit case in lessons/object-model.md. Naming the item by #id with no list hop in the line fixes this, and the delta-format #id marker already allows it. The line is in the log, so a repair script can recover it."},
+        {"scenario": "An item with a change is detached (removed, or created but not yet added).", "severity": 3, "recoverable": true, "why": "No store is found, so the change is skipped. The single chokepoint can warn 'no store for item X', so this skip should not be silent."}
+      ],
+      "precedent": [
+        {"tool": "tldraw store", "how": "atomic(fn) runs one transaction, so a listener sees one squashed diff for the whole action.", "src": "https://github.com/tldraw/tldraw/blob/38e6c84dcaebee164aeeb961113f14e1a317e6ea/packages/store/src/lib/Store.ts#L1308-L1350"},
+        {"tool": "Yjs", "how": "doc.transact bundles many changes into one update; observers fire once after the transaction ends, with an origin tag.", "src": "https://github.com/yjs/yjs/blob/0e0dc3401b9753fbffb60699f6b68460cf1bcdf9/src/utils/Doc.js#L168-L180"},
+        {"tool": "Automerge repo", "how": "The app calls handle.change(...) directly, and the document records the change itself rather than the change being picked up from an event.", "src": "persistence-sync/tools/automerge-repo.md"}
+      ]
+    },
+    {
+      "id": "store-ref",
+      "label": "Each item holds its store and its full path, updated on move",
+      "wins_when": [
+        {"scenario": "A hot loop of 500 set() calls on members of one list.", "why": "Each item already has its store and path, so each save is an O(1) enqueue with no ancestor walk. This is the cheapest per change of the three."},
+        {"scenario": "An own-file session whose tasks live in their own files.", "why": "The file boundary is a reference, not a flag or a fallback, so the parent cannot write a child's change into its own file by accident. This removes the D2 fallback trap."},
+        {"scenario": "Someone asks where a change will be saved.", "why": "item.store.file and item.path can be read in the console, so where a change saves is visible state."}
+      ],
+      "fails_when": [
+        {"scenario": "A task with 300 subtasks is moved to another session file.", "severity": 4, "recoverable": true, "why": "Every descendant that caches a full path or a store reference now points at the old place. Any one that is missed writes its later lines to the wrong file or path. The log shows it, and a script can compare refs with the tree, but each move costs O(subtree)."},
+        {"scenario": "A quiet List verb places or moves an item: insert (List.js L155), replace (L175) or release (L215), which do not announce.", "severity": 4, "recoverable": true, "why": "Refs must be set inside the List code, because no event fires for a listener to catch. Replay uses the quiet verbs, so they are the likeliest place for a missed ref."},
+        {"scenario": "Items keep a reference to their store after the page is closed.", "severity": 2, "recoverable": true, "why": "A plausible memory cost for long multi-day sessions with many loaded instances (instances-and-performance.md). Small in practice; measure before worrying."}
+      ],
+      "precedent": [
+        {"tool": "mobx-keystone applyAction", "how": "A call carries its target path and the id at each step. Applying it checks that the ids still match, so a stale path is refused rather than silently applied.", "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/action/applyAction.ts#L12-L40"},
+        {"tool": "mobx-keystone rootRef", "how": "A Ref holds only an id and resolves it by searching the root, with a cache.", "src": "https://github.com/xaviergonz/mobx-keystone/blob/c291c74e7eb590dcb825716f8abd8d1ebb3fc0b5/packages/lib/src/ref/rootRef.ts#L45-L80"},
+        {"tool": "Loro tree", "how": "A tree node stores its parent and position, not a full path, so a move changes one node rather than its whole subtree.", "src": "https://github.com/loro-dev/loro/blob/75e4bf2bf01cb6f2f3e37c50156ca0b335ef9b73/crates/loro-internal/src/container/tree/tree_op.rs#L17-L31"}
+      ]
+    }
+  ],
+  "recommended": "direct-call",
+  "confidence": 4,
+  "surprise": "Today there are two save paths, not one. PageLogReader.attach (Page/Reader.js L31-L35) registers its own delta listener on the page and skips Store.muted and owned_below, which Store.attach checks (Item/Store.js L128-L129). So act() on a page's own file probably double-writes, and every fix to the save rule lands in only one copy (law 6). Whichever option wins, the rule should be one function that both paths call.",
+  "notes": "Recommend direct-call (D2): it is the only option whose failures can be fixed in one place (save before notify, one reason-logging chokepoint, and no fallback to the parent's store for an own-file child). Store-ref is cheaper per change, but its failures are silent writes to the wrong place after moves and quiet verbs, and caching only an item's own key (not its full path) gets most of the speed. Performance figures are estimated from the code, not measured; a node benchmark on a 500-item list would settle them."
+}

@@ -8,6 +8,7 @@
  * Plan and reasons: public/framework/ai/sessions/2026/10/16/voice-20261016/task-migrate/plan.md */
 import fs from "node:fs";
 import path from "node:path";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { Task } from "../public/framework/core/Task/Task.js";
@@ -43,7 +44,7 @@ export default class TaskMigrate {
 
 	static parse(text){
 		const lines = [], bad = [];
-		text.split(NL).forEach((l, i) => { if (!l.trim()) return; try { lines.push(JSON.parse(l)); } catch { bad.push(i + 1); } });
+		text.split(NL).forEach((l, i) => { if (!l.trim()) return; try { lines.push(LineKey.deep(JSON.parse(l))); } catch { bad.push(i + 1); } });
 		return { lines, bad };
 	}
 

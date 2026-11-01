@@ -1,5 +1,7 @@
 # core/Page: the vision
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 The owner's ideas for where the page system goes. Some are on the back burner; they are written here so they are not lost. The source is section A of the owner's ask of 2026-10-15 ([ask-ea3d4c58.md](/framework/ai/sessions/2026/10/15/voice-20261015/ask-ea3d4c58.md)); the answers to its questions are in [answers.md](/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers.md).
 
 ## 1. The page is THE core data item

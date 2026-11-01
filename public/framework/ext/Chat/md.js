@@ -1,4 +1,4 @@
-import { marked } from "/framework/ext/Markdown/md.js";
+import { marked } from "/framework/ext/markdown/md.js";
 import { mentions } from "/framework/ext/Mention/Mention.js";
 
 /* MARKDOWN IN A CHAT, SAFELY (the owner, 2026-09-24: "the bold markers show as

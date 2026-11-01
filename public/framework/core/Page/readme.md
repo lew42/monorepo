@@ -1,5 +1,7 @@
 # Page — a folder with a `page.js` or a `page.jsonl` is a page: a url, content, and children
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 **Read [`core/Item/readme.md`](/framework/core/Item/readme.md) first.** This readme assumes you know it.
 
 **One system with Item:** `Page extends Item`, so saving, replaying a log, `set(delta)` and `live()` tailing are the [Item readme](/framework/core/Item/readme.md)'s job; this readme covers what Page adds: a url, routing, parts, layout and the inbox.
@@ -16,13 +18,15 @@ export default new Page({ meta: import.meta, title: "Hello", content(){ h1("Hell
 
 Then add `"hello"` to the **parent** page's `children:`. A page nobody declares still opens by its url (`Page.child()` imports its `page.js`), but it is missing from the parent's tabs, menus and cards. Agents make pages with the `create_page` tool; load the `page` skill first.
 
+**Then index it, twice:** link the new page from the pages that should point to it (parent, section page, framework page, readmes; be generous), and list its own contents near its top as links. Load it in a real browser before sending the link to anyone. The rule: [`doc/navigation.md`](./doc/navigation.md#when-you-add-a-page-index-it-twice-the-owner-2026-11-01). Planned: an `index.jsonl` per folder so pages can be listed, linked, searched and mentioned without loading them: [`doc/index-jsonl.md`](./doc/index-jsonl.md).
+
 ## On disk: a page is a folder, and the folder is its storage
 
 | File | What | Written by | Read by |
 |---|---|---|---|
 | `page.js` | the page as code (a tiny file: import a class, instantiate it) | a person or builder agent | the browser (`Page.load()`) |
 | `page.jsonl` | the page as a log: line 1 builds it, every later line is one `set()` | the page tools (below), `append_log`, `append.mjs`, a browser tab (`Item.Store` → `Append.js`) | `Page.Reader` (`Page.class.js`, `extends Item.Store`) through `PageJsonl.load()` |
-| `files.jsonl` | the folder's own file list, `{"file":"x.png"}` per file that appeared or went (a jsonl page keeps its list inside its `page.jsonl`) | `Server/plugins/PageFiles.js`, automatically | `Page.listing()` (tabs, listings) |
+| `files.jsonl` | the folder's own file list, `{"file":"x.png"}` per file that appeared or went (a jsonl page keeps its list inside its `page.jsonl`) | `Server/plugins/PageFiles.js`, automatically | `Page.listing()` (tabs, listings); `PageListing.live` → the `files/` tab (`FilesTab.js`) |
 | `settings.jsonl` | the page's preferences about itself (e.g. tab weight) | the page tools, `append.mjs` | the parent's tab strip |
 | `inbox.jsonl` | notes left on the page (`note`, `inbox`, `note_state` lines) | `page_note`, Servex `/api/inbox` | `PageInbox.js` → the page's Inbox tab ([Inbox](ext/Inbox/readme.md)) |
 | `readme.md`, `doc/*.md` | the folder's index and its detail | a person or agent | the `md/` route of every page |
@@ -30,9 +34,11 @@ Then add `"hello"` to the **parent** page's `children:`. A page nobody declares 
 
 ## How a url becomes a page
 
-The Router ([core/Router](/framework/core/Router/)) calls `page = await page.child(name)` once per folder name. `child()` tries, in order: memory (`this.children`) → a declared `page.jsonl` → the built-in `md/` and `fs/` → the page's `route(name)` → a folder's own `readme.md`, when the listing shows no `page.js` ([doc/subpages.md](doc/subpages.md)) → `page.js` → a bare `.md` file → not found (the Router falls back to a real navigation). A declared child skips `route()`. Code and the two traps: [doc/loading.md](doc/loading.md).
+The Router ([core/Router](/framework/core/Router/)) calls `page = await page.child(name)` once per folder name. `child()` tries, in order: memory (`this.children`) → a declared `page.jsonl` → the built-in `md/`, `fs/` and `files/` → the page's `route(name)` → a folder's own `readme.md`, when the listing shows no `page.js` ([doc/subpages.md](doc/subpages.md)) → `page.js` → a bare `.md` file → not found (the Router falls back to a real navigation). A declared child skips `route()`. Code and the two traps: [doc/loading.md](doc/loading.md).
 
 **Where a child opens:** a page shows its children as preview cards (`page.previews()`), and a click opens that child's full page in place of the list; the address changes, so Back returns to the list. A page with its own navigation (tabs, a rail) keeps it and the child opens inside it. A linked markdown page follows the same rule. Miller columns are opt-in code: a page that calls `columns()` itself gets them. The rule, the seven ways a page can navigate and their shots: [design/navigation](/framework/design/navigation/readme.md).
+
+**The Files tab:** every page also answers `<url>files/`: this folder's own entries, one level, names only (page folders, folders, files; `_removed/` last, dimmed), with a `Files · N` link at the end of the page. `PageFilesTab` (`FilesTab.js`) reads the list with `PageListing.live` (`Listing.js`): it opens the folder's `files.jsonl` (a jsonl page: its `page.jsonl`) with its own reader, so on the dev server a file made in an editor appears with no reload, and on a static host it is the committed list, read once. On the dev server it also writes (phase 2): `+ Page`, drop or choose files (up to 25 MB, a name clash keeps both as `photo (2).png`), a set-aside button per row that moves a file or page into `_removed/` after an inline confirm, and (phase 3) Rename and Move per row (an inline name box, a "Move to…" folder browser, or drag a row onto a folder row on a desktop): a folder shows a dry-run plan (links that change) first, and every move offers Undo from a manifest in `Server/moves/`; each is one socket message handled by [`Server/plugins/SocketServer/Files.js`](/Server/plugins/SocketServer/readme.md), and the list updates only through the tail. A static host stays read only. A real `files/` folder or page wins, and a Doc page keeps its own Files section (its declared source files) at that url. Opt out with `no_files: true`. Design and the later phases: [doc/files.md](doc/files.md).
 
 ## How a line reaches the screen (streaming)
 
@@ -71,7 +77,7 @@ Also here: [audit/](audit/) (every page layout in use, most-used first) · [make
 
 ## More
 
-Reference: [doc/words.md](doc/words.md) (the six page words) · [doc/api.md](doc/api.md) · [doc/jsonl.md](doc/jsonl.md) · [doc/watch-out.md](doc/watch-out.md) (traps) · [doc/architecture.md](doc/architecture.md) · [doc/start-here.md](doc/start-here.md) (working on this module: inbox, log, tests). The readme as it stood before this rewrite, with the split-out sections and dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
+Reference: [doc/files.md](doc/files.md) (design: pages as folders, the Files tab, create/drop/move from the UI), [doc/words.md](doc/words.md) (the six page words) · [doc/api.md](doc/api.md) · [doc/jsonl.md](doc/jsonl.md) · [doc/watch-out.md](doc/watch-out.md) (traps) · [doc/migration-children-to-pages.md](doc/migration-children-to-pages.md) (the deprecated `page.children`, and how to move to `page.pages`) · [doc/architecture.md](doc/architecture.md) · [doc/start-here.md](doc/start-here.md) (working on this module: inbox, log, tests). The readme as it stood before this rewrite, with the split-out sections and dated notes: [doc/readme-before-2026-10-19.md](doc/readme-before-2026-10-19.md).
 
 ## Notes from your asks
 

@@ -1,5 +1,7 @@
 # Watch out — the traps, one line each
 
+> **Old way (deprecated 2026-10-28):** this page teaches or uses `page.children`; the replacement is `page.pages` (a List). Guide: [migration-children-to-pages.md](/framework/core/Page/doc/migration-children-to-pages.md).
+
 Moved here verbatim from the readme; each line links the doc with the detail.
 
 - **The six page words** — `navigation` `content` `width` `arrangement` `surface`/`background` `type_size`: a page describes its own shape instead of coding it, every default writes nothing, and the values live in one file (`words.js`). The table, and one page file before and after: [`doc/words.md`](./doc/words.md)

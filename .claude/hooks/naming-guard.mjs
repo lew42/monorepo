@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import SessionRecord from "../../Server/SessionRecord.mjs";
 import { spawnSync } from "node:child_process";
+import RecordWriter from "../../public/framework/core/Item/RecordWriter.js";
 
 // ⚠ Same override as ledger.mjs: a worktree session's task.jsonl usually lives in the
 // MAIN tree (minion briefs say so explicitly), not the worktree this hook script runs
@@ -99,11 +100,8 @@ export default function naming_guard(file, agent){
 
 		const task = find_task_by_path(abs) || pinned_task(agent);
 		if (!task) return;
-		for (const cls of missing) {
-			let lead = "";
-			try { const b = fs.readFileSync(task); if (b.length && b.at(-1) !== 10) lead = "\n"; } catch {}
-			fs.appendFileSync(task, lead + JSON.stringify({ log: { at: now(),
-				msg: `naming: class ${cls} in ${module} has no decision record — run a design collab with target, or add a named line with decision: "owner"` } }) + "\n");
-		}
+		// The one writer (core/Item/RecordWriter.js): posted to the entry point; RecordWriter appends it once itself only when that is down.
+		return RecordWriter.write(task, missing.map(cls => ({ log: { at: now(),
+			msg: `naming: class ${cls} in ${module} has no decision record — run a design collab with target, or add a named line with decision: "owner"` } })), { by: "naming-guard" }).catch(() => {});
 	} catch {}
 }

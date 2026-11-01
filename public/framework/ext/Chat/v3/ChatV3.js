@@ -7,6 +7,7 @@ import Session from "/framework/core/Session/Session.js";
 import Prompt from "/framework/core/Task/Prompt.js";
 import Question from "/framework/core/Task/Question.js";
 import TaskView from "/framework/core/Task/TaskView.js";
+import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
 View.stylesheet(import.meta, "ChatV3.css");
 
@@ -26,7 +27,8 @@ export default class ChatV3 extends JSONL {
 	// { url: the session.jsonl url, $box: the View to draw into }
 	read(entries){
 		const first = !this.drawn, hit = new Set();
-		for (const line of entries){
+		for (const raw of entries){
+			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
 			if (!this.wanted(line)) continue;
 			this.session.replay_line(line);
 			if (!first) { const id = this.card_of(line); if (id) hit.add(id); }

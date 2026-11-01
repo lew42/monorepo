@@ -2,7 +2,7 @@
 
 ## Status (verified 2026-10-19 against the code)
 
-- **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
+- **Built and tested:** the state machine, subtasks, replay of `task.jsonl` (`node Task.test.mjs`, 53 of 53 pass), the core test as steps ([`Task.steps.js`](Task.steps.js): make, save, add, start, finish, replay; `node Task.steps.test.mjs`, drawn live at [/framework/core/Test/view/?test=Task](/framework/core/Test/view/?test=Task)), `TaskView`, `TaskPage`, `TasksPage`, references between tasks (`Task.from_ref`), module homes made by the item tool's `tasks.add`.
 - **Wired in:** `Server/AIIndex.mjs` replays every task through `Task.replay` into `ai/index.json`; Servex `open_task` and `TaskDirs --new` make the session-store folders that `Task` reads; the Inbox shows the result.
 - **Wired in (2026-10-20):** [Project.js](Project.js) (`Project extends Task`: six stages, `completion` 0..1 = mean of subtasks, `Project.from_lines`; `node Project.test.mjs`, 9 of 9). `Server/ProjectMove.mjs` moves a project folder into a module and indexes it: [ai/tasks/doc/projects.md](/framework/ai/tasks/doc/projects.md).
 - **Process:** [Process.js](Process.js) (`Process extends Task`: named steps node runs in series; `next()` decides, `Servex/ProcessRunner.js` writes the line and launches each step's session; one `tasks.add {process: "build"}` call creates one; or give your own `steps`). Templates, one subclass each in [processes/](/framework/servex/fs/?file=public/framework/core/Task/processes/): `build` (investigate to merge), `design` (Figma variants coded as pages), `investigate` (questions, scout, findings). The page, with a real run replayed live: [process/](process/). Design and status: [doc/process.md](doc/process.md); the names, decided: [doc/process-names.md](doc/process-names.md). Tests: [Process.test.mjs](Process.test.mjs), `node Servex/ProcessRunner.test.mjs`.
@@ -42,7 +42,7 @@ build.complete({ outcome: "built", evidence: ["a1b2c3d"] });   // only works onc
 build.progress();         // { done: 1, total: 1 } — computed from tasks, never stored
 build.duration();         // ms of RUNNING time — pausing stops the clock
 
-build.tasks.add("Write the readme");                  // a string: a Task with that title (id "write-the-readme", Task.slug)
+build.tasks.add("Write the readme");                  // a string: a Task with that title and a random 8-character id (Item.short_id)
 build.tasks.add({ title: "Shoot it", expected: "…" }); // an object with no type: a Task
 build.tasks.add({ type: "Project", title: "Next" });  // a typed object: that class (Project, Process, Session)
 ```
@@ -70,7 +70,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## render() and TaskView
 
-`task.render()` returns `new Task.View({task})`. `Task.js` stays DOM-free: [`TaskView.js`](./TaskView.js) (`class TaskView extends View`) sets `Task.View` when a browser loads it; in node `render()` warns once and returns `undefined`. `TaskView.chip(task)`, `.row(task)`, `.card(task)` draw the three sizes (icon + title; + state and complete %; + expected, priority, commits, session, module, link). A view reads the live task and redraws on its `change` events; a card also redraws on `tasks` add/remove/reorder. A subclass overrides `render()` to draw itself. This retires the display `Task` that was in `ai/objects.js`.
+`task.render()` returns `new Task.View({task})`. `Task.js` stays DOM-free: [`TaskView.js`](./TaskView.js) (`class TaskView extends View`) sets `Task.View` when a browser loads it; in node `render()` warns once and returns `undefined`. `TaskView.chip(task)`, `.row(task)`, `.card(task)` draw the three sizes (icon + title; + state and complete %; + expected, priority, commits, session, module, link). A view reads the live task and redraws on its `change` events; a card also redraws on `tasks` add/remove/reorder. A subclass overrides `render()` to draw itself. `new TaskView({subject})` works too (`task` defaults to `subject`), so `view(task)` and the default-view tools can draw a task. This retires the display `Task` that was in `ai/objects.js`.
 
 **The row** (`TaskView.row`, `TaskView.css`) is the one look everywhere: one stage checkbox (`TaskView.STAGE`: unchecked, hourglass, play, check, …), title link, one bar segment per child, coloured by state: green done, amber running (it pulses), red waiting or paused, grey not started (past `TaskView.SEGMENTS` = 8, one stacked meter and a "19/24" count, so the title keeps the room). The bar is `TaskView.draw_bar(states, max)`, a static, so any view with child states draws the same one ([ai/sessions/v/mobile/](/framework/ai/sessions/v/mobile/) does); a parent is bigger, previews 3 open children, and a click expands them all. The card shows its children as rows. **Buttons:** a row and a card show Start, Pause, Resume, Stop and Approve, but only the verbs the task's state allows (`task.can(verb)`, read from the same `CAN` map the verbs check; `Task.can(state, verb)` is the same check for a row that has only a state). Each is a 44px icon button. A click calls `task.act(verb)`, which saves the verb through the item tool, stamped `owner` ([core/Item readme](../Item/readme.md)), and does not expand the row. Used by TasksPage (and so every Doc's Tasks tab). The `/live/` Tasks card (`live/LiveTasks.js`) draws no rows: it is one line, "Tasks · N open · M running" (`TasksPage.counts`), linking to [/tasks/](/tasks/). "+ N more open" expands the row, like a click on its head.
 
@@ -94,9 +94,9 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 - **Every transition is one `set()` call**, so it's one replayable delta line and
   fires the same `change`/`delta` events `Item.set_one()` already does — nothing
   hand-rolls a second emit path.
-- **`duration()` counts running time only.** Time spent paused never counts; the
-  open running span lives in memory (`_ran_since`), not in the saved data, so a
-  reload mid-run loses only that open span's few seconds, never the banked total.
+- **`duration()` counts running time only.** Time spent paused never counts. Both parts are saved data: `ran_ms` is the banked time and `ran_since` (an ISO time, `null` when no span is open) is when the open span began, written by `start`, `resume`, `pause`, `stop`, `wait`, `complete` and the verdicts in the same `set()` as the state. A reload keeps the time; an old log without `ran_since` loads with no open span. Test: `core/Item/item-core.test.mjs` (1f).
+- **A replayed child change never writes the parent's completion again.** The parent still derives it (`child_changed`), but while any store replays, nothing is saved (`Item.Store.replay_depth`).
+- **A Task replays its fields through `set_<key>` hooks and reads `{"start()":{}}` / `{"#c3":{…}}` like the bare spellings** (`Item.take`, `Item.unmark`): [core/Item/doc/line-format.md](../Item/doc/line-format.md).
 - **`progress()` is always computed**, never a stored number (CLAUDE.md law 7). No
   subtasks yet reads as `{done: 0, total: 1}` (or `1/1` once complete), so a progress
   bar still means something before the first subtask exists.
@@ -110,6 +110,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
 
 ## More
 
+- **Improvements:** [`Improvements.js`](./Improvements.js), the class of a folder's `improvements.jsonl`: a Task whose list merges a repeated title into the first (more weight, no second task), on write and on replay; test `node Servex/agents/item-generic.test.mjs`.
 - **Prompt and Question:** [doc/prompt.md](doc/prompt.md) · the record shape, the grouping rule and the open defects: [doc/prompt-record.md](doc/prompt-record.md) · [`Prompt.js`](./Prompt.js) · [`sentences.js`](./sentences.js) (the one sentence splitter) · [`Question.js`](./Question.js) · `node Prompt.test.mjs`, `node Question.test.mjs`
 - **Templates** (`template: "code" | "doc" | "scan"` on line 1; an approved task with an `agent` spawns itself): [doc/templates.md](doc/templates.md) (proven live 2026-10-17: approve to spawn in about 1.5 s) · the owner's ask, and whether `task.jsonl` became `session.jsonl`: [doc/owner-2026-10-17-node-driven.md](doc/owner-2026-10-17-node-driven.md)
 - **The owner's words, 2026-10-16:** [task system](doc/owner-2026-10-16-task-system.md) · [composition](doc/owner-2026-10-16-composition.md) · [top-down](doc/owner-2026-10-16-top-down.md) · [UI](doc/owner-2026-10-16-ui.md) · [node side](doc/owner-2026-10-16-node-side.md) · [migration](doc/owner-2026-10-16-migration.md)

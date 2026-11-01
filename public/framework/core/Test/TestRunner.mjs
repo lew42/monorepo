@@ -102,10 +102,25 @@ export default class TestRunner {
 		return this._args;
 	}
 
+	/* SITE_URL: the dev server for THIS checkout, so a browser test checks the code it sits beside, not the live site.
+	   A worktree registered in the main repo's .worktrees.json is <name>.localhost; the main checkout is monorepo.localhost.
+	   (2026-11-01: ChatV3.test ran a branch's new check against the live site's old code, and the merge was refused.) */
+	site_url(){
+		if (this._site) return this._site;
+		this._site = "http://monorepo.localhost";
+		try {
+			const main = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: this.root, windowsHide: true, encoding: "utf8" }).split(String.fromCharCode(10))[0].replace(/^worktree /, "").trim();
+			const reg = JSON.parse(fs.readFileSync(path.join(main, ".worktrees.json"), "utf8"));
+			const hit = Object.values(reg).find(e => e.path && path.resolve(e.path).toLowerCase() === path.resolve(this.root).toLowerCase());
+			if (hit) this._site = `http://${hit.name}.localhost`;
+		} catch {}
+		return this._site;
+	}
+
 	one(file, trigger, extra = {}){
 		return new Promise(resolve => {
 			const t0 = Date.now(); let out = "", timedOut = false;
-			const child = spawn(process.execPath, [...this.node_args(), file], { cwd: this.root, windowsHide: true, env: this._env ?? process.env });
+			const child = spawn(process.execPath, [...this.node_args(), file], { cwd: this.root, windowsHide: true, env: { ...(this._env ?? process.env), SITE_URL: process.env.SITE_URL || this.site_url() } });
 			const timer = setTimeout(() => { timedOut = true; child.kill(); }, this.timeout);
 			child.stdout.on("data", d => out += d);
 			child.stderr.on("data", d => out += d);

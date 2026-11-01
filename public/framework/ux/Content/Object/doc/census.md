@@ -1,5 +1,7 @@
 # Census — which classes are worth a debug view?
 
+> Since 2026-10-28 every object has one: `view(x)` ([default-view.md](default-view.md)). This walk still says which classes are worth a view of their OWN.
+
 This table walks every exported class in `core/`, `ext/` and `ux/` — anything matching
 `export class` or `export default class` at the top level of a `.js` file, skipping
 `ai/`, `core/legacy/`, `core/new/`, `dev/` and sandbox dirs (77 classes; `ui/` and `web/`
