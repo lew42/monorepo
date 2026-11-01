@@ -43,7 +43,8 @@ export default class Tunnel {
         const named = this.named_token();   // present = permanent hostname (TunnelNamed.mjs setup); absent = quick tunnel
         gw.on("error", e => { console.error("gateway port busy: " + e.message); process.exit(1); });
         await new Promise(r => gw.listen(named ? TunnelNamed.PORT : 0, "127.0.0.1", r));
-        if (named) await new SiteGateway().listen();   // monorepo.lew42.com rides the same tunnel (SiteGateway.mjs); a busy port only logs
+        // monorepo.lew42.com rides the same tunnel (SiteGateway.mjs). Any failure there (busy port, no LAN, no key) only logs: the MCP tunnel still starts
+        if (named) try { await new SiteGateway().listen(); } catch (e) { console.error("site gateway not started: " + e.message); }
         const port = gw.address().port;
         const args = named ? ["tunnel", "run", "--token", named] : ["tunnel", "--url", `http://127.0.0.1:${port}`];
         const child = spawn("npx", ["--yes", "cloudflared", ...args], { shell: true, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });

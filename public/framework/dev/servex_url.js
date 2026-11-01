@@ -11,12 +11,14 @@
  *
  * One shared helper instead of three copies of the same localhost check — see
  * `ext/drawer/tabs/ai.js`, `ux/Dictate/Dictate.js` (`log_url`) and
- * `ux/Dictate/playground/Playground.js` (`TIDY_URL`). */
+ * `ux/Dictate/playground/Playground.js` (`TIDY_URL`); also `dev/DevBar/chat.js`,
+ * `ai/v/3/Prompts.js`, `core/Page/ai/live.js` and the Inbox (`core/Page/ext/Inbox/servex.js`).
+ * The same rule serves the owner's tunnel, https://monorepo.lew42.com: off localhost, so `/servex`. */
 const DEV_HOST = /^(localhost|127\.0\.0\.1|.+\.localhost)$/;
 
 /* A dev site: this PC, its LAN, or the owner's tunnel (https://monorepo.lew42.com, Server/SiteGateway.mjs).
  * Only there is Servex worth asking at all; the static production site makes no Servex request. */
-export const DEV_SITE = /^(localhost|127\.|192\.168\.|10\.|.*\.localhost$|monorepo\.lew42\.com$)/;
+export const DEV_SITE = /^(localhost|127\.\S*|192\.168\.\S*|10\.\S*|.*\.localhost|monorepo\.lew42\.com)$/;
 
 export function servex_url(path = ""){
 	return DEV_HOST.test(location.hostname) ? "http://127.0.0.1:8090" + path : location.origin + "/servex" + path;

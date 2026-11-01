@@ -3,7 +3,7 @@ import path from "path";
 import http from "http";
 import net from "net";
 import crypto from "crypto";
-import os from "os";
+import WorktreePreview from "./WorktreePreview.mjs";
 import { fileURLToPath } from "url";
 
 /* The site from anywhere: https://monorepo.lew42.com → this gateway (127.0.0.1:8192, via the named
@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
  * Why the LAN address: the dev server then sees a LAN PEER, exactly like the owner's phone on Wi-Fi, so its own
  * guards still stand: loopback-only routes (/mcp, /screenshot, /devsource.json, /ai-logs, /recordings) refuse it,
  * and the socket gets push traffic only (no rpc:cmd, no rpc:write; Socket.js). On top of that, four checks here:
- *   1. The key. `?key=<remote.token>` once sets an HttpOnly cookie (an HMAC of the token, never the token);
+ *   1. The key. `?site_key=<remote.token>` once sets an HttpOnly cookie (an HMAC of the token, never the token);
  *      no cookie, no entry. Cloudflare Access replaces this once it is enabled (doc below).
  *   2. Origin. A write (any method but GET/HEAD) and every WebSocket must come from our own origin.
  *   3. DENY: the loopback-only dev routes (/mcp, /ai-logs, /screenshot, /recordings, /devsource.json,
@@ -30,25 +30,28 @@ export default class SiteGateway {
     static PORT = 8192;
     static PUBLIC = "https://monorepo.lew42.com";
     static COOKIE = "lew42_site";
-    static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(\/|$)/i;
+    static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(?![\w-])/i;   // a prefix: /mcp, /mcp/x, /mcp;x all match
     static SERVEX = /^\/servex\/(api\/item|api\/page-ai|api\/page-session\/(new|resume)|api\/session\/[\w-]+(\/stream)?|api\/refine(\/live)?|api\/tidy|api\/voice(\/card|\/stream)?|api\/whisper(\/stream)?|api\/hitl|api\/local-chat|log\/prompts)$/;
     static SERVEX_GET = /^\/servex\/(api\/agents|api\/page-agents|api\/page-sessions|api\/sessions|api\/stream|api\/ready-to-merge|waiting)$/;
 
-    constructor({ port = SiteGateway.PORT, target = SiteGateway.target(), key } = {}){
+    constructor({ port = SiteGateway.PORT, target = null, key } = {}){
         this.port = port;
-        this.target = target;   // { host, port, name }: name is the Host header the dev server sees
+        this.fixed = !!target;
+        this.target = target;   // { host, port, name }: name is the Host header the dev server sees; null = look it up (dest())
         this.key = key ?? fs.readFileSync(path.join(SiteGateway.DIR, "remote.token"), "utf8").trim();
         this.cookie = crypto.createHmac("sha256", this.key).update("site-cookie").digest("hex");
     }
 
     // the dev server at this PC's private LAN address (lan() and safe_host() accept it; loopback() does not)
     static target(){
-        const ip = Object.values(os.networkInterfaces()).flat()
-            .find(a => a?.family === "IPv4" && !a.internal && /^(10.|192.168.|172.(1[6-9]|2d|3[01]).)/.test(a.address))?.address;
+        const ip = WorktreePreview.lan_ip();
         if (!ip) throw new Error("no private LAN address on this PC");
-        let port = 3104; try { port = JSON.parse(fs.readFileSync(path.join(SiteGateway.DIR, "ports.json"), "utf8")).monorepo ?? port; } catch {}
+        const port = WorktreePreview.port("monorepo") ?? 3104;
         return { host: ip, port, name: `${ip}:${port}` };
     }
+    // the target, looked up on first use and again after a failed connection (DHCP may have moved the PC)
+    dest(){ return this.target ??= SiteGateway.target(); }
+    lost(){ if (!this.fixed) this.target = null; }
 
     // ── the four checks ────────────────────────────────────────────────────
     has_cookie(req){
@@ -96,9 +99,9 @@ export default class SiteGateway {
         const url = new URL(req.url, SiteGateway.PUBLIC);
         const p = this.clean(url.pathname);
         if (p === null) return res.writeHead(400).end();
-        if (url.searchParams.has("key")){
-            if (!this.key_ok(url.searchParams.get("key"))) return this.locked(res);
-            url.searchParams.delete("key");
+        if (url.searchParams.has("site_key")){
+            if (!this.key_ok(url.searchParams.get("site_key"))) return this.locked(res);
+            url.searchParams.delete("site_key");
             return res.writeHead(302, {
                 "set-cookie": `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`,
                 location: url.pathname + url.search, "cache-control": "no-store" }).end();
@@ -106,14 +109,15 @@ export default class SiteGateway {
         if (!this.has_cookie(req)) return this.locked(res);
         const why = this.refuse(req.method, p, req.headers.origin);
         if (why) return res.writeHead(403, { "content-type": "text/plain" }).end("refused: " + why);
-        const up = http.request({ host: this.target.host, port: this.target.port, method: req.method, path: req.url, headers: this.headers(req) }, r => {
+        let to; try { to = this.dest(); } catch (e) { return res.writeHead(502, { "content-type": "text/plain" }).end("site unreachable: " + e.message); }
+        const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: this.headers(req) }, r => {
             const h = { ...r.headers };
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
             res.writeHead(r.statusCode, h);
             r.pipe(res);
             r.on("error", () => res.destroy());
         });
-        up.on("error", e => { if (process.env.GW_DEBUG) console.error(e); if (!res.headersSent) res.writeHead(502, { "content-type": "text/plain" }); res.end("site unreachable"); });
+        up.on("error", e => { this.lost(); if (process.env.GW_DEBUG) console.error(e); if (!res.headersSent) res.writeHead(502, { "content-type": "text/plain" }); res.end("site unreachable"); });
         res.on("close", () => { if (!res.writableFinished) up.destroy(); });   // the browser left mid-reply (an SSE tab closed): stop the upstream
         req.pipe(up);
     }
@@ -134,13 +138,14 @@ export default class SiteGateway {
         if (p === null) return deny("400 Bad Request");
         if (!this.has_cookie(req)) return deny("401 Unauthorized");
         if (this.refuse(req.method, p, req.headers.origin, true)) return deny("403 Forbidden");
-        const up = net.connect(this.target.port, this.target.host, () => {
+        let to; try { to = this.dest(); } catch { return deny("502 Bad Gateway"); }
+        const up = net.connect(to.port, to.host, () => {
             const h = this.headers(req);
             up.write(`${req.method} ${req.url} HTTP/1.1\r\n` + Object.entries(h).map(([k, v]) => `${k}: ${v}`).join("\r\n") + "\r\n\r\n");
             if (head?.length) up.write(head);
             up.pipe(socket); socket.pipe(up);
         });
-        up.on("error", () => socket.destroy());
+        up.on("error", () => { this.lost(); socket.destroy(); });
         socket.on("close", () => up.destroy());
     }
 
@@ -156,7 +161,7 @@ export default class SiteGateway {
         return new Promise(resolve => {
             s.once("error", e => { console.error("site gateway: " + e.message); resolve(null); });
             s.listen(this.port, "127.0.0.1", () => {
-                fs.writeFileSync(path.join(SiteGateway.DIR, "site.url"), `${SiteGateway.PUBLIC}/?key=${this.key}`);
+                fs.writeFileSync(path.join(SiteGateway.DIR, "site.url"), `${SiteGateway.PUBLIC}/?site_key=${this.key}`);
                 console.log(`site gateway on 127.0.0.1:${this.port} for ${SiteGateway.PUBLIC} (key link in site.url)`);
                 resolve(s);
             });

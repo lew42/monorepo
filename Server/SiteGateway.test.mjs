@@ -30,8 +30,8 @@ const go = (p, o = {}) => fetch(base + p, { redirect: "manual", ...o });
 
 // 1. the key
 assert.strictEqual((await go("/")).status, 401, "no cookie: locked");
-assert.strictEqual((await go("/?key=wrong")).status, 401, "a wrong key: locked");
-const r = await go("/framework/?key=" + KEY + "&x=1");
+assert.strictEqual((await go("/?site_key=wrong")).status, 401, "a wrong key: locked");
+const r = await go("/framework/?site_key=" + KEY + "&x=1");
 assert.strictEqual(r.status, 302, "the key sets the cookie and redirects");
 assert.strictEqual(r.headers.get("location"), "/framework/?x=1", "the key leaves the url");
 const set = r.headers.get("set-cookie");
@@ -42,6 +42,7 @@ const ok = (p, o = {}) => go(p, { ...o, headers: { cookie: cookie + "; other=1",
 
 const page = await ok("/framework/");
 assert.strictEqual(page.status, 200, "a page passes");
+assert.strictEqual((await ok("/framework/?key=abc")).status, 200, "a page's own ?key= is left alone");
 const h = seen.at(-1).headers;
 assert.strictEqual(h.host, "10.0.0.1:3104", "the dev server sees its LAN host");
 assert.strictEqual(h["x-lew42-remote"], "1", "marked remote");
@@ -56,7 +57,7 @@ assert.strictEqual(seen.at(-1).headers.origin, "http://10.0.0.1:3104", "Origin i
 
 // 3 + 4. routes
 for (const p of ["/mcp", "/MCP", "/mcp/remote/x", "/screenshot?path=/", "/devsource.json", "/Servex/agents/x.js", "/Server/Tunnel.mjs", "/ai-logs/x", "/recordings/", "/ask/turn",
-    "/servex/mcp", "/servex/api/projects", "/servex/api/merge", "/servex/api/agents/x/message", "/Servex/api/item", "/a%2fb", "/servex%2fmcp"])
+    "/servex/mcp", "/servex/api/projects", "/servex/api/merge", "/servex/api/agents/x/message", "/Servex/api/item", "/a%2fb", "/servex%2fmcp", "/mcp;x", "/ask/turn?x=1"])
     assert.ok([400, 403].includes((await ok(p, { method: "POST", headers: { origin: ORIGIN } })).status), "refused: " + p);
 assert.strictEqual(gw.clean("/%2e%2e/x"), null, "an encoded climb is refused (fetch itself normalizes it away)");
 assert.strictEqual(gw.clean("/a/%5c/b"), null);

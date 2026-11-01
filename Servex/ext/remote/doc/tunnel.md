@@ -27,7 +27,7 @@ The URL still changes on every real restart of the tunnel, so the connector stil
 The API token in `cloudflare.env` can edit the tunnel and DNS (checked 2026-11-01). Cloudflare Access is **not enabled** on the account.
 
 ## The site from anywhere: monorepo.lew42.com
-Open `https://monorepo.lew42.com/?key=<key>` once on a phone; the full link is in `site.url` next to the other state files. The gateway swaps the key for a 30-day HttpOnly cookie (an HMAC of the key, never the key) and drops it from the address. Without the cookie every path is a 401 "Locked" page.
+Open `https://monorepo.lew42.com/?site_key=<key>` once on a phone; the full link is in `site.url` next to the other state files. The gateway swaps the key for a 30-day HttpOnly cookie (an HMAC of the key, never the key) and drops it from the address. Without the cookie every path is a 401 "Locked" page.
 
 **One origin.** The page, the live-reload WebSocket (`wss://` same host), Whisper (`/whisper/*`) and Servex (`/servex/*`, which the dev server's [ServexProxy](../../../../Server/plugins/ServexProxy.js) forwards) all ride the one host. Pages build Servex URLs with [servex_url()](../../../../public/framework/dev/servex_url.js), which is same-origin `/servex` off localhost; `DEV_SITE` there lists the hosts where Servex is asked at all.
 
