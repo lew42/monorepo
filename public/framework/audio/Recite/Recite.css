@@ -1,0 +1,83 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* Recite.Bar: one quiet line, never floating (requirements: "one small, unobtrusive control line") */
+	.audio-recite-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.25em;
+		font-size: 0.85em;
+		min-inline-size: 0;
+		color: var(--subtle);
+	}
+	.audio-recite-btn {
+		display: inline-grid;
+		place-items: center;
+		inline-size: 2.2em;
+		block-size: 2.2em;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: transparent;
+		color: inherit;
+		cursor: pointer;
+		flex: none;
+	}
+	.audio-recite-btn .icon { font-size: 1.35em; }
+	.audio-recite-btn:hover:not(:disabled) { background: var(--wash); color: var(--ink); }
+	.audio-recite-btn:disabled { opacity: 0.4; cursor: default; }
+	.audio-recite-btn.is-loading .icon { animation: audio-recite-pulse 1s ease-in-out infinite; }
+	.audio-recite-btn.is-on { color: var(--ink); }
+	.audio-recite-btn.is-open { color: var(--prime); }
+
+	.audio-recite-track {
+		position: relative;
+		flex: 1 1 4em;
+		min-inline-size: 3em;
+		block-size: 1.6em;
+		display: flex;
+		align-items: center;
+		overflow: hidden;
+	}
+	.audio-recite-track::before {   /* the thin progress line under the label */
+		content: "";
+		position: absolute;
+		inset: auto 0 0.15em 0;
+		block-size: 2px;
+		background: var(--line);
+	}
+	.audio-recite-fill {
+		position: absolute;
+		inset: auto auto 0.15em 0;
+		block-size: 2px;
+		background: var(--prime);
+	}
+	.audio-recite-label {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		font-variant-numeric: tabular-nums;
+		padding-block-end: 0.3em;
+	}
+	.audio-recite-bar.is-heard .audio-recite-label { color: var(--ink); }
+	.audio-recite-bar.is-error .audio-recite-label { color: var(--error); }
+
+	.audio-recite-voice {
+		flex: none;
+		max-inline-size: 6.5em;
+		font: inherit;
+		color: inherit;
+		background: transparent;
+		border: 0;
+	}
+	.audio-recite-threshold {
+		flex: none;
+		inline-size: 4em;
+		accent-color: var(--prime);
+		background: linear-gradient(to right, var(--line) var(--audio-recite-level, 0%), transparent 0);
+		border-radius: 1em;
+	}
+	.audio-recite-hide { display: none; }
+
+	@keyframes audio-recite-pulse { 50% { opacity: 0.35; } }
+}
