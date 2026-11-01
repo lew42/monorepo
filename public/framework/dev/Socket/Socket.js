@@ -9,6 +9,8 @@ function promise(){
 	return promise;
 }
 
+import Link from "./Link.js";
+
 export default class Socket {
 	// history and reasons: /framework/dev/Socket/doc/Socket-notes.md
 
@@ -86,7 +88,7 @@ export default class Socket {
 		this.connected = true;
 		this.fails = 0;
 		this.ever_connected = true;
-		this.hide_reconnecting();
+		Link.report("dev", null);
 		this.ready.resolve();
 		this.rpc("hello", window.location.pathname, this.tab());
 		this.emit("open");   // core/Item/Outbox.js sends again whatever the server has not acked
@@ -107,8 +109,8 @@ export default class Socket {
 			this.ready = promise();
 		}
 
-		// Only a drop that lasts says "restarting": a blip (a tunnel reconnect, a sleeping phone) is healed before the strip would show.
-		if (this.ever_connected && !this.strip_timer) this.strip_timer = setTimeout(() => { this.strip_timer = null; if (!this.connected) this.show_reconnecting(); }, 5000);
+		// One banner for every wire (Link.js); it shows only once the drop has lasted, so a blip never flashes it.
+		if (this.ever_connected) Link.report("dev", { why: "the dev server is not answering (restarting?)", retry: () => this.restart() });
 
 		// Never connected here (a static host, a refused peer): back off to a minute, say so once, let
 		// send()/request() return instead of parking, and give up after about five minutes.
@@ -119,22 +121,6 @@ export default class Socket {
 		const delay = Math.min(250 * 2 ** this.fails++, this.ever_connected ? 10000 : 60000);
 		if (!this.warned) { this.warned = true; console.warn("Socket not connected; retrying quietly in the background."); }
 		this.retry = setTimeout(() => this.connect(), delay);
-	}
-
-	show_reconnecting() {
-		if (this.strip || !document.body) return;
-		this.inject_style("dev-reconnect", "@layer util { .dev-reconnect-strip { position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 61; padding: 0.3em 0.9em; background: #78350f; color: #fef3c7; font: 0.8rem system-ui, sans-serif; text-align: center; } }");
-		const strip = this.strip = document.createElement("div");
-		strip.className = "dev-reconnect-strip";
-		strip.textContent = "server restarting… reconnecting";
-		document.body.prepend(strip);
-	}
-
-	hide_reconnecting() {
-		clearTimeout(this.strip_timer);
-		this.strip_timer = null;
-		this.strip?.remove();
-		this.strip = null;
 	}
 
 	inject_style(marker, css) {

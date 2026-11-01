@@ -5,6 +5,7 @@ import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
 import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
 import DictateHealth from "./DictateHealth.js";
+import Link from "/framework/dev/Socket/Link.js";
 import Recite from "/framework/audio/Recite/Recite.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
 
@@ -151,7 +152,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	const owner = keep ? GLOBAL : create_controller({ persist: false });
 	let panel, pushed_for = null, stop_watch = null, stop_stream = null, own_ats = new Set(), watching = "unset";
 	let resume_label = null, resume_session = null, watching_since = null, wire_timer = null, link_why = null;
-	let link = { state: "open" };   // the live wire to Servex: "open" | "down" {why, since}, down only past WIRE_GRACE_MS; the sheet's Reconnect button shows it
+	let link = { state: "open" };   // the live wire to Servex: "open" | "down" {why, since}, down only past WIRE_GRACE_MS; dev/Socket/Link.js draws the one banner
 	const on_link = new Set();
 	// Duplicate-draw fix: both watch() and stream() call draw(); dedupe by line: doc/chat-notes.md
 	let seen_chat = new Set();
@@ -329,7 +330,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			if (DictateHealth.layers.wire.state === "idle" || DictateHealth.layers.wire.why.startsWith("the live wire")) DictateHealth.set("wire", "ok", "the live wire to Servex is open");
 		} });
 	}
-	function set_link(next){ link = next; for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
+	function set_link(next){ link = next; Link.report("servex", next.state === "down" ? { why: next.why, since: next.since, retry: () => stop_stream?.reconnect?.() } : null); for (const fn of on_link) try { fn(link); } catch (e){ console.error("chat on_link:", e); } }
 
 	attach();
 	owner.report_nav(target.path, target.card);

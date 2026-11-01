@@ -236,7 +236,6 @@ export class SheetPanel extends View {
 
 	render(){
 		this.head();
-		this.link_row();
 		this.handle();
 		new Inbox.Compact({ page: drawer.page() }).view();
 		this.$slot = div.c("drawer-rail-sheet-panel");
@@ -422,46 +421,12 @@ export class SheetPanel extends View {
 		});
 		this.panel = this.mount.panel;
 		DictationBar.mount(this.panel);   // the sheet's mic footer (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
-		this.mount.on_link?.(link => this.link_state(link));
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
 		this.v2_off_change = chat.on_change(() => this.v2.sync());   // a new or resumed session: Chat v2 follows its file
 		this.v2.sync();
 		return this.mount;
-	}
-
-	// The Reconnect button reopens ONE thing, the chat's live wire to Servex (Session.stream), and shows only once it has been
-	// down past chat.js's WIRE_GRACE_MS, saying for how long and why: doc/sheet.md#reconnect.
-	link_row(){
-		this.$reconnect = div.c("drawer-rail-sheet-reconnect flex v-center", () => {
-			this.$reconnect_why = span.c("drawer-rail-sheet-reconnect-why");
-			button.c("drawer-rail-sheet-reconnect-go", "Reconnect").attr("type", "button").click(() => this.reconnect());
-		}).attr("hidden", "").attr("role", "status");
-	}
-
-	link_state(link){
-		this.link = link;
-		clearInterval(this.link_tick);
-		const down = link.state === "down";
-		this.$reconnect.el.hidden = !down;
-		if (!down) return;
-		this.draw_reconnect();
-		this.link_tick = setInterval(() => this.el.isConnected && this.link?.state === "down" ? this.draw_reconnect() : clearInterval(this.link_tick), 1000);
-	}
-
-	draw_reconnect(){
-		const { why = "not connected", since = Date.now() } = this.link ?? {};
-		const words = Date.now() < (this.trying_until ?? 0) ? "trying now…" : `Servex link down ${Math.round((Date.now() - since) / 1000)} s: ${why}`;
-		this.$reconnect_why.text(words);
-		this.$reconnect.attr("title", `${words}. This is the live wire that brings the AI's replies; it retries by itself (1 s, doubling to 15 s). Press to try now. Log: /framework/audio/Whisper/log/`);
-	}
-
-	reconnect(){
-		try {
-			if (this.mount?.reconnect?.()) this.trying_until = Date.now() + 1500;
-			this.draw_reconnect();
-		} catch (e){ console.error("Sheet reconnect:", e); }   // a press must never break the sheet
 	}
 
 	show({ listen = true } = {}){

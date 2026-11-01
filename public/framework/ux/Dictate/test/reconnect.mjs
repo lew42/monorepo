@@ -42,11 +42,11 @@ await page.addInitScript(() => {
 		close(){ window.__wires.delete(this); return super.close(); }
 	};
 	let was = false;
-	new MutationObserver(() => { const b = document.querySelector(".drawer-rail-sheet-reconnect"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
+	new MutationObserver(() => { const b = document.querySelector(".dev-link"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
 		.observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
 });
-const shown = () => page.evaluate(() => !document.querySelector(".drawer-rail-sheet-reconnect")?.hidden);
-const label = () => page.evaluate(() => document.querySelector(".drawer-rail-sheet-reconnect")?.textContent ?? "");
+const shown = () => page.evaluate(() => !document.querySelector(".dev-link")?.hidden);
+const label = () => page.evaluate(() => document.querySelector(".dev-link")?.textContent ?? "");
 const wires = () => page.evaluate(() => window.__wires.size);
 
 await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
@@ -68,10 +68,10 @@ const text = await label();
 check(await shown() && /Servex link down \d+ s: .*error.*Reconnect/.test(text), `down 10 s: shown, saying “${text}”`);
 if (dir){ fs.mkdirSync(dir, { recursive: true }); await page.screenshot({ path: dir + "/reconnect-down.png" }); }
 const before = hits, wires_before = await wires();
-await page.click(".drawer-rail-sheet-reconnect-go");
+await page.click(".dev-link-go");
 await page.waitForTimeout(300);
 check(hits > before, `a press asks at once (${hits - before} new request), and says “${await label()}”`);
-for (let i = 0; i < 10; i++){ await page.click(".drawer-rail-sheet-reconnect-go"); await page.waitForTimeout(40); }
+for (let i = 0; i < 10; i++){ await page.click(".dev-link-go"); await page.waitForTimeout(40); }
 await page.waitForTimeout(300);
 check(await wires() <= Math.max(1, wires_before), `ten fast presses: ${await wires()} live wire(s) open, never two`);
 check(!errors.length, errors.length ? "page errors: " + errors.join(" | ") : "no page errors");
