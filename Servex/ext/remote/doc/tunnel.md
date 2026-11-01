@@ -16,9 +16,31 @@ A quick tunnel gets a **new random hostname every time it starts**, and nothing 
 
 The URL still changes on every real restart of the tunnel, so the connector still needs a re-paste then. The fix is a fixed hostname:
 
-## A stable hostname (named mode built 2026-10-20, blocked on the API token)
-[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` creates the tunnel `servex`, its ingress (`servex.lew42.com` to the gateway on fixed port 8191) and the proxied CNAME, then stores the run token at `%LOCALAPPDATA%lew42servexemote.tunnel.token`. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` then runs `cloudflared tunnel run --token` and writes `https://servex.lew42.com/mcp/remote/<token>` to `remote.url` **only when that token file exists**; without it, it is the quick tunnel above.
+## A stable hostname (live since 2026-10-20)
+[TunnelNamed.mjs](../../../../Server/TunnelNamed.mjs) `setup` makes the tunnel `servex`, one ingress line and one proxied CNAME per entry in `TunnelNamed.HOSTS`, then stores the run token at `remote.tunnel.token` (same folder). Safe to re-run; the running cloudflared picks up a new ingress by itself, no restart. [Tunnel.mjs](../../../../Server/Tunnel.mjs) `up` runs `cloudflared tunnel run --token` when that file exists (otherwise the quick tunnel above).
 
-**Blocked (checked 2026-10-20):** the token in `cloudflare.env` can only list. `POST /accounts/<id>/cfd_tunnel` and `GET /zones/<id>/dns_records` both return 10000 Authentication error. It needs exactly two permissions: **Account → Cloudflare Tunnel → Edit** and **Zone → DNS → Edit** (zone `lew42.com`). Then run `node Server/TunnelNamed.mjs setup`, `node Server/Tunnel.mjs down`, `node Server/Tunnel.mjs up`.
+| Public host | Local gateway | What passes |
+|---|---|---|
+| `servex.lew42.com` | `Tunnel.gateway()`, 127.0.0.1:8191 | `/mcp/remote/<token>` only |
+| `monorepo.lew42.com` | [SiteGateway.mjs](../../../../Server/SiteGateway.mjs), 127.0.0.1:8192 | the site, behind the key cookie |
 
-**Adding a dashboard path later:** `Tunnel.gateway()` passes only `/mcp/remote/...`; add the new path to its allow-check (behind Cloudflare Access). Cloudflare itself needs no change, since the ingress points at the gateway.
+The API token in `cloudflare.env` can edit the tunnel and DNS (checked 2026-11-01). Cloudflare Access is **not enabled** on the account.
+
+## The site from anywhere: monorepo.lew42.com
+Open `https://monorepo.lew42.com/?key=<key>` once on a phone; the full link is in `site.url` next to the other state files. The gateway swaps the key for a 30-day HttpOnly cookie (an HMAC of the key, never the key) and drops it from the address. Without the cookie every path is a 401 "Locked" page.
+
+**One origin.** The page, the live-reload WebSocket (`wss://` same host), Whisper (`/whisper/*`) and Servex (`/servex/*`, which the dev server's [ServexProxy](../../../../Server/plugins/ServexProxy.js) forwards) all ride the one host. Pages build Servex URLs with [servex_url()](../../../../public/framework/dev/servex_url.js), which is same-origin `/servex` off localhost; `DEV_SITE` there lists the hosts where Servex is asked at all.
+
+**Why it is safe enough.** The gateway dials the dev server at this PC's **LAN address** (10.x:3104), never loopback, so the dev server treats it exactly like the owner's phone on Wi-Fi: `/mcp`, `/screenshot`, `/devsource.json`, `/ai-logs` and `/recordings` refuse it, and the socket gets push traffic only (`rpc:cmd` and `rpc:write` answer "refused"). On top, the gateway itself:
+1. requires the cookie;
+2. requires `Origin: https://monorepo.lew42.com` on every write and every WebSocket;
+3. refuses `/mcp`, `/screenshot`, `/recordings`, `/devsource.json`, `/Servex/`, `/Server/`, `/ai-logs`, `/ask` and `/push/send` outright;
+4. passes `/servex/*` only for the page routes in `SiteGateway.SERVEX` and `SERVEX_GET` (items, sessions, voice, refine, whisper, prompts, the agent list). `/servex/mcp`, merge, project start/stop and agent messages are refused.
+
+These routes still pass on purpose, because they are the features: `/api/item` (page edits), `/api/session/*` and `/api/voice*` (chat and the voice agent, which drive agents and paid model calls), `/api/page-ai`. Whoever holds the key can use them, so the key is a password: never paste `site.url` anywhere public.
+
+**Running it.** `node Server/Tunnel.mjs up` starts both gateways in named mode (the keeper does this). `node Server/SiteGateway.mjs` runs the site gateway alone. Test: `node Server/SiteGateway.test.mjs`.
+
+**Later: a real login.** Once Access is enabled (Zero Trust → team name → Free plan) and the token has **Access: Apps and Policies → Edit**, put an Access application with the owner's email in front of `monorepo.lew42.com`; the key cookie can then go.
+
+The whole network (processes, ports, which page calls which origin): [network-map.md](../../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/remote-site-tunnel/network-map.md).
