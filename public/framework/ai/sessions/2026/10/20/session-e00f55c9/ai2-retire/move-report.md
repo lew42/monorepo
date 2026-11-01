@@ -24,6 +24,7 @@ Written by [move-ai2.mjs](./move-ai2.mjs) on 2026-11-01; every number here was c
 - **Flat session folders** (`ai/sessions/<uuid>/`, the shape before the dated tree): 1 folded into their dated folder (70f4fedc-e673-4e10-9cdf-425c8e808bcd -> 2026/10/25/session-70f4fedc).
 - **ai2 records:** 40 tracked files under `public/framework/ai2/` (tasks/, ai/, overview/, page.jsonl, weight.jsonl) removed with `git rm`; git history is the undo.
 - **Old places outside the store:** 27 files under `ai/2026/`, `ai/2026-10-13/` and `ai/archive/ai2/` (the old dated card logs and the old ai2 page logs, every line now in the store) removed, tracked ones with `git rm`. Nothing session-shaped is left outside `ai/sessions/YYYY/MM/DD/<name>/`.
+- **Emptied folders:** all 795 of the 795 folders named by a redirect line (794 twins, 1 flat folder) and all 6 old-place and ai2 record folders are gone ([cleanup.json](./cleanup.json), `move-ai2.mjs --cleanup`). A follow-up commit removed 8 folder listings that the watcher had rewritten while their folders were being emptied.
 - **Held, not touched:** none.
 
 ## Why it happened

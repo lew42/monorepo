@@ -78,6 +78,33 @@ function measure(){
 // Needs no plan, so it can run any time before the commit: every removed or replaced file is rebuilt (gitignored ones from the backup,
 // tracked ones from HEAD), every line of it is looked for in every .jsonl under public/, and every session id a removed index.json named
 // must still have a folder. Writes verify.json and the "Nothing lost" paragraph of move-report.md.
+// ---------- --cleanup --backup <dir>: the folders this move emptied. A folder named by a redirect line of this run, the old places and
+// ai2's record folders go when nothing is left in them but the listing the watcher (Server/plugins/PageFiles.js) rewrote as their
+// files went (untracked, backed up first). A folder with any other file is left and listed. Repeated, since the watcher writes as folders change.
+if (args.includes("--cleanup")){
+	const BK = BACKUP ?? (() => { console.error("--cleanup needs --backup <dir>"); process.exit(2); })();
+	const tr = new Set(git("ls-files", "-z", "public/framework/ai", "public/framework/ai2").split("\0").filter(Boolean));
+	const L = "public/framework/ai/sessions/task-moves.jsonl";
+	const dirs = [...new Set(lines_of(read(abs(L))).map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(j => j?.run === "move-ai2-2026-11-01" && j.kind === "redirect").map(j => abs(j.from)))];
+	dirs.push(...["2026", "2026-10-13", "archive/ai2"].map(d => path.join(AI, d)), ...["tasks", "ai", "overview"].map(d => path.join(AI2, d)));
+	const out = { removed_dirs: 0, removed_listings: [], left: [] };
+	const isListingOnly = p => lines_of(read(p)).every(l => /^\{"file":"[^"]*"(,"gone":true)?\}$/.test(l));
+	const clean = d => {
+		if (!fs.existsSync(d)) return;
+		for (const e of fs.readdirSync(d, { withFileTypes: true })) if (e.isDirectory()) clean(path.join(d, e.name));
+		const left = fs.readdirSync(d), lp = path.join(d, "files.jsonl");
+		if (left.length === 1 && left[0] === "files.jsonl" && isListingOnly(lp)){ const to = path.join(BK + "-listings", rel(lp)); fs.mkdirSync(path.dirname(to), { recursive: true }); fs.copyFileSync(lp, to); if (tr.has(rel(lp))) { git("rm", "-q", "-f", "--", rel(lp)); tr.delete(rel(lp)); } else fs.rmSync(lp); out.removed_listings.push(rel(lp)); }   // a tracked listing goes with git rm -f: it holds only listing lines, and HEAD keeps it
+		if (!fs.existsSync(d)){ out.removed_dirs++; return; }   // git rm takes an emptied folder with it
+		if (!fs.readdirSync(d).length){ fs.rmdirSync(d); out.removed_dirs++; }
+	};
+	for (let pass = 0; pass < 5; pass++){ for (const d of dirs) clean(d); Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000); }
+	out.left = dirs.filter(d => fs.existsSync(d)).map(d => rel(d) + ": " + fs.readdirSync(d).join(", "));
+	out.redirected_folders = dirs.length - 6; out.redirected_folders_gone_now = dirs.slice(0, -6).filter(d => !fs.existsSync(d)).length; out.old_places_and_ai2_folders_gone_now = dirs.slice(-6).filter(d => !fs.existsSync(d)).length;
+	out.removed_listings = [...new Set(out.removed_listings)];
+	fs.writeFileSync(path.join(HERE, "cleanup.json"), JSON.stringify({ at: new Date().toISOString(), folders_checked: dirs.length, ...out }, null, 1));
+	console.log(JSON.stringify({ folders_checked: dirs.length, redirected_folders: out.redirected_folders, redirected_folders_gone_now: out.redirected_folders_gone_now, old_places_and_ai2_folders_gone_now: out.old_places_and_ai2_folders_gone_now, removed_dirs: out.removed_dirs, removed_listings: out.removed_listings.length, left: out.left }, null, 1));
+	process.exit(out.left.length ? 3 : 0);
+}
 if (args.includes("--verify")){
 	const LEDGER_PATH = "public/framework/ai/sessions/task-moves.jsonl", RUN_TAG = "move-ai2-2026-11-01";
 	const BK = BACKUP ?? (() => { console.error("--verify needs --backup <dir>"); process.exit(2); })();
