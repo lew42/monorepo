@@ -37,7 +37,7 @@ try {
 	check("raw hidden by default", await page.$(first + " .chat-v3-raw") === null);
 	await tap(first + " .chat-v3-toggle");
 	check("show raw reveals every raw chunk", (await page.$$(first + " .chat-v3-raw-line")).length === 2);
-	check("card has a link to itself", (await page.getAttribute(first + " .chat-v3-link", "href")).endsWith("#p-1761382800000"));
+	check("no unexplained link icon; the card keeps its id, so #<id> still opens it", !(await page.$(first + " .chat-v3-link")) && (await page.getAttribute(first, "id")) === "p-1761382800000");
 	if (shots) {
 		mkdirSync(shots, { recursive: true });
 		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });

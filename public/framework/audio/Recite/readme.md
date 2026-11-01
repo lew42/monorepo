@@ -20,7 +20,8 @@ In the chat it is already wired: the phone sheet (✦) shows the bar above the m
 - **`Recite`** ([Recite.js](Recite.js)) is the manager. It splits text into sentences, has its `Voice` render each one, and plays them on one timeline through one `<audio>` element. It checks the server and falls back to the browser's voice when it is down. It also follows a chat session's live wire (`from_wire(ev)`).
 - **`Voice`** ([../Voice/Voice.js](../Voice/Voice.js)) is one voice, a persona: a recite-server voice id and a speed. `render(text)` returns one sentence as a WAV; `speak(text)` is the browser's own voice. `Voice.PERSONAS` lists seven.
 - **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads. A sound above the threshold pauses at once; then Whisper checks it. No words means noise, and reading resumes; your words keep it paused. With the chat's mic on, it listens to that mic instead of opening a second one.
-- **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold.
+- **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold. Under it, while reading, the karaoke line: the sentence being read, its current word lit.
+- **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds.
 
 Decisions and why: [doc/architecture.md](doc/architecture.md).
 
@@ -41,6 +42,6 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 ## Files
 
-- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [Recite.css](Recite.css), [page.js](page.js) (the demo)
+- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [Recite.css](Recite.css), [page.js](page.js) (the demo)
 - [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
 - [doc/architecture.md](doc/architecture.md)

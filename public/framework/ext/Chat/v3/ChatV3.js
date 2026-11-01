@@ -150,7 +150,6 @@ export default class ChatV3 extends JSONL {
 		const title = p.get_one("title"), open = this.raw_open.has(p.id);
 		div.c("chat-v3-head", () => {
 			if (title) h3.c("chat-v3-title", title);
-			this.link(p);
 		});
 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
 		 * only for the whisper finalization"). A sentence in the file is final, so it is solid: the cleaned text, else the words heard. */
@@ -171,18 +170,9 @@ export default class ChatV3 extends JSONL {
 		wrap.append(() => {
 			icon(this.constructor.ASK_ICON[phase] ?? "help_outline").ac("chat-v3-state", "is-" + phase);
 			div.c("chat-v3-ask-body", () => {
-				div.c("chat-v3-ask-head", () => { h4.c("chat-v3-ask-text", q.text ?? q.id); this.link(q); });
+				div.c("chat-v3-ask-head", () => h4.c("chat-v3-ask-text", q.text ?? q.id));
 				if (q.answer) md_into(div.c("chat-v3-answer md").el, q.answer.text ?? "");
 			});
-		});
-	}
-
-	// A task has no page of its own yet: its link is a permalink to its card in this chat.
-	link(node){
-		const href = location.pathname + location.search + "#" + node.id;
-		a.c("chat-v3-link", icon("link")).href(href).attr("title", "Link to this card").click(e => {
-			e.preventDefault(); history.replaceState(history.state, "", href);
-			document.getElementById(node.id)?.scrollIntoView({ block: "center" });
 		});
 	}
 

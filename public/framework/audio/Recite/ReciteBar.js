@@ -4,7 +4,8 @@ import Voice from "../Voice/Voice.js";
 /**
  * class ReciteBar extends View — `Recite.Bar`, the one small control line:
  * read new replies by themselves (on/off), play/pause, back 10 s, restart, the progress line (or the last barge-in
- * note), the voice, and the barge-in mic with its threshold.
+ * note), the voice, and the barge-in mic with its threshold. Under it, while reading, the karaoke line: the sentence
+ * being read with its current word lit (`draw_now`).
  *
  *   new Recite.Bar({ recite });   // or recite.bar
  */
@@ -14,6 +15,7 @@ export default class ReciteBar extends View {
 		const r = this.recite;
 		this.ac("audio-recite-wrap");   // the container its narrow layout queries (Recite.css)
 		div.c("audio-recite-bar", () => this.controls(r));
+		this.$now = div.c("audio-recite-now").attr("aria-live", "off");   // the karaoke line: the sentence being read, its word lit
 
 		this.off = r.on(() => {
 			if (this.el.isConnected) this.seen = true;
@@ -63,6 +65,21 @@ export default class ReciteBar extends View {
 		this.$mic.tc("is-on", b.on).tc("is-open", !!b.mic);
 		this.$threshold.tc("audio-recite-hide", !b.on);
 		if (b.mic && !this.meter) this.meter = requestAnimationFrame(() => this.draw_level());
+		this.draw_now();
+	}
+
+	/** The sentence being read, one span per word, the current word lit (Recite.Highlight works out which); every frame while playing. */
+	draw_now(){
+		cancelAnimationFrame(this.now_frame); this.now_frame = 0;
+		const now = this.recite.highlight?.now();
+		this.$now.el.hidden = !now;
+		if (!now) { this.now_text = null; return; }
+		if (this.now_text !== now.text){
+			this.now_text = now.text;
+			this.$now.el.replaceChildren(...now.words.map(w => Object.assign(document.createElement("span"), { textContent: w + " " })));
+		}
+		[...this.$now.el.children].forEach((s, i) => { s.classList.toggle("is-now", i === now.word); s.classList.toggle("is-said", i < now.word); });
+		if (this.recite.state === "playing" && this.el.isConnected) this.now_frame = requestAnimationFrame(() => this.draw_now());
 	}
 
 	/** The mic level behind the threshold slider, once per frame while the mic is open. */

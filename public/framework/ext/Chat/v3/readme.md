@@ -13,7 +13,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws Chat v2's [fixt
 - **Gray only for unsent words** (the owner, 2026-10-26: "light gray to black reserved only for the whisper finalization"): a sentence in the file is final, so it is solid at once. The words still being spoken show as a faint dashed draft at the end (the composer's mic fires a `chat-live` window event, one line in `ux/Dictate/Widget.js`).
 - **Windowed:** the newest 40 cards, with "show earlier (N)" (a 392-card real log stays quick).
 - **In place:** a live line redraws only the card it touched. The scroll lock is the drawer's own (`ext/drawer/ChatView.js`).
-- **Per-task link:** there is no route per task yet, so each card has a `#<id>` permalink to itself in the chat.
+- **Per-task link:** there is no route per task yet; each card carries its id, so `#<id>` on the chat's url scrolls to it. The link icon is gone (the owner, 2026-11-01: it was not clear where it went).
 
 ## Where it shows
 

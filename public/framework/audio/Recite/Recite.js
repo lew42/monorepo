@@ -4,6 +4,7 @@ import Part from "../Part.js";
 import Voice from "../Voice/Voice.js";
 import BargeIn from "./BargeIn.js";
 import ReciteBar from "./ReciteBar.js";
+import ReciteHighlight from "./ReciteHighlight.js";
 
 View.stylesheet(import.meta, "Recite.css");
 
@@ -13,8 +14,9 @@ View.stylesheet(import.meta, "Recite.css");
  * recite-server (Kokoro, Servex/ext/recite/), and plays them on one timeline,
  * so pause, back 10 s and restart work across sentences. When the server is
  * down it falls back to the browser's own voice and keeps checking for the
- * server. Its parts: `Recite.BargeIn` (pauses when you talk) and `Recite.Bar`
- * (the one-line control). How it fits: readme.md.
+ * server. Its parts: `Recite.BargeIn` (pauses when you talk), `Recite.Bar`
+ * (the one-line control) and `Recite.Highlight` (the karaoke playhead: the
+ * sentence and word being read light up in the chat). How it fits: readme.md.
  *
  *   const recite = new Recite();
  *   recite.read("Hello there. This is read aloud.");
@@ -44,6 +46,7 @@ export default class Recite extends Part {
 		this.audio?.addEventListener("ended", () => this.ended());
 		this.audio?.addEventListener("timeupdate", () => this.changed());
 		this.barge = new this.constructor.BargeIn({ recite: this });
+		this.highlight = new this.constructor.Highlight({ recite: this });
 		Recite.track?.(this);
 	}
 
@@ -267,6 +270,7 @@ export default class Recite extends Part {
 	speak_browser(i, token){
 		const c = this.chunks[i];
 		this.engine = "browser";
+		c.began = globalThis.performance?.now?.();   // the highlight's clock: the browser's voice has no currentTime
 		c.seconds ??= c.text.length / 15;   // an estimate, so back 10 s still steps back a sentence or two
 		this.retime();
 		this.set("playing");
@@ -345,6 +349,7 @@ export default class Recite extends Part {
 
 Recite.BargeIn = BargeIn;
 Recite.Bar = ReciteBar;
+Recite.Highlight = ReciteHighlight;
 track(Recite);
 
 export { Recite };
