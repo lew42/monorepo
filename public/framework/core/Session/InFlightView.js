@@ -23,7 +23,7 @@ export default class InFlightView extends View {
 		const picks = [...this.sessions].map(([url, s]) => ({ url, s, ...InFlight.pick(s) }));
 		const shown = this.all ? picks.filter(p => p.inflight.length || p.waiting.length) : picks;
 		const loading = picks.reduce((n, p) => n + InFlight.loading(p.s), 0);
-		if (!picks.length) return void div.c("if-empty muted", "Reading the session…");   // its file has not arrived yet: not the same as empty
+		if (!picks.length && this.readers.length) return void div.c("if-empty muted", "Reading the session…");   // its file has not arrived yet: not the same as empty
 		if (loading && !shown.length) return void div.c("if-empty muted", `Reading ${loading} task${loading > 1 ? "s" : ""}…`);
 		if (!shown.length || shown.every(p => !p.inflight.length && !p.waiting.length && !p.next.length)) return void div.c("if-empty", this.empty_text);
 		for (const p of shown){

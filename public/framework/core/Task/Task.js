@@ -504,7 +504,7 @@ export class Task extends Item {
 			const res = await fetch(store.url).catch(() => null);
 			const entries = res?.ok ? store.parse(await res.text()) : [];
 			if (!entries.length) kid.set({ state: "missing" });
-			else { kid.put("state", "idle"); for (const e of entries) kid.replay_line(e); }
+			else { kid.put("state", "idle"); for (const e of entries) kid.replay_line(e); kid.replay_end?.(); }
 			return;
 		}
 		if (!store.count){ kid.set({ state: "missing" }); return; }

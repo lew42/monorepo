@@ -17,6 +17,10 @@ A short block that shows, for one session: what is being worked on now, what wai
 | [InFlightView.js](../InFlightView.js) | The view. One `SessionTasks` reader per session record (`.live()`), so it follows `session.jsonl` with no polling timer. `{url}` is one session; `{urls, all: true}` is many, showing only sessions with something in flight or waiting. |
 | [InFlight.css](../InFlight.css) | Styles, in `@layer site`. |
 | [InFlight.test.mjs](../InFlight.test.mjs) | `node public/framework/core/Session/InFlight.test.mjs` |
+| [InFlight.real.test.mjs](../InFlight.real.test.mjs) | The same over copies of real folders in [fixtures/](../fixtures/): a running process, a running agent folder, a complete task. |
+| [Task/legacy-open.test.mjs](../../Task/legacy-open.test.mjs) | Reading a legacy log infers its state and appends 0 lines. |
+
+While a session's file or its task files are still being read, the block says "Reading the session…" / "Reading N tasks…", not "Nothing is in flight." ([in-flight-real-400.png](in-flight-real-400.png)). `Task.open_ref` ends each opened reference with `replay_end`, so a spawned agent's folder (no `start` verb) reads running in the browser as in node; `Task.replay_end` never saves what it infers.
 
 ## Where it is used
 
@@ -33,6 +37,3 @@ Not a new task card: the rows are plain links and bars over the same `Session` r
 - The `/framework/ai/` block asks the same `inflight` query as `ai/now/AINow.js` (`state`, `last_activity`, `url` per row). It draws nothing if the query fails.
 - **Which five** are shown: running tasks that have a current line or some progress first, then by most recent activity.
 
-## Real-page fix (2026-11-02)
-
-On a real session the block said "Nothing is in flight." for up to ~15 s: the session file had not arrived, and each `{task}` reference reads its own file afterwards. It now says "Reading the session…" / "Reading N tasks…" until they have. Also, a spawned agent's folder (no `start` verb) read `idle` in the browser but `running` in node; `Task.open_ref` now calls `replay_end` after attaching, so both agree. Test over a copy of real lines: `InFlight.real.test.mjs` (fixtures in `fixtures/`). Shot: `in-flight-real-400.png`.
