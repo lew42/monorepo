@@ -160,7 +160,7 @@ export default class ChatV3 extends JSONL {
 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
 		div.c("chat-v3-head", () => {
 			if (title) h3.c("chat-v3-title", title);
-			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
+			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
 			this.marks(p);
 		});
 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
@@ -208,6 +208,18 @@ export default class ChatV3 extends JSONL {
 	static paragraphs(sentence_items, clean = {}){ return paragraphs(sentence_items, clean); }
 	static paragraph_groups(sentence_items){ return paragraph_groups(sentence_items); }
 	static first_words(text, n = 8){ const w = String(text ?? "").split(/\s+/).filter(Boolean); return w.slice(0, n).join(" ") + (w.length > n ? "…" : ""); }
+	static norm_words(text){ return String(text ?? "").toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, "").replace(/\s+/g, " ").trim(); }
+
+	/* A chit-chat Prompt ("Hello") has no AI title and no refined text, so the muted first-words title (above) reads
+	 * as the exact same line as the body right under it (the owner, 2026-11-02: "Hello" over "Hello" again). Drop the
+	 * title only there: a real topic card — an AI title, or refined text — always keeps its title (the owner's call:
+	 * a chit-chat card is fine to exist, its title just should not repeat its own one or two sentences). */
+	redundant_title(p){
+		if (p.title || p.text) return false;
+		const body = p.cleaned || p.raw;
+		if (ChatV3.norm_words(ChatV3.first_words(body)) === ChatV3.norm_words(body)) return true;
+		return p.sentence_items.length <= 2;
+	}
 
 	// A Question is a few words; its answer is one or two short sentences.
 	question(q){

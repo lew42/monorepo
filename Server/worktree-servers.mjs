@@ -2,7 +2,7 @@
  * whether its worktree is still wanted. A dry run; it stops nothing.
  *
  *   --list                   (default) the table
- *   --stop-stale             stop the servers whose worktree is merged, gone, a returned pool slot, or whose task landed
+ *   --stop-stale             stop the servers whose worktree is merged (own commits all on the base, quiet 30 min; a fresh branch is not), gone, a returned pool slot, or whose task landed
  *   --stop-stale --older-than <h>
  *                            also stop a server of an unmerged worktree older than <h> hours with no agent working there
  *   --dry                    with --stop-stale: say what would stop
@@ -15,6 +15,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import Lifecycle, { main_repo } from "../Servex/Lifecycle.js";
+import Worktrees from "./Worktrees.mjs";
 
 const argv = process.argv.slice(2), arg = k => argv.includes(k) ? argv[argv.indexOf(k) + 1] : null;
 const STOP = argv.includes("--stop-stale"), DRY = argv.includes("--dry"), OLDER_H = Number(arg("--older-than")) || 0;
@@ -53,14 +54,14 @@ const out = [];
 for (const r of rows) {
 	const age_h = r.born ? (Date.now() - r.born) / 3600e3 : null, name = path.basename(r.path);
 	const kept = lc.kept(r), slot = slot_of(r.path), branch = branch_of[slash(r.path)];
-	let state, stale = false;
+	let state, stale = false, merged = null;
 	if (kept && !(slot && /pool slot/.test(kept))) state = `kept: ${kept}`;
 	else if (slot) { stale = !slot.taken_by && slot.state !== "taken"; state = !stale ? `pool slot, ${slot.state}${slot.taken_by ? ", taken by " + slot.taken_by : ""}` : `pool slot, ${slot.state} (returned)`; }
 	else if (!fs.existsSync(r.path) || !(slash(r.path) in branch_of)) { state = "gone (worktree removed)"; stale = true; }
-	else if (branch && git("merge-base", "--is-ancestor", branch, BASE).ok) { state = `merged into ${BASE}`; stale = true; }
+	else if (branch && (merged = Worktrees.merged_stale(main, branch, r.path, { base: BASE })).stale) { state = merged.why; stale = true; }
 	else if (lc.task(r.owner_task)?.landed) { state = "task landed"; stale = true; }
 	else if (OLDER_H && age_h > OLDER_H) { state = `open, but up ${age_h.toFixed(0)} h (older than ${OLDER_H} h)`; stale = true; }
-	else state = "open (in use or unmerged)";
+	else state = merged?.why && merged.why !== "not merged" ? `open (${merged.why})` : "open (in use or unmerged)";
 	out.push({ name, pid: r.pid, child: r.child, age_h, mb: tree_mb(r.pid), state, stale, r });
 }
 out.sort((a, b) => (b.stale - a.stale) || (b.age_h ?? 0) - (a.age_h ?? 0));

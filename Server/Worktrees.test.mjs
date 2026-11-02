@@ -53,5 +53,15 @@ assert.match(live.find(r => r.path.endsWith("/busy")).why, /live agent/);
 const blind = new Worktrees({ main, here: main }); blind.live_cwds = async () => null;
 assert.ok((await blind.plan()).every(r => r.verdict === "KEEP"));
 
+// merged_stale (worktree-servers --stop-stale): a fresh 0-commit branch is an ancestor of the base but NOT stale
+const fresh = add("fresh"), later = Date.now() + 3600e3;
+assert.deepEqual(Worktrees.merged_stale(main, "worktree/fresh", fresh, { now: later }), { stale: false, why: "a fresh branch: no commits of its own yet" }, "fresh branch, even when quiet for an hour");
+// its own commit, landed on the base by a real merge (an ancestor), quiet for an hour -> stale
+const done = add("done"); put(done, "d.txt", "d\n"); git(done, "add", "."); git(done, "commit", "-qm", "d");
+git(main, "merge", "-q", "--no-edit", "worktree/done");
+assert.equal(Worktrees.merged_stale(main, "worktree/done", done, { now: later }).stale, true, "own commits on the base + quiet = stale");
+assert.match(Worktrees.merged_stale(main, "worktree/done", done).why, /git activity/, "same branch right now: recent git activity keeps it");
+assert.equal(Worktrees.merged_stale(main, "worktree/unmerged", unmerged, { now: later }).stale, false, "an unmerged branch is never stale here");
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("Worktrees.test: ok");
