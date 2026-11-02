@@ -353,7 +353,7 @@ export function aiV2({ page, card, tabs }){
 				// that chain starts for the drawer's AI tab's card branch.
 				panel = new Widget({
 					models: true,
-					marks: true,
+					marks: false,   // per-sentence HITL marks (/api/hitl, one Sonnet call per bubble) off: the owner, 2026-11-02, "I thought we turned it off"
 					placeholder: "talk into this card",
 					deliver: async entry => {
 						try {
@@ -375,7 +375,7 @@ export function aiV2({ page, card, tabs }){
 			$slot.empty(() => {
 				panel = new Widget({
 					models: true,
-					marks: true,
+					marks: false,   // off (the owner, 2026-11-02); see above
 					placeholder: "ask about this page",
 					// `on_text` only hides the intro hint — `Widget.submit()` already drew
 					// the owner's own bubble by the time this fires.

@@ -194,7 +194,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		panel = new Widget({
 			placeholder, level, source, debug, revision, models, mode,
 			session: () => owner.ctl.session,
-			marks: true,
+			marks: false,   // per-sentence HITL marks (/api/hitl, one Sonnet call per bubble) off: the owner, 2026-11-02, "I thought we turned it off"
 			deliver: async entry => {
 				try {
 					DictateHealth.set("sent", "wait", `sending ${quote(entry.text)}…`);
