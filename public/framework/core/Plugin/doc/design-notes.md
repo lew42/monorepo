@@ -7,17 +7,26 @@
 - Plugins never override a host method. If a plugin needs to change a method it should be a subclass, not a plugin.
 
 ## Order
-Parents' plugins run before the subclass's; within one class, in `use` order. There is no `before_`/`after_` split: one `attach`, run after the constructor assigned its args and before `initialize()`.
+Parents' plugins run before the subclass's; within one class, in `use` order. There is no `before_`/`after_` split, on purpose: none of the plugins so far (the demo, the server's sockets, the Voice Chat features) needs to run before another one or at a different point than "after the args are assigned". Order is `use` order. When a plugin really needs the earlier slot, add a second class event (`"before_new"`) emitted ahead of `"new"` in the constructor, and a `before_attach` word; nothing else changes.
 
 ## Cost (measured with a 1e6-instance loop, node 24)
 - `new Item()` now: about 1.38 µs. Adding a class-level `emit("new")` walk with no listeners: about 1.75 µs (+0.37 µs, +27%). With one listener the cost is the listener.
+- The owner's own line applies: a game with millions of objects should hard-code its calls, not hang them on an event. A plugin is for the few classes that really are extended from outside. Even the empty `emit("new")` walk is not free.
 - Decision: Item and List do **not** extend Plugin. An Item is created in the thousands during a replay, and nothing needs a plugin on it. A class that wants plugins extends Plugin; the Item system is unchanged.
 - Live instances are tracked (WeakRef) only for a plugin that defines its own `detach`, so a plugin with no undo costs nothing per instance.
 
 ## Debugging risk
 A plugin that runs on every new instance is invisible at the call site. Use it only where a class really is extended from outside (sockets, servers, pages), not for ordinary options. `Host.plugins` and `Plugin.hosts` list what is installed.
 
+## Which plugin system
+Use `core/Plugin` (`Host.use(plugin)`, `attach`/`detach`) for anything new. `Page.use(Ext)` → `Ext.setup(page)` ([Page.class.js](../../Page/Page.class.js)) is the older page-only list and is left alone: it is global to `Page`, has no off switch and no list, and is still used by the page extensions (`core/Page/ext/Inbox`). Moving Page onto Plugin is a follow-up, not part of this build (a Page is an Item, which does not extend Plugin).
+
+## Not done
+- The item tool cannot address `Host.plugins`: the list lives in memory and has no path. `.set({Glow: {enabled: false}})` in code works, and the rows are Items, so a page that mounts `Host.plugins` at a path would give the item tool a handle. Not built.
+- Voice Chat moving onto core/Plugin is its own task (filed on the session).
+- The investigation ran without Haiku scouts or a web search (prior art is from memory), and the "copy methods onto a prototype" utility the brief mentioned was not found.
+
 ## Choices
 - Row key `enabled`, not `on` (the plan said `on`): `Item.set` treats a bare key named like a method as a call, and `on` is `Events.on`. Alternative: `Item.bare_calls = false` (a global change).
-- `Page.use` is not migrated (the plan's Improved section): no callers.
+- `Page.use` is not migrated (the plan's Improved section): see "Which plugin system".
 - Names considered: `Plugin` (kept, the owner's), `Extension`, `Addon`.

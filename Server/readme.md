@@ -12,7 +12,7 @@ Dictation failing while the page will not reload: Whisper died with a Servex res
 Clear out landed worktrees, with a plan first and a manifest (`node Server/Worktrees.mjs --plan`): [`doc/worktrees.md`](./doc/worktrees.md).
 Worktree dev servers: what stops them, and the list / stop-stale tool (`node Server/worktree-servers.mjs`): [`doc/worktree-servers.md`](./doc/worktree-servers.md).
 Every task log held in memory and queryable (module, landed, text, raw-log paths): [`doc/session-index.md`](./doc/session-index.md).
-`Events.js` is a two-line subclass of [core/Plugin](../public/framework/core/Plugin/readme.md): `Server`, `Socket` and `Servex/*` extend it, so each takes `use()` plugins and has chaining `on/off/emit`.
+`Events.js` is a two-line subclass of [core/Plugin](../public/framework/core/Plugin/readme.md): `Server`, `Socket` and `Servex/*` extend it, so each takes `use()` plugins and has chaining `on/off/emit`. The server therefore imports from `public/framework/core/`. If the server ever moves to its own package, Events (now core/Events plus core/Plugin) moves with it.
 
 The dev socket's server half (`Tail`, `Append`, the numbered append that never writes a line twice): [`plugins/SocketServer/readme.md`](./plugins/SocketServer/readme.md).
 

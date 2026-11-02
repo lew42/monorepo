@@ -30,6 +30,7 @@ Badge.plugins.set({ Glow: { enabled: false } });   // the list is live; what the
 
 - The row key is `enabled`, not `on`: `Item.set` reads a bare key that names a method (`Events.on`) as a call.
 - The class-level `"new"` event now reaches parents' listeners; the old `Server/Events` reached only the exact class.
+- `Page.use(Ext)` (core/Page) is the older page-only list and still works. Use `Plugin.use` for anything new.
 - Item and List do **not** extend Plugin (a measured cost per `new Item`, see [doc/design-notes.md](./doc/design-notes.md)).
 
 ## More

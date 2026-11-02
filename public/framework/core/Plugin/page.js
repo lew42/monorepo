@@ -64,8 +64,9 @@ const control = (row, f) => {
 
 const panel = (rerender) => div.c("surface flex v", () => {
 	for (const row of Badge.plugins) {
-		details.c("ui-accordion-item", () => {
+		const d = details.c("ui-accordion-item", () => {
 			summary.c("flex v-center gap", () => {
+				span("▸").style("display", "inline-block").style("width", "1em").style("transition", "transform .15s");
 				const box = input().attr("type", "checkbox");
 				box.el.checked = row.get("enabled");
 				box.el.addEventListener("click", e => e.stopPropagation());
@@ -74,9 +75,10 @@ const panel = (rerender) => div.c("surface flex v", () => {
 			}).style("border", "0").style("background", "none").style("boxShadow", "none").style("width", "100%").style("minHeight", "2.75em").style("cursor", "pointer");
 			const sections = Object.groupBy(row.fields, f => f.section ?? "Settings");
 			for (const [name, fields] of Object.entries(sections)) {
-				div.c("flex v pad", () => { span.c("muted h4", name); fields.forEach(f => control(row, f)); });
+				div.c("flex v pad", () => { span.c("muted", name); fields.forEach(f => control(row, f)); });
 			}
 		});
+		d.el.addEventListener("toggle", () => { d.el.querySelector("summary span").style.transform = d.el.open ? "rotate(90deg)" : ""; });
 	}
 }).style("flex", "1 1 20em");
 
@@ -90,9 +92,14 @@ export default new Page({
 		md("A **plugin** is a class (or a function) with `attach(instance)`. `Host.use(A, B)` makes every *new* `Host` instance reach `A.attach` and `B.attach`. `Host.unuse(A)` takes it away again and tells live instances through `A.detach`. `Host.plugins` is a list of rows you can read, switch on and off, and configure.");
 
 		code.js(`class Badge extends Plugin {}
-class Glow { static attach(badge){ badge.el.style.boxShadow = "0 0 18px currentColor"; } }
-Badge.use(Glow);          // every new Badge is glowing
-Badge.plugins.set({ Glow: { enabled: false } });   // off: new Badges are not`);
+class Glow {
+  static attach(badge){
+    badge.el.style.boxShadow = "0 0 18px red";
+  }
+}
+Badge.use(Glow);   // new Badges glow
+Badge.plugins.set({ Glow: { enabled: false } });
+// off: new Badges do not`);
 
 		md("## Try it");
 		md("Tick a box to switch a plugin on or off. Open a row to configure it: drag a number sideways, or use the arrow keys. What you leave is saved in this browser.");
@@ -102,7 +109,7 @@ Badge.plugins.set({ Glow: { enabled: false } });   // off: new Badges are not`);
 		div.c("flex wrap gap", () => {
 			panel(draw);
 			div.c("flex v gap", () => {
-				span.c("muted h4", "Live result: a new Badge, made after your last change");
+				span.c("muted", "Live result: a new Badge, made after your last change");
 				stage = div.c("surface pad").style("minHeight", "8em");
 			}).style("flex", "1 1 16em");
 		});
@@ -111,7 +118,9 @@ Badge.plugins.set({ Glow: { enabled: false } });   // off: new Badges are not`);
 
 		md("## Classes using plugins right now");
 		const hosts = div.c("surface pad flex v");
-		for (const h of Plugin.hosts) hosts.el.append(Object.assign(document.createElement("p"), { textContent: `${h.name}: ${[...h.records.values()].map(r => r.name + (r.on ? "" : " (off)")).join(", ")}` }));
+		const list_hosts = () => hosts.el.replaceChildren(...Plugin.hosts.map(h => Object.assign(document.createElement("p"), { textContent: `${h.name}: ${[...h.records.values()].map(r => r.name + (r.on ? "" : " (off)")).join(", ")}` })));
+		list_hosts();
+		for (const row of Badge.plugins) row.on("change", list_hosts);
 
 		md.details(import.meta, "readme.md", "Readme");
 	},

@@ -1,6 +1,8 @@
 # core/Plugin: investigation (pass 1, 2026-11-02)
 
-Brief: [requirements.md](requirements.md). Marks: **checked** = read in the code this pass; **guess** = not verified.
+**Status: history.** This is what was found before the build; the decisions it led to are in [design-notes.md](./design-notes.md) and the readme. Every "guess" below was settled in the plan or the build; the open leads at the end were not pursued (see design-notes, "Not done").
+
+Brief: [requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/core-plugin/requirements.md). Marks: **checked** = read in the code this pass; **guess** = not verified.
 Pass 1 was done by the investigator reading the files directly (about 10 small files); no scouts were needed. Pass 2 leads are at the end.
 
 ## Ranked questions
@@ -36,7 +38,7 @@ Pass 1 was done by the investigator reading the files directly (about 10 small f
 - `ui/controls/` (readme, `controls.css`, `study/`, `doc/`), `ui/field/`, `ui/scale/scale.js`, `ui/accordion`, `ui/section` all exist. `ext/Panel/properties.js` already builds property rows with `dropdown`, and the `ext/Panel` toolbar has sliders (grep hits for "slider|scrub" in 12 files: `ext/Panel/*`, `ext/layout/*`, `ext/depth/depth.js`, `ui/words/page.js`). No scrubbable number input confirmed. **guess**: Panel's properties region is the closest thing to reuse; the plugin panel should borrow its row shape rather than build a new one.
 - The Voice Chat gear panel (`ux/Dictate/VoiceChat/Features.js` on the paused branch) already renders toggles per plugin from `static fields`. It is the first thing to generalize.
 
-### Paused dictate-plugins plan (checked, [../dictate-plugins/plan.md](../dictate-plugins/plan.md))
+### Paused dictate-plugins plan (checked, [dictate-plugins/plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/plan.md))
 Seven needs from core/Plugin: hosts that do not import the registry; live `stop()` undoing `start()`; `static defaults` (with `on`) and `static fields`; one saved store plus a not-saved override (URL param); fit inside an existing panel; an off plugin still gets one `stop()` when its host arrives; wrapping existing classes with `start()/stop()` is enough.
 
 ## The central finding: the two Events do not merge cleanly
@@ -98,4 +100,4 @@ Pass 2: one WebSearch to confirm tapable's `before` option and Vue's dedupe; the
 5. One web search for prior art; list alternative names in the design-notes doc.
 6. Find the "mixin utility" the brief mentions (not in the first sweep).
 
-Lasting findings belong in `core/Plugin/doc/` once the plan makes the folder: this file moves there as `doc/investigation.md` at execute, linked from `core/Plugin/readme.md`.
+This file now lives here as `doc/investigation.md`, linked from the readme.

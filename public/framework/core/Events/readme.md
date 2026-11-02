@@ -1,9 +1,9 @@
-# Events — `on` / `off` / `emit`, a mixin everything else builds on
+# Events — `on` / `off` / `once` / `clear` / `emit`, a mixin everything else builds on
 
 A mixin, not a base class: `Events(Object)` is a plain emitter. `Item` (`core/Item/`) is
 `Events(Object)` plus an id, a data bag and `set(delta)`; `List` (`core/List/`) extends
 `Item` and adds the array and the four verbs. Nothing here is specific to either —
-it is `on`, `off`, `emit`, and one more method, `bubbles()`, that says whether an event
+it is `on`, `off`, `once`, `clear`, `emit`, and one more method, `bubbles()`, that says whether an event
 keeps climbing.
 
 ## Architecture
@@ -42,6 +42,9 @@ exact same arguments. `bubbles()` defaults to `true`; a class overrides it to be
 a boundary (`core/Page` will, so a page's own events never leak into its parent's).
 
 ## Watch out
+
+- This mixin is instance events only. Class-level events (`Class.on("new", fn)`) and `Class.use(plugin)` live in [core/Plugin](../Plugin/readme.md), which extends this mixin.
+- `on`, `off`, `once` and `clear` return `this`, so they chain. `off(event, fn)` also removes a listener added with `once(event, fn)`.
 
 - Listeners are plain functions in `this._on[event]`, made lazily on the first
   `on()` call — nothing allocates until something actually listens.
