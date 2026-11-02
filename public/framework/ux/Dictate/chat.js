@@ -15,6 +15,8 @@ const SESSION_KEY = "lew42-voice-session";
  *  line within this long, instead of starting a new one. Only a real idle gap, or the New session button, starts a fresh session.
  *  Doc: ux/Dictate/readme.md ("One session across tabs"). */
 export const JOIN_IDLE_MS = 30 * 60 * 1000;
+/** True for a chat line stamped for a session other than the one watched: it must not draw. */
+export const is_other_session = (line, watching) => !!(line?.chat?.session && watching && watching !== "unset" && line.chat.session !== watching);
 /** The voice session (`v-…`) that spoke most recently, by last_at: ensure() joins it and maybe_offer() offers it, so both name the same one. */
 export const latest_voice = rows => (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
 	.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
@@ -240,7 +242,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
 	function draw(line){
-		if (line?.chat?.session && watching && watching !== "unset" && line.chat.session !== watching) return;   // a line stamped for another session never draws here (a late event from the session just left)
+		if (is_other_session(line, watching)) return;   // a late event from the session just left never draws here
 		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
 	}
 	// Tasks and Questions under a Prompt arrive as edits ({tasks:{add}}, {"<prompt>":{tasks:{add}}}, {"<prompt>":{"<task>":{complete}}}): ChatV2Model folds them, one row each.
@@ -299,7 +301,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 			const row = latest_voice(rows);
 			if (!row || owner.ctl.session) return;
 			const at = row.last_at ?? row.at;
-			if (Date.now() - Date.parse(at ?? 0) < JOIN_IDLE_MS) return;
+			// Spoke within JOIN_IDLE_MS: join it now (what ensure() would do at the first sentence), so its history is on screen before you speak, not under your first sentence.
+			if (Date.now() - Date.parse(at ?? 0) < JOIN_IDLE_MS) return void owner.resume_to(row.session).catch(e => quiet_note("could not join the voice session in use", e));
 			resume_label = `${row.title ?? "The last conversation"} · ${ago(at)}`;
 			resume_session = row.session;
 			panel.say({ type: "ask", heading: "Pick up where you left off?", choices: [resume_label], at: new Date().toISOString() });

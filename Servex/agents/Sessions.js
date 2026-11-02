@@ -876,12 +876,12 @@ export default class Sessions {
 		 * the card's own home only ever finds sessions of that card, since every one of them was
 		 * homed there too. */
 		/* No card: "the last session" is the project's newest voice session on any page, the same one the browser's join and offer name
-		 * (ux/Dictate/chat.js `latest_voice`), not only the newest one that passed through this page's folder (voice-session-mixup). */
+		 * (ux/Dictate/chat.js `latest_voice`), resumed within the same 30 min (`idle_ms`) as the browser's join, not only the newest one that passed through this page's folder (voice-session-mixup). */
 		const [last] = card != null && card !== "" ? this.recent({ page: home, project, limit: 1 })
 			: this.recent_project({ project, limit: 20 }).filter(r => /^v-/.test(r.session));
 		/* `fresh: true` (voice-fixes review item 1, the "New session" button): always start over,
 		 * even when a session on this page spoke within `resume_ms`. */
-		if (!fresh && last && Date.now() - Date.parse(last.last_at) < this.resume_ms) return this.resume({ session: last.session });
+		if (!fresh && last && Date.now() - Date.parse(last.last_at) < (card != null && card !== "" ? this.resume_ms : this.idle_ms)) return this.resume({ session: last.session });
 		let id;
 		do id = "v-" + Date.now().toString(36).slice(-4) + Math.random().toString(36).slice(2, 5); while (this.map[id]);
 		const file = Sessions.session_path(home, id);

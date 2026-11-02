@@ -85,6 +85,8 @@ const picked = await p.evaluate(async () => {
 	const h = n => new Date(Date.now() - n * 3600000).toISOString();
 	return latest_voice([{ session: "v-old", at: h(22), last_at: h(22) }, { session: "v-long", at: h(30), last_at: h(0.1) }, { session: "agent-x", at: h(1), last_at: h(0) }, { session: "v-mid", at: h(3), last_at: h(2) }])?.session;
 });
+const guard = await p.evaluate(async () => { const { is_other_session: o } = await import("/framework/ux/Dictate/chat.js"); return [o({ chat: { session: "v-A" } }, "v-B"), o({ chat: { session: "v-B" } }, "v-B"), o({ chat: {} }, "v-B"), o({ chat: { session: "v-A" } }, "unset"), o({ react: 1 }, "v-B")]; });
+check("5 draw guard: only a line stamped for ANOTHER watched session is dropped", JSON.stringify(guard) === "[true,false,false,false,false]", JSON.stringify(guard));
 check("5 latest_voice: newest last_at among v- sessions (started long ago is fine, a non-voice row is skipped)", picked === "v-long", `picked=${picked}`);
 
 // 6. switching twice with no pause: each sentence goes to the session selected at that moment
