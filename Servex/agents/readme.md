@@ -70,6 +70,8 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 
 ## Sending to a VS Code tab
 
+`send_to_agent` takes `{to, message}` (and `agent`) as well as `{id, text}`, the names agents guess from Claude Code's own SendMessage; a missing recipient names the field. Test: `send-alias.test.mjs`. Before this (2026-11-02), those calls failed and agents reported the tab "isn't a live agent".
+
 A tab (`vscode-<id8>`, `kind: "external"`) is not a running agent. `External.js` registers it, and `send_to_agent` to it appends one line to its inbox file (`%LOCALAPPDATA%/lew42/servex/logs/inbox/<id>`, a JSONL file), which the tab reads on its next turn. The answer says so: `ok: true`, `delivered_to: "the inbox of the VS Code tab <id> …"` and a note that the tab will not reply in this call. It is delivered; do not post an `owner_note` to repeat it. `Agents.successor()` never follows a registered tab to another agent that shares its `session_id` (a send to `vscode-rp-proof` once landed in a running mastermind). Test: `External.test.mjs`. Needs a Servex restart to take effect (2026-11-02).
 
 ## When an agent stops

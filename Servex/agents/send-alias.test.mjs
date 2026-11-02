@@ -20,6 +20,9 @@ assert.deepEqual(sent.at(-1), { id: "vscode-mastermind", text: "merged", from: "
 await send.handler({ to: "vscode-mastermind", text: "merged 2" }, { caller: "mastermind-x" });
 assert.equal(sent.at(-1).text, "merged 2", "{to, text} delivers");
 
+await send.handler({ agent: "vscode-mastermind", text: "via agent" }, { caller: "mastermind-x" });
+assert.equal(sent.at(-1).id, "vscode-mastermind", "{agent, text} delivers");
+
 await send.handler({ id: "vscode-mastermind", text: "plain" }, { caller: "mastermind-x" });
 assert.equal(sent.at(-1).text, "plain", "{id, text} still delivers");
 
@@ -27,4 +30,4 @@ const none = JSON.parse(await send.handler({ text: "who?" }, { caller: "mastermi
 assert.equal(none.ok, false);
 assert.match(none.why, /id/, "a missing recipient says which field is missing");
 
-console.log("send-alias: 5 checks pass");
+console.log("send-alias: 6 checks pass");
