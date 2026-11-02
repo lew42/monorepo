@@ -2,13 +2,13 @@
 
 Your words are a tinted pill on the right that hugs the text; the assistant's words are plain text on the left. Both stop at 80% of the width (a `min(80%, 40rem)` cap on a desktop, so a line stays readable at 1920). One rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/bubbles.css), draws all three views.
 
-Shot with the headless browser at 360×740 (phone user agent `Android 10; K`) and 1920, from the worktree's own dev server (`127.0.0.1:62509`), because this branch is not on `monorepo.lew42.com` until it merges (and that host answers 401 to a headless browser without the site key). Demo data: [`layout-session.jsonl`](/framework/ext/Chat/v3/fixture/layout-session.jsonl) (a one-word `/compact`, a `Hello`, a long wrapped message, replies with markdown). The Chat V1 page's own demo has `/compact` too.
+Shots are headless, at 360×740 (phone) and 1920, from the worktree's own dev server (this branch isn't on `monorepo.lew42.com` until it merges). Demo data: [`layout-session.jsonl`](/framework/ext/Chat/v3/fixture/layout-session.jsonl).
 
 | View | Phone, 360×740 | Desktop, 1920 |
 |---|---|---|
-| **V1** (`ext/Chat/`, the ✦ sheet, the drawer) | ![V1 at 360](screens/v1-360.png) | ![V1 at 1920](screens/v1-1920.png) |
-| **V2** (`ext/Chat/v2/`) | ![V2 at 360](screens/v2-360.png) | ![V2 at 1920](screens/v2-1920.png) |
-| **V3** (`ext/Chat/v3/`) | ![V3 at 360](screens/v3-360.png) | ![V3 at 1920](screens/v3-1920.png) |
+| **V1** (`ext/Chat/`, the ✦ sheet, the drawer) | ![V1 at 360](doc/screens/v1-360.png) | ![V1 at 1920](doc/screens/v1-1920.png) |
+| **V2** (`ext/Chat/v2/`) | ![V2 at 360](doc/screens/v2-360.png) | ![V2 at 1920](doc/screens/v2-1920.png) |
+| **V3** (`ext/Chat/v3/`) | ![V3 at 360](doc/screens/v3-360.png) | ![V3 at 1920](doc/screens/v3-1920.png) |
 
 ## What the numbers say
 - No horizontal scroll: `scrollWidth` equals `clientWidth` (360 and 1920) in all three.
@@ -16,7 +16,13 @@ Shot with the headless browser at 360×740 (phone user agent `Android 10; K`) an
 - Assistant bubbles have no fill (`background: rgba(0,0,0,0)`) in every view.
 
 ## It grows while you dictate
-[`ext/Chat/v3/bubble-grow.mjs`](/framework/ext/Chat/v3/bubble-grow.mjs) fires the same `chat-live` event a mic sends, with more words each step. V3's draft bubble goes 41 → 145 → 259 → 259 px at 360 and 47 → 166 → 499 → 499 px at 1920 (it widens, then stops at the cap and wraps); V1's goes 35 → 129 → 211 → 211 and 40 → 148 → 466 → 640. Moving the same words from guess to settled keeps the width (259 → 259), so there is no jump. It runs in `node core/Test/run-all.mjs --browser` (14 checks).
+[`ext/Chat/v3/bubble-grow.mjs`](/framework/ext/Chat/v3/bubble-grow.mjs) sends the same `chat-live` event a mic does, with more words each step. The draft bubble widens, stops at the cap, then wraps:
+
+- **V3:** 41 → 145 → 259 → 259 px at 360; 47 → 166 → 499 → 499 px at 1920.
+- **V1:** 35 → 129 → 211 → 211 px at 360; 40 → 148 → 466 → 640 px at 1920.
+- **Guess to settled:** same width (259 → 259), so no jump.
+
+It runs in `node core/Test/run-all.mjs --browser` (14 checks).
 
 ## Fixed after the review
 - V2's reply no longer starts 200 px to the right of the others at 1920: a sentence row now stretches to the column (`.chat-v2-sentence { align-self: stretch }`), and its reply is capped by the same `--bubble-max` as V3's (499 px at 1920, 259 px at 360).
@@ -34,4 +40,4 @@ Shot with the headless browser at 360×740 (phone user agent `Android 10; K`) an
 `ChatV3.test.mjs` (18), `ChatV2.test.mjs` (19), `live-guess.test.mjs` (5), `ReciteBubble.test.mjs` (37), `Recite.test.mjs` (34, with the new same-opening-words test), the Dictate browser tests, then `node core/Test/run-all.mjs --browser`.
 
 ## Files
-[requirements](requirements.md) · [past-work](past-work.md) · [review](review/report.md) · shots in [screens/](screens/)
+[requirements](requirements.md) · [past-work](past-work.md) · [review](review/report.md) · screenshots in [doc/screens/](doc/screens/)
