@@ -28,6 +28,9 @@
 		font: inherit;
 		cursor: pointer;
 	}
+	/* shown only on the selected (tapped) or playing bubble; ↺10 only once that bubble has played */
+	.audio-recite-bubble:not(.is-selected, .is-playing) > .audio-recite-bubble-ctl { display: none; }
+	.audio-recite-bubble:not(.has-played) .audio-recite-bubble-back { display: none; }
 	.audio-recite-bubble-ctl button:hover { background: var(--wash); color: var(--ink); }
 	.audio-recite-bubble-ctl .audio-recite-bubble-play.is-on { color: var(--prime); }
 }
