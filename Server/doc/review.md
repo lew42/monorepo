@@ -247,6 +247,9 @@ overwrite the first pass's finding text for readers of `review.jsonl`. Nothing t
 second full pass — requirements.md's own model is one pass, one round of holds — so this is a
 known limit, not a defended-against case.
 
+## Browser scripts in a worktree (2026-11-02)
+The Dictate browser scripts (`TestRunner.mjs --browser`, `run-all.mjs --browser`) looked load-sensitive from a worktree: `dictation-bar` and `refresh` got "0 sentences". The cause was not load but the fake mic file: `recordings/jfk.wav` is git-ignored, so a worktree has none, and the runner passed the missing path. `TestRunner.wav_path()` now falls back to the main checkout's copy. Run beside two more browser batches and the node suite, all three passed; `refresh` (real Whisper, six scenarios) takes about 130 s, so its limit is 300 s. Detail: [core/Test/doc/health.md](/framework/core/Test/doc/health.md).
+
 ## Later, not now
 
 `--model <id>` is already there so the reviewer can one day be a different model family
