@@ -33,8 +33,8 @@ export function place(...parts){
 /* Local time with its offset — `2026-09-22T15:04:09-05:00`. The same format
  * .claude/skills/every-prompt/say.mjs writes, so every clock in this repo's logs
  * reads the same way and sorts the same way. */
-export function stamp(){
-    const d = new Date(), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
+export function stamp(at = Date.now()){
+    const d = new Date(at), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
     return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19)
         + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
 }

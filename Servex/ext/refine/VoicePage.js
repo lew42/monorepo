@@ -69,7 +69,13 @@ export default class VoicePage {
 			}
 			return this.tool("page_set", { path: this.path, target: [this.id], delta });
 		};
-		return this.queue = this.queue.then(run, run);
+		/* Most callers do not await this (LiveRefine, the 700 ms partial timer). A refused write (a page tool's "no session ...")
+		 * used to reject a promise nobody held and node ended Servex as an uncaught exception, 2026-11-02 00:31. Logged here;
+		 * a caller that does await still sees the rejection. */
+		const result = this.queue.then(run, run);
+		result.catch(e => console.error(`voice page ${this.path}: ${e?.message ?? e}`));
+		this.queue = result.catch(() => {});
+		return result;
 	}
 
 	/** The words so far. Also writes the instant mechanical clean (no model) so stage 2 moves with the voice. */
