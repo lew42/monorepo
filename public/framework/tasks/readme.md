@@ -30,6 +30,10 @@ Until then: one line per task below, and when one gets a real task folder, link 
 - **Chat V1 and V1.2: one template** (the owner, via voice, 16:41; thoughts, not decisions).
   - The two use different data sources and templates. V1's message order looks broken, and V1.2's looks better.
   - Maybe share the same template functions, or let V1.2 replace V1 once its layout bug is fixed.
+- **The quick fixer has no worktree.**
+  - **What happens (2026-11-02, three times this afternoon):** `quick_fix` and the voice seat both get "no quick-fix worktree is ready", while `Server/worktree-servers.mjs --list` shows pool slots qf-6, qf-7 and qf-8 "kept", and qf-1 and qf-2 taken by masterminds.
+  - **To find:** why a kept slot isn't "ready" (stale branch? not current?), and whether masterminds should take pool slots at all.
+  - **The fix to build:** one slot always reserved for the fixer. See `Servex/Pool.js`, the `hold()` notes at line 172.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
   - **How it picks tests:** the module folder, or a hand-written watch list per test file. Static dependency analysis can come later.
