@@ -758,6 +758,7 @@ async function main() {
 	}
 
 	const taskJsonl = SessionRecord.log_or_old(taskDir);
+	if (size === "none" && shotsOnly) { console.log("review.mjs --shots-only: this diff changes no page, so no screenshots are needed (size none: nothing written)"); return; }
 	if (size === "none") {
 		const note = `No review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.`;
 		await writeNoReviewPass(root, taskDir, { size, note, branch, head });

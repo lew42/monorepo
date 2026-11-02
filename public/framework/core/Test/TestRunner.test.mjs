@@ -40,6 +40,15 @@ put("public/framework/ai/recordings/jfk.wav", "x");
 assert.equal(r.wav_path(), path.join(root, "public/framework/ai/recordings/jfk.wav"));
 const real = new TestRunner(); const w = real.wav_path();
 assert.ok(path.isAbsolute(w) && w.endsWith("jfk.wav"), w);
+// a real worktree without the wav takes the main checkout's copy
+const main = fs.mkdtempSync(path.join(os.tmpdir(), "wavmain-")), wt = main + "-wt";
+const git = (...a) => spawnSync("git", a, { cwd: main, windowsHide: true, encoding: "utf8" });
+git("init", "-q", "-b", "main"); fs.writeFileSync(path.join(main, "x.txt"), "x"); git("add", "."); git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "x");
+git("worktree", "add", "-q", wt, "-b", "wt");
+fs.mkdirSync(path.join(main, "public/framework/ai/recordings"), { recursive: true }); fs.writeFileSync(path.join(main, "public/framework/ai/recordings/jfk.wav"), "w");
+const fromWt = Object.assign(new TestRunner(), { root: wt }).wav_path();
+assert.equal(fs.realpathSync(fromWt), fs.realpathSync(path.join(main, "public/framework/ai/recordings/jfk.wav")), "the worktree has no wav, so the main checkout's is used: " + fromWt);
+git("worktree", "remove", "--force", wt); fs.rmSync(main, { recursive: true, force: true });
 
 fs.rmSync(root, { recursive: true, force: true });
 console.log("ok - TestRunner: a file path runs, --near is one level");

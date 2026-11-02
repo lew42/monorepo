@@ -177,6 +177,20 @@ test("gate: a review in a task dir of an old session (years old, not in the 4-da
 	assert.match(r.stdout, /gate: ok/, "committed on the branch: found");
 });
 
+test("gate: a task log that is tracked and then edited (\" M path\") is found too", () => {
+	const { main, wt } = scratch("worktree/modtask");
+	const gate = () => spawnSync("node", [MERGE, wt, "--gate-only"], { encoding: "utf8", windowsHide: true });
+	const td = "public/framework/ai/sessions/2025/02/06/session-bbbb2222/modtask", file = path.join(wt, td, "task.jsonl");
+	write(wt, td + "/task.jsonl", JSON.stringify({ task: "modtask" }) + String.fromCharCode(10));
+	git(wt, "add", "."); git(wt, "commit", "-qm", "task log");
+	const review = { review: { verdict: "pass", findings: [], file: "review.md", branch: "worktree/modtask", head: git(wt, "rev-parse", "HEAD").trim(), at: "2026-11-02T00:00:00Z" } };
+	fs.appendFileSync(file, JSON.stringify(review) + String.fromCharCode(10));
+	assert.match(git(wt, "status", "--porcelain"), /^ M /, "the log shows as an unstaged change");
+	const r = gate();
+	assert.equal(r.status, 0, r.stdout + r.stderr);
+	assert.match(r.stdout, /gate: ok/, "an edited, uncommitted log: found");
+});
+
 for (const t of tmps) { try { git(t, "worktree", "prune"); } catch {} }
 for (const t of tmps) fs.rmSync(t, { recursive: true, force: true });
 console.log(`${passed} passed, 0 failed`);

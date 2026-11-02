@@ -191,8 +191,8 @@ function shotsReminder(changed, pages, branch){
 function branchTaskDirs(roots){
 	const changed = new Set();
 	const dirOf = roots[1] ?? MAIN;
-	const lns = s => s.split(String.fromCharCode(10)).map(l => l.trim());
-	for (const l of lns(git(dirOf, "diff", "--name-only", `${BASE}...HEAD`).stdout)) l && changed.add(l);
+	const lns = s => s.split(String.fromCharCode(10)).map(l => l.replace(/\r$/, "")).filter(Boolean);   // never trim: a porcelain line starts with a space for an unstaged change (" M path")
+	for (const l of lns(git(dirOf, "diff", "--name-only", `${BASE}...HEAD`).stdout)) changed.add(l.trim());
 	for (const l of lns(git(dirOf, "status", "--porcelain", "--untracked-files=all").stdout)) l.length > 3 && changed.add(l.slice(3));
 	const out = new Set();
 	for (const f of changed) {
