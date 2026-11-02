@@ -10,3 +10,7 @@ Do:
 **Deliverable:** one log line in this dir's `task.jsonl` per view (`node .claude/hooks/append.mjs`): view, guess colour, sent colour, pass or fail, shot path. Then a 3-line report to `mastermind-dictation-v3`. A fail names the file:line that paints the wrong colour, and a one-line fix (do not apply it).
 
 **Never:** restart or kill any server, drive the owner's tabs, `git stash`. Commit only the shots and your task.jsonl, by exact path.
+
+## Item 34 (2026-11-01 21:18): document the green check and the brain icon
+
+The owner sees them out of sync. Write what triggers each one (which line or event, which seat, which file draws it) in `ux/Dictate/doc/` (a short `status-icons.md`, linked from `ux/Dictate/readme.md`), verified against the code. If the doc shows a real bug (they read different signals for one thing), log it as a `log` line here with the fix you would make; fix it only if it is a one-liner. Do it after item 2, before item 3. Answer to the owner's side question: yes, a fast assistant runs on this session (since 19:22).

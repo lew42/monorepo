@@ -86,3 +86,9 @@ The owner's notes, items 13–18: [owner-notes-2026-11-01-2040.md](../owner-note
 - Item 27 (a tooltip on the person icon) goes to `mastermind-ink-check`; it lives in the Dictate bar, not in Recite.
 
 **Order now:** (a)+queue+turn-taking (+ no flood if small) → no flood + prioritise (if not folded in) → echo → highlight dropout (+ lit words) → (b) tap to pause → resumable bubbles → bubble toolbar + voice chevron → (c) karaoke follow, without phrase streaming.
+
+## Folded in (2026-11-01 21:18): owner items 31–33, no new merge
+
+The owner's notes: [owner-notes-2026-11-01-2040.md](../owner-notes-2026-11-01-2040.md), items 31–33.
+- **Replay (items 31–32), in the resumable-bubbles merge:** long replies never get heard because the owner's new speech interrupts them, and tapping an old bubble does nothing today. Tapping an old bubble replays it from its last spoken word. Generate the audio again on demand (Kokoro), do not store it; name a setting (`replay_audio: "regenerate" | "keep"`) with regenerate as the default, and say in the readme what "keep" would cost.
+- **Per-bubble controls (item 33, revises item 26), in the bubble-UI merge:** play/pause and back 10 s are the two main controls; the targets need NOT be big. Optional, only if cheap: tap a spot in the text to jump there.
