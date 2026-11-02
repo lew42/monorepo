@@ -4,6 +4,57 @@
 
 Words used here: **production** is the public site (`lew42.com`, later). **Staging** is `main`'s address. **Preview** is any other branch's address. Only production is "live" for visitors. This comes from two of the owner's dictations on 2026-11-01 (cloud session `e3fd9043`), with every fact checked that day. Nothing is built yet: the steps are at the end. The older rules for people joining the repo are in the [root readme](../../../readme.md#new-dev-onboarding).
 
+## Answer to the night-of-2026-11-01 asks (a mastermind's proposal; nothing run)
+
+**The asks** ([source](../ai/sessions/2026/10/20/session-e00f55c9/night-2026-11-01/requirements.md), point 10): local `main` should equal GitHub's `main`; develop on a branch, not on `main`; `michael/dev` blocks a plain `michael` branch; keep the Cloudflare previews; "I dislike merges, so pull into main first, browse it, then merge locally"; "we got stuck on `michael/dev` for a long time".
+
+**Today, as a picture (checked 2026-11-01):**
+```
+origin/main   b55a7ca  (2026-08-07, == local main)
+                 \ ~7,950 commits behind
+michael/dev   491ef5f  (local; origin/michael/dev is 1 behind)
+   ^ merge.mjs lands every worktree/* branch here, then pushes michael/dev only
+317 local worktree/* branches, 829 local branches in all, 12 on GitHub; nothing checks out main
+```
+Local `main` already equals GitHub's. It is only old, so "stuck" is a lack of publishing, not a git problem.
+
+**The three real problems, and the fix for each**
+- **`michael` vs `michael/dev`:** git stores a branch as a file, so a name can't also be a folder. Not worth fighting: nothing needs a plain `michael`. Pick a dev name that is not a prefix of other branch names. The settled one is `compliance/dev` (or `michael-dev`: the hyphen costs only the grouping, and Cloudflare turns `/` into `-` in preview addresses anyway). Four stray local `michael-dev-*` branches already exist; delete them (they're merged) when the rename happens.
+- **Stuck on one branch:** `main` is the shop window and never moves unless someone pushes. Fix: publish dev to `main` after each landing (or each night). Then `monorepo.lew42.workers.dev` always shows today's code.
+- **Merges:** below.
+
+**Options for someone who dislikes merges**
+
+| | What happens | For the owner | Against |
+|---|---|---|---|
+| **A. Fast-forward only (recommended)** | A worktree branch is rebased onto the dev head (in the worktree, before landing), so dev only ever moves forward in a straight line. `main` is moved with `git push origin dev:main`, also a plain step forward. No merge commits anywhere, ever; `git log` reads as one list. | Nothing to resolve; "merge" becomes "move the label". | Rebase rewrites commit ids of the worktree branch (local, never shared, so harmless). A conflict shows up during the rebase, in the worktree, and the agent that did the work fixes it. |
+| **B. Merge commits (today)** | Each landing makes a two-parent commit. | Nothing to change. | Noisy history; this is the thing the owner dislikes. |
+| **C. Squash** | One commit per task. | Tidy list. | Loses the per-step history the agent rules want ("commit after every working step"). |
+
+**"Pull into main first, browse it, then merge locally"** fits A directly: (1) on dev, `git fetch origin` and rebase onto `origin/main` if anyone else pushed; (2) `git push origin dev:main`; (3) Cloudflare builds `main`, browse `monorepo.lew42.workers.dev`; (4) `git fetch origin main:main` moves the local label up, a fast-forward that cannot conflict. Local `main` is then always a copy of GitHub's, and nobody develops on it. Previews of other branches are unchanged: push a branch and it appears at `<branch with / as ->-monorepo.lew42.workers.dev`.
+
+**Recommendation:** A, with the names and routine already written below. One decision is the owner's: say "go" to steps 1 and 2 of the migration (drop the pull-request rule on `main`; push dev to `main`). The rename and the `merge.mjs` change follow, and the owner never touches them.
+
+**What changes in `merge.mjs` and the agent rules** (not yet done)
+- `Server/merge.mjs` (`BASE = "michael/dev"`, line 77; push at line 657): before landing, rebase the worktree branch onto `BASE` when it is not already on its head (a conflict refuses the landing and names the files); after the landing, `git fetch origin && git rebase origin/main` when `origin/main` has moved, then `git push origin BASE` and `git push origin BASE:main` (the push still only warns on failure), then `git fetch origin main:main`. The dev name becomes a constant read from one place.
+- Agent rules (CLAUDE.md "Commit after every working step", `ai/doc/agent-rules.md`): add "never check out or commit on `main`; `main` moves only by `merge.mjs`'s push". CLAUDE.md is the owner's: wording is a proposal for them.
+- Housekeeping: 317 `worktree/*` branches are merged labels; delete the ones `git branch --merged` lists, by script with a dry run.
+
+**Migration commands: run only after the owner says go** (steps 1–2 are exactly the "Steps" at the end; the rest in order)
+```
+# 1. GitHub settings: remove "Require a pull request" from the ruleset on main (keep no-force-push, no-delete)
+# 2. publish: a plain step forward
+git fetch origin && git push origin michael/dev:main && git fetch origin main:main
+# 3. rename the dev branch (after merge.mjs/Servex/docs are edited to read one name; stop agents first)
+git branch -m michael/dev compliance/dev && git push origin compliance/dev && git push origin --delete michael/dev
+git branch --set-upstream-to=origin/compliance/dev compliance/dev
+# 4. clean up merged local labels (dry run first)
+git branch --merged compliance/dev | grep -v -e '^\*' -e main | xargs -n1 git branch -d
+```
+**Alternative if the owner prefers one branch and no rename:** keep `michael/dev`, and only do steps 1, 2 and the `merge.mjs` change. It works; the name just stays awkward.
+
+Research notes (3 points, from standard practice, not new searches): trunk-based development keeps branches short-lived and merges to one trunk at least daily, which is option A with `main` as trunk; Cloudflare builds a preview for every non-production branch of a connected repo; git refuses `a` and `a/b` together (checked, above).
+
 ## The branches
 
 | Branch | What it is | Who moves it |
