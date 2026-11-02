@@ -46,14 +46,20 @@ export class RecordWriter {
 	   item-tool verbs (`{"start":{}}`), validated and stamped by the tool (the browser's task and session files).
 	   Answers `{rest, ts, refused}`: `rest` are the lines (stamped) never taken, to append with `append_once`/`Append`. */
 	static async post(path, { lines, deltas, by = "owner", root, timeout = this.SLOW } = {}){
-		const raw = !!lines, list = (lines ?? deltas ?? []).map(l => ({ ...l, by: l.by ?? by, ts: l.ts ?? this.stamp() }));
+		// `client` rides ON the line itself (not just the request body) for a verb: `rest` below (what the caller falls back to
+		// appending, through Append.js or append_once) is sliced straight off `list`, so if `client` were only ever added to the
+		// per-request body, the FALLBACK's own write would carry no `client` — keyed `owner|ts` on disk — while a later retry's
+		// twin check (page_tools.js, `ctx.client`) looks for `client|ts` and never finds it: a second, duplicate line (review,
+		// chat-model step 1, finding 1).
+		const raw = !!lines, client = this.client();
+		const list = (lines ?? deltas ?? []).map(l => ({ ...l, by: l.by ?? by, ts: l.ts ?? this.stamp(), ...(raw ? {} : { client: l.client ?? client }) }));
 		const url = await this.entry(), refused = [];
 		// Raw lines go in one request (record_lines takes the batch and names each refusal by index); a verb goes one per request.
 		const batches = raw ? (list.length ? [list.map((l, i) => i)] : []) : list.map((l, i) => [i]);
 		for (const idx of batches){
-			const { by: _by, ts, ...bare } = list[idx[0]];
+			const { by: _by, ts, client: line_client, ...bare } = list[idx[0]];
 			// A verb's `by` is not sent: the door stamps every verb "owner" (only a tab posts verbs); `by` here keys the caller's own twin check.
-				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, client: this.client(), ...(root ? { root } : {}) };
+				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, client: line_client, ...(root ? { root } : {}) };
 			let res, answer;
 			try {
 				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
@@ -94,15 +100,29 @@ export class RecordWriter {
 		finally { if (fd !== undefined) fs.closeSync(fd); }
 	}
 
+	/* Fix 1 (fixes.md: a newline guard before every append), ONE helper, shared by every writer (review, chat-model step 1
+	   finding 2): the append below, `write_line` (Servex/agents/page_tools.js) and `Append.js`'s own `fs.appendFileSync`. A
+	   half-written last line (no trailing `\n` — a torn tail, or a file some other writer left mid-line) would otherwise glue
+	   onto the first byte of whatever is appended next, and BOTH lines become unparseable. Node only; `fs` is passed in so this
+	   file still loads in the browser (`tail_sync` takes it the same way). */
+	static guard_newline(fs, file){
+		try {
+			const size = fs.statSync(file).size;
+			if (!size) return "";
+			const b = Buffer.alloc(1), fd = fs.openSync(file, "r");
+			fs.readSync(fd, b, 0, 1, size - 1);
+			fs.closeSync(fd);
+			return b[0] === 10 ? "" : "\n";
+		} catch { return ""; }
+	}
+
 	// The fallback, node only: append the lines the file does not already hold, newline-safe. Answers how many were written.
 	static async append_once(file, lines){
 		const fs = await import("node:fs"), path = await import("node:path");
 		const out = this.fresh(await this.tail(file), lines, { strict: true });
 		if (!out.length) return 0;
 		fs.mkdirSync(path.dirname(file), { recursive: true });
-		let lead = "";
-		try { const size = fs.statSync(file).size; if (size){ const b = Buffer.alloc(1), fd = fs.openSync(file, "r"); fs.readSync(fd, b, 0, 1, size - 1); fs.closeSync(fd); if (b[0] !== 10) lead = "\n"; } } catch {}
-		fs.appendFileSync(file, lead + out.map(l => JSON.stringify(l)).join("\n") + "\n");
+		fs.appendFileSync(file, this.guard_newline(fs, file) + out.map(l => JSON.stringify(l)).join("\n") + "\n");
 		return out.length;
 	}
 

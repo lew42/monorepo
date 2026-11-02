@@ -140,7 +140,9 @@ export class Activity {
 		// with), then its current "doing" status line, then its newest content item's
 		// title — never a made-up placeholder. Nothing meaningful means no bar at all.
 		const fold = folds?.get(it.id)?.fold;
-		const meaningful = (fold && Outline.about_line(fold, null)) || fold?.log?.text || fold?.content?.add?.title || null;
+		// Fix 5 (fixes.md, review: chat-model step 1 finding 3): an Item member's own fields now nest under `add.data`.
+		const added_title = fold?.content?.add?.data?.title ?? fold?.content?.add?.title;
+		const meaningful = (fold && Outline.about_line(fold, null)) || fold?.log?.text || added_title || null;
 		return meaningful ? { who: null, what: plain(meaningful) } : null;
 	}
 

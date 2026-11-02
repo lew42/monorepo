@@ -180,7 +180,9 @@ function write_line(file, line, own_check = false){
 	if (why) throw new Error(`refused: ${why}`);
 
 	fs.mkdirSync(path.dirname(file), { recursive: true });
-	fs.appendFileSync(file, JSON.stringify(line) + "\n");
+	// Fix 1 (fixes.md: a newline guard before every append; review, chat-model step 1 finding 2): shared with
+	// RecordWriter.append_once and Append.js, so a torn last line never glues onto what this call appends next.
+	fs.appendFileSync(file, RecordWriter.guard_newline(fs, file) + JSON.stringify(line) + "\n");
 	return size_of(file);
 }
 

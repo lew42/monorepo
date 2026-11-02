@@ -129,7 +129,9 @@ export default class Append {
 
 		try {
 			fs.mkdirSync(path.dirname(full), { recursive: true });
-			fs.appendFileSync(full, text);
+			// Fix 1 (fixes.md: a newline guard before every append; review, chat-model step 1 finding 2): shared with
+			// RecordWriter.append_once and page_tools.js's write_line, so a torn last line never glues onto this batch.
+			fs.appendFileSync(full, RecordWriter.guard_newline(fs, full) + text);
 			this.settle(index, meta, numbered, "append successful", { offset: fs.statSync(full).size });
 		} catch (e) {
 			console.error("Append failed:", e.message);

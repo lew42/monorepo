@@ -50,9 +50,11 @@ let watcher = null;
 const filter = new MtimeFilter();
 
 /* `.json` covers the two directory.json files this server writes itself — without
- * it, every rebuild feeds its own watcher. */
+ * it, every rebuild feeds its own watcher. `.tmp-` covers Runtime.safe_write's own sibling
+ * (F4, fixes.md: write tmp, fsync, rename) — a crash-safe rewrite's tmp file is a real,
+ * if short-lived, file inside the watched tree and would otherwise queue a reload for it. */
 const ignored = file =>
-	file.endsWith(".json") || file.includes(".git") || file.includes("node_modules");
+	file.endsWith(".json") || file.includes(".git") || file.includes("node_modules") || file.includes(".tmp-");
 
 function start(){
 	console.log(`Watching ${PUBLIC} (one recursive fs.watch handle)`);
