@@ -48,4 +48,20 @@ assert.equal(agent(mk(logs), { host: { live: new Map([["k", { parent: "minion-x"
 assert.equal(agent(mk(done), { one_shot: true }).close_loop(), null);
 assert.equal(agent(mk(done), { task: null }).close_loop(), null);
 assert.equal(agent(mk([...logs, { wait: { at: "2026-11-02T10:06:00-06:00", on: "owner", what: "a look" } }])).close_loop(), null);
+
+// 5. a landed worker is not woken by news: an FYI from a sibling or clarity agent goes to the task log; the owner, a tab, its parent, priority now and revive still wake it; a mastermind and an open task are never held back
+const complete = [...done, { complete: { at: "2026-11-02T10:10:00-06:00", outcome: "ok", evidence: ["abc1234"] } }];
+dir = mk(complete); a = agent(dir, { parent: "mastermind-p" });
+assert.equal(a.landed_fyi("clarity: I rewrote your title", { from: "clarity-x" }), true);
+assert.match(fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"), /FYI from clarity-x \(task complete/);
+for (const from of ["owner", "vscode-ab12", "mastermind-p", "voice-app"]) assert.equal(a.landed_fyi("q", { from }), false, from);
+assert.equal(a.landed_fyi("q", { from: "clarity-x", priority: "now" }), false);
+assert.equal(a.landed_fyi("q", { from: "clarity-x", revive: true }), false);
+assert.equal(a.landed_fyi("q", {}), false);   // no sender: wakes
+assert.equal(agent(dir, { role: "mastermind", id: "mastermind-x" }).landed_fyi("news", { from: "clarity-x" }), false);
+assert.equal(agent(mk(logs)).landed_fyi("news", { from: "clarity-x" }), false);   // task still open: wakes
+// send() returns early and pushes nothing for an FYI
+dir = mk(complete); a = agent(dir, { send: Agent.prototype.send, state: "idle", queue: { push(){ throw new Error("must not push"); } }, emit(){}, watchdog_refusal: () => null });
+assert.equal(a.send("merge news", { from: "minion-sibling" }), a);
+assert.equal(a.state, "idle");
 console.log("ok");
