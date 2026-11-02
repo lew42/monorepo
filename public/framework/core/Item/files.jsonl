@@ -55,3 +55,4 @@
 {"file":"batch.test.mjs"}
 {"file":"coalesce.test.mjs"}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

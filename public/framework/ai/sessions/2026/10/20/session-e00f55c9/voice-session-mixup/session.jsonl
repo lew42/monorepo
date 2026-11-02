@@ -1,1 +1,2 @@
 {"assign":{"session_id":"5a7c3354-5582-47f0-8a4f-6429f538b660","agent":"mastermind-voice-session-mixup","role":"mastermind","card":"Voice Chat: wrong last session, another session's message leaked in","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-session-mixup/requirements.md","model":"claude-sonnet-5-5","effort":"medium","role_readme":"Servex/agents/roles/mastermind.md","home":"/framework/ux/Dictate/","requested_at":"2026-11-02T15:59:42-06:00","now":"starting"}}
+{"commit":"73b45a0d214c","by":"append.mjs","ts":"2026-11-02T22:03:56.922Z"}
