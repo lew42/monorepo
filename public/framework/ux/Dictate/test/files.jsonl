@@ -122,3 +122,7 @@
 {"file":"active-session.mjs"}
 {"file":"v1-order-fixture.jsonl"}
 {"file":"v1-order.mjs"}
+{"file":"raw-stays-fixture.jsonl"}
+{"file":"raw-stays.mjs"}
+{"file":"raw-stays-fixture.jsonl","gone":true}
+{"file":"raw-stays.mjs","gone":true}

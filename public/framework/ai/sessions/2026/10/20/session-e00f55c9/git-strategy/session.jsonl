@@ -2,3 +2,16 @@
 {"action":{"at":"2026-11-01T21:48:21-06:00","did":"edit","files":["public/framework/doc/git.md"]},"by":"ledger","ts":"2026-11-02T03:48:21.134Z"}
 {"commit":"f712b4942aa8","by":"append.mjs","ts":"2026-11-02T03:48:55.049Z"}
 {"log":{"at":"2026-11-01T21:50:48-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T03:50:48.378Z"}
+{"log":{"at":"2026-11-01T21:52:39-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T03:52:39.045Z"}
+{"log":{"text":"Landed: git.md answer to the night asks (f712b4942, pushed). Recommendation: fast-forward-only landing, main as staging, rename michael/dev to compliance/dev. Owner decision: go on migration steps 1-2. clarity-git-strategy checked it: clear, no rewrite."},"by":"mastermind-git-strategy","ts":"2026-11-02T03:52:45.444Z"}
+{"sessions":[{"id":"mastermind-git-strategy","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/git-strategy/"}],"by":"mastermind-git-strategy","ts":"2026-11-02T03:52:45.445Z"}
+{"assign":{"landed_at":"NOW","title":"Git branching strategy: fast-forward-only proposal","outcome":"Added the answer to the night asks to public/framework/doc/git.md (f712b4942, pushed): fast-forward-only landing with main as staging, rename michael/dev to compliance/dev, migration commands marked run-only-after-go. Owner decision: go on steps 1-2.","links":["/framework/doc/git.md"]},"by":"mastermind-git-strategy","ts":"2026-11-02T03:52:51.303Z"}
+{"log":{"at":"2026-11-01T21:52:55-06:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-11-01T21:52:55-06:00","msg":"doc-check: public/framework: 3 dead links (/Servex/ext/remote/doc/cloud-voice-agent.md, /.claude/skills/documentation/SKILL.md, /.claude/skills/documentation/architecture-template.md)"}}
+{"log":{"at":"2026-11-02T03:52:55.533Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-11-01T21:52:55-06:00","msg":"owner-check: no owner words found"},"by":"append.mjs","ts":"2026-11-02T03:52:56.010Z"}
+{"log":{"at":"2026-11-01T21:53:03-06:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-11-01T21:53:03-06:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign":{"at":"2026-11-01T21:53:17-06:00","outcome":"Answered the night asks in [git.md](/framework/doc/git.md) (f712b4942, pushed). Recommendation: fast-forward-only landing, `main` as staging, rename michael/dev to compliance/dev. Owner decision: say go on migration steps 1-2.\n- [x] Local main equals GitHub main: shown in git.md, \"Today, as a picture\" (already equal, only old)\n- [x] Develop on a branch, not main: git.md, Options table A\n- [x] michael vs michael/dev clash: explained, compliance/dev chosen\n- [x] Pull into main, browse, then merge locally: git.md, four-step routine\n- [x] Cloudflare previews kept: git.md, preview addresses unchanged\n- [ ] Link from the root readme's branches section: not done"}}
+{"log":{"at":"2026-11-01T21:53:25-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-01T21:57:22-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T03:57:22.762Z"}
