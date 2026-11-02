@@ -253,7 +253,12 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
             }
             const a = live.get(id) ?? { id };
             const out = /plain text to (\S+\.txt)/.exec(text)?.[1];
-            const ev = (ms, e) => setTimeout(() => { if (e.type === "result") a.state = "idle"; agents2.watch(e, a); }, ms);   // a real agent is idle once its turn ends
+            // like Agents.js: queue.kinds gains one entry per message and loses one per turn end; the agent is idle once nothing is left
+            // (`idle: true` forces it, as the CLI's queued_turn_count does when a count drifted); queue.items stays empty, as it does
+            // once the Claude process has taken the messages
+            const q = a.queue ??= { items: [], kinds: [] };
+            q.kinds.push(false);
+            const ev = (ms, e) => setTimeout(() => { if (e.type === "result"){ q.kinds.shift(); if (e.idle || !q.kinds.length) a.state = "idle"; } agents2.watch(e, a); }, ms);
             a.state = "working";
             for (const [ms, e] of script(out)) e === "file" ? setTimeout(() => fs.writeFileSync(out, "the full answer, from the file"), ms) : ev(ms, e);
         },
@@ -318,7 +323,8 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     assert.ok(own.to === standin.id && !/waiting/.test(own.status), `an admitted mastermind is asked directly (${own.to}, ${own.status})`);
     await new Promise(r => setTimeout(r, 300));
     // a busy agent: the words of the turn it was already in are not this ask's answer; the next turn's are
-    live.get("vscode-mastermind").state = "working";
+    const vb = live.get("vscode-mastermind");
+    vb.state = "working"; (vb.queue ??= { items: [], kinds: [] }).kinds.push(false);   // the running turn, counted as Agents.js counts it
     script = () => [[50, { type: "delta", text: "unrelated work" }], [100, { type: "result" }], [200, { type: "delta", text: "Your answer." }], [250, { type: "result" }]];
     const busy = (await tool2("ask_mastermind", { question: "busy?", to: "vscode-mastermind" }, b1)).text;
     assert.equal(busy, "Your answer.", "words from the turn already running are skipped");
@@ -344,6 +350,20 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
     const heard = async q => JSON.parse((await tool2("voice_hear", { ticket: q, wait_s: 0 }, b1)).text);
     assert.equal((await heard(qa)).answer, "Answer A.", "the first ask gets its own turn's words");
     assert.equal((await heard(qb)).answer, "Answer B.", "the second ask, sent mid-turn, gets the next turn's words");
+    // 13) a helper's report is already waiting inside the Claude process (queue.items empty, queue.kinds counts it): its words are not the answer
+    const vm = live.get("vscode-mastermind");
+    vm.state = "working"; vm.queue.kinds.push(false, false);   // the running turn, plus the helper's report
+    script = () => [[50, { type: "delta", text: "Other work." }], [100, { type: "result" }], [150, { type: "delta", text: "Helper report." }], [200, { type: "result" }], [250, { type: "delta", text: "Answer C." }], [300, { type: "result" }]];
+    const qc = JSON.parse((await tool2("ask_mastermind", { question: "third?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    await new Promise(r => setTimeout(r, 400));
+    assert.equal((await heard(qc)).answer, "Answer C.", "a message held by the Claude process counts as a turn ahead");
+    // 14) the count came out one high (a priority message jumped the queue): when the agent goes idle, the last turn's words are the answer
+    vm.state = "working"; vm.queue.kinds.push(false, false);
+    script = () => [[50, { type: "delta", text: "Other work." }], [100, { type: "result" }], [150, { type: "delta", text: "Answer D." }], [200, { type: "result", idle: true }]];
+    const qd = JSON.parse((await tool2("ask_mastermind", { question: "fourth?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
+    await new Promise(r => setTimeout(r, 300));
+    assert.equal((await heard(qd)).answer, "Answer D.", "an over-counted ask takes the last turn's words once the agent is idle");
+    vm.queue.kinds.length = 0;
     console.log("bridge:", JSON.stringify({ ack_ms, first_ms, answer_ms }));
     srv2.close();
 }

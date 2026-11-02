@@ -33,8 +33,8 @@ Built in `RemoteMCP.js` (one class); plan and measurements: [plan.md](../../../.
 - **`voice_hear({ticket, wait_s})`** (remote route only): returns at the first change, at `wait_s` (8, at most 20), or when the app hangs up. Every reply is the whole state, so a call cut off by noise loses nothing.
 - **Answers ride along.** Every tool result on the remote route, `cloud_voice_log` included, carries an open ask's first sentence and then its answer, each once. Words in between (text after a tool call) are not relayed; `voice_hear` shows what it is doing instead.
 - **Never wait on a spawn.** `ask_mastermind({to})` asks any agent. When the connection's own mastermind is queued at the spawn gate, the ask goes to `REMOTE_MCP_FALLBACK` or the file `remote.fallback` beside the token (for example `vscode-mastermind`), and `routed` says so.
-- **Attribution rule:** an agent's streamed words belong to its oldest unfinished ask. An ask counts the turns ahead of it when sent (the running one plus messages already queued) and ignores their words; each turn end counts one off, for every waiting ask at once. A turn stopped mid-way closes its ask as "stopped before answering", with no answer.
-- Tested in `RemoteMCP.test.mjs` (cases 6–12). It takes effect at the next Servex restart.
+- **Attribution rule:** an agent's streamed words belong to its oldest unfinished ask. An ask counts the turns ahead of it when sent (Servex’s `queue.kinds`: the running turn plus every message waiting, including those already handed to the Claude process) and ignores their words; each turn end counts one off, for every waiting ask at once. If the agent goes idle while an ask still counts turns, the count was high, and the last turn’s words become its answer. A turn stopped mid-way closes its ask as "stopped before answering", with no answer.
+- Tested in `RemoteMCP.test.mjs` (cases 6–14). It takes effect at the next Servex restart.
 
 ## ask_mastermind never loses an answer
 

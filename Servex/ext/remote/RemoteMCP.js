@@ -61,6 +61,7 @@ export default class RemoteMCP {
     constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = Number(process.env.REMOTE_MCP_WAIT_MS) || 8000, late_ms = 1800000, target } = {}){
         Object.assign(this, { servex, root, token_file, wait_ms, late_ms, target });
         this.tickets = new Map();               // ticket -> what the mastermind has said so far on that ask (see ticket())
+        this.turn_words = new Map();            // agent id -> its running turn's words, for heard_event's idle fallback
         this.listen();
         this.replies = path.join(path.dirname(token_file), "remote-replies");
         this.sessions_file = path.join(path.dirname(token_file), RemoteMCP.SESSIONS_FILE);
@@ -414,11 +415,14 @@ export default class RemoteMCP {
     // what this caller has now been told: ride() only repeats what is new
     mark(t){ t.heard = t.rev; t.rode = { first: t.first.trim().length, answer: !!t.answer }; }
 
-    // turns an agent must finish before a message sent now is answered: the running one plus those already queued
-    // (a priority message can jump the queue; then the count is one high and that ask's answer arrives by its reply file)
+    // turns an agent must finish before a message sent now is answered: the running one plus every message already waiting.
+    // `queue.kinds` gains one entry per message sent and loses one per turn end (Agents.js, AgentQueue.push and Agent.emit), so it
+    // also counts messages already handed to the Claude process, which `queue.items` no longer holds. If the count is ever high
+    // (a priority message jumped the queue), heard_event's idle fallback gives the ask the last turn's words.
     ahead(id){
         const a = this.servex.agents?.live?.get?.(id);
-        return a?.state === "working" ? 1 + (a.queue?.items?.length ?? 0) : 0;
+        if (a?.state !== "working") return 0;
+        return a.queue?.kinds?.length || 1 + (a.queue?.items?.length ?? 0);
     }
 
     // the open tickets of an agent, oldest first: its stream belongs to the oldest ask it has not finished
@@ -440,14 +444,23 @@ export default class RemoteMCP {
         const open = this.open_for(agent?.id);
         if (!open.length) return;
         const t = open.find(x => !x.ahead);   // the oldest ask whose turn has come; asks still behind other turns ignore this one
+        const turn = this.turn_words.get(agent.id) ?? { first: "", words: "", tools: 0 };   // this turn's words, whoever they belong to
+        this.turn_words.set(agent.id, turn);
         if (event.type === "result"){
+            this.turn_words.delete(agent.id);
             const behind = open.filter(x => x.ahead);   // every ask still waiting: a turn ahead of each of them just ended
             if (t && event.stopped) Object.assign(t, { done: true, stopped: true }), this.changed(t);   // cut off mid-turn: closed, and its partial words are not an answer
             // the turn's words go to the oldest open ask only; a later ask the same turn answered arrives by its reply file
             else if (t) for (const x of open) if (!x.ahead && (x === t || x.words)){ x.turn_done = true; x.deliver?.() || this.changed(x); }
             for (const x of behind) x.ahead--;
+            // idle fallback: the agent has nothing left to run, so an ask still counting turns was over-counted and this last turn was its own
+            const left = agent.state === "working" ? [] : behind;
+            if (left.length && !event.stopped) Object.assign(left[0], { ahead: 0, first: turn.first, words: turn.words, tools: turn.tools, turn_done: true }), left[0].deliver?.() || this.changed(left[0]);
+            for (const x of left) x.ahead = 0;
             return;
         }
+        if (event.type === "delta"){ if (!turn.tools) turn.first += event.text; turn.words += event.text; }
+        if (event.type === "tool") turn.tools++;
         if (!t) return;
         t.turn_done = false;   // a new turn: its words are not an answer until it ends
         if (event.type === "delta"){ if (!t.tools) t.first += event.text; t.words += event.text; return this.changed(t); }
