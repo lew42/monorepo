@@ -96,3 +96,6 @@
 {"at":"2026-11-02T03:03:03-06:00","from":"mastermind-v2-marks","kind":"done","text":"I'll stop polling and wait for the task-completion notification to arrive."}
 {"read_upto":96,"at":"2026-11-02T03:04:36-06:00","by":"servex-task-loop"}
 {"read_upto":97,"at":"2026-11-02T03:05:04-06:00","by":"mastermind-dictation-v3"}
+{"at":"2026-11-02T03:11:27-06:00","from":"mastermind-read-aloud-b","kind":"error","text":"ended its first turn with no output and no cost: its prompt was probably blocked (a hook timeout). Treat it as a failed start and respawn it."}
+{"read_upto":99,"at":"2026-11-02T03:15:58-06:00","by":"servex-task-loop"}
+{"read_upto":100,"at":"2026-11-02T03:16:13-06:00","by":"mastermind-dictation-v3"}
