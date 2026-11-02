@@ -12,6 +12,7 @@ import { md_into } from "../md.js";
 View.stylesheet(import.meta, "ChatList.css");
 
 export default class ChatList extends JSONL {
+	static LEVELS = { clean: "your words, cleaned up", edit: "your words, edited", summary: "a summary of what you said" };   // Sessions.line's levels
 	session = new Session();
 	els = new Map();          // message -> its bubble element
 	dirty = new Set();        // messages changed since the last draw
@@ -50,7 +51,7 @@ export default class ChatList extends JSONL {
 		el.dataset.id = m.id;
 		el.replaceChildren();
 		const who = document.createElement("div"); who.className = "chatlist-who";
-		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + m.level : ""}` : m.by ?? "note";
+		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
 		const text = document.createElement("div"); text.className = "chatlist-text md";
 		if (kind === "prompt" && m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(who, t); } else el.append(who);
 		md_into(text, kind === "prompt" ? (m.text || m.said) : m.text);

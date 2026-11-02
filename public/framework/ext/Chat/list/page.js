@@ -9,7 +9,7 @@ export default new Page({
 
 	content(){
 		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/session.jsonl", import.meta.url).href;
-		p(src ? `The chat list of the session file you passed in ?src= (${src}), drawn live.` : "A demo: a small session written by Servex's real writer (Servex/agents/chat-messages.test.mjs). Pass ?src=<url of any session.jsonl> to draw a live one; a voice session written since this landed has the list.");
+		p(src ? `The chat of the session at ${src}, drawn live: a new message appears here as soon as it is written.` : "Every voice session now keeps its chat as one list: what you said, and each reply, in the order it happened. This is a small example session, drawn from that list alone. When a new message is added, it appears here without reloading.");
 		const $box = div.c("chatlist");
 		new ChatList({ url, $box }).live();
 	},
