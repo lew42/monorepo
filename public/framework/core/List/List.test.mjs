@@ -118,6 +118,11 @@ try {
 		t.eq(two.kids.find("k2"), k2, "ref(): the item itself never left its first list");
 		t.eq(two.box.length, 2, "ref(): the add() item and the Ref both landed in the second list");
 
+		const throws = fn => { try { fn(); return false; } catch { return true; } };
+		t.ok(throws(() => two.box.ref(new Item({ id: "loose" }))), "ref(): an unattached item throws (it has no address to point at)");
+		const other = Item.hydrate({ id: "no-store", kids: [{ id: "k9" }] });
+		t.ok(throws(() => two.box.ref(other.kids.find("k9"))), "ref(): an item in another tree with no store url throws");
+
 		const DIR3 = fs.mkdtempSync(path.join(os.tmpdir(), "list-test-f7-"));
 		try {
 			const rootA = Item.hydrate({ id: "a-root", kids: [{ id: "shared", title: "Shared" }] });

@@ -313,7 +313,10 @@ export class List extends Item {
 	   shows no caller relies on the move; see plan.md's decision 2). The real move stays one explicit call,
 	   `item.move_to(dest)` (Item.js), which leaves a `moved_to` forward behind for any Ref to follow. */
 	ref(x){
+		// A Ref needs an address: an unattached item has none, and another file's item needs that file's url.
+		if (!x?.parent) throw new Error("List.ref: the item must already belong to a list (an unattached item has no address)");
 		const dest_root = (this.owner ?? this).root(), src_root = x.root();
+		if (src_root !== dest_root && !src_root.store?.url) throw new Error("List.ref: the item lives in another tree with no store url, so a Ref could not find it");
 		const path = Item.Store.address(x, src_root);
 		return this.add(src_root === dest_root ? { type: "Ref", path } : { type: "Ref", url: src_root.store?.url, path });
 	}

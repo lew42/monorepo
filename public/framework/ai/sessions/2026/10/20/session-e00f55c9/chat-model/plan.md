@@ -37,7 +37,7 @@ The brief: [requirements.md](requirements.md). The owner's words: [../night-2026
 Worktree `task/chat-model`. One Sonnet builder works the steps in sequence (same files, warm context); after each it commits, runs `node Server/review.mjs <task dir> <worktree>`, answers findings; I read the diff and merge. Each step is a child task on [session.jsonl](session.jsonl).
 
 1. **Phase 0, fixes 1–5:** for each, prove done (a test that fails on the old code) or build it (failing test first). Every test runs under `TestRunner.mjs`; a test that never runs is a finding, logged.
-2. **F7 + Ref as a chat member:** census of `add`-moves; `List.add` makes a Ref; `Message.hydrate` builds `Ref` in `messages`; a test.
+2. **F7 + Ref as a chat member:** census of `add`-moves (in decision 2); explicit `list.ref(x)` makes a Ref, `add()` unchanged; `Chat.resurface`; `Message.hydrate` builds `Ref` in `messages`; a test.
 3. **Tasks and child sessions as Refs in `session.messages`**, written by Servex; a replay test.
 4. **List view hooks:** `List.View` updates on add, remove, move, order (keyed by id, no full redraw); `ChatList` becomes "render the list".
 5. **`Sentence.at` always written; `Prompt.raw`**; a test on real `v-u48msei` lines.
