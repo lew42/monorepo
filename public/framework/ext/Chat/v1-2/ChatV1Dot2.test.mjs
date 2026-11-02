@@ -12,6 +12,7 @@ const T = ms => new Date(Date.parse("2026-11-02T14:00:00.000-06:00") + ms).toISO
 const sentence = (n, text, ms) => n === 1
 	? { sentences: { add: { id: "s-1", at: T(ms), text, via: "voice" } }, messages: { add: { type: "Prompt", id: "m-1", by: "owner", at: T(ms), sentences: ["s-1"] } } }
 	: { sentences: { add: { id: "s-" + n, at: T(ms), text, via: "voice" } }, messages: { "m-1": { sentences: { push: "s-" + n } } } };
+const live = detail => page.evaluate(d => window.dispatchEvent(new CustomEvent("chat-live", { detail: d })), detail);
 const sent = ms => ({ messages: { "m-1": { sent: { fast: { at: T(ms) } } } } });
 const S = [["Can you check the build?", 0], ["I think the cursor is lagging behind.", 3000], ["Maybe it is the cache.", 6000]];
 
@@ -23,7 +24,7 @@ await page.evaluate(async () => {
 	const { div } = await import("/framework/core/View/View.js");
 	document.body.replaceChildren();
 	const $box = div.c("chat-v1-2"); document.body.append($box.el);
-	window.c = new ChatV1Dot2({ $box });
+	window.c = new ChatV1Dot2({ $box }); window.c.listen(true);
 });
 const feed = line => page.evaluate(l => window.c.read([l]), line);
 const state = () => page.evaluate(() => {
@@ -57,7 +58,7 @@ try {
 	await feed(sent(S[0][1]));
 	s = await state(); await settle();
 	check("sent #1: the ✓ sits after sentence 1, sentence 2 still waits", s.cursors === 1 && s.after === "s-1" && s.unsent.join() === "s-2", s);
-	check("…and the ✓ is dimmed while words wait", s.waiting === true && (await state()).opacity < 0.5, await state());
+	check("…and the ✓ is dimmed while words wait", s.waiting === true && (await state()).opacity < 0.7, await state());
 
 	await feed(sentence(3, ...S[2]));
 	await feed(sent(S[1][1]));
@@ -80,7 +81,12 @@ try {
 	await feed({ messages: { add: { id: "m-2", type: "Reply", by: "smart", at: T(7000), text: "Looking at the build now.", re: { to: "s-1" } } } });
 	s = await state();
 	check("a Reply lands as its own bubble; the owner's ✓ is untouched", s.bubbles === 2 && s.cursors === 1 && s.after === "s-3", s);
+	await live({ text: "Maybe we could", settled: "Maybe", guess: " we could" });
+	const d = await page.evaluate(() => { const dr = document.querySelector(".chatbox-draft"), cur = document.querySelector(".chat-cursor"); return { draft: !!dr, text: dr?.textContent ?? "", after: !!(dr && cur && (cur.compareDocumentPosition(dr) & Node.DOCUMENT_POSITION_FOLLOWING)), cursors: document.querySelectorAll(".chat-cursor").length }; });
+	check("the unfinished spoken words show as a draft bubble AFTER the ✓, still one ✓", d.draft && /Maybe\s+we could/.test(d.text) && d.after && d.cursors === 1, d);
 	if (shots) { mkdirSync(shots, { recursive: true }); await page.screenshot({ path: `${shots}/v1-2-360.png` }); }
+	await live({ text: "" });
+	check("…and the draft goes away when the words are sent", (await page.evaluate(() => document.querySelectorAll(".chatbox-draft").length)) === 0);
 
 	await page.evaluate(() => window.c.send_cursor.stop());
 	s = await state();

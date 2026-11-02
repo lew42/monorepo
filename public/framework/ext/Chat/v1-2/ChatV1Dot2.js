@@ -51,5 +51,11 @@ export default class ChatV1Dot2 extends JSONL {
 		return this;
 	}
 	reset(){ this.session = new Session(); this.emitted.clear(); this.send_cursor.clear(); this.send_cursor.session = this.session; this.talk?.view.el.replaceChildren(); this.talk = null; return super.reset(); }
-	live(){ super.live(() => {}); return this; }
+	// The words being spoken right now, before any sentence ends: V1's own growing draft bubble, after the ✓ (the composer's mic reports them as "chat-live").
+	listen(on){
+		this._live ??= e => this.talk?.live(e.detail ?? {});
+		window[on ? "addEventListener" : "removeEventListener"]("chat-live", this._live);
+	}
+	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); return this; }
+	unsubscribe(){ this.stopped = true; this.listen(false); return super.unsubscribe(); }
 }

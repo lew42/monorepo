@@ -3,6 +3,6 @@
 /* Chat V1.2 (ChatV1Dot2.js): V1's own markup and Chat.css, plus the send cursor's two states. The ✓ itself is cursors.css's `.chat-cursor`. */
 @layer site {
 	.chat-v1-2 .chat-cursor { color: var(--ok); opacity: 1; transition: opacity .6s ease; }
-	.chat-v1-2 .chat-cursor.chat-cursor-waiting { opacity: .35; }
+	.chat-v1-2 .chat-cursor.chat-cursor-waiting { opacity: .55; }
 	.chat-v1-2 .chatbox-text.chat-unsent { color: var(--draft-ink, var(--subtle)); transition: color .6s ease; }
 }

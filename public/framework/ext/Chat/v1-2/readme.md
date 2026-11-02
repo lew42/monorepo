@@ -9,6 +9,7 @@ Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/se
 - **The bubbles are V1's**, so the layout, links, read-aloud highlight and ordering rules are V1's, and `Server/ChatV1Compare.mjs` stays at 0 differing bubbles.
 - **One ✓ after the last sentence the assistant has.** A sentence is "had" when it is not newer than the newest Prompt's `sent.fast.at`. Sentences after the ✓ are dimmed: they are said, but not sent yet. When a sentence goes out the ✓ moves forward to its end.
 - **The ✓ is dim while words wait, and lit green (`--ok`) once it has caught up.** A slow CSS fade, no per-sentence grey/green flashing.
+- **The words still being spoken** (the live Whisper guess, before any sentence ends) show as V1's own growing draft bubble, after the ✓: `ChatV1Dot2` listens for the composer's `chat-live` window event, the same one V3 uses, and passes it to V1's `live()`. Start the listener with `live()`; `listen(false)` or `unsubscribe()` stops it.
 - **No 🧠.** One assistant, one mark. The `sent.smart` stamp is still written, just not drawn here.
 
 ## Files
@@ -21,7 +22,7 @@ Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/se
 
 ## Test
 
-`FENCE_SERVEX=1 node ChatV1Dot2.test.mjs [base-url] [shots-dir]` (default base `http://monorepo.localhost`; the fence keeps it off the live Servex). It drives `ChatV1Dot2.read()` at 360×740 with the phone UA: one bubble growing sentence by sentence, the ✓ after each `sent` mark, dimmed then lit green, no 🧠, a `clean` edit in place, a Reply as its own bubble, `stop()`/`start()`, no page errors. 15 checks.
+`FENCE_SERVEX=1 node ChatV1Dot2.test.mjs [base-url] [shots-dir]` (default base `http://monorepo.localhost`; the fence keeps it off the live Servex). It drives `ChatV1Dot2.read()` at 360×740 with the phone UA: one bubble growing sentence by sentence, a live draft after the ✓, the ✓ after each `sent` mark, dimmed then lit green, no 🧠, a `clean` edit in place, a Reply as its own bubble, `stop()`/`start()`, no page errors. 17 checks, including the live draft bubble after the ✓.
 
 ## Decisions
 
