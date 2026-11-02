@@ -374,6 +374,78 @@ if (Recite) test("Recite + BargeIn: owner_spoke() drops a Whisper final heard ou
 	return r;
 });
 
+// The thinking cue (dictation-v3, 2026-11-02): a short tone once the owner's line lands, again cue_repeat_ms later
+// if the reply still has not started, then quiet. cue_repeat_ms is shortened here — the logic is the same at any
+// interval, and the real 2 s default would make this test needlessly slow.
+if (Recite) test("Recite: a thinking cue plays once, again if the reply has not started, then stays quiet", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_repeat_ms = 20;
+
+	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+
+	r.from_wire({ kind: "line", line: { chat: { text: "what's the weather like", at: new Date().toISOString() } } });
+	t.eq(cues.length, 1, "the cue plays once, right away");
+
+	await new Promise(res => setTimeout(res, 35));
+	t.eq(cues.length, 2, "and again once the reply still has not started");
+
+	await new Promise(res => setTimeout(res, 35));
+	t.eq(cues.length, 2, "then it stays quiet — no third cue");
+	return r;
+});
+
+// Real reply text arriving — a stream chunk or a settled line — must stop the cue right away, even mid-wait.
+if (Recite) test("Recite: a thinking cue stops the moment the reply starts", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_repeat_ms = 20;
+
+	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+
+	r.from_wire({ kind: "line", line: { chat: { text: "what's the weather like", at: new Date().toISOString() } } });
+	t.eq(cues.length, 1, "the cue plays once");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "It is sunny" });   // the reply starts arriving
+	await new Promise(res => setTimeout(res, 35));
+	t.eq(cues.length, 1, "no second cue — the reply already started");
+	return r;
+});
+
+// A thinking cue never fires while a previous reply is already playing — it would talk over it.
+if (Recite) test("Recite: a thinking cue is skipped while a reply is already playing", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_repeat_ms = 20;
+
+	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+
+	r.queue("An earlier reply, still being read.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the earlier reply is playing");
+
+	r.from_wire({ kind: "line", line: { chat: { text: "a follow-up line", at: new Date().toISOString() } } });
+	t.eq(cues.length, 0, "no cue while something is already playing");
+	return r;
+});
+
+// The setting itself: false turns the cue off entirely.
+if (Recite) test("Recite: thinking_cue = false turns the cue off", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.thinking_cue = false;
+
+	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+
+	r.from_wire({ kind: "line", line: { chat: { text: "what's the weather like", at: new Date().toISOString() } } });
+	t.eq(cues.length, 0, "thinking_cue = false means no cue at all");
+	return r;
+});
+
 // Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.
 if (Recite) test("Recite.Highlight: which word is playing", t => {
 	const H = Recite.Highlight, words = H.words("The voice server answers, on the phone.");

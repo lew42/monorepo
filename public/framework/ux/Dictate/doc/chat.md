@@ -206,7 +206,8 @@ said (`ext/Session/doc/markers.md`'s "card attribution"), even if the owner has 
 
 A new sentence usually continues the owner's last thought, so it joins the last bubble as a
 new paragraph instead of opening a second one (`ext/Chat/Chat.js`'s `speak()`/`mergeable()`,
-`MERGE_GAP_MS` = 10s). Sometimes the fast assistant decides, a moment later, that the LATEST
+`MERGE_GAP_MS` = 8s, was stated here as 10s -- fixed to match the code, views-fix item 3,
+2026-11-01). Sometimes the fast assistant decides, a moment later, that the LATEST
 paragraph it heard was actually the start of something new. It says so by beginning its reply
 with `(new paragraph)` (`Servex/agents/session-fast.md`); Servex turns that into an invisible
 `{para: {at, re}}` line in the session file — `re` is the `at` of the first owner line of the
@@ -222,7 +223,44 @@ on either one still works. A whole-file redraw from line 0 (a reload, `sync()`) 
 
 `chat.js`'s `draw(line)` forwards a raw `{para: ...}` session line to `panel.say({para})`, the same way it forwards `{chat}` and `{react}`.
 
-## `remove()`
+## Paragraphs at a pause (views-fix item 3, 2026-11-01)
+
+The owner's 20:40 dictation reached Servex as ONE sentence of 3,463 characters, with no break,
+because the client was sending the whole dictation as a single message (fixed by views-fix item
+0: `ext/Chat/Mic.js` now sends each finished sentence as its own message while still listening).
+That alone does not draw separate paragraphs; three mechanisms already exist that COULD, and
+they do not agree:
+
+1. **`mergeable()`/`MERGE_GAP_MS` (`ext/Chat/Chat.js`, 8s)** — the one that actually runs for a
+   real V1 chat: a sentence from the same sender more than 8s after the last one never merges
+   into the open bubble, so it starts a new one. With item 0 landed, each sentence reaches the
+   chat close to when it was spoken, so a real pause over 8s now DOES split a bubble — no further
+   change needed here; it was item 0 alone standing in its way.
+2. **`{place: {to: "paragraph"}}` (the voice assistant / its rule fallback, `ext/Refine/Placement.js`)**
+   — a PER-SENTENCE decision, written later, that can split a bubble that already merged
+   (`Widget.Thread.split_paragraph()`). Its rules were text-only (a question, a cue word, else
+   "unsure: append" forever) — a rambling dictation with neither never got a break. **Fixed here:**
+   `Placement.place()` takes an optional `gap_ms` (the quiet time before the sentence, which the
+   mic already measures); a pause of 2s+ with no cue word now starts a new paragraph instead of
+   defaulting to "unsure". `ext/Refine/RefineSystem.js` (today only the Refine demo page, not yet
+   the live voice-assistant's own fallback) feeds it the real gap between sends. Proof:
+   `ext/Refine/test/Placement.test.mjs`, `ext/Refine/test/paragraph-pauses.test.mjs`.
+3. **`ChatV3.paragraphs()` (`ext/Chat/v3/ChatV3.js`)** — ignores both of the above: a flat "group
+   every 3 sentences" on `p.raw`, not `p.cleaned` (which already carries the real `Paragraphs`
+   list). Being rebuilt by `mastermind-v3-messages` (session.messages / `Sentence.at`, its own
+   pause-gap rule) as part of the v3-messages work — left untouched here on purpose, to avoid two
+   agents editing the same file; flagged, not fixed, in this task.
+
+**The decision:** keep the split where it already lives — the CLIENT decides nothing about
+paragraphs (it only decides WHEN to send, item 0's job); the gap is measured once, by whichever
+layer draws the bubble closest to real time (`mergeable()` for V1 today) or decides placement
+after the fact (`Placement`'s fallback, soon the voice assistant itself). **The alternative**
+(the client marks each outgoing sentence `new_paragraph: true/false` itself, and every view just
+honours the flag) was not taken: it would duplicate the SAME pause judgement in a second place
+(the client, which cannot see the voice assistant's own topic-change reasoning), the exact
+"two mechanisms reading different signals for one thing" shape item 34 found with the check/brain
+pair above — one clock (gap_ms, now shared by `Placement` and already used natively by
+`mergeable()`) beats two.
 
 Call this when ONE mount is taken off the page — closing the sheet, switching a drawer tab away
 from AI. It only stops that one mount's own polling and listening. The conversation itself, and
@@ -268,7 +306,7 @@ bubble instead of opening a new one each time, and made `Widget.Composer` the sa
 
 ## New session, and the mic indicator
 
-**New session** is one button, `new_session_button()` in `chat.js`; the phone sheet's head (next to More, one tap), the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. **The next session is always new** (fixed 2026-10-13, [walk](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md)): `reset()` marks the tab `fresh` (also in `sessionStorage`, so a reload keeps it) and `ensure()` passes `Session.start({ fresh: true })`; before, Servex's "resume the last hour on this page" rule brought the old conversation straight back on the first sentence. The resume offer is not shown after New session. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
+**New session** is one button, `new_session_button()` in `chat.js`; the phone sheet's head (next to More, one tap), the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). It is safe to press while the first sentence's session is still starting: `reset()` bumps the controller's `epoch`, so that late start is dropped instead of resurrecting a session, and the lines drawn so far are cleared (`test/new-session.mjs`). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. **The next session is always new** (fixed 2026-10-13, [walk](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md)): `reset()` marks the tab `fresh` (also in `sessionStorage`, so a reload keeps it) and `ensure()` passes `Session.start({ fresh: true })`; before, Servex's "resume the last hour on this page" rule brought the old conversation straight back on the first sentence. The resume offer is not shown after New session. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
 
 **The mic indicator** is one class, `MicIndicator.js`: a red dot, "listening" and a level bar, visible only while a mic is open. `Dictate.js` tells it the state and level, so every instance follows. It sits under the composer (the full variant with the level bar, so in the sheet, the drawer's AI tab and anywhere else `Widget` mounts); the dot-only `compact` variant (no bar: the buttons are too small) sits on the floating mic, the ✦ button of the bottom rail and the ☰, so a collapsed surface still shows the mic is on. Dropped with the duplicate button: `new_session()` in `ext/drawer/tabs/ai.js`, which also asked Servex to recycle a card's assistant; the live sheet never used it. The URL is not created on the press (the alternative, starting the session at once and routing to its page, would pull the reader off the page they are on).
 

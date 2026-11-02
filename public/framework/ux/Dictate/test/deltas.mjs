@@ -41,7 +41,7 @@ const out = await page.evaluate(async () => {
 	const read = () => {
 		const box = host.querySelector(".ux-dictate-widget-bubbles");
 		return [...box.children].map(b => ({ cls: b.className.includes("chatbox-you") ? "owner" : b.className.includes("chatbox-reply") ? "smart" : b.className,
-			streaming: b.classList.contains("chatbox-streaming"), text: [...b.querySelectorAll(":scope > .chatbox-text")].map(t => t.textContent.replace(/\s*[🎤⌨]\s*$/u, "").trim()) }));   // the 🎤/⌨ badge is not the text
+			streaming: b.classList.contains("chatbox-streaming"), text: [...b.querySelectorAll(":scope > .chatbox-text")].map(t => t.textContent.replace(/[\s🎤⌨✓🧠]+$/u, "").trim()) }));   // the 🎤/⌨ badge and the moving ✓/🧠 cursors (ext/Chat/cursors.js) are not the text
 	};
 	play(); const once = read();
 	play(); const twice = read();

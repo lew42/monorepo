@@ -13,6 +13,7 @@ A pause sends everything you said. Three steps broke the rule:
 ## The fix
 
 - **Show first, send after.** When words leave the draft, `ComposerMic.take_out()` ([ext/Chat/Mic.js](/framework/ext/Chat/Mic.js)) gives them an `at` and hands them to `on_out` in the same step. The chat (`Widget.show_out()`, [Widget.js](../Widget.js)) draws them as the sent piece in the draft's exact spot. The send follows later with the same `at`; if the refine changed the text, only that piece is swapped (`patch_piece` in [ext/Chat/Chat.js](/framework/ext/Chat/Chat.js)).
+- **A long sentence still joins its bubble.** Dropping the draft (`Widget.drop_draft()`, which an empty `live()` can reach before `settle_draft()`) restarts the host bubble's merge clock, so words dictated for longer than `MERGE_GAP_MS` (8 s) land in the bubble they grew in, not a new one (proof `test/in-place.mjs`).
 - `submit_entry()` no longer touches the draft, and `Thread.refresh()` puts the draft back at the end after any redraw.
 - **Timing on the Debug tab:** the Sent row says how long the words waited before going out and how long Servex took (`sent “…”; on screen at once, sent 0.6 s later (clean-up and queue), Servex took it in 3.0 s`), and the AI row says how long the answer took after the send. The Transcripts row already showed Whisper's time.
 

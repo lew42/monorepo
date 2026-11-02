@@ -42,6 +42,10 @@ export default class Recite extends Part {
 	turn_wait_ms = 1500;    // turn-taking: how much quiet before a held reply starts
 	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
+	thinking_cue = true;    // a short, subtle tone once the owner stops speaking and a reply is pending, again cue_repeat_ms later if it still has not started; false turns it off
+	cue_repeat_ms = 2000;   // thinking cue: how long to wait for the reply before the second, and last, cue
+	cue_timer = null;       // thinking cue: schedule_cue()'s own pending timeout for the second cue
+	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
 
 	constructor(...args){
 		super(...args);
@@ -228,12 +232,53 @@ export default class Recite extends Part {
 		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text, chat.at) : undefined; }
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
 		if (add) return add.by === "smart" ? this.final(add.text, add.id) : undefined;
-		if (chat?.text && this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text); }   // ear off = manual playback
+		if (chat?.text){
+			if (this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text); }   // ear off = manual playback
+			if (this.auto && this.thinking_cue) this.schedule_cue();
+		}
+	}
+
+	/** The owner's line just landed on the wire: soon a reply should start. A short, subtle cue plays now, and once
+	 *  more about `cue_repeat_ms` later if the reply still has not arrived — then it stays quiet. A fresh line
+	 *  (another message before the first reply showed up) restarts the sequence from here; `partial()`/`final()`
+	 *  cancel it the moment real reply text arrives (dictation-v3, 2026-11-02). */
+	schedule_cue(){
+		clearTimeout(this.cue_timer);
+		this.cue_pending = true;
+		this.play_cue();
+		this.cue_timer = setTimeout(() => { if (this.cue_pending) this.play_cue(); }, this.cue_repeat_ms);
+	}
+
+	/** The reply arrived, or a fresh line replaced the one being waited on: stop waiting. */
+	cancel_cue(){
+		clearTimeout(this.cue_timer); this.cue_timer = null;
+		this.cue_pending = false;
+	}
+
+	/** A short generated tone, never Kokoro speech — cheap, and never competes with recite-server for the reply
+	 *  itself. Skipped while a reply is already playing, so it never talks over it. Always traced, so a test (and
+	 *  the Whisper log) sees it fire even where AudioContext does not exist (node, or a locked-down browser). */
+	play_cue(){
+		if (this.state === "playing") return;
+		this.trace("thinking cue");
+		const Ctx = globalThis.AudioContext ?? globalThis.webkitAudioContext;
+		if (typeof Ctx !== "function") return;
+		try {
+			const ctx = this.cue_ctx ??= new Ctx();
+			const osc = ctx.createOscillator(), gain = ctx.createGain();
+			osc.frequency.value = 660;
+			gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+			gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.02);
+			gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+			osc.connect(gain); gain.connect(ctx.destination);
+			osc.start(); osc.stop(ctx.currentTime + 0.2);
+		} catch (e){ this.trace("thinking cue failed", { error: String(e?.message ?? e).slice(0, 120) }); }
 	}
 
 	/** A reply still being written, the whole text so far: each sentence is read as soon as it ends. "" = the reply ended. */
 	partial(text){
 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
+		if (text) this.cancel_cue();   // the reply started: stop waiting for it (dictation-v3 thinking cue, 2026-11-02)
 		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
 		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true }; }
 		this.live.text = text;
@@ -249,6 +294,7 @@ export default class Recite extends Part {
 	final(text, id){
 		if (!text) return;
 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: text.slice(0, 40) }); return; }
+		this.cancel_cue();   // the reply started: stop waiting for it (dictation-v3 thinking cue, 2026-11-02)
 		if (id && Recite.was_played(id)){ this.trace("not read: already played before a reload", { id }); return; }
 		const key = Recite.norm(text);
 		if (this.done.has(key)) return;
@@ -377,6 +423,7 @@ export default class Recite extends Part {
 
 	stop(){
 		this.token++;
+		this.cancel_cue();
 		clearTimeout(this.wait_timer);
 		this.wait_at = this.quiet_since_wait = null;
 		this.audio?.pause();

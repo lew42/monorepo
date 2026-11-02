@@ -9,7 +9,10 @@
  *
  * Each decision says it twice: `action` ("append" | "new") and `to` ("same" | "paragraph"), the same meaning.
  *
- * Rules first, no model: a question starts a new paragraph, a cue word decides, and when
+ * Rules first, no model: a question starts a new paragraph, a cue word decides, a long pause before
+ * a sentence with no continuation cue starts a new paragraph (views-fix item 3, 2026-11-01: the
+ * mic already measures this gap, every sentence now arrives as its own send after item 0 -- a long
+ * dictation with no question marks and no cue words was landing as one paragraph forever), and when
  * nothing decides it is "unsure", which means APPEND to the previous paragraph.
  * `Placement.use_model` (false) would let `this.ask` decide the unsure ones; no caller sets it yet.
  */
@@ -17,6 +20,11 @@ export default class Placement {
 
 	/** Off: rules only. On: `this.ask(text, state)` decides the sentences the rules cannot. */
 	static use_model = false;
+
+	/** Quiet before a sentence, with no cue word either way, that counts as a paragraph break on
+	 *  its own -- the same idea as Mic.js's own SETTINGS.paragraph_pause_ms (2000), so a silence
+	 *  long enough to send the words as a fresh message is also long enough to start a paragraph. */
+	static PAUSE_MS = 2000;
 
 	/** A sentence that starts with one of these begins a new thought. */
 	static NEW_CUE = /^(next|another|separately|switching|moving on|on a different|one more thing|the other thing|second thing|new topic)\b/i;
@@ -30,8 +38,10 @@ export default class Placement {
 	/** Model caller, only used when `Placement.use_model` is true: (text, state) => "append" | "new". */
 	ask = null;
 
-	/** Rules only: the decision for one sentence, without changing `state`. */
-	place(sentence, state){
+	/** Rules only: the decision for one sentence, without changing `state`. `gap_ms` (optional): the
+	 *  quiet time since the previous sentence was sent -- undefined/null when the caller has no
+	 *  timing (e.g. several sentences cleaned out of one already-landed blob, same `at`). */
+	place(sentence, state, gap_ms = null){
 		const text = Placement.text_of(sentence);
 		const last = state.paragraphs.length - 1;
 		if (!text) return Placement.decision("append", Math.max(last, 0), 0, "empty");
@@ -39,12 +49,13 @@ export default class Placement {
 		if (/\?\s*$/.test(text)) return Placement.decision("new", last + 1, 0.9, "a question stands alone");
 		if (Placement.NEW_CUE.test(text)) return Placement.decision("new", last + 1, 0.8, "new-topic cue word");
 		if (Placement.CONTINUE_CUE.test(text)) return Placement.decision("append", last, 0.8, "continuation cue word");
+		if (typeof gap_ms === "number" && gap_ms >= Placement.PAUSE_MS) return Placement.decision("new", last + 1, 0.7, `a ${Math.round(gap_ms / 1000)}s pause, no continuation cue`);
 		return Placement.decision("append", last, 0.5, "unsure: previous paragraph");
 	}
 
 	/** Decide, then add the sentence to `state`. Returns the decision (store it on the sentence as `placed`). Never throws. */
-	async add(sentence, state){
-		let decision = this.place(sentence, state);
+	async add(sentence, state, gap_ms = null){
+		let decision = this.place(sentence, state, gap_ms);
 		try {
 			if (decision.reason.startsWith("unsure") && Placement.use_model && this.ask){
 				const action = await this.ask(Placement.text_of(sentence), state);
