@@ -60,3 +60,4 @@
 {"log":{"at":"2026-11-02T00:46:48-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-11-02T00:51:48-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
 {"log":{"at":"2026-11-02T00:56:48-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-02T01:59:19-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
