@@ -24,7 +24,7 @@ export const SCRIPTS = [
 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},
 	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"red","why":"flaky or slow: passed in 93 s once, failed and timed out at 180 s later","ms":180000},
-	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"red","why":"delay 3 s: two sentences 1 s apart still leave as 2 prompts, want 1"},
+	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
 	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"pass"},
