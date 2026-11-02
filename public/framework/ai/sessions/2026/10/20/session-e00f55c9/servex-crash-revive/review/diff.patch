@@ -1,0 +1,448 @@
+diff --git a/Server/Browser.mjs b/Server/Browser.mjs
+index 27e7997b6..ae1027163 100644
+--- a/Server/Browser.mjs
++++ b/Server/Browser.mjs
+@@ -63,6 +63,7 @@ export default class Browser {
+ 	static async launch(opts){
+ 		const chromium = await this.get_chromium();
+ 		const b = await chromium.launch({ headless: true, channel: "chromium", ...opts });
++		if (process.env.FENCE_SERVEX === "1") (await import("./ServexFence.mjs")).fence_servex(b);   // browser tests: never the live Servex
+ 		this.current = b;
+ 		b.on("disconnected", () => { if (this.current === b) this.current = null; if (this.browser_promise) this.browser_promise = null; });
+ 		this.log_browser(b);
+diff --git a/Server/ServexFence.mjs b/Server/ServexFence.mjs
+new file mode 100644
+index 000000000..59d10c73d
+--- /dev/null
++++ b/Server/ServexFence.mjs
+@@ -0,0 +1,40 @@
++/* A browser test must never reach the real Servex (2026-11-02 00:31: Dictate scripts posting to the live /api/session/say with
++ * made-up session ids ended up crashing it). `fence_servex(browser)` makes every context of a Playwright browser answer any
++ * request to Servex's own address (127.0.0.1:8090, localhost:8090, servex.localhost) with a harmless stub instead of letting it out.
++ * It is a CONTEXT route, so it runs last: a script's own page.route() stubs win, and a request they `fallback()` on (not `continue()`,
++ * which goes to the network) lands here. Switched on by FENCE_SERVEX=1 (TestRunner sets it); Server/Browser.mjs and
++ * core/Test/playwright-fenced.mjs both call this. Doc: Servex/doc/restart.md, "Tests must not hit the live Servex". */
++const SERVEX = /^(https?:\/\/(127\.0\.0\.1|localhost):8090|https?:\/\/servex\.localhost(:\d+)?)(\/|$)/;
++const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" };
++
++export const fenced = new Map();   // "METHOD /path" -> count, printed once at exit so a test log shows what it tried
++
++function answer(route){
++	const req = route.request(), url = new URL(req.url()), key = `${req.method()} ${url.pathname}`;
++	fenced.set(key, (fenced.get(key) ?? 0) + 1);
++	if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: CORS });
++	if (/\/(stream|whisper\/stream)$/.test(url.pathname)) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: CORS, body: "retry: 60000\n\n" });
++	return route.fulfill({ status: 200, contentType: "application/json", headers: CORS, body: JSON.stringify({ ok: true, fenced: true, sessions: [], marks: [] }) });
++}
++
++let hooked = false;
++function report(){
++	if (hooked) return; hooked = true;
++	process.once("exit", () => { if (fenced.size) console.error("servex fence: kept off the live Servex: " + [...fenced].map(([k, n]) => `${k} x${n}`).join(", ")); });
++}
++
++export async function fence_context(ctx){
++	report();
++	await ctx.route(u => SERVEX.test(u.href), answer);
++	return ctx;
++}
++
++/** Patch a launched Browser in place so each context it makes (and each page of newPage()) is fenced. */
++export function fence_servex(browser){
++	if (browser.__fenced) return browser;
++	browser.__fenced = true;
++	const newContext = browser.newContext.bind(browser);
++	browser.newContext = async (...a) => fence_context(await newContext(...a));
++	browser.newPage = async (...a) => { const ctx = await browser.newContext(...a); return ctx.newPage(); };
++	return browser;
++}
+diff --git a/Server/ServexFence.test.mjs b/Server/ServexFence.test.mjs
+new file mode 100644
+index 000000000..3ca7b1f6d
+--- /dev/null
++++ b/Server/ServexFence.test.mjs
+@@ -0,0 +1,48 @@
++/* node Server/ServexFence.test.mjs — a fenced browser answers any request to Servex's address itself and never lets it out.
++ * Proof it was the fence: the reply carries `fenced: true`, which the live Servex never sends. */
++import assert from "node:assert";
++import { pathToFileURL } from "node:url";
++import { execSync } from "node:child_process";
++import path from "node:path";
++import Browser from "./Browser.mjs";
++
++process.env.FENCE_SERVEX = "1";
++let n = 0;
++const t = (ok, what) => { assert.ok(ok, what); n++; };
++
++const b = await Browser.browser({});
++const page = await (await b.newContext()).newPage();
++await page.goto("about:blank");
++const ask = (url, init) => page.evaluate(async ([u, i]) => {
++	const r = await fetch(u, i); return { status: r.status, text: await r.text() };
++}, [url, init]);
++
++const say = await ask("http://127.0.0.1:8090/api/session/say", { method: "POST", body: "{}", headers: { "content-type": "application/json" } });
++t(say.status === 200 && JSON.parse(say.text).fenced === true, "POST /api/session/say is answered by the fence");
++const sessions = await ask("http://127.0.0.1:8090/api/sessions?host=dictate-red-tests.localhost");
++t(JSON.parse(sessions.text).fenced === true, "GET /api/sessions is answered by the fence");
++const stream = await ask("http://localhost:8090/api/session/v-fake/stream");
++t(stream.text.startsWith("retry:"), "a session stream is an empty event stream");
++const named = await ask("http://servex.localhost/api/session/new", { method: "POST", body: "{}", headers: { "content-type": "application/json" } });
++t(JSON.parse(named.text).fenced === true, "servex.localhost is fenced too");
++
++// A script's own page.route() stub wins over the fence; fallback() reaches the fence.
++await page.route(/\/api\/session\/mine$/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: '{"own":true}' }));
++t(JSON.parse((await ask("http://127.0.0.1:8090/api/session/mine")).text).own === true, "a page.route stub still wins");
++await page.route(/\/api\/session\/passes$/, r => r.fallback());
++t(JSON.parse((await ask("http://127.0.0.1:8090/api/session/passes")).text).fenced === true, "route.fallback() lands on the fence");
++
++// The wrapper TestRunner hands to scripts as PWENTRY does the same for a plain chromium.launch().
++await Browser.close();
++const real = path.join(path.dirname(execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim()), "node_modules/playwright/index.mjs");
++process.env.PW_REAL = real;
++const { chromium } = await import(pathToFileURL(path.resolve("public/framework/core/Test/playwright-fenced.mjs")).href);
++const raw = await chromium.launch({ channel: "chromium" });
++try {
++	const p2 = await (await raw.newContext()).newPage();
++	await p2.goto("about:blank");
++	const r = await p2.evaluate(async () => (await fetch("http://127.0.0.1:8090/api/session/say", { method: "POST", body: "{}" })).json());
++	t(r.fenced === true, "PWENTRY wrapper fences a plain chromium.launch()");
++} finally { await raw.close(); }
++
++console.log(`servex fence: ${n} checks passed`);
+diff --git a/Servex/Servex.js b/Servex/Servex.js
+index d2eb72247..522979a21 100644
+--- a/Servex/Servex.js
++++ b/Servex/Servex.js
+@@ -1577,7 +1577,13 @@ export default class Servex extends Events {
+     }
+ 
+     shutdown(){
+-        const down = () => {
++        let went = false;
++        const down = how => {
++            if (went) return; went = true;
++            /* Write who is alive BEFORE the stops below: they turn every live row into "stopped", and the next boot's revive() skips
++             * a stopped row. This snapshot is how an exit that did run the handler (an uncaught exception, 2026-11-02 00:31) still
++             * brings everyone back. `how` tells the agents what happened. */
++            try { this.agents.snapshot({ by: "shutdown", how: typeof how === "string" ? how : "crash" }); } catch {}
+             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
+             try { this.monitor?.stop(); } catch {}
+             try { this.procmon?.stop(); } catch {}
+@@ -1590,9 +1596,12 @@ export default class Servex extends Events {
+             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
+             this.log.close();
+         };
+-        process.on("SIGINT", () => { down(); process.exit(0); });
+-        process.on("SIGTERM", () => { down(); process.exit(0); });
+-        process.on("exit", down);
++        process.on("SIGINT", () => { down("signal"); process.exit(0); });
++        process.on("SIGTERM", () => { down("signal"); process.exit(0); });
++        process.on("exit", code => down(code ? "crash" : "exit"));
++        /* A promise nobody held rejecting is a bug in ONE feature, not a reason to end every agent: log it (stack in servex.jsonl)
++         * and keep running. An uncaught exception is still fatal: its state is unknown. doc/restart.md "Crash". */
++        process.on("unhandledRejection", e => { try { this.say(`unhandled rejection (Servex kept running): ${e?.stack ?? e}`, { event: "unhandled_rejection" }); } catch {} });
+     }
+ }
+ 
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 4c1bc0c60..3d15b52d5 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -448,7 +448,10 @@ export class Agents {
+ 		for (const row of reg.list()){
+ 			/* A DORMANT row had no process to lose: it stays dormant, and the first
+ 			 * message reopens it (send -> wake -> reopen), never the boot. */
+-			if (this.live.has(row.id) || row.state === "stopped" || row.state === "dormant") continue;
++			/* A STOPPED row is skipped (stopped on purpose) unless the dying Servex itself stopped it: Servex.shutdown() writes a
++			 * snapshot (`how` set) BEFORE its stops, so a row listed there was alive until the process ended. */
++			if (this.live.has(row.id) || row.state === "dormant") continue;
++			if (row.state === "stopped" && !(snap?.how && listed(row.id) && !row.stopped_by)) continue;
+ 			if (self_restarted(row.id)){
+ 				if (row.state !== "gone") out.gone.push(row.id);
+ 				continue;
+@@ -463,8 +466,13 @@ export class Agents {
+ 			 * never recorded system/sdk/in-process servers either; the agents that
+ 			 * had them are the SELF_RESTARTED ones, already skipped above. */
+ 			const legacy = !row.boot && !row.pid;
++			/* NO SNAPSHOT = the previous Servex died without a word (a native fast-fail, a kill). Beyond the 30-minute window, a row it
++			 * left working or idle with a task still open and a session to resume comes back too (2026-11-02: agents idle a while
++			 * were lost to a crash). */
++			const crashed = !snap && !!prev?.boot && row.boot === prev.boot && ["working", "idle"].includes(row.state) && row.revivable && !!row.session_id
++				&& (() => { const dir = this.task_dir_for(row); return !!dir && !task_landed(dir); })();
+ 			const ours = legacy ? this.recent_log(row.id, window_min)
+-				: !!prev?.boot && row.boot === prev.boot && (listed(row.id) || Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000);
++				: !!prev?.boot && row.boot === prev.boot && (listed(row.id) || crashed || Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000);
+ 			let agent = null;
+ 			const no = ours && this.blocked(row, { landed: false });
+ 			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; reasons[row.id] = `servex restarted; not revived: ${no.text}`; if (row.state !== "gone") out.gone.push(row.id); continue; }
+@@ -501,10 +509,13 @@ export class Agents {
+ 			if (legacy) out.legacy.push(id);
+ 			/* Every agent that comes back is told (the owner, 2026-10-22). One that was mid-turn checks its last tool call; an idle
+ 			 * one learns its session was resumed, and that a background shell or sleep it started is gone (wake_me survives). */
+-			const when = snap ? ` at ${snap.at.slice(11, 16)}${snap.by ? ` (asked by ${snap.by})` : ""}` : "";
+-			agent.send(row.state === "working"
+-				? `Servex restarted${when} mid-turn; your last tool call may not have finished. Check and continue.`
+-				: `Servex restarted${when}. Your session was resumed and nothing was lost; any background shell or sleep you had running is gone, so set it again with wake_me if you were waiting on something. If you were idle, there is nothing to do: answer in one line.`,
++			const lost = !snap || snap.how === "crash";   // an uncaught error, a native crash or a kill: not a planned restart
++			const when = snap ? ` at ${snap.at.slice(11, 16)}${snap.by && !snap.how ? ` (asked by ${snap.by})` : ""}` : ` at about ${stamp(boot_at).slice(11, 16)}`;
++			const what = lost ? "crashed" : "restarted";
++			const was = snap?.agents?.find(x => x.id === id)?.state ?? row.state;   // a row stopped by the dying Servex still says what it was doing
++			agent.send(was === "working"
++				? `Servex ${what}${when} mid-turn; resume. Your last tool call may not have finished. Check and continue.`
++				: `Servex ${what}${when}; resume. Your session was resumed and nothing was lost; any background shell or sleep you had running is gone, so set it again with wake_me if you were waiting on something. If you were idle, there is nothing to do: answer in one line.`,
+ 				{ from: "servex" });
+ 			out.told.push(id);
+ 		}
+@@ -521,14 +532,14 @@ export class Agents {
+ 	 * wake-up (Wakeups.js, so a dormant agent waiting on one is listed too). Kept as restart-snapshot.json beside the registry
+ 	 * and logged once to servex.jsonl. `sustain.mjs --restart` asks for it (POST /api/before-restart) before it kills anything;
+ 	 * the next boot's revive() resumes exactly these agents and tells each one. Doc: Servex/doc/restart.md. */
+-	snapshot({ by = null } = {}){
++	snapshot({ by = null, how = null } = {}){
+ 		const wakes = this.wakeups?.list() ?? [], rows = this.reg().read();
+ 		const agents = [...this.live.values()].filter(a => a.state !== "stopped")
+ 			.map(a => ({ id: a.id, state: a.state, session_id: a.session_id ?? null, parent: a.parent ?? null }));
+ 		for (const w of wakes) if (!agents.some(a => a.id === w.agent))
+ 			agents.push({ id: w.agent, state: rows[w.agent]?.state ?? "unknown", session_id: rows[w.agent]?.session_id ?? null, parent: rows[w.agent]?.parent ?? null });
+ 		for (const a of agents) a.wakeups = wakes.filter(w => w.agent === a.id).map(w => ({ id: w.id, due: w.due, why: w.why }));
+-		const snap = { boot: this.boot, at: stamp(), by, agents };
++		const snap = { boot: this.boot, at: stamp(), by, ...(how ? { how } : {}), agents };
+ 		fs.writeFileSync(this.reg().file("restart-snapshot.json"), JSON.stringify(snap, null, 2));
+ 		this.store().append("servex", { type: "restart-snapshot", boot: this.boot, by,
+ 			agents: agents.map(a => `${a.id}: ${a.state}${a.wakeups.length ? ` + ${a.wakeups.length} wake-up` : ""}`) }).catch(() => {});
+diff --git a/Servex/agents/crash-revive.test.mjs b/Servex/agents/crash-revive.test.mjs
+new file mode 100644
+index 000000000..d82207696
+--- /dev/null
++++ b/Servex/agents/crash-revive.test.mjs
+@@ -0,0 +1,69 @@
++/* node Servex/agents/crash-revive.test.mjs — Servex died and nobody was told: the next boot still brings back the agents that were open.
++ * Three ways it dies: (1) no snapshot at all (a native fast-fail, a kill); (2) the exit handler ran first and stopped everyone,
++ * which is what happened at 00:31 on 2026-11-02 and revived nobody; (3) a deliberate stop must stay stopped in both. */
++import assert from "node:assert/strict";
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++
++const home = fs.mkdtempSync(path.join(os.tmpdir(), "servex-crash-"));
++process.env.SERVEX_HOME = home;
++const { Agents } = await import("./Agents.js");
++
++const open_task = path.join(home, "open"); fs.mkdirSync(open_task);
++fs.writeFileSync(path.join(open_task, "task.jsonl"), JSON.stringify({ assign: { now: "x" } }) + "\n");
++const landed_task = path.join(home, "landed"); fs.mkdirSync(landed_task);
++fs.writeFileSync(path.join(landed_task, "task.jsonl"), JSON.stringify({ assign: { now: "x" } }) + "\n" + JSON.stringify({ complete: {} }) + "\n");
++
++const hours_ago = h => new Date(Date.now() - h * 3600000).toISOString();
++const row = (id, state, extra = {}) => ({ id, role: "mastermind", name: id, state, session_id: `sess-${id}`, started_at: "2026-10-22T10:00:00Z",
++	boot: "OLD-1", pid: 1, revivable: true, cwd: home, task_dir: open_task, turns: 3, last_at: new Date().toISOString(), stopped_by: null, ...extra });
++
++function boot(rows, snapshot){
++	fs.rmSync(path.join(home, "restart-snapshot.json"), { force: true });
++	const a = new Agents({ boot: Date.now().toString(36) + "-2" });
++	a.reg().save(rows); a.reg().mark_boot("OLD-1");
++	if (snapshot) fs.writeFileSync(a.reg().file("restart-snapshot.json"), JSON.stringify({ boot: "OLD-1", at: new Date().toISOString(), ...snapshot }));
++	const told = {};
++	a.reopen = r => ({ send: text => { told[r.id] = text; } });
++	a.recent_log = () => false;
++	return { out: a.revive(), told, reg: a.reg() };
++}
++
++// 1. a crash with no snapshot: working, long-idle (past the 30-minute window) with a live task, and the ones that must stay out
++{
++	const { out, told } = boot({
++		working: row("working", "working"),
++		long_idle: row("long_idle", "idle", { last_at: hours_ago(5) }),
++		landed: row("landed", "idle", { last_at: hours_ago(5), task_dir: landed_task }),
++		no_task: row("no_task", "idle", { last_at: hours_ago(5), task_dir: null }),
++		not_revivable: row("not_revivable", "idle", { last_at: hours_ago(5), revivable: false }),
++		owner_stopped: row("owner_stopped", "stopped", { stopped_by: "owner" }),
++	});
++	assert.deepEqual(out.revived.sort(), ["long_idle", "working"], "no snapshot: " + JSON.stringify(out));
++	assert.match(told.working, /Servex crashed at about \d\d:\d\d mid-turn; resume/);
++	assert.match(told.long_idle, /Servex crashed at about \d\d:\d\d; resume/);
++}
++
++// 2. the exit handler ran: snapshot written first (how: crash), the rows were then stopped by Servex itself (stopped_by null)
++{
++	const { out, told } = boot({
++		working: row("working", "stopped"),
++		idle: row("idle", "stopped", { last_at: hours_ago(5) }),
++		owner_stopped: row("owner_stopped", "stopped", { stopped_by: "owner" }),
++		stopped_before: row("stopped_before", "stopped"),   // stopped earlier, not in the snapshot
++	}, { by: "shutdown", how: "crash", agents: [{ id: "working", state: "working" }, { id: "idle", state: "idle" }] });
++	assert.deepEqual(out.revived.sort(), ["idle", "working"], "exit handler ran: " + JSON.stringify(out));
++	assert.match(told.working, /Servex crashed at \d\d:\d\d mid-turn; resume/);
++}
++
++// 3. a planned restart still says restarted, and a stopped row not listed stays stopped
++{
++	const { out, told } = boot({ working: row("working", "working"), stopped: row("stopped", "stopped") },
++		{ by: "mastermind-x", agents: [{ id: "working", state: "working" }] });
++	assert.deepEqual(out.revived, ["working"]);
++	assert.match(told.working, /Servex restarted at \d\d:\d\d \(asked by mastermind-x\) mid-turn/);
++}
++
++console.log("crash-revive: 9 checks passed");
++process.exit(0);
+diff --git a/Servex/doc/restart.md b/Servex/doc/restart.md
+index adc15c9df..6531f7d54 100644
+--- a/Servex/doc/restart.md
++++ b/Servex/doc/restart.md
+@@ -50,3 +50,18 @@ Servex loads its code once at start, so every change under `Servex/` (a new tool
+ The boot sweep (`Agents.revive()`) never refuses on `landed` (a long-lived mastermind lands its first task and keeps working; `mastermind-figma-cards`, `mastermind-test` and `mastermind-item` were buried "landed" that way, item in the 21:11 sweep) and restarts a never-started agent fresh from its spec when it has a task folder (its brief is the prompt; the registry keeps no prompt), else buries it with the reason. A held resume in the gate queue (`Servex.stale`) skips the landing check for the same reason; it refuses only for a deleted cwd, a stop on purpose, or code-carrying spawns, and writes the reason on the row's `ended`. Test: `node Servex/agents/revive-sweep.test.mjs`.
+ 
+ **Lag watchdog (2026-10-25).** `Crumbs.js` also starts a worker thread (`CrumbsWatch.js`) that watches a tick the main thread bumps every second. If the main thread is silent for more than 5 s it appends `LAG 5+ s: the main thread has not run since its last operation: <the last child process or watcher it began>` to `logs/crumbs.log` while the stall is still going (only another thread can), and `LAG over: the main thread was stuck N s` when it ends. A freeze like the 2-hour one on 2026-10-25 (a synchronous `git show` per file) now names itself. Test: `node Servex/pool-restore.test.mjs`.
++
++## When Servex crashes: what comes back, why, and what to watch (2026-11-02)
++
++**Two kinds of crash, two causes.** The boot-time record is `logs/crashes.jsonl` (exit code, uptime, the last crumbs, any node report), made by `sustain.mjs`.
++
++1. **A JavaScript error ends the process** (exit `0xC0000374` at 00:31). The node report names it: an unhandled promise rejection. `VoicePage.write()` (`ext/refine/VoicePage.js`) returned a promise nobody awaits (LiveRefine calls it fire-and-forget); the Dictate browser scripts drove a made-up session through the live `/api/session/say`, the page tools refused ("no session …"), the rejection was unhandled and node ended Servex. Fixed three ways: `write()` now catches and logs its own failure (test `ext/refine/voice-page-refused.test.mjs`); `Servex.js` has an `unhandledRejection` handler that logs `unhandled_rejection` to `servex.jsonl` and keeps running; and the browser scripts can no longer reach the live Servex (below).
++2. **A native fast-fail** (exit `3221226505` = `0xC0000409`, 74 of them in `sustain.log`, the latest 07:24 on 2026-11-02 after 3143 s). It skips every JavaScript handler and writes no node report, so there is no stack. What the crumbs show across eight of them: heap and handles were ordinary (rss 300–480 MB, heap 130–310 MB, 53–258 handles), and the last lines are always a burst of child-process work (`spawn claude.exe`, `taskkill`, `execFileSync git`) or `/mcp` posts; uptime is random (9 s to 40 h). Not proved to be our code (a Node 24 / libuv Windows crash is as likely). **What to watch:** the `LAG 5+ s` lines just before it (a synchronous `taskkill`/`git` call held the main thread 5 s before the 00:31 crash); a crash within seconds of a boot burst of agent spawns; and `crashes.jsonl` having no report. **To get a real stack** someone with admin must turn on Windows Error Reporting local dumps for `node.exe` (`HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps`, `DumpFolder`, `DumpType=2`); nothing else can see inside a fast-fail.
++
++**Why 00:31 revived nobody, and 01:24 revived eight.** At 00:31 the `exit` handler ran (the JavaScript-error kind lets handlers run), and `Servex.shutdown()` answered it by stopping every live agent, so every registry row read `stopped`, and the boot sweep leaves a stopped row alone (a stop on purpose). The fast-fail at 01:24 ran no handler, so the rows still read working or idle and the 30-minute window brought them back.
++
++**What the code does now** (`Servex/Servex.js` `shutdown()`, `Servex/agents/Agents.js`):
++- `down(how)` first writes the restart snapshot (`Agents.snapshot({by:"shutdown", how})`), then stops the agents. `how` is `signal` (SIGINT/SIGTERM), `exit` (clean exit) or `crash` (a non-zero exit code). A row stopped by that shutdown has `stopped_by: null`, so a snapshot with `how` revives a listed row even though it reads `stopped`; a row someone stopped (`stopped_by` set) stays stopped.
++- With **no snapshot at all** (a native crash, or a `kill`), `revive()` rebuilds the list from the registry: every row from the previous boot, working or idle, `revivable`, with a session and a task that has not landed. Each is told `Servex crashed at <time>; resume` (a planned restart still says `restarted … (asked by X)`). Test: `node Servex/agents/crash-revive.test.mjs` (9 checks; a registry with no snapshot).
++
++**Tests must not hit the live Servex.** `Server/ServexFence.mjs` answers every request to `127.0.0.1:8090`, `localhost:8090` and `servex.localhost` from a Playwright context with `{ok:true, fenced:true}` (an empty event stream for `/stream`), and prints `servex fence: kept off the live Servex: …` at exit. It is a context route, so a script's own `page.route()` stubs win; inside them use `route.fallback()`, never `route.continue()` (continue goes to the network). On when `FENCE_SERVEX=1`: `TestRunner.browser()` sets it and points `PWENTRY` at `core/Test/playwright-fenced.mjs` (a wrapper over the real Playwright, real path in `PW_REAL`); `Server/Browser.mjs` honours the same switch. Test: `node Server/ServexFence.test.mjs`. A private Servex per test was the alternative: heavier, and the scripts only ever want stubs. `Servex/test` has no such stand-in.
+diff --git a/Servex/ext/refine/VoicePage.js b/Servex/ext/refine/VoicePage.js
+index 61e5740e9..870c27bb4 100644
+--- a/Servex/ext/refine/VoicePage.js
++++ b/Servex/ext/refine/VoicePage.js
+@@ -69,7 +69,13 @@ export default class VoicePage {
+ 			}
+ 			return this.tool("page_set", { path: this.path, target: [this.id], delta });
+ 		};
+-		return this.queue = this.queue.then(run, run);
++		/* Most callers do not await this (LiveRefine, the 700 ms partial timer). A refused write (a page tool's "no session ...")
++		 * used to reject a promise nobody held and node ended Servex as an uncaught exception, 2026-11-02 00:31. Logged here;
++		 * a caller that does await still sees the rejection. */
++		const result = this.queue.then(run, run);
++		result.catch(e => console.error(`voice page ${this.path}: ${e?.message ?? e}`));
++		this.queue = result.catch(() => {});
++		return result;
+ 	}
+ 
+ 	/** The words so far. Also writes the instant mechanical clean (no model) so stage 2 moves with the voice. */
+diff --git a/Servex/ext/refine/voice-page-refused.test.mjs b/Servex/ext/refine/voice-page-refused.test.mjs
+new file mode 100644
+index 000000000..7965641dc
+--- /dev/null
++++ b/Servex/ext/refine/voice-page-refused.test.mjs
+@@ -0,0 +1,26 @@
++/* node Servex/ext/refine/voice-page-refused.test.mjs — a refused page write nobody awaits must not become an unhandled rejection
++ * (it ended Servex at 00:31 on 2026-11-02, and every agent with it). A caller that DOES await still sees the refusal. */
++import assert from "node:assert/strict";
++import VoicePage from "./VoicePage.js";
++
++const loose = [];
++process.on("unhandledRejection", e => loose.push(e));
++const quiet = console.error; const logged = []; console.error = (...a) => logged.push(a.join(" "));
++
++VoicePage.tools = {
++	page_read: { handler: async () => "" },
++	page_add: { handler: async () => JSON.stringify({ ok: false, why: "no session abc: nothing was created" }) },
++	page_set: { handler: async () => JSON.stringify({ ok: false, why: "no session abc: nothing was created" }) },
++};
++const v = new VoicePage({ session: "abc", prompt: "p1" });
++v.raw("so the page should", { final: false });        // not awaited
++v.raw("so the page should do x", { final: true });     // not awaited: this is the tail nobody holds
++await new Promise(r => setTimeout(r, 50));
++const awaited = await new VoicePage({ session: "abc", prompt: "p2" }).write({ status: "x" }).then(() => "ok", e => e.message);
++console.error = quiet;
++
++assert.equal(loose.length, 0, "no unhandled rejection: " + loose.map(e => e?.message));
++assert.match(awaited, /no session abc/, "an awaiting caller still sees the refusal");
++assert.ok(logged.some(l => /no session abc/.test(l)), "and it is logged");
++console.log("voice-page-refused: 3 checks passed");
++process.exit(0);
+diff --git a/Servex/home.js b/Servex/home.js
+index b38f8dd40..d3c562713 100644
+--- a/Servex/home.js
++++ b/Servex/home.js
+@@ -33,8 +33,8 @@ export function place(...parts){
+ /* Local time with its offset — `2026-09-22T15:04:09-05:00`. The same format
+  * .claude/skills/every-prompt/say.mjs writes, so every clock in this repo's logs
+  * reads the same way and sorts the same way. */
+-export function stamp(){
+-    const d = new Date(), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
++export function stamp(at = Date.now()){
++    const d = new Date(at), off = -d.getTimezoneOffset(), pad = n => String(Math.abs(n)).padStart(2, "0");
+     return new Date(d.getTime() + off * 60000).toISOString().slice(0, 19)
+         + (off < 0 ? "-" : "+") + pad(Math.trunc(off / 60)) + ":" + pad(off % 60);
+ }
+diff --git a/Servex/readme.md b/Servex/readme.md
+index 473de23f6..1dc300594 100644
+--- a/Servex/readme.md
++++ b/Servex/readme.md
+@@ -51,6 +51,10 @@ class Servex {
+ 
+ Inside the repo Servex writes only the AI records ([ai/](/framework/ai/)). Its own state is outside git, one folder per machine, `%LOCALAPPDATA%/lew42/servex/` (move it with `SERVEX_HOME`): `ports.json` (name → port) · `logs/<name>.jsonl` (one per supervised thing; `servex.jsonl` is Servex's own; `agent-<id>.jsonl` is one agent's) · `procs/<name>.json` (pid of each dev server, so the next Servex adopts it) · `logs/<name>.out/.err` · `logs/reports/` (crash reports) · `logs/windows.jsonl` (popup windows, `Server/window-watch.mjs`).
+ 
++## Crash and revive
++
++A planned restart and a crash both bring every working or idle agent back: `Servex.shutdown()` writes the snapshot before it stops anyone, and a boot with no snapshot rebuilds the list from the registry and tells each agent "Servex crashed at <time>; resume". The two crash kinds (a JavaScript error, a native fast-fail), the cause found for the 00:31 one, and what to watch for the other: [doc/restart.md](doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02). Browser tests are fenced off the live Servex ([Server/ServexFence.mjs](../Server/ServexFence.mjs)).
++
+ ## Overlaps
+ 
+ The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)); every tool, grouped, with a compacted set: [doc/tools-map.md](doc/tools-map.md); what each role loads: [agent-context](/framework/ai/doc/agent-context.md). A task folder is opened by `open_task` here; counted by `Server/AIIndex.mjs` ([ai/tasks](/framework/ai/tasks/)).
+diff --git a/public/framework/core/Test/TestRunner.mjs b/public/framework/core/Test/TestRunner.mjs
+index a4ed4b678..5585f0f73 100644
+--- a/public/framework/core/Test/TestRunner.mjs
++++ b/public/framework/core/Test/TestRunner.mjs
+@@ -163,7 +163,7 @@ export default class TestRunner {
+ 		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
+ 		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
+ 		for (const x of todo) {
+-			const r = await this.one(x.file, "browser", { browser: true, status: x.status }, { args: x.args.map(fill), env: { PW_ROOT: pw, PWENTRY: path.join(pw, "node_modules/playwright/index.mjs"), WAV: wav }, timeout: x.ms || 120000 });
++			const r = await this.one(x.file, "browser", { browser: true, status: x.status }, { args: x.args.map(fill), env: { PW_ROOT: pw, PW_REAL: path.join(pw, "node_modules/playwright/index.mjs"), PWENTRY: path.join(HERE, "playwright-fenced.mjs"), FENCE_SERVEX: "1", WAV: wav }, timeout: x.ms || 120000 });
+ 			results.push({ ...r, status: x.status });
+ 			if (x.status === "red" && r.ok) red_now_passes.push(x.file);
+ 		}
+diff --git a/public/framework/core/Test/doc/health.md b/public/framework/core/Test/doc/health.md
+index b1cfa2b2f..6ebb82134 100644
+--- a/public/framework/core/Test/doc/health.md
++++ b/public/framework/core/Test/doc/health.md
+@@ -35,6 +35,7 @@ Playwright scripts that take a site URL (not named `*.test.mjs`) are listed in [
+ Per-script runs against monorepo.localhost (2026-11-02, 32 scripts, each line in [results.jsonl](../results.jsonl) with trigger `browser` or in the run-all line): the first pass had 19 pass and 13 red; re-runs showed `dictation-bar` and `refresh` are flaky under load (they passed once, failed twice), so they are listed red. The list now holds **17 pass, 15 red**. The `run-all.mjs --browser` line in run-all.jsonl ran against the worktree site and shows 16 pass.
+ - **Pass (17):** Dictate `active-session`, `chat-gray`, `docs-tab`, `errors`, `flicker`, `freeze`, `load`, `marks`, `order`, `raw-stays`, `sheet-steps`, `v1-order`, `watch`; `repeat`; Refine `session-log`, `refine-style`; `tag-router`.
+ - **Red (15):** `chat-sent` (v2 chat at 400px: scroll-pinning checks fail (scroll max 0, newest not in view)); `debug-tab` (Debug view shows llm=wait, not all eight lights green); `deltas` (owner bubble should read One. Two. Three. once; the repeat is drawn or the late line is misplaced); `earlier` (after show-earlier, the reader moved (144 -> -1115)); `in-place` (4 checks fail (see its output)); `new-session` (A2: New session does not clear the demo chat); `reconnect` (5 s outage should stay hidden (8 s grace); log lines not written); `settings` (delay 0.5 s: 3 prompts sent, wanted 2); `stall` (1 check fails after the reload step); `swallow` (page.evaluate: querySelectorAll of undefined); `composer-flow` (screenshot step fails (unsupported mime type); needs Whisper :8178 and Servex); `dictate-flow` (times out waiting for .voice-conn); `nothing-to-refine` (loading Dictate.js request errors).
++- **Never the live Servex (2026-11-02).** Browser scripts run fenced: `TestRunner.browser()` sets `FENCE_SERVEX=1` and points `PWENTRY` at [playwright-fenced.mjs](../playwright-fenced.mjs), so any request to `127.0.0.1:8090` that a script does not stub itself gets a harmless reply and is listed at exit (`servex fence: kept off the live Servex: …`). Scripts that stub Servex use `route.fallback()`, not `route.continue()`. Why: the Dictate scripts posted made-up sessions to the live `/api/session/say` and one of those ended Servex at 00:31. Detail and test: [Servex/doc/restart.md](/framework/servex/doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02).
+ - **Skipped:** `handoff.mjs` (asks the live Servex and starts real agents) and `live-refine-measure.mjs` (spends model money).
+ - The reds are filed: the Dictate ones logged by dictation-v3 in commit b4dfb5639 ("log test-health browser failures"), the Refine ones in [ext/Refine/improvements.jsonl](/framework/ext/Refine/improvements.jsonl).
+ - `ux/Content/Object/DefaultView.test.js`: reserved `.test.js` (browser), no runner.
+diff --git a/public/framework/core/Test/playwright-fenced.mjs b/public/framework/core/Test/playwright-fenced.mjs
+new file mode 100644
+index 000000000..33f53f430
+--- /dev/null
++++ b/public/framework/core/Test/playwright-fenced.mjs
+@@ -0,0 +1,12 @@
++/* Playwright with every launched browser fenced off from the live Servex (see Server/ServexFence.mjs). TestRunner.browser() points
++ * PWENTRY here and the real entry in PW_REAL, so a script that does `import(PWENTRY)` and `chromium.launch()` is fenced without changing. */
++import { pathToFileURL } from "node:url";
++import { fence_servex } from "../../../../Server/ServexFence.mjs";
++
++const real = await import(pathToFileURL(process.env.PW_REAL).href);
++for (const type of [real.chromium, real.firefox, real.webkit]) {
++	const launch = type.launch.bind(type);
++	type.launch = async (...a) => fence_servex(await launch(...a));
++}
++export const { chromium, firefox, webkit, devices, request } = real;
++export default real.default ?? real;
+diff --git a/public/framework/ux/Dictate/test/reconnect.mjs b/public/framework/ux/Dictate/test/reconnect.mjs
+index 70f74ea46..d37f14b00 100644
+--- a/public/framework/ux/Dictate/test/reconnect.mjs
++++ b/public/framework/ux/Dictate/test/reconnect.mjs
+@@ -29,7 +29,7 @@ await page.route(/\/api\/session\/[^/]+\/stream/, r => {
+ 	hits++;
+ 	if (phase === "blip") return r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" });
+ 	if (phase === "down") return r.fulfill({ status: 502, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: '{"error":"Servex unreachable"}' });
+-	return r.continue();
++	return r.fallback();   // not continue(): that goes to the live Servex; the fence answers
+ });
+ const logged = [];
+ page.on("websocket", ws => ws.on("framesent", f => { const s = String(f.payload ?? ""); if (s.includes('"connection"')) logged.push(s); }));
