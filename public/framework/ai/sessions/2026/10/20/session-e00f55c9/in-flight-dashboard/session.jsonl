@@ -24,3 +24,5 @@
 {"review":{"at":"2026-11-02T16:53:24-06:00","answer":{"n":7,"reply":"noted: titles clamp to two lines at 360"}}}
 {"review":{"at":"2026-11-02T16:53:24-06:00","answer":{"n":8,"reply":"noted: the tmp index entry is generated, not mine"}}}
 {"commit":"186cfcc6c4df","by":"append.mjs","ts":"2026-11-02T22:54:05.014Z"}
+{"commit":"6c6c67cf639d","by":"append.mjs","ts":"2026-11-02T22:54:07.632Z"}
+{"assign":{"landed_at":"2026-11-02T22:54:23.452Z","title":"In flight: the simplest dashboard of a session","outcome":"Merged 0d29ee013: In flight / Waiting on you / Next / done block on every session page tab and atop /framework/ai/. Unit test 9 checks PASS; shots 360 and 1920 in the task folder. Open: /framework/ai/ block not yet seen on the live site; done is all-time.","links":["/framework/core/Session/doc/in-flight.md","/framework/core/Session/InFlightView.js"]}}
