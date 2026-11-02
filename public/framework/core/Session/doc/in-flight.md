@@ -24,3 +24,10 @@ A short block that shows, for one session: what is being worked on now, what wai
 - The top of [/framework/ai/](/framework/ai/): [ai/AIDashboard/AIDashboard.js](/framework/ai/AIDashboard/AIDashboard.js), over the sessions the `inflight` query reports active.
 
 Not a new task card: the rows are plain links and bars over the same `Session` replay the Tasks tab uses.
+
+## Choices
+
+- **Done is a count of every completed task**, not only today's, because a Task has no completion date the view can rely on; it reads "N done". It is hidden on `/framework/ai/`.
+- **`/framework/ai/` leaves out Next and Done**: across sessions the point is what is moving and what needs the owner. A session with only Next tasks is not listed there. The session page shows all four.
+- **The row is not `core/Task/TaskView.js`**: that is a full task card with its own state and actions; this row is one title, one bar and one line, so reusing it would have meant hiding most of it.
+- The `/framework/ai/` block asks the same `inflight` query as `ai/now/AINow.js` (`state`, `last_activity`, `url` per row). It draws nothing if the query fails.
