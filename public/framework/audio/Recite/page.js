@@ -17,6 +17,8 @@ const example = () => {
 			recite.check().then(s => $server.text(s === "online" ? `recite-server is online (${recite.url})` : `recite-server is offline — the browser's own voice reads instead. ${recite.error}`));
 		});
 		recite.bar;
+		p.c("muted", "Press Read it aloud, then tap the bubble below to pause or resume — the same gesture as the bar's Play button.");
+		div.c("audio-recite-demo-bubble").attr("data-recite-root", "").text(SAMPLE);   // a stand-in chat bubble: tap to pause
 	});
 };
 

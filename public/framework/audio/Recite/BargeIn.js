@@ -27,7 +27,7 @@ export default class BargeIn extends Part {
 	peak = 0;             // the loudest level while checking
 	heard = "";           // what Whisper heard last ("" = noise)
 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
-	quiet_ms = 1500;      // real speech heard: once this much quiet passes, pick the interrupted reply back up
+	quiet_ms = 2500;      // no-flood: real speech heard: once this much quiet passes, pick the interrupted reply back up (2-3 s, the owner's own range, 2026-11-02; was 1.5 s) — a separate field from Recite.turn_wait_ms with the same new default: see that field's own comment for why
 	resume_timer = null;   // the schedule_resume() timer waiting for quiet
 	echo_threshold_mult = 1.6;   // echo: while recite.echo_active(), the fast barge-in trigger and speaking() need this much more level before they fire, so the read-aloud voice leaking into the mic (and a cough right after) don't pause or hold a reply
 	near_silent = 0.045;   // echo: a Whisper final heard with the mic at or below this level is treated as hallucinated text on near-silence, not real speech

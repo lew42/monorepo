@@ -565,3 +565,177 @@ if (Recite) test("Recite.Highlight: a mention chip's own icon word does not brea
 	root.remove();
 	return r;
 });
+
+// No-flood (dictation-v3, 2026-11-02): a reply from a tracked agent role (Recite.AGENT_ID — never "smart", "fast",
+// "revise" or "card") is an agent update, never read in full — it collapses to one short line, and if the owner's
+// own line is still awaiting the direct answer
+// (cue_pending), it waits behind that answer rather than flooding ahead of or instead of it.
+if (Recite) test("Recite: an agent update collapses to one line and queues behind the direct answer, not ahead of it", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_pending = true;   // the owner's line landed; a direct reply is still expected
+
+	r.from_wire({ kind: "line", line: { chat: { text: "The build finished, 3 files changed.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-read-aloud-b" } } } });
+	t.eq(r.chunks.length, 0, "held, not queued yet — the direct answer hasn't arrived");
+	t.eq(r.pending_updates.length, 1, "one update waiting");
+
+	r.from_wire({ kind: "line", line: { chat: { text: "Here is the direct answer.", at: new Date().toISOString(), from: { kind: "assistant", id: "smart" } } } });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 2, "the direct answer plus the held update, in that order");
+	t.eq(r.chunks[0].text, "Here is the direct answer.", "the direct answer plays first");
+	t.eq(r.chunks[1].text, "I have an update on read aloud b, tap to hear it.", "the update collapses to one short line, not the full text");
+	t.eq(r.pending_updates.length, 0, "nothing left waiting");
+	return r;
+});
+
+// With no direct answer pending, an update has nothing to wait behind — it just takes its turn like any other reply.
+if (Recite) test("Recite: an agent update queues right away when no direct answer is pending", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.from_wire({ kind: "line", line: { chat: { text: "Just a status line, unprompted.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-chat-model" } } } });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 1, "queued right away — nothing to wait behind");
+	t.eq(r.chunks[0].text, "I have an update on chat model, tap to hear it.", "the mastermind- prefix is stripped and dashes read as spaces");
+	t.eq(r.state, "playing", "and it started");
+	return r;
+});
+
+// Review finding, read-aloud-b 2026-11-02: flushing on every streamed partial (not just once the stream ends) let a
+// held update land in the MIDDLE of the very answer it was meant to wait behind — queued after the stream's first
+// sentence, ahead of its second. The stream's own "" (ended) signal is the only point flush_updates() should run.
+if (Recite) test("Recite: a held update waits for the whole stream to end, not just its first sentence", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_pending = true;   // the owner's line landed; a direct reply is still expected
+
+	r.from_wire({ kind: "line", line: { chat: { text: "An update while a streamed answer is coming.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-read-aloud-b" } } } });
+	t.eq(r.pending_updates.length, 1, "held — the direct answer hasn't started");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "First sentence of the answer. " });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 1, "the stream's first sentence queued");
+	t.eq(r.pending_updates.length, 1, "still held — the stream has not ended, only its first sentence has");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "First sentence of the answer. Second sentence of the answer. " });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 2, "the stream's second sentence queued too");
+	t.eq(r.pending_updates.length, 1, "still held — the stream has still not ended");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "" });   // the stream ends
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 3, "the update is queued now, behind BOTH of the answer's own sentences");
+	t.eq(r.chunks[2].text, "I have an update on read aloud b, tap to hear it.", "and it is the collapsed update line, not read in full");
+	t.eq(r.pending_updates.length, 0, "nothing left waiting");
+	return r;
+});
+
+// Review finding, read-aloud-b 2026-11-02: "fast", "revise" and "card" post an assistant chat line too, but are not
+// agent updates — treating every non-"smart" id as one would read "revise" (every voice revision of the owner's own
+// sentence) aloud as "I have an update on revise, tap to hear it.", the very flood this task was meant to stop.
+if (Recite) test("Recite: 'fast', 'revise' and 'card' are not agent updates — ignored, same as before this task", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	for (const id of ["fast", "revise", "card"]){
+		r.from_wire({ kind: "line", line: { chat: { text: "something posted on this id", at: new Date().toISOString(), from: { kind: "assistant", id } } } });
+	}
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 0, "none of them queued anything");
+	t.eq(r.pending_updates.length, 0, "and none of them were even held as a pending update");
+	return r;
+});
+
+// A held update must not be lost forever if the direct answer never arrives (the owner's line may not have needed one).
+if (Recite) test("Recite: a held agent update is released on its own if no direct answer ever arrives", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.update_hold_ms = 20;   // fast for the test
+	r.cue_pending = true;
+
+	r.from_wire({ kind: "line", line: { chat: { text: "An update with nobody waiting to answer.", at: new Date().toISOString(), from: { kind: "assistant", id: "minion-scan-9" } } } });
+	t.eq(r.chunks.length, 0, "held at first");
+
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.chunks.length, 1, "released on its own once the safety window passed");
+	return r;
+});
+
+// Tap to pause (dictation-v3, 2026-11-02, item 2/b): tapping a chat bubble toggles play/pause, the same gesture as
+// the bar's own Play button — but a tap on a link, a mention chip or a button inside it does its own thing instead.
+if (Recite) test("Recite.Tap: tapping a chat bubble plays or pauses, but a link, a mention chip or a button inside it does not", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	root.innerHTML = 'Some reply text, <a href="#test-link">a link</a>, ' +
+		'<a class="item inline mention is-agent"><span class="material-icons icon item-icon">person</span><span class="item-name">Mike</span></a>, ' +
+		'and <button>a button</button>.';
+	document.body.appendChild(root);
+
+	r.queue("Some reply text.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	root.querySelector("a[href]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "a tap on a plain link never toggles playback");
+
+	root.querySelector("a.mention").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "nor does a tap on a mention chip");
+
+	root.querySelector("button").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "nor a button");
+
+	document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "nor a tap outside any chat bubble");
+
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "paused", "but a tap on the bubble's own text pauses it");
+
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	await new Promise(res => setTimeout(res, 20));   // resume()'s own audio.play() promise settles
+	t.eq(r.state, "playing", "and a second tap resumes it");
+
+	root.remove();
+	return r;
+});
+
+// Review finding, read-aloud-b 2026-11-02: a drag to select text inside a bubble still fires a native `click` on
+// mouseup — by then the selection is already in place, so checking for one at click time tells a drag apart from a tap.
+if (Recite) test("Recite.Tap: a drag that leaves a text selection behind does not toggle playback", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	root.textContent = "Some reply text to select.";
+	document.body.appendChild(root);
+
+	r.queue("Some reply text to select.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	const range = document.createRange();
+	range.selectNodeContents(root.firstChild);
+	const sel = window.getSelection();
+	sel.removeAllRanges();
+	sel.addRange(range);   // what a mouse drag leaves behind by the time `click` fires on mouseup
+
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "a tap that left a text selection behind is a drag, not a tap — playback is untouched");
+
+	sel.removeAllRanges();
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "paused", "with no selection in place, the same tap still pauses");
+
+	root.remove();
+	return r;
+});

@@ -5,6 +5,7 @@ import Voice from "../Voice/Voice.js";
 import BargeIn from "./BargeIn.js";
 import ReciteBar from "./ReciteBar.js";
 import ReciteHighlight from "./ReciteHighlight.js";
+import ReciteTap from "./ReciteTap.js";
 
 View.stylesheet(import.meta, "Recite.css");
 
@@ -39,13 +40,16 @@ export default class Recite extends Part {
 	wait_at = null;         // turn-taking: index of the chunk held back because the owner is talking (null: nothing held)
 	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
 	wait_timer = null;      // turn-taking: the check_wait() poll timer
-	turn_wait_ms = 1500;    // turn-taking: how much quiet before a held reply starts
+	turn_wait_ms = 2500;    // no-flood: how much quiet before a held reply starts (2-3 s, the owner's own range, 2026-11-02; was 1.5 s) — BargeIn.quiet_ms (the auto-resume-after-a-barge-in window) is a separate field with the same new default, not merged into this one: several existing tests set it directly for speed, and the two timers gate different moments (starting a fresh reply vs. resuming a cut one)
 	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
 	thinking_cue = true;    // a short, subtle tone once the owner stops speaking and a reply is pending, again cue_repeat_ms later if it still has not started; false turns it off
 	cue_repeat_ms = 2000;   // thinking cue: how long to wait for the reply before the second, and last, cue
-	cue_timer = null;       // thinking cue: schedule_cue()'s own pending timeout for the second cue
+	cue_timer = null;       // thinking cue: expect_reply()'s own pending timeout for the second cue
 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
+	pending_updates = [];   // no-flood: agent updates (a reply whose from.id matches AGENT_ID — not "smart", and not "fast"/"revise"/"card" either) held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
+	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
+	update_hold_ms = 4000;   // no-flood: how long an agent update waits for the direct answer before it is queued anyway
 
 	constructor(...args){
 		super(...args);
@@ -59,6 +63,7 @@ export default class Recite extends Part {
 		this.audio?.addEventListener("timeupdate", () => this.changed());
 		this.barge = new this.constructor.BargeIn({ recite: this });
 		this.highlight = new this.constructor.Highlight({ recite: this });
+		this.tap = new this.constructor.Tap({ recite: this });
 		this.unlock_on_tap();
 		this.trace("loaded", { host: globalThis.location?.host, ua: globalThis.navigator?.userAgent, coarse: !!globalThis.matchMedia?.("(pointer: coarse)").matches, saved_auto: Recite.remember("auto") });   // does Recite even start on this page?
 		// 4 s later: is the ✦ Sheet on this page, and which version of its read-aloud ran (a phone that logs no "sheet: boot" shows why here)
@@ -156,7 +161,7 @@ export default class Recite extends Part {
 		if (this.wait_at == null) return;
 		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
 		this.quiet_since_wait ??= performance.now();
-		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 1500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 2500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
 		const i = this.wait_at;
 		this.wait_at = this.quiet_since_wait = null;
 		this.play(i, 0);
@@ -227,28 +232,46 @@ export default class Recite extends Part {
 	/** One event from a session's live wire (ext/Session `Session.stream`): the smart seat's reply is read, the owner's line pauses it.
 	 *  Wire shapes: dictation-notes.md in the voice-recite task. */
 	from_wire(ev){
-		if (ev?.kind === "stream" && ev.role === "smart"){ if (!this.live && ev.text) this.trace("reply streaming", { text: ev.text.slice(0, 40) }); return this.partial(ev.text); }
+		if (ev?.kind === "stream" && ev.role === "smart"){
+			if (!this.live && ev.text) this.trace("reply streaming", { text: ev.text.slice(0, 40) });
+			const out = this.partial(ev.text);
+			if (!ev.text) this.flush_updates();   // only once the stream itself ends (`""`, partial()'s own signal) — flushing on every partial queued a held update mid-stream, between two sentences of the very answer it was meant to wait behind (review finding, read-aloud-b 2026-11-02)
+			return out;
+		}
 		if (ev?.kind !== "line") return;
 		const line = ev.line ?? {}, chat = line.chat;
 		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
 		// The id read aloud is marked played (Recite.mark_played), so a reload a moment later never reads it twice: the
 		// `{chat}` shape has no id of its own, so its `at` timestamp (one per line) stands in for one (dictation-v3, 2026-11-01, item 20).
-		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text, chat.at) : undefined; }
+		if (chat?.from?.kind === "assistant"){
+			this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) });
+			if (chat.from.id === "smart"){ const out = this.final(chat.text, chat.at); this.flush_updates(); return out; }
+			if (!Recite.AGENT_ID.test(chat.from.id ?? "")) return;   // "fast", "revise" (every voice revision), "card": not an agent update, ignored exactly as before this task (review finding, read-aloud-b 2026-11-02 — revise posts on every dictated sentence, the very flood this task was meant to stop)
+			return this.agent_update(chat.text, chat.at, chat.from.id);
+		}
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
-		if (add) return add.by === "smart" ? this.final(add.text, add.id) : undefined;
+		if (add){
+			if (add.by === "smart"){ const out = this.final(add.text, add.id); this.flush_updates(); return out; }
+			if (!Recite.AGENT_ID.test(add.by ?? "")) return;
+			return this.agent_update(add.text, add.id, add.by);
+		}
 		if (chat?.text){
 			if (this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text, chat.via); }   // ear off = manual playback
-			if (this.auto && this.thinking_cue) this.schedule_cue();
+			if (this.auto) this.expect_reply();
 		}
 	}
 
-	/** The owner's line just landed on the wire: soon a reply should start. A short, subtle cue plays now, and once
-	 *  more about `cue_repeat_ms` later if the reply still has not arrived — then it stays quiet. A fresh line
-	 *  (another message before the first reply showed up) restarts the sequence from here; `partial()`/`final()`
-	 *  cancel it the moment real reply text arrives (dictation-v3, 2026-11-02). */
-	schedule_cue(){
+	/** The owner's line just landed on the wire: a direct answer is now expected (`cue_pending` — no-flood's
+	 *  `agent_update()` reads this to decide whether to hold an update, whether or not the thinking cue is even
+	 *  on). When `thinking_cue` is also on, a short, subtle tone plays now, and once more about `cue_repeat_ms`
+	 *  later if the reply still has not arrived — then it stays quiet. A fresh line (another message before the
+	 *  first reply showed up) restarts the sequence from here; `partial()`/`final()` cancel it the moment real
+	 *  reply text arrives (dictation-v3, 2026-11-02; decoupled from `thinking_cue`, read-aloud-b 2026-11-02 —
+	 *  no-flood held nothing with the cue off, since `cue_pending` was only ever set while scheduling the tone). */
+	expect_reply(){
 		clearTimeout(this.cue_timer);
 		this.cue_pending = true;
+		if (!this.thinking_cue) return;
 		this.play_cue();
 		this.cue_timer = setTimeout(() => { if (this.cue_pending) this.play_cue(); }, this.cue_repeat_ms);
 	}
@@ -327,6 +350,43 @@ export default class Recite extends Part {
 	/** Chunk `i` just finished playing: mark played any reply whose last chunk that was. */
 	settle_pending(i){
 		this.pending_ids = this.pending_ids.filter(p => { if (p.last !== i) return true; Recite.mark_played(p.id); return false; });
+	}
+
+	/** No-flood (dictation-v3, 2026-11-02): a reply from a tracked agent role (`Recite.AGENT_ID` — a mastermind or
+	 *  another agent reporting into the chat, never "smart", "fast", "revise" or "card") is never read in full; it collapses into one short spoken line, so
+	 *  a long status update never floods the queue ahead of (or instead of) the direct answer the owner is waiting
+	 *  for. If the owner's own line is still awaiting that direct answer (`cue_pending`), the update is held in
+	 *  `pending_updates` rather than queued — `flush_updates()` releases it (behind the direct answer) once that
+	 *  reply lands, or after `update_hold_ms` regardless, so it is never lost if no direct reply ever comes. */
+	agent_update(text, id, from_id){
+		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: String(text ?? "").slice(0, 40) }); return; }
+		if (id && Recite.was_played(id)) return;
+		const key = Recite.norm(text);
+		if (this.done.has(key)) return;
+		this.done.add(key);
+		const line = `I have an update on ${Recite.agent_label(from_id)}, tap to hear it.`;
+		if (this.cue_pending){
+			this.pending_updates.push({ text: line, id });
+			clearTimeout(this.update_hold_timer);
+			this.update_hold_timer = setTimeout(() => this.flush_updates(), this.update_hold_ms);
+			this.trace("update held: a direct answer is still pending", { from: from_id });
+		} else this.queue_update(line, id);
+	}
+
+	/** Queues one collapsed update line, behind whatever is already queued — never replacing it, same as `final()`. */
+	queue_update(line, id){
+		const before = this.chunks.length;
+		this.queue(line);
+		this.mark_when_done(id, before);
+	}
+
+	/** Releases every held update, in the order they arrived, behind whatever is already queued (the direct answer,
+	 *  if one just landed). A no-op when nothing is held. */
+	flush_updates(){
+		clearTimeout(this.update_hold_timer); this.update_hold_timer = null;
+		if (!this.pending_updates.length) return;
+		const held = this.pending_updates; this.pending_updates = [];
+		for (const u of held) this.queue_update(u.text, u.id);
 	}
 
 	/** A new reply starts arriving while an old one sits paused by barge-in (`state === "heard"`): a reply is coming,
@@ -430,6 +490,7 @@ export default class Recite extends Part {
 		this.cancel_cue();
 		clearTimeout(this.wait_timer);
 		this.wait_at = this.quiet_since_wait = null;
+		clearTimeout(this.update_hold_timer); this.update_hold_timer = null; this.pending_updates = [];
 		this.audio?.pause();
 		globalThis.speechSynthesis?.cancel();
 		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
@@ -542,6 +603,16 @@ export default class Recite extends Part {
 	/** Text compared loosely: spaces and markdown marks do not count. */
 	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
 
+	/** A tracked agent role's own id shape (Servex/agents/roles/readme.md) — never "fast", "revise" or "card", the
+	 *  other ids that post an assistant chat line but are not agent-update material (`from_wire()` reads this to
+	 *  decide; review finding, read-aloud-b 2026-11-02). */
+	static AGENT_ID = /^(mastermind|minion|reviewer|clarity)-/;
+
+	/** An agent id as something a voice can say: the role prefix off, dashes and underscores to spaces — "mastermind-
+	 *  read-aloud-b" reads as "read aloud b". A rough heuristic, not a lookup of the agent's own title; revisit if it
+	 *  reads badly in practice. */
+	static agent_label(id){ return String(id ?? "an agent").replace(Recite.AGENT_ID, "").replace(/[-_]+/g, " ").trim() || "an agent"; }
+
 	/** Message ids already read in full, kept across a reload (item 20, dictation-v3 2026-11-01): a reload within the
 	 *  2-minute window in `from_wire` must never read a settled reply twice. localStorage, capped to the most recent
 	 *  200 so a long-lived tab does not grow this forever. */
@@ -571,6 +642,7 @@ export default class Recite extends Part {
 Recite.BargeIn = BargeIn;
 Recite.Bar = ReciteBar;
 Recite.Highlight = ReciteHighlight;
+Recite.Tap = ReciteTap;
 Recite.SILENCE = "data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";   // 0.1 s of silence, 8 kHz: what unlock_on_tap() plays
 track(Recite);
 

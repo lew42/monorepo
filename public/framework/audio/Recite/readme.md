@@ -1,6 +1,6 @@
 # Recite — reads the AI's replies aloud
 
-Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking — then picks back up once you go quiet, from the start of the sentence it cut off; a new question instead drops the rest, since a new answer is coming. A reply that arrives while another is already playing queues behind it, and a reply never starts over your own voice. [The live demo](/framework/audio/Recite/).
+Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking — then picks back up once you go quiet, from the start of the sentence it cut off; a new question instead drops the rest, since a new answer is coming. A reply that arrives while another is already playing queues behind it, and a reply never starts over your own voice. Tapping a chat bubble is the same play/pause gesture as the bar. [The live demo](/framework/audio/Recite/).
 
 ## Use
 
@@ -13,7 +13,11 @@ recite.pause(); recite.back(10); recite.restart();
 recite.bar;                          // the one-line control; while state is `heard` or `paused`, its Play button is the resume control
 ```
 
-**Turn-taking settings:** `recite.turn_wait_ms` (default 1500) is how much quiet is needed before a freshly queued reply starts over the owner; `recite.barge.quiet_ms` (default 1500) is how much quiet is needed after a barge-in before the cut reply resumes.
+Tapping any chat bubble (the same gesture, not a second control) plays or pauses whatever Recite is doing right now — a tap on a link, a mention chip or a button inside it does its own thing instead.
+
+**Turn-taking settings:** `recite.turn_wait_ms` (default 2500: 2–3 s, no flood) is how much quiet is needed before a freshly queued reply starts over the owner; `recite.barge.quiet_ms` (default 2500) is how much quiet is needed after a barge-in before the cut reply resumes — a separate field with the same default, not merged into one setting, since several tests set it directly for speed.
+
+**No flood:** a reply from a tracked agent role (`mastermind-`/`minion-`/`reviewer-`/`clarity-` — not the smart one, and not `fast`/`revise`/`card`, which keep being ignored as before) is an agent update — never read in full, it collapses to "I have an update on {agent}, tap to hear it." If the owner's own line is still awaiting the direct answer, the update waits and the direct answer plays ahead of it; that guarantee only covers updates held for that reason — one already queued earlier (or a second direct reply) keeps its place in line, same as any other reply. The tap half of the spoken line isn't true yet: tapping a bubble pauses or resumes whatever Recite is doing now, never replays that one update — [Resumable bubbles](#open-by-the-agreed-build-order) is the piece that will.
 
 **Echo settings:** `recite.echo_guard_ms` (default 1500) is how long after playback stops the echo guard below still applies; `recite.barge.echo_threshold_mult` (default 1.6) raises the barge-in loudness floor during that guard, so the voice itself and a cough right after it don't hold a reply or fire the fast trigger; `recite.barge.near_silent` (default 0.045) is the own-mic peak level below which a Whisper final is treated as hallucinated, not real speech.
 
@@ -28,6 +32,7 @@ In the chat it is already wired: the phone sheet (✦) shows the bar above the m
 - **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads. A sound above the threshold pauses at once; then Whisper checks it. No words means noise, and reading resumes; your words keep it paused. With the chat's mic on, it listens to that mic instead of opening a second one.
 - **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold. Under it, while reading, the karaoke line: the sentence being read, its current word lit.
 - **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds.
+- **`Recite.Tap`** ([ReciteTap.js](ReciteTap.js)) is tap to pause: one document click listener toggles play/pause the moment a tap lands inside a chat bubble (the same `ReciteHighlight.ROOTS` selector), skipping a link, a mention chip, a button or the bar's own copy.
 
 Decisions and why: [doc/architecture.md](doc/architecture.md).
 
@@ -40,14 +45,12 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 ## Open, by the agreed build order
 
-Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue, and the highlight dropout fix (+ lit words) have landed. Still to come, in this order:
+Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue, the highlight dropout fix (+ lit words), no-flood + prioritise, and tap to pause (piece (b)) have landed. Still to come, in this order:
 
-1. **No flood + prioritise:** one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
-2. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
-3. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
-4. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
-5. **(c) Karaoke follow** — without phrase-level streaming.
-6. **Gate Dictate's send path on the echo/phantom guards** — proposed to `mastermind-ink-check` ([doc/architecture.md](doc/architecture.md), the echo decision's open item), not scheduled yet.
+1. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting). This is also the piece that makes an agent update's own spoken line ("tap to hear it") true: today tapping only pauses or resumes whatever Recite is already doing, never replays that specific update.
+2. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
+3. **(c) Karaoke follow** — without phrase-level streaming.
+4. **Gate Dictate's send path on the echo/phantom guards** — proposed to `mastermind-ink-check` ([doc/architecture.md](doc/architecture.md), the echo decision's open item), not scheduled yet.
 
 Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in `ux/Dictate/doc/turn-taking.md`, "Voice dynamics" (no page there to link; the file is in the repo).
 
@@ -71,6 +74,6 @@ Every read-aloud step writes one `recite` line to [the Whisper log](/framework/a
 
 ## Files
 
-- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [Recite.css](Recite.css), [page.js](page.js) (the demo)
+- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [Recite.css](Recite.css), [page.js](page.js) (the demo)
 - [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
 - [doc/architecture.md](doc/architecture.md), [doc/voice-models.md](doc/voice-models.md) (what Kokoro costs here, and which voices sound better)
