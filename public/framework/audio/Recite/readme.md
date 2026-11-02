@@ -1,6 +1,6 @@
 # Recite — reads the AI's replies aloud
 
-Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking. [The live demo](/framework/audio/Recite/).
+Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking — then picks back up once you go quiet, from the start of the sentence it cut off; a new question instead drops the rest, since a new answer is coming. A reply that arrives while another is already playing queues behind it, and a reply never starts over your own voice. [The live demo](/framework/audio/Recite/).
 
 ## Use
 
@@ -10,8 +10,10 @@ import Recite from "/framework/audio/Recite/Recite.js";
 const recite = Recite.shared;        // one per page, so two chat views never read over each other
 recite.read("A reply to read.");     // or recite.queue(text): after what is playing
 recite.pause(); recite.back(10); recite.restart();
-recite.bar;                          // the one-line control
+recite.bar;                          // the one-line control; while state is `heard` or `paused`, its Play button is the resume control
 ```
+
+**Turn-taking settings:** `recite.turn_wait_ms` (default 1500) is how much quiet is needed before a freshly queued reply starts over the owner; `recite.barge.quiet_ms` (default 1500) is how much quiet is needed after a barge-in before the cut reply resumes.
 
 In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
 
@@ -30,15 +32,34 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 - **The server:** recite-server, Kokoro-82M on the CPU, port 8177. Servex starts and watches it (`Servex/ext/recite/readme.md`).
 - **The URL:** `http://127.0.0.1:8177` on this machine; `<origin>/recite` anywhere else, through the dev server's proxy ([Server/plugins/Recite.js](../../../../Server/plugins/Recite.js)).
 - **The chat:** [ux/Dictate/chat.js](../../ux/Dictate/chat.js) passes every event on the session's live wire to `Recite.shared.from_wire(ev)`, and gives barge-in the chat's mic (`barge.use_mic`). [ux/Dictate/DictationBar.js](../../ux/Dictate/DictationBar.js) puts the bar above the mic.
-- **Saved settings:** localStorage keys `lew42.recite.voice`, `.auto`, `.barge`, `.threshold`, per browser.
+- **Saved settings:** localStorage keys `lew42.recite.voice`, `.auto`, `.barge`, `.threshold`, per browser. `lew42.recite.played` holds the last 200 message ids read in full, so a reload a moment later never reads one twice (item 20, 2026-11-01); keyed by the reply's own id where one exists (a Prompt `replies.add` line), or its `{chat}` line's `at` timestamp otherwise.
+
+## Open, by the agreed build order
+
+Only resume + queueing + turn-taking (this page's piece (a)) has landed so far. Still to come, in this order:
+
+1. **No flood + prioritise** (if not folded into a small change already): one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
+2. **Echo suppression** — the read-aloud voice leaking into the mic: `echoCancellation`/`noiseSuppression` in `getUserMedia`, ignoring heard words that match the sentence being read, and a higher mic threshold while playing and ~1.5 s after (so coughs and leakage don't fire a barge-in).
+3. **A thinking cue**, its own small merge right after echo: once the owner stops speaking and a reply is pending, a short subtle cue (a generated tone or a tiny audio file, never Kokoro speech) — once, then once more at ~2 s if still pending, then quiet. A setting turns it off (`thinking_cue: true`).
+4. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
+5. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
+6. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
+7. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
+8. **(c) Karaoke follow** — without phrase-level streaming.
+
+Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in [ux/Dictate/doc/turn-taking.md](/framework/ux/Dictate/doc/turn-taking.md), "Voice dynamics".
+
+The owner's own order and why: [requirements.md, "Order now"](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/requirements.md).
 
 ## Watch out
 
 - **A phone plays sound only after a tap on the page.** A reply arrives from the network, not from a tap, so Recite unlocks its one `<audio>` on the first tap anywhere (the mic, a button: `unlock_on_tap()` plays a silent tenth of a second). A reply the browser refused before that tap starts on it; until then the bar says to tap play.
 - **Back 10 s needs recite-server.** With the browser's voice it steps by sentence.
-- **Speakers leak into the mic.** Echo cancelling removes most of it, and words that match the sentence being read are ignored. Headphones are best.
+- **Speakers leak into the mic.** Not built yet (the owner has heard the leak): the plan is echo cancelling in `getUserMedia`, plus ignoring words that match the sentence being read. Headphones are best until then.
 - **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice (`Servex/ext/remote/doc/cloud-voice-agent.md`). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
 - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
+- **With the ear (barge-in) off, a reply never waits for you.** `speaking()` requires `barge.on`; turning the ear off is the opt-out from turn-taking, so a freshly queued reply starts right away even if you are still mid-sentence. Intended, not a bug.
+- **Open item: `chunks` never shrinks until a full `stop()`.** Each queued reply's rendered audio (a blob URL) stays in memory for the whole session; a very long session with no interruption and no session switch holds every reply's audio at once. Deferred: a page reload bounds it in practice, so no eviction was added. [doc/architecture.md](doc/architecture.md) has the detail.
 
 ## Why it was silent
 

@@ -53,9 +53,12 @@ export default class ReciteBar extends View {
 
 		const total = r.duration(), at = r.position();
 		this.$fill.style("inlineSize", total ? Math.min(100, at / total * 100).toFixed(1) + "%" : "0");
-		const note = r.state === "heard" || b.state === "checking" ? b.note : r.error || (r.chunks.length ? `${ReciteBar.clock(at)} / ${ReciteBar.clock(total)}${r.engine === "browser" ? " · browser voice" : ""}` : "nothing to read yet");
+		const waiting = r.wait_at != null;
+		const note = waiting ? "waiting for you to finish talking…" : r.state === "heard" || b.state === "checking" ? b.note : r.error || (r.chunks.length ? `${ReciteBar.clock(at)} / ${ReciteBar.clock(total)}${r.engine === "browser" ? " · browser voice" : ""}` : "nothing to read yet");
 		this.$label.text(note);
 		this.$track.attr("title", r.error || b.note || "");
+		const resume = r.state === "heard" || r.state === "paused";
+		this.$play.attr("title", resume ? "Resume" : "Play / pause").tc("is-resume", resume);   // a visibly different control while paused/heard (finding 4), not only the tooltip
 		this.tc("is-heard", r.state === "heard");
 		this.tc("is-error", !!r.error && r.state !== "heard");
 
