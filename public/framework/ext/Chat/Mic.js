@@ -12,7 +12,8 @@ import { strip_words, strip_sent } from "./strip.js";
 // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
 export const SETTINGS = {
 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send)
-	sentences_per_send: 1,      // N = one message per N finished sentences, while still listening; 0 = off (views-fix item 0, 2026-11-01: "sent off sentence by sentence" was going unmet — arm() only ever took the check_chunk() safety path with this at 0, which flushes everything held as ONE message instead of one per sentence)
+	early_sentences: true,      // a sentence goes out when it ends (live guess), not at the pause; false = only finals send
+	sentences_per_send: 1,     // N = one message per N finished sentences, while still listening; 0 = off (views-fix item 0, 2026-11-01: "sent off sentence by sentence" was going unmet — arm() only ever took the check_chunk() safety path with this at 0, which flushes everything held as ONE message instead of one per sentence)
 	paragraph_pause_ms: 2000,   // quiet after a finished sentence that sends everything so far; see doc/mic-notes.md#settings
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
@@ -600,7 +601,7 @@ export class ComposerMic extends Dictate {
 
 	// Finished sentences go out now; the unfinished tail stays held. Sends the joined RAW text as `raw`. see doc/mic-notes.md#send_sentences
 	async send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
-		if (this.sending_sentences) return;   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once
+		if (this.sending_sentences){ this.send_again = n; return; }   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once; words that arrive meanwhile get one more pass after
 		this.sending_sentences = true;
 		try {
 			await this.await_clean();
@@ -625,7 +626,56 @@ export class ComposerMic extends Dictate {
 			this.draw_caption();
 			this.enqueue(items);
 		} catch (e){ DictateHealth.fail("sentence", e, "sending the finished sentences"); }
-		finally { this.sending_sentences = false; }
+		finally {
+			this.sending_sentences = false;
+			if (this.send_again != null){ const again = this.send_again; this.send_again = null; this.send_sentences(again); }
+		}
+	}
+
+	// A sentence goes out when it ends, not when you pause: the live guess (Whisper re-hears the growing segment) holds a finished
+	// sentence (ends in . ? ! and more words follow) -> send it now. The final of that segment then loses those sentences (drop_early),
+	// so nothing is sent twice. Limit: no in-place correction exists server-side, so a final that hears an early sentence differently
+	// keeps the early wording; the difference is logged (DictateHealth "sentence"). see ux/Dictate/doc/upload.md#a-sentence-goes-out-when-it-ends
+	early_from_guess(text, epoch){
+		try {
+			if (!SETTINGS.early_sentences || this.mode_now() === "manual" || this.state !== "listening") return;
+			if (this.sending_sentences || this.sending_screen || this.base?.trim() || (this.held ?? []).some(h => !h.gone)) return;
+			const guess = String(text ?? "").trim();
+			const done = [];
+			for (const m of guess.matchAll(this.cut_re())) if (m.index + m[0].length < guess.length) done.push(m[0].trim());   // "more words follow"
+			const early = (this.early_sent ??= new Map());
+			for (const k of early.keys()) if (k < epoch - 3) early.delete(k);
+			const mine = early.get(epoch) ?? [];
+			if (done.length > mine.length){
+				const fresh = done.slice(mine.length);
+				early.set(epoch, mine.concat(fresh));
+				const items = fresh.map(t => this.take_out({ text: t, raw: null })).filter(Boolean);
+				if (items.length) this.enqueue(items);
+			}
+			// The draft shows only what has not left yet: a sentence on screen twice could be sent twice by the pause send.
+			const sent = early.get(epoch)?.length ?? 0;
+			if (sent){
+				const all = [...guess.matchAll(this.cut_re())], last = all[Math.min(sent, all.length) - 1];
+				const rest = last ? guess.slice(last.index + last[0].length).trim() : guess;
+				if (rest !== this.partial_text){ this.partial_text = rest; this.draw_caption(); }
+			}
+		} catch (e){ DictateHealth.fail("sentence", e, "sending a finished sentence from the live guess"); }
+	}
+
+	// The final text of a segment, minus the sentences early_from_guess() already sent.
+	drop_early(text){
+		const epoch = this.final_epoch; this.final_epoch = undefined;
+		const mine = this.early_sent?.get(epoch);
+		if (!mine?.length) return text;
+		this.early_sent.delete(epoch);
+		const t = String(text), tokens = s => [...s.matchAll(/[\p{L}\p{N}]+/gu)];
+		const early = tokens(mine.join(" ")), heard = tokens(t);
+		// Cut by words, not by sentences: the final may punctuate differently ("down." early, "down and then it slept." final).
+		if (early.some((w, i) => heard[i]?.[0].toLowerCase() !== w[0]))
+			DictateHealth.event("sentence", "wait", `the final heard the early sentences differently; kept what was sent: “${mine.join(" ").slice(0, 80)}” (final: “${t.slice(0, 80)}”)`, { early: mine, final: text });
+		if (heard.length <= early.length) return "";
+		const last = heard[early.length - 1];
+		return t.slice(last.index + last[0].length).replace(/^[.?!…"”’)\]\s]+/u, "").trim();
 	}
 
 	// Messages leave in order; `posting` keeps a live reload waiting. Items are `{text, raw}` or a string.
@@ -665,14 +715,20 @@ export class ComposerMic extends Dictate {
 			if (!text) return;   // the owner cleared the box, or a stop already sent it, while this was waiting
 			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
-			const item = this.take_out({ text, raw });   // in the chat now, where the draft was: the waits below never empty the screen
+			// Several sentences on screen leave as several lines, in order (raw on the first only); an unfinished tail is the last line.
+			const found = [...text.matchAll(this.cut_re())], sents = found.map(m => m[0].trim());
+			const tail = found.length ? text.slice(found.at(-1).index + found.at(-1)[0].length).trim() : "";
+			const parts = sents.length > 1 || (sents.length && tail) ? [...sents, ...(tail ? [tail] : [])] : [text];
+			const items = parts.map((t, i) => this.take_out({ text: t, raw: i === 0 ? raw : null })).filter(Boolean);   // in the chat now, where the draft was: the waits below never empty the screen
 			this.consume_sent();
 			this.draw_caption();   // empty the box now, in this same tick, so no second check can send it again
-			if (!item) return;
+			if (!items.length) return;
 			// One last live-refine call (`final: true`); paragraphed slots replace `text` when the route answers (the drawn piece is patched in place).
-			const live = await this.refine_final(raw);
-			if (live?.slots?.length) item.text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
-			this.enqueue([item]);
+			if (items.length === 1){
+				const live = await this.refine_final(raw);
+				if (live?.slots?.length) items[0].text = ComposerMic.paragraph_from_slots(live.slots, live.outline);
+			}
+			this.enqueue(items);
 		} finally { this.sending_screen = false; }
 	}
 

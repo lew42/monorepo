@@ -363,8 +363,10 @@ export default class Dictate extends View {
 		this.set_state("transcribing");
 
 		if (this.engine === "whisper"){
-			await this.close_segment("manual");
+			// The mic goes off NOW: close_segment() takes its snapshot before its first await, so the light never waits for the upload.
+			const closing = this.close_segment("manual");
 			this.mic?.stop();
+			await closing;
 			if (this.state !== "error"){
 				this.set_state("idle");
 				if (!this.settled && this.skipped_silent)
@@ -514,6 +516,7 @@ export default class Dictate extends View {
 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
 		this.applied_seq = seq;
 		this.partial_text = text; this.draw_caption(); this.on_guess?.(text);
+		this.early_from_guess?.(text, epoch);   // ComposerMic sends a finished sentence now, not at the pause (doc/upload.md)
 	}
 
 	/** The guess is cleared only in the same draw_caption() that shows the final. see doc/notes.md#never-clear-the-guess-early */
@@ -556,6 +559,7 @@ export default class Dictate extends View {
 			return;
 		}
 		this.applied_seq = seq;
+		this.final_epoch = epoch - 1;   // the segment whose guesses this final replaces (close_segment() already counted epoch up)
 		this.commit(text, reason);
 	}
 
@@ -711,6 +715,7 @@ export default class Dictate extends View {
 
 
 	commit(text, reason){
+		if (this.drop_early) text = this.drop_early(text);   // sentences already sent from the guess are not sent again
 		if (!text || this.annotation(text)){ this.clear_guess(); return; }
 		this.settled = this.settled ? this.settled + " " + text : text;
 		(this.settled_lines ??= []).push(text);

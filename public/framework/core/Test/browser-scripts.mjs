@@ -24,6 +24,8 @@ export const SCRIPTS = [
 	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/mic-release.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/sentences.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":300000},

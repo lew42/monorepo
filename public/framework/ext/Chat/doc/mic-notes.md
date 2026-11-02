@@ -35,6 +35,10 @@ but merge 11 ("one widget," 2026-10-01) removed every way to reach it: it is no 
 `MODES` row (`ux/Dictate/Widget.js`) or a gear choice (`settings_panel()`, below) — autosend
 is the default and the only behaviour a reader can pick, everywhere.
 
+## Settings: early_sentences
+
+`SETTINGS.early_sentences` (default `true`, not in the gear panel): a sentence the live guess has finished (ends in `.` `?` `!`, more words after it) is sent at once by `early_from_guess()`, and the segment’s final loses it (`drop_early()`); the draft shows only the unsent rest. `false` = only finals send. See [upload.md](/framework/ux/Dictate/doc/upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause).
+
 ## Settings: paragraph_pause_ms history
 
 2026-10-01 — the owner asked for "500 to 1000 milliseconds" so a finished sentence goes out quickly;
