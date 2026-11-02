@@ -70,7 +70,8 @@ const env = (name, dflt) => { const n = Number(process.env[name]); return proces
 
 /* WHO SITS IN THE FAST SEAT (voice-assistant-plan, 2026-10-17; ux/Dictate/doc/voice-assistant.md): `voice` = the
  * voice-assistant role, woken per sentence to write one {place} line (THE DEFAULT: the owner, 2026-11-01, "the fast assistant
- * might be doing half of the work... turning it off isn't going to fix anything... put them to work"); `fast` = the old
+ * might be doing half of the work... turning it off isn't going to fix anything... put them to work"; then 2026-11-02: "I think
+ * that we'll just have one assistant... that's the way we'll go for now", so the file now says `off`); `fast` = the old
  * session-fast chatter; `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
  * code, which it never does while a seat is on, so the two never both file one). Read once at boot, first match wins:
  *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast or voice. This is the
@@ -151,7 +152,7 @@ export const now_ms = () => {
 /* THE SESSION MODEL SWITCH (dictate-without-claude, 2026-10-04 — the owner: "we're facing a
  * Claude shutdown... I have to rely entirely on the website and whether the voice dictation
  * system works"). ONE setting decides what BOTH session agents spawn on:
- *   - "claude" (default, unchanged): fast on Sonnet, smart on tier voice_smart (Sonnet; tiers.js), Sonnet only while the week is over pace.
+ *   - "claude" (default, unchanged): fast on Haiku (tier fast), smart on tier voice_smart (Sonnet; tiers.js), Sonnet only while the week is over pace.
  *   - "openrouter": both on FALLBACK_MODEL. Picked from the new-brain eval
  *     (ai/sessions/2026/10/04/new-brain/new-brain/eval-results.json): openai/gpt-6-luna tied the BEST score on
  *     level c (the real job — refine a raw owner prompt into numbered sentences, 10/10, same
