@@ -1,0 +1,902 @@
+diff --git a/Server/Events.js b/Server/Events.js
+index c59e2ee3c..c56f9fcca 100644
+--- a/Server/Events.js
++++ b/Server/Events.js
+@@ -1,114 +1,8 @@
+-export default class Events {
++// Server/Events.js is now a thin shim over core/Plugin (the one events + plugins class): same default and named export,
++// same constructor order (assign, "new", instantiate). Instance on/off/emit now come from core/Events and chain.
++// The class-level "new" event now also reaches a parent's listeners (it used to reach only the exact class).
++import { Plugin } from "../public/framework/core/Plugin/Plugin.js";
+ 
+-    constructor(...args) {
+-        this.events = {}; // so that new events can be added immediately
+-        this.assign(...args); // maybe before 'new' event?
+-        this.constructor.emit("new", this); // this isn't inheritance friendly
+-        this.instantiate();
+-    }
+-
+-    assign(...args) {
+-        return Object.assign(this, ...args);
+-    }
+-
+-    instantiate() {
+-        this.initialize();
+-    }
+-
+-    initialize() { }
+-
+-    on(event, listener) {
+-        if (!this.events[event]) {
+-            this.events[event] = [];
+-        }
+-        this.events[event].push(listener);
+-    }
+-
+-    off(event, listener) {
+-        if (!this.events[event]) return;
+-
+-        this.events[event] = this.events[event].filter(l => l !== listener);
+-    }
+-
+-    once(event, listener) {
+-        const onceWrapper = (...args) => {
+-            listener.apply(this, args);
+-            this.off(event, onceWrapper);
+-        };
+-        this.on(event, onceWrapper);
+-    }
+-
+-    emit(event, ...args) {
+-        if (!this.events[event]) return;
+-
+-        this.events[event].forEach(listener => listener.apply(this, args));
+-    }
+-
+-    clear(event) {
+-        if (!this.events[event]) return;
+-
+-        this.events[event] = [];
+-    }
+-
+-    static get events() {
+-		if (Object.hasOwn(this, "_events")) return this._events;
+-        return this._events = {};
+-    }
+-
+-    static on(event, listener) {
+-        if (!this.events[event]) {
+-            this.events[event] = [];
+-        }
+-        this.events[event].push(listener);
+-    }
+-
+-    static off(event, listener) {
+-        if (!this.events[event]) return;
+-
+-        this.events[event] = this.events[event].filter(l => l !== listener);
+-    }
+-
+-    static once(event, listener) {
+-        const onceWrapper = (...args) => {
+-            listener.apply(this, args);
+-            this.off(event, onceWrapper);
+-        };
+-        this.on(event, onceWrapper);
+-    }
+-
+-    static emit(event, ...args) {
+-        if (!this.events[event]) return;
+-
+-        this.events[event].forEach(listener => listener.apply(this, args));
+-    }
+-
+-    static clear(event) {
+-        if (!this.events[event]) return;
+-
+-        this.events[event] = [];
+-    }
+-
+-    static use(plugin) {
+-        // if plugin is a function, call it for new instances, but not classes
+-        if (typeof plugin === "function" && !plugin.prototype) {
+-            this.on("new", plugin.bind(plugin));
+-            return this;
+-
+-        // if plugin has a setup method, call it for new instances
+-        } else if (plugin.setup) {
+-            this.on("new", plugin.setup.bind(plugin));
+-            return this;
+-        } else {
+-            console.warn("Plugin must be a function or have a setup method");
+-            return this;
+-        }
+-    }
+-
+-    static setup(instance) {
+-        console.log(`Implement ${this.name}.setup()`, instance);
+-        // new this({ instance })
+-        return this;
+-    }
+-}
++export default class Events extends Plugin {}
+ 
+ export { Events }
+diff --git a/Server/readme.md b/Server/readme.md
+index d205c7aa9..1f996ee59 100644
+--- a/Server/readme.md
++++ b/Server/readme.md
+@@ -12,6 +12,8 @@ Dictation failing while the page will not reload: Whisper died with a Servex res
+ Clear out landed worktrees, with a plan first and a manifest (`node Server/Worktrees.mjs --plan`): [`doc/worktrees.md`](./doc/worktrees.md).
+ Worktree dev servers: what stops them, and the list / stop-stale tool (`node Server/worktree-servers.mjs`): [`doc/worktree-servers.md`](./doc/worktree-servers.md).
+ Every task log held in memory and queryable (module, landed, text, raw-log paths): [`doc/session-index.md`](./doc/session-index.md).
++`Events.js` is a two-line subclass of [core/Plugin](../public/framework/core/Plugin/readme.md): `Server`, `Socket` and `Servex/*` extend it, so each takes `use()` plugins and has chaining `on/off/emit`.
++
+ The dev socket's server half (`Tail`, `Append`, the numbered append that never writes a line twice): [`plugins/SocketServer/readme.md`](./plugins/SocketServer/readme.md).
+ 
+ The owner-facing server also starts `whisper-server` for dictation on its own —
+diff --git a/public/framework/core/Events/Events.js b/public/framework/core/Events/Events.js
+index 587c88e35..b0699236e 100644
+--- a/public/framework/core/Events/Events.js
++++ b/public/framework/core/Events/Events.js
+@@ -1,4 +1,4 @@
+-// A small mixin — `on` / `off` / `emit`, nothing else — so ANY class can announce
++// A small mixin — `on` / `off` / `once` / `clear` / `emit`, nothing else — so ANY class can announce
+ // its own changes without inheriting a bigger base class. `Events(Object)` is a
+ // plain emitter; `List` (core/List/List.js) extends `Events(Object)` directly, so
+ // every List announces its own changes. Listeners live in `this._on`, made lazily,
+@@ -12,7 +12,7 @@ export const Events = (Base = Object) => class extends Base {
+ 	}
+ 
+ 	off(event, fn){
+-		if (this._on?.[event]) this._on[event] = this._on[event].filter(listener => listener !== fn);
++		if (this._on?.[event]) this._on[event] = this._on[event].filter(listener => listener !== fn && listener.fn !== fn);
+ 		return this;
+ 	}
+ 
+@@ -26,6 +26,19 @@ export const Events = (Base = Object) => class extends Base {
+ 		return this;
+ 	}
+ 
++	// Runs once, then removes itself; off(event, fn) with the original fn still finds it.
++	once(event, fn){
++		const wrapper = (...args) => { this.off(event, wrapper); return fn.apply(this, args); };
++		wrapper.fn = fn;
++		return this.on(event, wrapper);
++	}
++
++	clear(event){
++		if (event === undefined) this._on = undefined;
++		else if (this._on?.[event]) this._on[event] = [];
++		return this;
++	}
++
+ 	bubbles(){ return true; }
+ };
+ 
+diff --git a/public/framework/core/Plugin/Plugin.js b/public/framework/core/Plugin/Plugin.js
+new file mode 100644
+index 000000000..eec6ff026
+--- /dev/null
++++ b/public/framework/core/Plugin/Plugin.js
+@@ -0,0 +1,151 @@
++// core/Plugin: a class that is pluggable, and the class every plugin may extend. Readme: ./readme.md, design: ./doc/design-notes.md
++//   Host.use(A, B)    every new Host instance reaches A.attach(inst) and B.attach(inst)
++//   Host.unuse(A)     the hook comes off; live instances are told A.detach(inst)
++//   Host.plugins      a lazy List of rows (PluginEntry): name, enabled, config; switching a row on or off uses / unuses
++import { Events } from "../Events/Events.js";
++import { List } from "../List/List.js";
++import PluginEntry from "./PluginEntry.js";
++
++const own_events = Symbol.for("core.Plugin.events");
++
++export class Plugin extends Events(Object) {
++
++	// Same order the server's Events had: assign the args, announce "new", then instantiate().
++	constructor(...args){
++		super();
++		this.assign(...args);
++		this.constructor.emit("new", this);
++		this.instantiate();
++	}
++
++	assign(...args){ return Object.assign(this, ...args); }
++	instantiate(){ this.initialize(); }
++	initialize(){}
++	bubbles(){ return false; }   // a plugin host is not a tree; an Item's events still bubble
++
++	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
++	static get events(){
++		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
++		return this[own_events];
++	}
++	static on(event, fn){ (this.events[event] ??= []).push(fn); return this; }
++	static off(event, fn){
++		const list = this.events[event];
++		if (list) this.events[event] = list.filter(l => l !== fn && l.fn !== fn);
++		return this;
++	}
++	static once(event, fn){
++		const wrapper = (...args) => { this.off(event, wrapper); return fn.apply(this, args); };
++		wrapper.fn = fn;
++		return this.on(event, wrapper);
++	}
++	static clear(event){ if (this.events[event]) this.events[event] = []; return this; }
++	static emit(event, ...args){
++		const chain = [];
++		for (let c = this; c && c !== Function.prototype; c = Object.getPrototypeOf(c)){
++			const own = Object.hasOwn(c, own_events) && c[own_events][event];
++			if (own?.length) chain.push(own);
++		}
++		for (let i = chain.length - 1; i >= 0; i--) chain[i].slice().forEach(fn => fn.apply(this, args));
++		return this;
++	}
++
++	// ── a class that is PLUGGABLE
++	static hosts = [];   // every class that has used or listed a plugin, for a page that shows them live
++	static store = new Map();   // saved on/config per row, key plugin.<Host>.<Plugin>; a page swaps in localStorage
++
++	static get records(){
++		if (!Object.hasOwn(this, "_records")) Object.defineProperty(this, "_records", { value: new Map(), writable: true });
++		return this._records;
++	}
++
++	static use(...plugins){
++		for (const p of plugins) {
++			const fresh = !this.records.has(p), rec = this.record(p);
++			if (!fresh || rec.wanted) this.enable(rec);   // a saved or default "off" wins over the first use()
++		}
++		return this;
++	}
++
++	static unuse(...plugins){
++		for (const p of plugins) { const rec = this.records.get(p); if (rec) this.disable(rec); }
++		return this;
++	}
++
++	// Know P, but leave it off: the list shows a switched-off row.
++	static available(...plugins){
++		for (const p of plugins) this.record(p, false);
++		return this;
++	}
++
++	// The one record per plugin on this class: the exact hook that was installed, so off can find it.
++	static record(p, wanted_on){
++		let rec = this.records.get(p);
++		if (rec) return rec;
++		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
++		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
++		const { on: default_on = true, ...config_defaults } = defaults;
++		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), n: 0,
++			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
++		this.records.set(p, rec);
++		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
++		if (this._list) this.add_row(rec);
++		return rec;
++	}
++
++	static enable(rec){
++		rec.wanted = true;
++		if (rec.on) return;
++		const p = rec.plugin, tracks = typeof p.detach === "function" && p.detach !== Plugin.detach;
++		const run = typeof p.attach === "function" ? inst => p.attach(inst)
++			: typeof p.setup === "function" ? inst => p.setup(inst)
++			: typeof p === "function" && !p.prototype ? p : null;
++		if (!run) { console.warn(`Plugin ${rec.name} must be a function or have attach(instance) or setup(instance)`); return; }
++		rec.fn = function(inst){
++			if (tracks) {
++				rec.live.add(new WeakRef(inst));
++				if (++rec.n % 256 === 0) for (const ref of rec.live) if (!ref.deref()) rec.live.delete(ref);
++			}
++			return run.call(this, inst);
++		};
++		this.on("new", rec.fn);
++		rec.on = true;
++		rec.row?.sync(true);
++	}
++
++	static disable(rec){
++		rec.wanted = false;
++		if (!rec.on) return;
++		this.off("new", rec.fn);
++		rec.on = false;
++		for (const ref of rec.live) { const inst = ref.deref(); if (inst) rec.plugin.detach?.(inst); }
++		rec.live.clear();
++		rec.row?.sync(false);
++	}
++
++	// Lazy: nothing exists until it is read. After that, use/unuse/available keep it in step.
++	static get plugins(){
++		if (!Object.hasOwn(this, "_list")) {
++			Object.defineProperty(this, "_list", { value: new List(), writable: true });
++			for (const rec of this.records.values()) this.add_row(rec);
++		}
++		return this._list;
++	}
++
++	static add_row(rec){
++		if (rec.row) return rec.row;
++		const row = new PluginEntry({ id: rec.name, name: rec.name, enabled: rec.on, config: rec.config });
++		Object.defineProperties(row, { host: { value: this }, record: { value: rec }, plugin: { value: rec.plugin } });
++		rec.row = row;
++		this._list.add(row);
++		return row;
++	}
++
++	// ── a class that IS a plugin. attach(instance): "this plugin attaches itself to that instance". setup is the old name.
++	static attach(instance){ return this.setup?.(instance); }
++	static detach(instance){}
++	static defaults = { on: true };
++	static fields = [];   // [{key, label, kind: "toggle|slider|number|text", min, max, step, section}] drives a panel
++}
++
++export default Plugin;
+diff --git a/public/framework/core/Plugin/Plugin.test.mjs b/public/framework/core/Plugin/Plugin.test.mjs
+new file mode 100644
+index 000000000..dbe1d38c0
+--- /dev/null
++++ b/public/framework/core/Plugin/Plugin.test.mjs
+@@ -0,0 +1,157 @@
++// core/Plugin: A.use(B, C), unuse, A.plugins (lazy List), toggle, config, sub-plugins, the server shim.
++// Run: node public/framework/core/Plugin/Plugin.test.mjs   (written before Plugin.js: it fails until the class exists)
++import { test } from "../Test/Test.js";
++import { Plugin } from "./Plugin.js";
++import ServerEvents from "../../../../Server/Events.js";
++
++Plugin.store = new Map();   // saved config goes here, not to a browser
++
++// a pluggable class A, and plugins that record what they were given
++const calls = [];
++class Host extends Plugin {}
++class Spy { static attach(inst){ calls.push(["attach", this.name, inst.tag]); } static detach(inst){ calls.push(["detach", this.name, inst.tag]); } }
++class Other { static attach(inst){ calls.push(["attach", this.name, inst.tag]); } }
++class Old { static setup(inst){ calls.push(["setup", this.name, inst.tag]); } }   // the old word keeps working
++
++test("use(B, C) installs each, returns the class, and a new instance reaches each plugin with its args already assigned", t => {
++	calls.length = 0;
++	t.ok(Host.use(Spy, Other) === Host, "use returns the class so it chains");
++	new Host({ tag: "one" });
++	t.eq(calls, [["attach", "Spy", "one"], ["attach", "Other", "one"]], "attach ran per plugin, in order, after assign");
++});
++
++test("setup is still accepted as the old name for attach, and a plain function is a plugin", t => {
++	calls.length = 0;
++	class H2 extends Plugin {}
++	let fn_got; H2.use(Old, inst => { fn_got = inst.tag; });
++	new H2({ tag: "x" });
++	t.eq(calls, [["setup", "Old", "x"]], "a plugin with only setup is attached through setup");
++	t.eq(fn_got, "x", "a plain function is called with the new instance");
++});
++
++test("using the same plugin twice is a no-op", t => {
++	calls.length = 0;
++	class H3 extends Plugin {}
++	H3.use(Other); H3.use(Other);
++	new H3({ tag: "d" });
++	t.eq(calls.length, 1, "attached once");
++});
++
++test("unuse removes the hook; live instances are told detach, new ones are not attached", t => {
++	calls.length = 0;
++	class H4 extends Plugin {}
++	H4.use(Spy);
++	const live = new H4({ tag: "live" });
++	H4.unuse(Spy);
++	t.eq(calls, [["attach", "Spy", "live"], ["detach", "Spy", "live"]], "the live instance was detached");
++	new H4({ tag: "later" });
++	t.eq(calls.length, 2, "a later instance gets nothing");
++	t.ok(live, "kept so the instance is not collected before unuse");
++});
++
++test("a subclass instance reaches its parents' plugins first, and its own use does not leak up", t => {
++	calls.length = 0;
++	class P1 extends Plugin {}
++	class P2 extends P1 {}
++	P1.use(Other); P2.use(Spy);
++	new P2({ tag: "kid" });
++	t.eq(calls, [["attach", "Other", "kid"], ["attach", "Spy", "kid"]], "parent plugin, then subclass plugin");
++	calls.length = 0;
++	new P1({ tag: "mum" });
++	t.eq(calls, [["attach", "Other", "mum"]], "the parent never runs the subclass's plugin");
++});
++
++test("instance events: once fires once, clear drops listeners, on/off chain", t => {
++	const e = new Host({ tag: "e" });
++	let n = 0;
++	t.ok(e.on("x", () => n++) === e, "on returns this");
++	e.once("y", () => n += 10);
++	e.emit("y"); e.emit("y"); e.emit("x");
++	t.eq(n, 11, "once ran once; on ran");
++	e.clear("x"); e.emit("x");
++	t.eq(n, 11, "clear removed the listener");
++});
++
++test("A.plugins is lazy: nothing is built until it is read, then one entry per plugin, in step with use/unuse", t => {
++	class H5 extends Plugin {}
++	H5.use(Spy);
++	t.ok(!Object.hasOwn(H5, "_list"), "reading nothing built nothing");
++	const list = H5.plugins;
++	t.eq(list.length, 1, "one entry");
++	t.eq(list.find("Spy").get("enabled"), true, "the entry is on");
++	H5.use(Other);
++	t.eq(list.length, 2, "a plugin used after the list exists appears in it");
++	H5.unuse(Other);
++	t.eq(list.find("Other").get("enabled"), false, "unuse switches the row off");
++});
++
++test("available() lists a plugin switched off and installs nothing", t => {
++	calls.length = 0;
++	class H6 extends Plugin {}
++	H6.available(Spy);
++	t.eq(H6.plugins.find("Spy").get("enabled"), false, "shown off");
++	new H6({ tag: "a" });
++	t.eq(calls.length, 0, "not attached while off");
++	H6.plugins.find("Spy").set({ enabled: true });
++	new H6({ tag: "b" });
++	t.eq(calls, [["attach", "Spy", "b"]], "switching on installs it");
++});
++
++test("toggling a row (what the item tool sends) moves the hook with it", t => {
++	calls.length = 0;
++	class H7 extends Plugin {}
++	H7.use(Spy);
++	H7.plugins.set({ Spy: { enabled: false } });
++	new H7({ tag: "off" });
++	t.eq(calls.length, 0, "off: the hook is gone");
++	H7.plugins.set({ Spy: { enabled: true } });
++	new H7({ tag: "on" });
++	t.eq(calls, [["attach", "Spy", "on"]], "on: the hook is back");
++});
++
++test("config: defaults, a changed value is saved under plugin.<Class>.<name>, and a reinstall reads it back", t => {
++	class Dim { static defaults = { on: true, opacity: 0.6 }; static fields = [{ key: "opacity", kind: "slider", min: 0, max: 1, step: 0.1 }]; static attach(){} }
++	class H8 extends Plugin {}
++	H8.use(Dim);
++	const row = H8.plugins.find("Dim");
++	t.eq(row.get("config"), { opacity: 0.6 }, "defaults fill the config");
++	row.set({ config: { opacity: 0.3 } });
++	t.eq(Plugin.store.get("plugin.H8.Dim"), { on: true, config: { opacity: 0.3 } }, "saved");
++	H8.unuse(Dim); H8.use(Dim);
++	t.eq(H8.plugins.find("Dim").get("config"), { opacity: 0.3 }, "read back after a reinstall");
++	t.eq(row.fields[0].key, "opacity", "the row exposes the plugin's fields for a panel");
++});
++
++test("a sub-plugin follows its parent: parent off means the sub-plugin never runs and its row reads inactive", t => {
++	calls.length = 0;
++	class Sub { static attach(inst){ calls.push(["attach", "Sub", inst.tag]); } }
++	class Parent extends Plugin { static attach(host){ new this(host); } }   // a plugin that is also pluggable
++	Parent.use(Sub);
++	class H9 extends Plugin {}
++	H9.use(Parent);
++	const row = H9.plugins.find("Parent"), sub = row.plugins.find("Sub");
++	new H9({ tag: "p1" });
++	t.eq(calls, [["attach", "Sub", "p1"]], "on: the sub-plugin runs for the parent's instance");
++	row.set({ enabled: false });
++	t.eq(sub.active, false, "the sub row reads inactive while the parent is off");
++	calls.length = 0;
++	new H9({ tag: "p2" });
++	t.eq(calls.length, 0, "off: the sub-plugin does not run");
++	row.set({ enabled: true });
++	t.eq(sub.active, true, "back on: active again");
++});
++
++test("the page can list the live plugin-using classes", t => {
++	class H10 extends Plugin {}
++	H10.use(Spy);
++	t.ok(Plugin.hosts.includes(H10), "Plugin.hosts holds every class that used or listed a plugin");
++});
++
++test("the server shim: Server/Events.js is a Plugin that keeps assign, then new, then initialize", t => {
++	const order = [];
++	class Sock extends ServerEvents { initialize(){ order.push("initialize:" + this.ws); } }
++	Sock.use(inst => order.push("new:" + inst.ws));
++	new Sock({ ws: 7 });
++	t.eq(order, ["new:7", "initialize:7"], "assign, new event, initialize");
++	t.ok(new Sock({}) instanceof Plugin, "it is a Plugin");
++});
+diff --git a/public/framework/core/Plugin/PluginEntry.js b/public/framework/core/Plugin/PluginEntry.js
+new file mode 100644
+index 000000000..468cd78c6
+--- /dev/null
++++ b/public/framework/core/Plugin/PluginEntry.js
+@@ -0,0 +1,50 @@
++// One row of Host.plugins: the plugin's name, whether it is on, and its saved config. It is an Item, so the item tool
++// (or any {enabled: false} delta) drives it: set_enabled installs or removes the hook, set_config saves.
++import { Item } from "../Item/Item.js";
++
++export class PluginEntry extends Item {
++	static fields = ["name", "enabled", "config"];   // not "on": Item.set reads a bare key naming a method (Events.on) as a call
++
++	get fields(){ return this.plugin?.fields ?? []; }
++
++	// A row is active when it is on and the row above it (the plugin it is a sub-plugin of) is active.
++	get active(){ return !!this.get_one("enabled") && this.up?.active !== false; }
++
++	// A sub-plugin is a plugin of the plugin: its rows are the plugin's own Host.plugins list.
++	get plugins(){
++		const list = this.plugin?.plugins;
++		if (list) for (const row of list) row.up = this;
++		return list;
++	}
++
++	// Called by Host.enable / Host.disable, so the row follows a use() or unuse() made in code.
++	sync(on){
++		if (this.get_one("enabled") === on) return;
++		this.put("enabled", on);
++		this.emit_safely("change", "enabled", on);
++	}
++
++	set_enabled(value){
++		const rec = this.record;
++		if (!rec) return this.put("enabled", !!value);
++		value ? this.host.enable(rec) : this.host.disable(rec);
++		this.put("enabled", rec.on);
++		this.save_row();
++	}
++
++	set_config(value){
++		const rec = this.record, config = { ...this.get_one("config"), ...value };
++		this.put("config", config);
++		if (rec) rec.config = config;
++		this.save_row();
++	}
++
++	// Only a change made through the row is saved; a use() in code is the program's own wish, not a saved preference.
++	save_row(){
++		const rec = this.record;
++		if (rec) this.host.store.set(rec.key, { on: rec.on, config: rec.config });
++	}
++}
++Item.register(PluginEntry, "PluginEntry");
++
++export default PluginEntry;
+diff --git a/public/framework/core/Plugin/doc/design-notes.md b/public/framework/core/Plugin/doc/design-notes.md
+new file mode 100644
+index 000000000..df03848ac
+--- /dev/null
++++ b/public/framework/core/Plugin/doc/design-notes.md
+@@ -0,0 +1,23 @@
++# Plugin: design notes
++
++## Events, extension or mixins
++- **Events (what this is).** A plugin hooks a class's `"new"` event and changes the instance from outside. Adding or removing one is one `use`/`unuse`; nothing in the host's source changes.
++- **Extension (subclassing).** Clear, but one chain: a class cannot take "Glow" and "Frame" independently or switch either off at run time.
++- **Mixins.** Composes the same way, but is fixed when the class is written; there is no off switch and no list to show.
++- Plugins never override a host method. If a plugin needs to change a method it should be a subclass, not a plugin.
++
++## Order
++Parents' plugins run before the subclass's; within one class, in `use` order. There is no `before_`/`after_` split: one `attach`, run after the constructor assigned its args and before `initialize()`.
++
++## Cost (measured with a 1e6-instance loop, node 24)
++- `new Item()` now: about 1.38 µs. Adding a class-level `emit("new")` walk with no listeners: about 1.75 µs (+0.37 µs, +27%). With one listener the cost is the listener.
++- Decision: Item and List do **not** extend Plugin. An Item is created in the thousands during a replay, and nothing needs a plugin on it. A class that wants plugins extends Plugin; the Item system is unchanged.
++- Live instances are tracked (WeakRef) only for a plugin that defines its own `detach`, so a plugin with no undo costs nothing per instance.
++
++## Debugging risk
++A plugin that runs on every new instance is invisible at the call site. Use it only where a class really is extended from outside (sockets, servers, pages), not for ordinary options. `Host.plugins` and `Plugin.hosts` list what is installed.
++
++## Choices
++- Row key `enabled`, not `on` (the plan said `on`): `Item.set` treats a bare key named like a method as a call, and `on` is `Events.on`. Alternative: `Item.bare_calls = false` (a global change).
++- `Page.use` is not migrated (the plan's Improved section): no callers.
++- Names considered: `Plugin` (kept, the owner's), `Extension`, `Addon`.
+diff --git a/public/framework/core/Plugin/doc/files.jsonl b/public/framework/core/Plugin/doc/files.jsonl
+new file mode 100644
+index 000000000..2624c77ad
+--- /dev/null
++++ b/public/framework/core/Plugin/doc/files.jsonl
+@@ -0,0 +1,2 @@
++{"file":"investigation.md"}
++{"file":"design-notes.md"}
+diff --git a/public/framework/core/Plugin/doc/investigation.md b/public/framework/core/Plugin/doc/investigation.md
+new file mode 100644
+index 000000000..b6b57e24e
+--- /dev/null
++++ b/public/framework/core/Plugin/doc/investigation.md
+@@ -0,0 +1,101 @@
++# core/Plugin: investigation (pass 1, 2026-11-02)
++
++Brief: [requirements.md](requirements.md). Marks: **checked** = read in the code this pass; **guess** = not verified.
++Pass 1 was done by the investigator reading the files directly (about 10 small files); no scouts were needed. Pass 2 leads are at the end.
++
++## Ranked questions
++
++1. **Can the two Events become one class?** They are not the same kind of thing (see below). This decides everything else.
++2. **Does Item/List extending Plugin cost anything?** Item already `extends Events(Object)`, so the answer depends on question 1.
++3. **What replaces `setup(instance)`?** (left hand / right hand naming)
++4. **Where does `A.plugins` (a List) get its state, and how does off un-use?** `Server/Events.js` keeps no record of what was used: `use()` only calls `on("new", fn.bind(...))` and returns, so there is nothing to remove.
++5. **Which UI controls exist for the demo?**
++
++## What exists
++
++### Server/Events.js: a base class (checked, 114 lines)
++- `class Events`: constructor sets `this.events = {}`, `assign(...args)`, emits the static `"new"` with the instance, then `instantiate()` → `initialize()`.
++- Instance `on/off/once/emit/clear`; static copies of the same, on a per-class `_events` (`Object.hasOwn`, so each subclass has its own).
++- **Bug (checked):** `static emit` runs only `this.events["new"]` of the exact class. A subclass's `"new"` does not reach a parent's listeners. The code comment says "this isn't inheritance friendly". So `Socket.use(X)` fires only for `Socket` itself, not for subclasses.
++- `static use(plugin)`: a plain arrow function → `on("new", fn)`; else an object/class with `setup` → `on("new", plugin.setup.bind(plugin))`; else a console warning. Returns the class, so it chains. It can take only one plugin per call.
++- `static setup(instance)` default only logs.
++- Users (checked): 17 files import it (Server.js, three SocketServer files, and 13 files in `Servex/`). Static `.use(` callers: `Server/run.js:39-49` (`DevSocket.Socket.use(Runtime, Ask, CardAnswer, Start, Tab, AISessionSub, QueryServer, Tail, Append, Files, DatedFiles)`), `DevSocket.js:6` (`DevSocket.use(LiveReload)`), two `Files*.test.mjs`. About 30 `Server/plugins/*.js` classes define `static setup(server|socket)`, usually `new X(server)`.
++
++### core/Events/Events.js: a mixin function (checked, 32 lines)
++- `Events = (Base = Object) => class extends Base`: `on/off/emit/bubbles`, listeners in lazy `this._on`. `emit` bubbles to `this.parent` while `bubbles(event)`. No `once`, no `clear`, no static events, no `"new"`.
++- Users (checked): `Item extends Events(Object)` (`Item.js:69`), so List and Page and Task all inherit it; `Outbox.js`, `Property.js`; `lab/LiveView`.
++- Readme says `Events(Object)` is a plain emitter (`core/Events/readme.md:6-15`).
++
++### Page.use (checked, `Page.class.js:36-37, 45`)
++- `static _ext = []; static use(Ext){ Page._ext.push(Ext); return Page; }`, and the constructor runs `Page._ext.forEach(Ext => Ext.setup?.(this))`. It is one global list on `Page`, not per class, and it has no off. Comment says nobody calls it by default (**guess**: no callers; a grep for `Page.use(` was not run).
++
++### A mixin utility (the brief says "find it")
++- Not found in the first pass. `Events` itself is the framework's mixin pattern (`Base => class extends Base`). **guess**: the "copy methods onto a prototype" utility is in `util/` or `research/` code only. Pass 2.
++
++### UI controls (partly checked)
++- `ui/controls/` (readme, `controls.css`, `study/`, `doc/`), `ui/field/`, `ui/scale/scale.js`, `ui/accordion`, `ui/section` all exist. `ext/Panel/properties.js` already builds property rows with `dropdown`, and the `ext/Panel` toolbar has sliders (grep hits for "slider|scrub" in 12 files: `ext/Panel/*`, `ext/layout/*`, `ext/depth/depth.js`, `ui/words/page.js`). No scrubbable number input confirmed. **guess**: Panel's properties region is the closest thing to reuse; the plugin panel should borrow its row shape rather than build a new one.
++- The Voice Chat gear panel (`ux/Dictate/VoiceChat/Features.js` on the paused branch) already renders toggles per plugin from `static fields`. It is the first thing to generalize.
++
++### Paused dictate-plugins plan (checked, [../dictate-plugins/plan.md](../dictate-plugins/plan.md))
++Seven needs from core/Plugin: hosts that do not import the registry; live `stop()` undoing `start()`; `static defaults` (with `on`) and `static fields`; one saved store plus a not-saved override (URL param); fit inside an existing panel; an off plugin still gets one `stop()` when its host arrives; wrapping existing classes with `start()/stop()` is enough.
++
++## The central finding: the two Events do not merge cleanly
++
++| | Server/Events.js | core/Events/Events.js |
++|---|---|---|
++| Shape | base class | `Events(Base)` mixin |
++| Static class events | yes (`"new"`) | none |
++| `once`, `clear` | yes | no |
++| Bubbling to `.parent` | no | yes |
++| Listener store | `this.events = {}` made in the constructor | `this._on`, lazy |
++| Return value of `on/off` | undefined | `this` (chainable) |
++
++A server class `extends Events` and needs the constructor's `"new"` emit. Item needs the mixin form with a lazy store, because it extends other bases and is created in large numbers. Forcing one shape means either the client class gets a constructor (a cost for every Item) or the server loses the `"new"` emit.
++
++**Proposed shape (guess, to test in the plan):** keep the mixin as the one implementation of instance `on/off/emit/bubbles`, add `once/clear` and chainable returns, and move the static class events plus `use()` into a second small mixin or into `Plugin` itself. Then `Server/Events.js` becomes `export default class Events extends Plugin(Object)`-style shim (or is deleted, with the 17 importers pointed at core). The server imports from `public/framework/core/`, which the brief accepts; write it in `Server/readme.md`.
++
++## Class sketches (guess, for the plan to settle)
++
++```
++Events(Base)                         // core/Events: on/off/once/clear/emit/bubbles, lazy _on
++class Plugin extends Events(Object)  // core/Plugin
++  static use(...P)                   // A.use(B, C): installs each; returns A
++  static unuse(P)                    // removes hooks; live instances let go
++  static get plugins()               // lazy List (core/List), one entry per plugin, with .on
++  static available(P)                // register a plugin class as known but off
++  static defaults / fields           // config, from the dictate plan
++  attach(instance)  ← renamed setup? // called per new instance
++  detach(instance)                   // undo of attach
++```
++- Entry in `plugins`: an Item with `id`, `on`, `config`, and child `plugins` (sub-plugins nest because an entry may itself be a host).
++- Reuse `core/List` + `core/Item` for the plugins list: the item tool then configures it for free (**guess**; the item tool walks `item({path, delta})` into children).
++- Item/List extending Plugin: Item already carries Events; Plugin would add static `_events`/`_plugins` fields on the class (not per instance) and a `"new"` emit in the constructor. The per-instance cost is one `emit` call that does a lookup on the class; **measure, do not guess** (plan step: node script creating 1e6 Items with and without).
++
++## Names for `setup` (the owner asked for one)
++Options: `attach(instance)` / `detach(instance)` (the plugin attaches to the instance; pairs with live off); `install(instance)`; `plug(instance)` / `unplug(instance)`; `apply`; `init`. Prior art: webpack/tapable `apply(compiler)`, Vue `install(app)`, Fastify `register`, Express `use`, Vite `configureServer`, Rollup `buildStart` hooks. **Recommendation:** `attach` / `detach`, keep `setup` as an accepted alias so the ~30 server plugins do not all change at once. (A server plugin's `static setup(server)` also receives a *host* instance, so "setup(host)" is not wrong, just ambiguous about direction.)
++
++## Prior art (not searched on the web this pass; from memory, **guess**)
++- tapable (webpack): hooks as named objects, `before`/`stage` options, sync/async/bail/waterfall variants. The `before_<name>` / `after_<name>` idea in the brief is what Webpack calls `before`.
++- Fastify plugin encapsulation: nested contexts, the model for sub-plugins.
++- Vue `app.use(plugin)`: one call, `install`, deduped by identity. Closest match to `A.use(B, C)`.
++- Eclipse/VS Code activation events: plugins that register available but off.
++Pass 2: one WebSearch to confirm tapable's `before` option and Vue's dedupe; then cite.
++
++## Risks
++1. **Inheritance of `"new"`:** today a subclass of `Socket` does not run `Socket.use(...)` plugins. Fixing it changes behavior for any server class with subclasses. Run the server tests (`Server/*.test.mjs`) and note which classes are subclassed (**guess**: `Socket` ← `DevSocket.Socket`).
++2. **Restart needed:** the server must restart after the merge (brief says vscode-mastermind does it).
++3. **Double fire:** `Page._ext` and `Page.use` coexist with a new `Plugin.use`; `Page.use` must become the same call or be removed.
++4. **Event debugging:** a hook that throws inside `"new"` aborts construction; decide whether `emit` isolates errors.
++5. **Cost on Item:** every Item and List is created in volume; adding any work to the constructor must be measured.
++6. **`on/off` return values differ** (undefined vs `this`); chaining is only additive, so safe.
++7. **Un-use of bound functions:** `Server/Events.js` binds, so `off` cannot find the listener. Plugin must keep the exact bound function per entry.
++
++## Pass 2 leads (most useful first)
++1. Measure the Item constructor cost with a `"new"` emit (node script, 1e6 Items).
++2. Find which server classes are subclassed (`grep "extends (Socket|SocketServer|Server)"`) to scope the inheritance change.
++3. Read `ux/Dictate/VoiceChat/Features.js` on the `worktree/dictate-plugins` branch: it is a working toggle-and-config UI to generalize.
++4. Read `ui/controls/readme.md` and `ext/Panel/properties.js` for a slider or scrub row to reuse.
++5. One web search for prior art; list alternative names in the design-notes doc.
++6. Find the "mixin utility" the brief mentions (not in the first sweep).
++
++Lasting findings belong in `core/Plugin/doc/` once the plan makes the folder: this file moves there as `doc/investigation.md` at execute, linked from `core/Plugin/readme.md`.
+diff --git a/public/framework/core/Plugin/files.jsonl b/public/framework/core/Plugin/files.jsonl
+new file mode 100644
+index 000000000..bb701ac81
+--- /dev/null
++++ b/public/framework/core/Plugin/files.jsonl
+@@ -0,0 +1,6 @@
++{"file":"Plugin.test.mjs"}
++{"file":"Plugin.js"}
++{"file":"PluginEntry.js"}
++{"file":"page.js"}
++{"file":"doc/"}
++{"file":"readme.md"}
+diff --git a/public/framework/core/Plugin/page.js b/public/framework/core/Plugin/page.js
+new file mode 100644
+index 000000000..c2e4dba6c
+--- /dev/null
++++ b/public/framework/core/Plugin/page.js
+@@ -0,0 +1,120 @@
++import { Page, md, code, div, span, p, label, input, details, summary } from "/app.js";
++import { Plugin } from "./Plugin.js";
++
++// The page keeps its saved on/config in the browser, so a reload shows what you left (the class itself saves to a Map).
++const local = { get: key => JSON.parse(localStorage.getItem(key) ?? "null") ?? undefined, set: (key, value) => localStorage.setItem(key, JSON.stringify(value)) };
++Plugin.store = local;
++
++// ── the demo: a pluggable class (Badge) and three plugins. A plugin says what it does to a new Badge in attach().
++class Badge extends Plugin {}
++const cfg = P => Badge.records.get(P).config;
++
++class Frame {
++	static defaults = { width: 3, radius: 8 };
++	static fields = [{ key: "width", kind: "number", min: 0, max: 20, step: 1, label: "Line width", section: "Look" },
++		{ key: "radius", kind: "slider", min: 0, max: 40, step: 1, label: "Corner radius", section: "Look" }];
++	static attach(b){ const c = cfg(this); b.el.style.border = `${c.width}px solid currentColor`; b.el.style.borderRadius = c.radius + "px"; }
++	static detach(b){ b.el.style.border = ""; b.el.style.borderRadius = ""; }
++}
++class Glow {
++	static defaults = { blur: 18 };
++	static fields = [{ key: "blur", kind: "slider", min: 0, max: 60, step: 1, label: "Blur", section: "Look" }];
++	static attach(b){ b.el.style.boxShadow = `0 0 ${cfg(this).blur}px currentColor`; }
++	static detach(b){ b.el.style.boxShadow = ""; }
++}
++class Shout {
++	static defaults = { on: false, text: "HELLO" };
++	static fields = [{ key: "text", kind: "text", label: "Words", section: "Words" }];
++	static attach(b){ b.el.textContent = cfg(this).text; }
++	static detach(b){ b.el.textContent = "hello"; }
++}
++Badge.use(Frame, Glow).available(Shout);
++
++const make_badge = () => {
++	const el = document.createElement("div");
++	el.className = "pad"; el.style.display = "inline-block"; el.textContent = "hello";
++	return new Badge({ el });
++};
++
++// A number you drag: pointer left/right changes it, arrow keys step it. Works by touch (touch-action: none).
++const scrub = (value, f, set) => {
++	const out = input().attr("type", "text").attr("inputmode", "decimal").attr("value", String(value));
++	const el = out.el ?? out;
++	el.style.touchAction = "none"; el.style.cursor = "ew-resize";
++	let x0 = null, v0 = 0;
++	const clamp = v => Math.min(f.max ?? Infinity, Math.max(f.min ?? -Infinity, v));
++	el.addEventListener("pointerdown", e => { x0 = e.clientX; v0 = +el.value; el.setPointerCapture(e.pointerId); });
++	el.addEventListener("pointermove", e => { if (x0 === null) return; const v = clamp(Math.round(v0 + (e.clientX - x0) / 4)); el.value = v; set(v); });
++	el.addEventListener("pointerup", () => { x0 = null; });
++	el.addEventListener("keydown", e => { const d = e.key === "ArrowUp" || e.key === "ArrowRight" ? 1 : e.key === "ArrowDown" || e.key === "ArrowLeft" ? -1 : 0; if (d){ e.preventDefault(); const v = clamp(+el.value + d * (f.step ?? 1)); el.value = v; set(v); } });
++	el.addEventListener("change", () => set(clamp(+el.value || 0)));
++	return out;
++};
++
++const control = (row, f) => {
++	const value = row.get("config")[f.key];
++	const push = v => row.set({ config: { [f.key]: v } });
++	return label.c("flex v-center split gap", () => {
++		span(f.label ?? f.key).style("whiteSpace", "nowrap");
++		if (f.kind === "slider") input().attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step).attr("value", value).el.addEventListener("input", e => push(+e.target.value));
++		else if (f.kind === "number") scrub(value, f, push);
++		else input().attr("type", "text").attr("value", value).el.addEventListener("input", e => push(e.target.value));
++	}).style("minHeight", "2.75em");
++};
++
++const panel = (rerender) => div.c("surface flex v", () => {
++	for (const row of Badge.plugins) {
++		details.c("ui-accordion-item", () => {
++			summary.c("flex v-center gap", () => {
++				const box = input().attr("type", "checkbox");
++				box.el.checked = row.get("enabled");
++				box.el.addEventListener("click", e => e.stopPropagation());
++				box.el.addEventListener("change", e => { row.set({ enabled: e.target.checked }); rerender(); });
++				span(row.get("name"));
++			}).style("border", "0").style("background", "none").style("boxShadow", "none").style("width", "100%").style("minHeight", "2.75em").style("cursor", "pointer");
++			const sections = Object.groupBy(row.fields, f => f.section ?? "Settings");
++			for (const [name, fields] of Object.entries(sections)) {
++				div.c("flex v pad", () => { span.c("muted h4", name); fields.forEach(f => control(row, f)); });
++			}
++		});
++	}
++}).style("flex", "1 1 20em");
++
++export default new Page({
++	meta: import.meta,
++	title: "Plugin",
++	description: "A class that takes plugins: Host.use(A, B), each plugin attaches to every new instance, and Host.plugins is a live list you can switch on and off.",
++	icon: "extension",
++
++	content(){
++		md("A **plugin** is a class (or a function) with `attach(instance)`. `Host.use(A, B)` makes every *new* `Host` instance reach `A.attach` and `B.attach`. `Host.unuse(A)` takes it away again and tells live instances through `A.detach`. `Host.plugins` is a list of rows you can read, switch on and off, and configure.");
++
++		code.js(`class Badge extends Plugin {}
++class Glow { static attach(badge){ badge.el.style.boxShadow = "0 0 18px currentColor"; } }
++Badge.use(Glow);          // every new Badge is glowing
++Badge.plugins.set({ Glow: { enabled: false } });   // off: new Badges are not`);
++
++		md("## Try it");
++		md("Tick a box to switch a plugin on or off. Open a row to configure it: drag a number sideways, or use the arrow keys. What you leave is saved in this browser.");
++
++		let stage;
++		const draw = () => stage.el.replaceChildren(make_badge().el);
++		div.c("flex wrap gap", () => {
++			panel(draw);
++			div.c("flex v gap", () => {
++				span.c("muted h4", "Live result: a new Badge, made after your last change");
++				stage = div.c("surface pad").style("minHeight", "8em");
++			}).style("flex", "1 1 16em");
++		});
++		for (const row of Badge.plugins) row.on("change", draw);
++		draw();
++
++		md("## Classes using plugins right now");
++		const hosts = div.c("surface pad flex v");
++		for (const h of Plugin.hosts) hosts.el.append(Object.assign(document.createElement("p"), { textContent: `${h.name}: ${[...h.records.values()].map(r => r.name + (r.on ? "" : " (off)")).join(", ")}` }));
++
++		md.details(import.meta, "readme.md", "Readme");
++	},
++
++	preview(nav){ return this.preview_card(nav, () => div.c("zoom-50 pad", () => span.c("h4", "Host.use(Plugin)"))); },
++});
+diff --git a/public/framework/core/Plugin/readme.md b/public/framework/core/Plugin/readme.md
+new file mode 100644
+index 000000000..9e40f1a0c
+--- /dev/null
++++ b/public/framework/core/Plugin/readme.md
+@@ -0,0 +1,38 @@
++# Plugin — a class that takes plugins, and the class every plugin may extend
++
++**What goes here:** the one plugin system for the framework. **Next door:** [Events](../Events/) (instance on/off/emit, which Plugin builds on), [Item](../Item/) and [List](../List/) (what a row of `Host.plugins` is).
++
++## Use
++
++```js
++import { Plugin } from "/framework/core/Plugin/Plugin.js";
++
++class Badge extends Plugin {}
++class Glow { static attach(badge){ badge.el.style.boxShadow = "0 0 18px currentColor"; } static detach(badge){ badge.el.style.boxShadow = ""; } }
++
++Badge.use(Glow);                     // every NEW Badge reaches Glow.attach(badge), after its args are assigned
++Badge.unuse(Glow);                   // the hook is gone; live badges are told Glow.detach(badge)
++Badge.available(Glow);               // known but off: shows as a switched-off row
++Badge.plugins.set({ Glow: { enabled: false } });   // the list is live; what the item tool sends works too
++```
++
++[Try it live](/framework/core/Plugin/): the page has a control panel (checkbox, open-a-row settings, sliders, a number you drag).
++
++## Structure
++
++- `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws).
++- `PluginEntry.js` — one row of `Host.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook; `set_config` saves; `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
++- `Plugin.test.mjs` — 12 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
++- Saved state: `Plugin.store` (a `Map` in node; the page swaps in localStorage), key `plugin.<Host>.<Plugin>` = `{on, config}`. Only a change made through a row is saved.
++- `Server/Events.js` is now a two-line subclass of `Plugin`, so the server's classes (`Server`, `Socket`, `Servex/*`) are all pluggable and keep their import.
++
++## Watch out
++
++- The row key is `enabled`, not `on`: `Item.set` reads a bare key that names a method (`Events.on`) as a call.
++- The class-level `"new"` event now reaches parents' listeners; the old `Server/Events` reached only the exact class.
++- Item and List do **not** extend Plugin (a measured cost per `new Item`, see [doc/design-notes.md](./doc/design-notes.md)).
++
++## More
++
++- [doc/design-notes.md](./doc/design-notes.md) — events vs extension vs mixins, ordering, cost, debugging, names considered.
++- [doc/investigation.md](./doc/investigation.md) — what existed before this, and who used it.
+diff --git a/public/framework/core/readme.md b/public/framework/core/readme.md
+index a573e1fad..2288823ae 100644
+--- a/public/framework/core/readme.md
++++ b/public/framework/core/readme.md
+@@ -53,6 +53,7 @@ export default new Page({ meta: import.meta, title: "Hello", children: "about",
+ 
+ ## Also here (readme audit, 2026-10-13)
+ - [Events](./Events/) — on/off/emit mixin everything else builds on
++- [Plugin](./Plugin/) — a class that takes plugins: `Host.use(A, B)`, `unuse`, a live `Host.plugins` list with on/off and config
+ - [track](./track/) — opt-in instance tracking: call once, read back live
+ 
+ ## Notes from your asks
+diff --git a/public/framework/readme.md b/public/framework/readme.md
+index f1f4ec958..a60ca5538 100644
+--- a/public/framework/readme.md
++++ b/public/framework/readme.md
+@@ -27,6 +27,7 @@
+ 
+ ## The systems (one line each; each links its own readme)
+ - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
++- [core/Plugin](./core/Plugin/) — `Host.use(A, B)`: one plugin system for every pluggable class, with a live on/off and config list; `Server/Events.js` is a subclass of it
+ - [core/Test](./core/Test/) — node tests: `X.test.mjs`, one command runs the ones a change covers, results at `/framework/core/Test/`
+ - [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
+ - [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools

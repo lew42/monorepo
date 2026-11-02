@@ -2,6 +2,20 @@
 
 Run as a **build process** (`core/Task/processes/BuildProcess.js`): investigate → plan → improve the plan → approve → execute → index → review → merge. The point of running it this way is to try the planning process the owner asked for.
 
+## At a glance: what gets built
+
+```
+core/Events/Events.js    one Events class (the server's Server/Events.js merges into it)
+core/Plugin/             class Plugin extends Events
+├── Plugin.js            A.use(B, C…) · A.plugins (lazy List) · toggle on/off
+├── readme.md
+├── doc/                 design notes (events vs extension vs mixins, ordering, cost)
+└── page.js              demo: code + live control panel (checkbox, expando, slider, scrub field)
+Server/plugins/          now use core Plugin
+```
+
+Then the paused Voice Chat plan ([dictate-plugins](../dictate-plugins/plan.md)) ports onto it, as a separate task.
+
 **The owner (2026-11-02, about 14:50, dictated; verbatim in the tab's prompt log; essence below).**
 
 ## What exists (each one checked in the code)
