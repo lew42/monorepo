@@ -65,3 +65,6 @@ The verbatim prompt is logged by the prompt-relay hook, in this tab's session (e
 | C | A system map of dictation's background work (refine, fast seat, placement, per-prompt agents) plus an index of what has been built (Haiku fan-out) | `mastermind-system-map` (Sonnet plus Haiku) |
 | D | The Git branching strategy, as a proposal only | `mastermind-git-strategy` (Sonnet), once memory allows |
 | E | Leaked worktree dev servers: 67 `server.js` processes (1.7 GB) from worktrees as old as 10-23, never stopped. Fix the root cause in the worktree/server lifecycle | `mastermind-dev-server-leak` (Sonnet), once memory allows |
+
+## Found overnight (not yet fixed)
+- **Servex gets a spawn's parent wrong.** The chat-model step-4 builder was recorded as spawned by `voice-app`, not by `mastermind-chat-model`, so its done event (and a message to vscode-mastermind) arrived labelled `voice-app`. Something in Servex's parent attribution (the spawn_agent `parent`/caller lookup) picks up the wrong caller. Seen at about 23:45. Fixed in [spawn-parent](../spawn-parent/session.jsonl) (agents no longer reach the connector that labels calls `voice-app`; a tab's `session_id` outranks it); live proof pending a Servex restart.

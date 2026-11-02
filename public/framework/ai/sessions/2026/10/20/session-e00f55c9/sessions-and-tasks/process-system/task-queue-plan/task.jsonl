@@ -1,2 +1,3 @@
 {"decision":{"at":"2026-10-23T20:41:05-05:00","question":"review size","computed":"light","chose":"none","why":"docs only: one markdown file and two links; its worktree server does not boot"}}
 {"review":{"at":"2026-10-23T20:41:05-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/task-queue-plan","head":"7ad6771653a7e10631a2f0734f0b396626fc0edf","model":null,"cost":0,"file":"review.md"}}
+{"stop":{"at":"2026-11-02T00:02:42-06:00","why":"abandoned: no agent since 2026-10-24T01:41:56.774Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:42.687Z"}

@@ -306,6 +306,74 @@ if (Recite) test("Recite + BargeIn: a second owner line while already paused sti
 	return r;
 });
 
+// Echo (dictation-v3 echo, 2026-11-01): the read-aloud voice leaking into the chat's own mic must never pause
+// playback or fire a barge-in on itself. While recite.echo_active() (playing, or within echo_guard_ms after),
+// owner_spoke() drops any heard text that fuzzy-matches the sentence being read, logged and never acted on; an
+// unrelated line still barges in, exactly as before.
+if (Recite) test("Recite + BargeIn: an echo of the sentence being read never pauses or barges in, but an unrelated line does", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const traced = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { traced.push(kind); real_trace(kind, fields); };
+
+	r.queue("The weather today is sunny and warm.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	r.barge.owner_spoke("the weather today is sunny and warm");   // the voice leaking back into the mic, near word-for-word
+	t.eq(r.state, "playing", "an echo of what is being read never pauses playback");
+	t.ok(traced.includes("barge: echo dropped"), "the drop is logged, not acted on");
+
+	r.barge.owner_spoke("please stop for a second");   // unrelated words: a real interruption
+	t.eq(r.state, "heard", "an unrelated line still barges in and pauses, same as always");
+	return r;
+});
+
+// A known Whisper phantom ("Thank you.", "you") heard alone must never pause playback, even though it shares no
+// words with what is being read — BargeIn.noise() catches it before the fuzzy echo match is even checked.
+if (Recite) test("Recite + BargeIn: a known Whisper phantom phrase is dropped without pausing", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.queue("A reply about something else entirely.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	r.barge.owner_spoke("Thank you.");
+	t.eq(r.state, "playing", "a known phantom phrase never pauses playback");
+
+	r.barge.owner_spoke("Thanks for watching");
+	t.eq(r.state, "playing", "a second known phantom phrase is dropped too");
+	return r;
+});
+
+// Near-silent Whisper finals (review finding 1, 2026-11-01): the chat-mic path, owner_spoke(), must drop a
+// hallucinated line out of near-silent audio too, not only trigger()'s own-mic path — the chat mic is the normal
+// route on a phone. recent_peak is hear()'s decaying max of what the mic actually saw.
+if (Recite) test("Recite + BargeIn: owner_spoke() drops a Whisper final heard out of near-silent audio", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const traced = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { traced.push(kind); real_trace(kind, fields); };
+
+	r.queue("A reply read while the room stays quiet.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	r.barge.recent_peak = 0.01;   // the mic frames hear() saw while this line was spoken never left near-silence
+	r.barge.owner_spoke("go ahead and skip that one");
+	t.eq(r.state, "playing", "a near-silent hallucinated line never pauses playback");
+	t.ok(traced.includes("barge: near-silent dropped"), "the drop is logged, not acted on");
+
+	r.barge.recent_peak = 0.9;   // the same words, but the owner was actually loud this time
+	r.barge.owner_spoke("go ahead and skip that one");
+	t.eq(r.state, "heard", "the gate only catches near-silence — real volume still barges in on the same words");
+	return r;
+});
+
 // Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.
 if (Recite) test("Recite.Highlight: which word is playing", t => {
 	const H = Recite.Highlight, words = H.words("The voice server answers, on the phone.");

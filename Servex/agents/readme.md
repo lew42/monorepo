@@ -39,6 +39,8 @@ alive. `stop` ends it, and it stays listed as `stopped`.
 `assistant-fast` (`Assistant.js`, `assistant.md`) is the lobby: it answers words spoken with no
 card. `SERVEX_NO_ASSISTANT=1` boots without it.
 
+The parent of a spawn is always the caller's own id (or a tab's `session_id`, registered as `vscode-<id8>`), never the remote door's `voice-app`: [`doc/architecture.md`](doc/architecture.md), "The parent of a spawn is the caller's own id".
+
 ## A fresh, directory-bound agent starts with its readme chain
 
 A FRESH spawn whose directory is named (`task: {dir}`, or `page`) gets the

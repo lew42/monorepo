@@ -66,8 +66,10 @@ export default class MicStream extends Part {
 		return remembered_device() ?? { id: null, label: "" };
 	}
 
-	// ⚠ exact deviceId, not bare; browser may silently ignore preference
-	constraint(){ return this.device_id ? { deviceId: { exact: this.device_id } } : true; }
+	// ⚠ exact deviceId, not bare; browser may silently ignore preference. echoCancellation/noiseSuppression:
+	// every mic opened through this class fights its own speakers leaking back in (dictation-v3 echo, 2026-11-01) —
+	// Recite's barge-in mic most of all, since it listens while the read-aloud voice is itself playing out loud.
+	constraint(){ return { echoCancellation: true, noiseSuppression: true, ...(this.device_id ? { deviceId: { exact: this.device_id } } : {}) }; }
 
 	async start(){
 		const { id, label } = this.device();

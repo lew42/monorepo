@@ -4,3 +4,4 @@
 {"review":{"at":"2026-10-25T11:57:58-05:00","answer":{"n":3,"reply":"declined: widget-notes.md has no thread-state section listing summaries or settled either; the state is documented beside the code (Widget.js constructor) and in voice-assistant.md#nothing-jumps."}}}
 {"review":{"at":"2026-10-25T11:57:58-05:00","answer":{"n":4,"reply":"fixed: proof line below."}}}
 {"log":{"at":"2026-10-25T11:57:58-05:00","msg":"proof: test/earlier.mjs on the fixture, without the fix cards {want:1,placed:0} FAIL; with it {want:1,placed:1}, fail []. order, flicker, anchor all ok. swallow.mjs crashes on its own arguments (path undefined) on michael/dev too, untouched."}}
+{"stop":{"at":"2026-11-02T00:02:41-06:00","why":"abandoned: no agent since 2026-10-25T11:57:58-05:00; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:41.187Z"}

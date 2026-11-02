@@ -1,0 +1,5 @@
+{
+	"_why": "Per-file time limits in ms for known-slow tests (the default is 60000). Key = repo-relative path. Add a line here rather than raising the global limit.",
+	"Server/plugins/SocketServer/Files.move.test.mjs": 150000,
+	"Servex/agents/page_tools.test.mjs": 120000
+}

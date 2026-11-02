@@ -1,7 +1,8 @@
 // Finds, runs, watches and records node tests (X.test.mjs). Node only. Design: tasks/test-system/plan.md
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { spawn, execFileSync } from "node:child_process";
+import { spawn, execFileSync, execSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -14,6 +15,9 @@ export default class TestRunner {
 	results = process.env.TESTRUNNER_RESULTS || path.join(HERE, "results.jsonl");   // the env var is for proofs
 	timeout = Number(process.env.TESTRUNNER_TIMEOUT) || 60000;   // 60 s; the env var is for proofs
 	parallel = 4;
+	limits = (() => { try { return JSON.parse(fs.readFileSync(path.join(HERE, "timeouts.json"), "utf8")); } catch { return {}; } })();   // per-file limits, see timeouts.json
+
+	limit(file){ return process.env.TESTRUNNER_TIMEOUT ? this.timeout : (this.limits[file] || this.timeout); }
 	cache = new Map();   // abs file -> { mtime, deps }
 	running = new Set();
 
@@ -117,18 +121,18 @@ export default class TestRunner {
 		return this._site;
 	}
 
-	one(file, trigger, extra = {}){
+	one(file, trigger, extra = {}, { args = [], env = {}, timeout = this.limit(file) } = {}){
 		return new Promise(resolve => {
 			const t0 = Date.now(); let out = "", timedOut = false;
-			const child = spawn(process.execPath, [...this.node_args(), file], { cwd: this.root, windowsHide: true, env: { ...(this._env ?? process.env), SITE_URL: process.env.SITE_URL || this.site_url() } });
-			const timer = setTimeout(() => { timedOut = true; child.kill(); }, this.timeout);
+			const child = spawn(process.execPath, [...this.node_args(), file, ...args], { cwd: this.root, windowsHide: true, env: { ...(this._env ?? process.env), SITE_URL: process.env.SITE_URL || this.site_url(), ...env } });
+			const timer = setTimeout(() => { timedOut = true; child.kill(); }, timeout);
 			child.stdout.on("data", d => out += d);
 			child.stderr.on("data", d => out += d);
 			child.on("close", code => {
 				clearTimeout(timer);
 				const ok = code === 0 && !timedOut;
 				const line = { file, ok, ms: Date.now() - t0, at: new Date().toISOString(), trigger, ...extra };
-				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + this.timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
+				if (!ok) line.tail = (timedOut ? "TIMED OUT after " + timeout + "ms\n" : "") + out.trim().split(/\r?\n/).slice(-15).join("\n");
 				if (timedOut) line.timeout = true;
 				fs.appendFileSync(this.results, JSON.stringify(line) + "\n");
 				console.log(`${ok ? "PASS" : timedOut ? "TIME" : "FAIL"} ${file} (${line.ms} ms)`);
@@ -147,6 +151,26 @@ export default class TestRunner {
 		const bad = out.filter(r => !r.ok), slow = out.filter(r => r.timeout);
 		console.log(`${out.length - bad.length} passed, ${bad.length} failed (${slow.length} timed out), ${out.length} total`);
 		return out;
+	}
+
+	/* The browser scripts in browser-scripts.mjs, one at a time (each opens its own headless browser).
+	   "pass" scripts must pass; "red" ones are reported and never fail the run. */
+	async browser(names = []){
+		const { SCRIPTS } = await import(pathToFileURL(path.join(HERE, "browser-scripts.mjs")).href);
+		const site = process.env.SITE_URL || this.site_url(), shots = fs.mkdtempSync(path.join(os.tmpdir(), "browser-shots-"));
+		const pw = path.dirname(execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim());
+		const wav = path.join(this.root, "public/framework/ai/recordings/jfk.wav");
+		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
+		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
+		for (const x of todo) {
+			const r = await this.one(x.file, "browser", { browser: true, status: x.status }, { args: x.args.map(fill), env: { PW_ROOT: pw, PWENTRY: path.join(pw, "node_modules/playwright/index.mjs"), WAV: wav }, timeout: x.ms || 120000 });
+			results.push({ ...r, status: x.status });
+			if (x.status === "red" && r.ok) red_now_passes.push(x.file);
+		}
+		const must = results.filter(r => r.status !== "red" && !r.ok), known = results.filter(r => r.status === "red" && !r.ok);
+		fs.rmSync(shots, { recursive: true, force: true });
+		console.log(`browser: ${results.length - must.length - known.length} passed, ${must.length} FAILED, ${known.length} known red${red_now_passes.length ? ", now passing (promote to pass): " + red_now_passes.join(", ") : ""}`);
+		return { results, must, red_now_passes };
 	}
 
 	watch(folders){
@@ -178,6 +202,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 	else if (args[0] === "--list" || i > -1 || n > -1) {
 		const files = n > -1 ? r.near(norm(args[n + 1])) : i > -1 ? r.covers(norm(args[i + 1])) : r.find(args.filter(a => a !== "--list").map(norm));
 		console.log(files.join("\n"));
+	} else if (args.includes("--browser")) {
+		const { must } = await r.browser(args.filter(a => a !== "--browser"));
+		process.exitCode = must.length ? 1 : 0;
 	} else {
 		const files = r.find(args.map(norm));
 		const res = await r.run(files);

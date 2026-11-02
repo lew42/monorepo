@@ -40,6 +40,8 @@ export default class Recite extends Part {
 	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
 	wait_timer = null;      // turn-taking: the check_wait() poll timer
 	turn_wait_ms = 1500;    // turn-taking: how much quiet before a held reply starts
+	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
+	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
 
 	constructor(...args){
 		super(...args);
@@ -96,7 +98,14 @@ export default class Recite extends Part {
 	/** Calls fn() on every change of state or position; returns an unsubscribe. */
 	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
 	changed(){ for (const fn of this.listeners) try { fn(this); } catch (e){ console.error("Recite: a listener failed", e); } }
-	set(state, error){ this.state = state; if (error !== undefined) this.error = error; this.changed(); this.barge?.sync(); }
+	set(state, error){
+		if (this.state === "playing" && state !== "playing") this.echo_guard_until = performance.now() + this.echo_guard_ms;
+		this.state = state; if (error !== undefined) this.error = error; this.changed(); this.barge?.sync();
+	}
+
+	/** True while BargeIn should treat the mic as likely hearing Recite's own voice: playing right now, or within
+	 *  `echo_guard_ms` of having stopped (the leaked sound and a cough both linger a moment after). */
+	echo_active(){ return this.state === "playing" || (this.echo_guard_until != null && performance.now() < this.echo_guard_until); }
 
 	/* ── reading ─────────────────────────────────────────────────────── */
 

@@ -1441,7 +1441,9 @@ Agents.Agent = class Agent {
 		const local = process.env.SERVEX_LOCAL_TOOLS === "0" ? null : local_page_tools(this.id, agent_log(this));
 		return {
 			mcpServers: { servex: { type: "http", url: url + (url.includes("?") ? "&" : "?") + "as=" + encodeURIComponent(this.id) }, ...(local ? { local: local.server } : {}), ...this.mcp_servers },
-			...(local ? { disallowedTools: local.twins } : {}),
+			/* The owner's claude.ai "Servex" connector loads in every agent and reaches Servex through the remote door, which labels every call
+			 * caller "voice-app": a spawn made through it got parent voice-app (seen 2026-11-01). Agents use `mcp__servex__*` (`?as=<id>`). */
+			disallowedTools: [...(local ? local.twins : []), "mcp__claude_ai_Servex"],
 			env: { ...process.env, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: process.env.CLAUDE_AUTOCOMPACT_PCT_OVERRIDE ?? "95", SERVEX_MCP: url, ...(or_env ?? {}), ...task_env, ...this.env }
 		};
 	}

@@ -1,0 +1,426 @@
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index a9114c909..ee8adb981 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -1251,3 +1251,11 @@
+ {"file":"prompt-tasks-test-48364/","gone":true}
+ {"file":"prompt-tasks-test-44504/"}
+ {"file":"prompt-tasks-test-44504/","gone":true}
++{"file":"process-test-29596/"}
++{"file":"process-test-29596/","gone":true}
++{"file":"prompt-tasks-test-2600/"}
++{"file":"prompt-tasks-test-2600/","gone":true}
++{"file":"process-test-48952/"}
++{"file":"process-test-48952/","gone":true}
++{"file":"prompt-tasks-test-51532/"}
++{"file":"prompt-tasks-test-51532/","gone":true}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s4/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s4/session.jsonl
+new file mode 100644
+index 000000000..60a107a43
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s4/session.jsonl
+@@ -0,0 +1,4 @@
++{"start":{"at":"2026-11-01T23:50:23-06:00"}}
++{"log":{"at":"2026-11-01T23:50:23-06:00","msg":"s4: List view hooks — wiring List.View (DefaultView) keyed reconcile for add/remove/move/order, Ref members via RefView, ChatList, shots at 400/1200."}}
++{"log":{"at":"2026-11-01T23:52:42-06:00","msg":"s4: wired List.View = DefaultView (reconcile() already keyed add/remove/move/order; child() now Ref-aware -> RefView). Writing a headless browser test (list-view.test.mjs, Browser.mjs pattern) for DOM order + Ref rendering, before touching ChatList."}}
++{"log":{"at":"2026-11-01T23:59:01-06:00","msg":"s4 done: List.View = DefaultView wired (keyed reconcile already existed for add/remove/move/order; child()/reconcile() now Ref-aware -> RefView). New test list-view.test.mjs: 13/13 pass. ChatList renders Ref members via RefView; fixture regenerated (chat-messages.test.mjs: 18/18 pass). Shots at 400/1200 of /framework/ext/Chat/list/ (s4/shots/, gitignored). Readmes updated: core/List, ux/Content/Object, ext/Chat/list. Commit a5ab51bf6. SKIPPED review.mjs per brief (parent runs it)."}}
+diff --git a/public/framework/ai/sessions/session-links.jsonl b/public/framework/ai/sessions/session-links.jsonl
+index 22109076a..5e34f8bfd 100644
+--- a/public/framework/ai/sessions/session-links.jsonl
++++ b/public/framework/ai/sessions/session-links.jsonl
+@@ -887,3 +887,5 @@
+ {"run":"2026-11-02T05:24:58.777Z","kind":"links","count":1}
+ {"run":"2026-11-02T05:24:58.777Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s2","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl"}
+ {"run":"2026-11-02T05:33:39.892Z","kind":"links","count":0}
++{"run":"2026-11-02T05:40:42.142Z","kind":"links","count":0}
++{"run":"2026-11-02T05:42:45.909Z","kind":"links","count":0}
+diff --git a/public/framework/core/List/readme.md b/public/framework/core/List/readme.md
+index f8616b0c3..c2a51661e 100644
+--- a/public/framework/core/List/readme.md
++++ b/public/framework/core/List/readme.md
+@@ -17,7 +17,7 @@ class List extends Events(Object) {   // ✅ core/List/List.js — Events built
+   set(delta)                          // routes a nested {"add": {...}} etc. — Item.set_one()'s recursion target
+   get(key)                            // a property, else a member by id: the next hop of a line or a dotted path
+   index()                             // ✅ 2026-10-28: the id-to-member Map find() reads; kept in step by every verb
+-  render()                            // draws through List.View, wired from the browser (the default view); else nothing
++  render()                            // draws through List.View — DefaultView wires itself in (ux/Content/Object/DefaultView.js); else nothing in node
+ }
+ ```
+ 
+@@ -50,6 +50,7 @@ list.toJSON()       //  a bare array
+ - A member is named in a line by its id, bare or as `#id`; `list.member(id)` is `find(id)` (an Item's `member` searches its lists), and `{"add()": …}` calls the verb by the D13 spelling: [core/Item/doc/line-format.md](../Item/doc/line-format.md).
+ - **`add` writes an envelope** (fix 5, `/framework/research/2026/10/29/persistence-sync/design/fixes.md`): an Item member's own fields ride under `data`, and its child lists ride as their own top-level keys (`made.toJSON()`'s own shape) — never spread flat into the add payload, where a data field named `after` or `type` would collide with the list's own metadata and a child list would be lost silently.
+ - **`list.ref(item)` links an item ANOTHER list already owns** (F7, built 2026-11-01, reworded 2026-11-02, chat-model step 2): makes a Ref to it — same file `{path}`, another file `{url, path}` — and `add()`s that. **`add()`'s own default is unchanged** (still a silent re-parent, exactly as on `michael/dev`): switching it is a separate, later, owner-approved merge, pending the census in [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md) decision 2 finding no caller relies on the move. A caller that means to MOVE an owned item must call `item.move_to(dest)`, never `add()` or `ref()`: [`../Item/doc/ref.md`](../Item/doc/ref.md#made-by-listref-and-chatresurface).
++- **`List.View = DefaultView`** (2026-11-02, chat-model step 4, [ux/Content/Object/DefaultView.js](/framework/ux/Content/Object/DefaultView.js)): a bare List drawn with `view(list)` or `list.render()` updates on `add`/`remove`/`move`/`order`/`clear` keyed by member id — only the changed rows redraw, the rest just move. A Ref member (above) draws as `RefView`, never a nested DefaultView. Test: `ux/Content/Object/list-view.test.mjs`. Demo: [ext/Chat/list](/framework/ext/Chat/list/readme.md) draws `session.messages` through the same `DefaultView.reconcile()`.
+ - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
+ - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
+ 
+diff --git a/public/framework/core/Test/results.jsonl b/public/framework/core/Test/results.jsonl
+index bfa5649ee..2b44f0613 100644
+--- a/public/framework/core/Test/results.jsonl
++++ b/public/framework/core/Test/results.jsonl
+@@ -18717,3 +18717,36 @@
+ {"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":144,"at":"2026-11-02T05:33:25.649Z","trigger":"manual"}
+ {"file":"public/framework/core/Session/session-task.test.mjs","ok":true,"ms":60,"at":"2026-11-02T05:33:25.703Z","trigger":"manual"}
+ {"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":162,"at":"2026-11-02T05:33:25.703Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":54,"at":"2026-11-02T05:35:41.287Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.test.mjs","ok":true,"ms":91,"at":"2026-11-02T05:35:41.291Z","trigger":"manual"}
++{"file":"Servex/agents/open-task.test.mjs","ok":true,"ms":266,"at":"2026-11-02T05:39:09.752Z","trigger":"manual"}
++{"file":"Servex/agents/child-links.test.mjs","ok":true,"ms":591,"at":"2026-11-02T05:39:09.875Z","trigger":"manual"}
++{"file":"Servex/agents/session-entries.test.mjs","ok":true,"ms":507,"at":"2026-11-02T05:39:10.002Z","trigger":"manual"}
++{"file":"Servex/agents/page_tools.test.mjs","ok":true,"ms":2448,"at":"2026-11-02T05:39:11.939Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.basic.test.mjs","ok":true,"ms":52,"at":"2026-11-02T05:55:52.427Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.steps.test.mjs","ok":true,"ms":54,"at":"2026-11-02T05:55:52.433Z","trigger":"manual"}
++{"file":"public/framework/core/Item/RecordWriter.test.mjs","ok":true,"ms":51,"at":"2026-11-02T05:55:52.484Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.test.mjs","ok":true,"ms":112,"at":"2026-11-02T05:55:52.496Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Store.test.mjs","ok":true,"ms":61,"at":"2026-11-02T05:55:52.557Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Ref.test.mjs","ok":true,"ms":145,"at":"2026-11-02T05:55:52.630Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Outbox.test.mjs","ok":true,"ms":221,"at":"2026-11-02T05:55:52.650Z","trigger":"manual"}
++{"file":"public/framework/core/Item/call.test.mjs","ok":true,"ms":60,"at":"2026-11-02T05:55:52.691Z","trigger":"manual"}
++{"file":"public/framework/core/Item/act.test.mjs","ok":true,"ms":151,"at":"2026-11-02T05:55:52.708Z","trigger":"manual"}
++{"file":"public/framework/core/Item/hooks.test.mjs","ok":true,"ms":49,"at":"2026-11-02T05:55:52.740Z","trigger":"manual"}
++{"file":"public/framework/core/Item/item-core.test.mjs","ok":true,"ms":53,"at":"2026-11-02T05:55:52.761Z","trigger":"manual"}
++{"file":"public/framework/core/Item/line-format.test.mjs","ok":true,"ms":143,"at":"2026-11-02T05:55:52.883Z","trigger":"manual"}
++{"file":"public/framework/core/Item/delta-flow.test.mjs","ok":true,"ms":320,"at":"2026-11-02T05:55:52.970Z","trigger":"manual"}
++{"file":"public/framework/core/Item/replay-vs-open.test.mjs","ok":true,"ms":51,"at":"2026-11-02T05:55:53.021Z","trigger":"manual"}
++{"file":"public/framework/core/Item/line-readers.test.mjs","ok":true,"ms":292,"at":"2026-11-02T05:55:53.054Z","trigger":"manual"}
++{"file":"public/framework/core/Item/snapshot.test.mjs","ok":true,"ms":190,"at":"2026-11-02T05:55:53.245Z","trigger":"manual"}
++{"file":"public/framework/core/Item/replay.test.mjs","ok":true,"ms":267,"at":"2026-11-02T05:55:53.288Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.steps.test.mjs","ok":true,"ms":52,"at":"2026-11-02T05:55:53.340Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.test.mjs","ok":true,"ms":64,"at":"2026-11-02T05:55:53.404Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Dated.test.mjs","ok":true,"ms":1222,"at":"2026-11-02T05:55:53.558Z","trigger":"manual"}
++{"file":"public/framework/core/Item/persistence.test.mjs","ok":true,"ms":1075,"at":"2026-11-02T05:55:53.958Z","trigger":"manual"}
++{"file":"public/framework/ux/Content/Object/list-view.test.mjs","ok":true,"ms":5655,"at":"2026-11-02T05:55:59.059Z","trigger":"manual"}
++{"file":"public/framework/core/Item/transport.test.mjs","ok":true,"ms":11503,"at":"2026-11-02T05:56:04.749Z","trigger":"manual"}
++{"file":"public/framework/audio/Recite/Recite.test.mjs","ok":true,"ms":87,"at":"2026-11-02T05:56:34.897Z","trigger":"manual"}
++{"file":"public/framework/core/Page/Listing.test.mjs","ok":true,"ms":237,"at":"2026-11-02T05:56:35.091Z","trigger":"manual"}
++{"file":"public/framework/core/Page/Page.test.mjs","ok":true,"ms":294,"at":"2026-11-02T05:56:35.153Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/sentence-send.test.mjs","ok":true,"ms":13535,"at":"2026-11-02T05:56:48.398Z","trigger":"manual"}
+diff --git a/public/framework/ext/Chat/list/ChatList.css b/public/framework/ext/Chat/list/ChatList.css
+index 7fbe26c74..662ebebf5 100644
+--- a/public/framework/ext/Chat/list/ChatList.css
++++ b/public/framework/ext/Chat/list/ChatList.css
+@@ -7,6 +7,7 @@
+ 	.chatlist-msg.is-prompt { align-self: flex-end; background: color-mix(in srgb, currentColor 8%, transparent); }
+ 	.chatlist-msg.is-reply { align-self: flex-start; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+ 	.chatlist-msg.is-note { align-self: center; font-size: .85em; color: color-mix(in srgb, currentColor 80%, transparent); }
++	.chatlist-msg.is-ref { align-self: center; font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); max-width: 100%; }
+ 	.chatlist-who { font-size: .75em; color: color-mix(in srgb, currentColor 78%, transparent); }
+ 	.chatlist-msg.is-note .chatlist-who { color: inherit; }
+ 	.chatlist-text > :first-child { margin-top: 0; }
+diff --git a/public/framework/ext/Chat/list/ChatList.js b/public/framework/ext/Chat/list/ChatList.js
+index 328350499..740504eeb 100644
+--- a/public/framework/ext/Chat/list/ChatList.js
++++ b/public/framework/ext/Chat/list/ChatList.js
+@@ -8,6 +8,8 @@ import Session from "/framework/core/Session/Session.js";
+ import Message from "/framework/core/Session/Chat/Message.js";
+ import Prompt from "/framework/core/Session/Chat/Prompt.js";
+ import Reply from "/framework/core/Session/Chat/Reply.js";
++import Ref from "/framework/core/Item/Ref.js";
++import RefView from "/framework/core/Item/RefView.js";
+ import { md_into } from "../md.js";
+ View.stylesheet(import.meta, "ChatList.css");
+ 
+@@ -37,8 +39,14 @@ export default class ChatList extends JSONL {
+ 		let prev = null;
+ 		for (const m of list){
+ 			let el = this.els.get(m);
+-			if (!el){ el = document.createElement("div"); this.els.set(m, el); this.fill(el, m); }
+-			else if (this.dirty.has(m)) this.fill(el, m);
++			if (!el){
++				// A Ref (a root task or a spawned child session, step 3) is drawn by its own RefView — the
++				// target's own state, live — never by `fill()`'s prompt/reply bubble, which has nothing to say
++				// about an item it does not hold the data of.
++				el = m instanceof Ref ? new RefView({ ref: m, where: false }).ac("chatlist-msg", "is-ref").el : document.createElement("div");
++				this.els.set(m, el);
++				if (!(m instanceof Ref)) this.fill(el, m);
++			} else if (this.dirty.has(m) && !(m instanceof Ref)) this.fill(el, m);
+ 			if (el.previousElementSibling !== prev || el.parentNode !== box) prev ? prev.after(el) : box.prepend(el);
+ 			prev = el;
+ 		}
+diff --git a/public/framework/ext/Chat/list/fixture/session.jsonl b/public/framework/ext/Chat/list/fixture/session.jsonl
+index fa5fef0d8..abc54c74e 100644
+--- a/public/framework/ext/Chat/list/fixture/session.jsonl
++++ b/public/framework/ext/Chat/list/fixture/session.jsonl
+@@ -1,29 +1,29 @@
+-{"session":{"id":"v-lozodaa","home":"/a/","kind":"voice","at":"2026-11-01T18:50:37.380-06:00","project":"chat-messages-test-5CaBfn","host":null,"fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+-{"tasks":{"add":{"type":"Prompt","id":"p-1793580637383","raw":["The tab bar is broken."],"paragraphs":[{"id":"a","text":"The tab bar is broken."}]}},"ts":"2026-11-02T00:50:37.383Z","by":"fast"}
+-{"chat":{"at":"2026-11-01T18:50:37.384-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"The tab bar is broken.","prompt":"p-1793580637383","floor":"speaking"}}
+-{"sentences":{"add":{"id":"s-1793580637385","at":"2026-11-01T18:50:37.384-06:00","text":"The tab bar is broken.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793580637385","by":"owner","at":"2026-11-01T18:50:37.384-06:00","sentences":["s-1793580637385"],"prompt":"p-1793580637383"}},"by":"servex","ts":"2026-11-02T00:50:37.385Z"}
+-{"backing":{"at":"2026-11-01T18:50:37.387-06:00","fast":null,"smart":null,"how":{"smart":"new"}}}
+-{"chat":{"at":"2026-11-01T18:50:37.389-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lozodaa"},"via":"text","text":"Which phone?","re":"2026-11-01T18:50:37.384-06:00"}}
+-{"p-1793580637383":{"raw":{"push":"On my phone."}},"ts":"2026-11-02T00:50:37.390Z","by":"fast"}
+-{"p-1793580637383":{"paragraphs":{"append":{"id":"a","text":" On my phone."}}},"ts":"2026-11-02T00:50:37.391Z","by":"fast"}
+-{"chat":{"at":"2026-11-01T18:50:37.392-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"On my phone.","prompt":"p-1793580637383","floor":"speaking"}}
+-{"sentences":{"add":{"id":"s-1793580637392","at":"2026-11-01T18:50:37.392-06:00","text":"On my phone.","via":"voice"}},"messages":{"m-1793580637385":{"sentences":{"push":"s-1793580637392"}}},"by":"servex","ts":"2026-11-02T00:50:37.392Z"}
+-{"quiet":{"at":"2026-11-01T18:50:37.393-06:00","ms":3000,"path":"/a/"}}
+-{"sent":{"to":"smart","at":"2026-11-01T18:50:37.395-06:00","re":["2026-11-01T18:50:37.384-06:00","2026-11-01T18:50:37.392-06:00"],"delay_ms":3}}
+-{"messages":{"add":{"id":"m-1793580637396","type":"Reply","by":"smart","at":"2026-11-01T18:50:37.389-06:00","text":"Which phone?","re":{"to":"s-1793580637385"}}},"by":"servex","ts":"2026-11-02T00:50:37.396Z"}
+-{"p-1793580637383":{"raw":{"push":"An iPhone."}},"ts":"2026-11-02T00:50:37.397Z","by":"fast"}
+-{"p-1793580637383":{"paragraphs":{"append":{"id":"a","text":" An iPhone."}}},"ts":"2026-11-02T00:50:37.397Z","by":"fast"}
+-{"chat":{"at":"2026-11-01T18:50:37.398-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"An iPhone.","prompt":"p-1793580637383","floor":"done"}}
+-{"sentences":{"add":{"id":"s-1793580637399","at":"2026-11-01T18:50:37.398-06:00","text":"An iPhone.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793580637399","by":"owner","at":"2026-11-01T18:50:37.398-06:00","sentences":["s-1793580637399"],"prompt":"p-1793580637383"}},"by":"servex","ts":"2026-11-02T00:50:37.399Z"}
+-{"sent":{"to":"smart","at":"2026-11-01T18:50:37.400-06:00","re":["2026-11-01T18:50:37.398-06:00"],"delay_ms":2}}
+-{"chat":{"at":"2026-11-01T18:50:37.402-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lozodaa"},"via":"text","text":"You said: an iPhone.","re":"2026-11-01T18:50:37.398-06:00","level":"clean"}}
+-{"messages":{"add":{"id":"m-1793580637403","type":"Reply","by":"smart","at":"2026-11-01T18:50:37.402-06:00","text":"You said: an iPhone.","re":{"to":"s-1793580637399"},"level":"clean"}},"by":"servex","ts":"2026-11-02T00:50:37.403Z"}
+-{"p-1793580637383":{"raw":{"push":"Fix it today, please."}},"ts":"2026-11-02T00:50:37.404Z","by":"fast"}
+-{"p-1793580637383":{"paragraphs":{"append":{"id":"a","text":" Fix it today, please."}}},"ts":"2026-11-02T00:50:37.405Z","by":"fast"}
+-{"chat":{"at":"2026-11-01T18:50:37.405-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"text","text":"Fix it today, please.","prompt":"p-1793580637383"}}
+-{"sentences":{"add":{"id":"s-1793580637406","at":"2026-11-01T18:50:37.405-06:00","text":"Fix it today, please.","via":"text"}},"messages":{"add":{"type":"Prompt","id":"m-1793580637406","by":"owner","at":"2026-11-01T18:50:37.405-06:00","sentences":["s-1793580637406"],"prompt":"p-1793580637383"}},"by":"servex","ts":"2026-11-02T00:50:37.406Z"}
+-{"sent":{"to":"smart","at":"2026-11-01T18:50:37.407-06:00","re":["2026-11-01T18:50:37.405-06:00"],"delay_ms":2}}
+-{"chat":{"at":"2026-11-01T19:00:00.000-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"system","id":"servex"},"via":"text","text":"The smart assistant could not be reached."}}
+-{"messages":{"add":{"id":"m-1793580637409","type":"Message","by":"system","at":"2026-11-01T19:00:00.000-06:00","text":"The smart assistant could not be reached."}},"by":"servex","ts":"2026-11-02T00:50:37.409Z"}
+-{"chat":{"at":"2026-11-01T18:50:37.416-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lozodaa"},"via":"text","text":"Fixed.","re":"2026-11-01T18:50:37.398-06:00"}}
+-{"messages":{"add":{"id":"m-1793580637417","type":"Reply","by":"smart","at":"2026-11-01T18:50:37.416-06:00","text":"Fixed.","re":{"to":"s-1793580637399"}}},"by":"servex","ts":"2026-11-02T00:50:37.417Z"}
++{"session":{"id":"v-h588ln8","home":"/a/","kind":"voice","at":"2026-11-01T23:55:00.920-06:00","project":"chat-messages-test-0xncWP","host":null,"fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793598900923","raw":["The tab bar is broken."],"paragraphs":[{"id":"a","text":"The tab bar is broken."}]}},"ts":"2026-11-02T05:55:00.923Z","by":"fast"}
++{"chat":{"at":"2026-11-01T23:55:00.924-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"The tab bar is broken.","prompt":"p-1793598900923","floor":"speaking"}}
++{"sentences":{"add":{"id":"s-1793598900925","at":"2026-11-01T23:55:00.924-06:00","text":"The tab bar is broken.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793598900925","by":"owner","at":"2026-11-01T23:55:00.924-06:00","sentences":["s-1793598900925"],"prompt":"p-1793598900923"}},"by":"servex","ts":"2026-11-02T05:55:00.925Z"}
++{"backing":{"at":"2026-11-01T23:55:00.928-06:00","fast":null,"smart":null,"how":{"smart":"new"}}}
++{"chat":{"at":"2026-11-01T23:55:00.929-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-h588ln8"},"via":"text","text":"Which phone?","re":"2026-11-01T23:55:00.924-06:00"}}
++{"p-1793598900923":{"raw":{"push":"On my phone."}},"ts":"2026-11-02T05:55:00.931Z","by":"fast"}
++{"p-1793598900923":{"paragraphs":{"append":{"id":"a","text":" On my phone."}}},"ts":"2026-11-02T05:55:00.931Z","by":"fast"}
++{"chat":{"at":"2026-11-01T23:55:00.932-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"On my phone.","prompt":"p-1793598900923","floor":"speaking"}}
++{"sentences":{"add":{"id":"s-1793598900933","at":"2026-11-01T23:55:00.932-06:00","text":"On my phone.","via":"voice"}},"messages":{"m-1793598900925":{"sentences":{"push":"s-1793598900933"}}},"by":"servex","ts":"2026-11-02T05:55:00.933Z"}
++{"quiet":{"at":"2026-11-01T23:55:00.934-06:00","ms":3000,"path":"/a/"}}
++{"sent":{"to":"smart","at":"2026-11-01T23:55:00.936-06:00","re":["2026-11-01T23:55:00.924-06:00","2026-11-01T23:55:00.932-06:00"],"delay_ms":4}}
++{"messages":{"add":{"id":"m-1793598900937","type":"Reply","by":"smart","at":"2026-11-01T23:55:00.929-06:00","text":"Which phone?","re":{"to":"s-1793598900925"}}},"by":"servex","ts":"2026-11-02T05:55:00.937Z"}
++{"p-1793598900923":{"raw":{"push":"An iPhone."}},"ts":"2026-11-02T05:55:00.937Z","by":"fast"}
++{"p-1793598900923":{"paragraphs":{"append":{"id":"a","text":" An iPhone."}}},"ts":"2026-11-02T05:55:00.938Z","by":"fast"}
++{"chat":{"at":"2026-11-01T23:55:00.939-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"An iPhone.","prompt":"p-1793598900923","floor":"done"}}
++{"sentences":{"add":{"id":"s-1793598900940","at":"2026-11-01T23:55:00.939-06:00","text":"An iPhone.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793598900940","by":"owner","at":"2026-11-01T23:55:00.939-06:00","sentences":["s-1793598900940"],"prompt":"p-1793598900923"}},"by":"servex","ts":"2026-11-02T05:55:00.940Z"}
++{"sent":{"to":"smart","at":"2026-11-01T23:55:00.941-06:00","re":["2026-11-01T23:55:00.939-06:00"],"delay_ms":2}}
++{"chat":{"at":"2026-11-01T23:55:00.945-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-h588ln8"},"via":"text","text":"You said: an iPhone.","re":"2026-11-01T23:55:00.939-06:00","level":"clean"}}
++{"messages":{"add":{"id":"m-1793598900948","type":"Reply","by":"smart","at":"2026-11-01T23:55:00.945-06:00","text":"You said: an iPhone.","re":{"to":"s-1793598900940"},"level":"clean"}},"by":"servex","ts":"2026-11-02T05:55:00.948Z"}
++{"p-1793598900923":{"raw":{"push":"Fix it today, please."}},"ts":"2026-11-02T05:55:00.950Z","by":"fast"}
++{"p-1793598900923":{"paragraphs":{"append":{"id":"a","text":" Fix it today, please."}}},"ts":"2026-11-02T05:55:00.953Z","by":"fast"}
++{"chat":{"at":"2026-11-01T23:55:00.956-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"owner"},"via":"text","text":"Fix it today, please.","prompt":"p-1793598900923"}}
++{"sentences":{"add":{"id":"s-1793598900958","at":"2026-11-01T23:55:00.956-06:00","text":"Fix it today, please.","via":"text"}},"messages":{"add":{"type":"Prompt","id":"m-1793598900958","by":"owner","at":"2026-11-01T23:55:00.956-06:00","sentences":["s-1793598900958"],"prompt":"p-1793598900923"}},"by":"servex","ts":"2026-11-02T05:55:00.958Z"}
++{"sent":{"to":"smart","at":"2026-11-01T23:55:00.960-06:00","re":["2026-11-01T23:55:00.956-06:00"],"delay_ms":4}}
++{"chat":{"at":"2026-11-01T19:00:00.000-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"system","id":"servex"},"via":"text","text":"The smart assistant could not be reached."}}
++{"messages":{"add":{"id":"m-1793598900962","type":"Message","by":"system","at":"2026-11-01T19:00:00.000-06:00","text":"The smart assistant could not be reached."}},"by":"servex","ts":"2026-11-02T05:55:00.962Z"}
++{"chat":{"at":"2026-11-01T23:55:00.972-06:00","session":"v-h588ln8","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-h588ln8"},"via":"text","text":"Fixed.","re":"2026-11-01T23:55:00.939-06:00"}}
++{"messages":{"add":{"id":"m-1793598900974","type":"Reply","by":"smart","at":"2026-11-01T23:55:00.972-06:00","text":"Fixed.","re":{"to":"s-1793598900940"}}},"by":"servex","ts":"2026-11-02T05:55:00.974Z"}
+diff --git a/public/framework/ext/Chat/list/readme.md b/public/framework/ext/Chat/list/readme.md
+index 547cd7089..217ddf510 100644
+--- a/public/framework/ext/Chat/list/readme.md
++++ b/public/framework/ext/Chat/list/readme.md
+@@ -10,6 +10,7 @@ new ChatList({ url: "<a session.jsonl url>", $box: div.c("chatlist") }).live();
+ ```
+ 
+ - It replays only the list lines (`messages`, `sentences`) into a `Session`, never V1's `{chat}` lines.
++- A `Ref` member (a root task, or a spawned child session, step 3) draws as `RefView` (`core/Item/RefView.js`), not a chat bubble — a `.chatlist-msg.is-ref` row showing the target's own live state, since `ChatList` holds none of its data.
+ - Live: `ext/JSONL`'s `live()` streams new lines; the Session's `"delta"` event names the Message that changed, and only that bubble is refilled. A new message appears without a reload (29 ms in the headless check).
+ - Demo: [/framework/ext/Chat/list/](/framework/ext/Chat/list/) draws `fixture/session.jsonl`, a session written by Servex's real writer (`CHAT_FIXTURE=<path> node Servex/agents/chat-messages.test.mjs` rewrites it); `?src=<session.jsonl url>` draws any session.
+ - CSS prefix `chatlist-` (`.chat-list` is ext/Ask's).
+diff --git a/public/framework/ext/Chat/v2/fixture/files.jsonl b/public/framework/ext/Chat/v2/fixture/files.jsonl
+index bb9a46b3a..eae9e3b7d 100644
+--- a/public/framework/ext/Chat/v2/fixture/files.jsonl
++++ b/public/framework/ext/Chat/v2/fixture/files.jsonl
+@@ -429,3 +429,7 @@
+ {"file":"live-v2-52164.jsonl","gone":true}
+ {"file":"live-v2-52204.jsonl"}
+ {"file":"live-v2-52204.jsonl","gone":true}
++{"file":"live-v2-50788.jsonl"}
++{"file":"live-v2-50788.jsonl","gone":true}
++{"file":"live-v2-47324.jsonl"}
++{"file":"live-v2-47324.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v3/fixture/files.jsonl b/public/framework/ext/Chat/v3/fixture/files.jsonl
+index 67ed2abe4..24b8e30fb 100644
+--- a/public/framework/ext/Chat/v3/fixture/files.jsonl
++++ b/public/framework/ext/Chat/v3/fixture/files.jsonl
+@@ -3,3 +3,7 @@
+ {"file":"live-v3-49496.jsonl","gone":true}
+ {"file":"live-v3-8464.jsonl"}
+ {"file":"live-v3-8464.jsonl","gone":true}
++{"file":"live-v3-16304.jsonl"}
++{"file":"live-v3-16304.jsonl","gone":true}
++{"file":"live-v3-30876.jsonl"}
++{"file":"live-v3-30876.jsonl","gone":true}
+diff --git a/public/framework/files.jsonl b/public/framework/files.jsonl
+index f0e01c656..e8d7addb6 100644
+--- a/public/framework/files.jsonl
++++ b/public/framework/files.jsonl
+@@ -113,3 +113,7 @@
+ {"file":"zz-item-tool-test-48800/","gone":true}
+ {"file":"zz-item-tool-test-48072/"}
+ {"file":"zz-item-tool-test-48072/","gone":true}
++{"file":"zz-item-tool-test-24464/"}
++{"file":"zz-item-tool-test-24464/","gone":true}
++{"file":"zz-item-tool-test-16304/"}
++{"file":"zz-item-tool-test-16304/","gone":true}
+diff --git a/public/framework/ux/Content/Object/DefaultView.js b/public/framework/ux/Content/Object/DefaultView.js
+index 78c4f1694..a0c2e6b9e 100644
+--- a/public/framework/ux/Content/Object/DefaultView.js
++++ b/public/framework/ux/Content/Object/DefaultView.js
+@@ -1,4 +1,7 @@
+ import View, { div, span, a, summary, icon } from "../../../core/View/View.js";
++import List from "../../../core/List/List.js";
++import Ref from "../../../core/Item/Ref.js";
++import RefView from "../../../core/Item/RefView.js";
+ 
+ View.stylesheet(import.meta, "DefaultView.css");
+ 
+@@ -221,9 +224,13 @@ export default class DefaultView extends View {
+ 		});
+ 	}
+ 
+-	// A nested object: its own default view, one level less open, with this object added to the path.
+-	child(value, key){
+-		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject) });
++	// A nested object: its own default view, one level less open, with this object added to the path. A Ref
++	// (a list member standing in for an item elsewhere, core/Item/Ref.js) draws as RefView, never a nested
++	// DefaultView of its own near-empty data — `opts` carries `capture: false` for a view built outside a
++	// capturing context (reconcile(), below).
++	child(value, key, opts = {}){
++		if (value instanceof Ref) return new RefView({ ref: value, where: false, ...opts });
++		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject), ...opts });
+ 	}
+ 
+ 	// A class: its listed properties (names only, it has no values), then its own methods.
+@@ -316,7 +323,7 @@ export default class DefaultView extends View {
+ 		let prev = null;
+ 		for (const m of want){
+ 			let v = this.kids.get(m);
+-			if (!v){ v = new this.constructor({ subject: m, capture: false, open: this.levels - 1, path: new Set(this.path).add(this.subject) }); this.kids.set(m, v); DefaultView.flash(v.$head?.el ?? v.el); }
++			if (!v){ v = this.child(m, undefined, { capture: false }); this.kids.set(m, v); DefaultView.flash(v.$head?.el ?? v.el); }
+ 			const at = prev ? prev.nextSibling : this.$body.el.firstChild;
+ 			if (at !== v.el) this.$body.el.insertBefore(v.el, at);
+ 			prev = v.el;
+@@ -357,6 +364,11 @@ export default class DefaultView extends View {
+ 
+ DefaultView.prototype.tag = "details";
+ 
++// `List.render()` (core/List/List.js) checks `Object.hasOwn(List, "View")` before building one, so a bare
++// `List` draws through the default view too — its keyed `reconcile()` (above) already does the right thing
++// for add/remove/move/order, same as a List nested inside another object's row.
++List.View = DefaultView;
++
+ /* `view(thing, opts)` — the one call. It picks `thing.constructor.View` when that class (or one it extends)
+  * declares a View, else the default view above. `opts` go to the view: `open`, `properties`.
+  * ⚠ `Viewer.prototype instanceof View`, not just truthy: some other static named `View` must not be
+diff --git a/public/framework/ux/Content/Object/files.jsonl b/public/framework/ux/Content/Object/files.jsonl
+index 01b204b9e..0ab5d3551 100644
+--- a/public/framework/ux/Content/Object/files.jsonl
++++ b/public/framework/ux/Content/Object/files.jsonl
+@@ -14,3 +14,4 @@
+ {"file":"tasks/"}
+ {"file":"DefaultView.css"}
+ {"file":"DefaultView.test.js"}
++{"file":"list-view.test.mjs"}
+diff --git a/public/framework/ux/Content/Object/list-view.test.mjs b/public/framework/ux/Content/Object/list-view.test.mjs
+new file mode 100644
+index 000000000..71dbb02f6
+--- /dev/null
++++ b/public/framework/ux/Content/Object/list-view.test.mjs
+@@ -0,0 +1,89 @@
++// node list-view.test.mjs [base-url] — headless: proves List.View (DefaultView.js, wired by List.render()) updates on a List's
++// add/remove/move/order keyed by member id, without redrawing the members that did not change (chat-model plan.md step 4), and
++// that a Ref member (core/Item/Ref.js, added to a chat list in step 2/3) draws through RefView, not a nested DefaultView.
++import Browser from "file:///C:/Code/lew42/monorepo/Server/Browser.mjs";
++
++const base = process.argv[2] ?? process.env.SITE_URL ?? "http://chat-model.localhost";
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++const browser = await Browser.browser();
++const page = await browser.newPage({ viewport: { width: 400, height: 860 } });
++const errors = []; page.on("pageerror", e => errors.push(String(e)));
++
++try {
++	await page.goto(`${base}/framework/ext/Chat/list/`, { waitUntil: "networkidle" });
++	const result = await page.evaluate(async () => {
++		const Item = (await import("/framework/core/Item/Item.js")).default;
++		await import("/framework/core/List/List.js");
++		const { view } = await import("/framework/ux/Content/Object/DefaultView.js");
++
++		const root = Item.hydrate({ id: "root", kids: [{ id: "a" }, { id: "b" }, { id: "c" }] });
++		const host = document.createElement("div"); document.body.append(host);
++		const v = view(root.kids, { open: 1, capture: false });
++		host.append(v.el);
++
++		const order_by_kids = () => [...v.$body.el.children].map(el => [...v.kids.entries()].find(([, kv]) => kv.el === el)?.[0]?.id);
++		const views_of = ids => ids.map(id => v.kids.get(root.kids.find(id)));
++
++		const before = order_by_kids();
++		const [va, vb, vc] = views_of(["a", "b", "c"]);
++		const b_member = root.kids.find("b");
++
++		root.kids.add({ id: "d" });                 // add: a new keyed view, kept ones untouched
++		const after_add = order_by_kids();
++		const [va2, vb2, vc2] = views_of(["a", "b", "c"]);
++		const kept_on_add = va === va2 && vb === vb2 && vc === vc2;
++
++		root.kids.remove("b");                       // remove: the view for "b" is dropped, "a" and "c" kept
++		const after_remove = order_by_kids();
++		const [va3, vc3] = views_of(["a", "c"]);
++		const kept_on_remove = va === va3 && vc === vc3;
++		const b_gone = !v.kids.has(b_member) && !vb.el.isConnected;
++
++		root.kids.move("d", { after: "a" });         // move: "d" relocates, nothing else redraws
++		const after_move = order_by_kids();
++		const [va4, vc4] = views_of(["a", "c"]);
++		const kept_on_move = va === va4 && vc === vc4;
++
++		root.kids.order(["c", "a", "d"]);            // order: a full reorder, same keyed views
++		const after_order = order_by_kids();
++
++		// A Ref member (list.ref on an item another of this root's lists already owns) draws as RefView, never a nested DefaultView.
++		const chatlist = Item.hydrate({ id: "chat", things: [{ id: "x" }], messages: [] });
++		chatlist.messages.ref(chatlist.things.find("x"));
++		const vref = view(chatlist.messages, { open: 1, capture: false });
++		const host2 = document.createElement("div"); document.body.append(host2);
++		host2.append(vref.el);
++		const ref_member = [...chatlist.messages][0];
++		const ref_view = vref.kids.get(ref_member);
++
++		return {
++			before, after_add, after_remove, after_move, after_order,
++			kept_on_add, kept_on_remove, kept_on_move, b_gone,
++			is_ref: ref_member?.constructor?.name === "Ref",
++			ref_view_is_refview: ref_view?.constructor?.name === "RefView",
++			ref_row_classes: ref_view?.el?.className ?? null,
++		};
++	});
++	console.log(JSON.stringify(result));
++
++	check("initial DOM order matches the list", JSON.stringify(result.before) === JSON.stringify(["a", "b", "c"]), result.before);
++	check("add: new member appended, order right", JSON.stringify(result.after_add) === JSON.stringify(["a", "b", "c", "d"]), result.after_add);
++	check("add: unrelated members' views are not rebuilt", result.kept_on_add);
++	check("remove: gone member drops, order right", JSON.stringify(result.after_remove) === JSON.stringify(["a", "c", "d"]), result.after_remove);
++	check("remove: its view leaves the kids map", result.b_gone);
++	check("remove: unrelated members' views are not rebuilt", result.kept_on_remove);
++	check("move: relocates in the DOM, order right", JSON.stringify(result.after_move) === JSON.stringify(["a", "d", "c"]), result.after_move);
++	check("move: unrelated members' views are not rebuilt", result.kept_on_move);
++	check("order: a full reorder lands in the DOM", JSON.stringify(result.after_order) === JSON.stringify(["c", "a", "d"]), result.after_order);
++	check("a Ref list member is a real Ref", result.is_ref);
++	check("a Ref member draws through RefView, not a nested DefaultView", result.ref_view_is_refview, result.ref_view_is_refview);
++	check("RefView's row carries its own class, never ux-content-defaultview-item-node", result.ref_row_classes?.includes("ref-view") && !result.ref_row_classes?.includes("item-node"), result.ref_row_classes);
++	check("no page errors", errors.length === 0, errors);
++} finally {
++	await Browser.close();
++}
++
++console.log(`\n${pass} passed, ${fail} failed`);
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ux/Content/Object/readme.md b/public/framework/ux/Content/Object/readme.md
+index ed7280ac9..34e89d2a8 100644
+--- a/public/framework/ux/Content/Object/readme.md
++++ b/public/framework/ux/Content/Object/readme.md
+@@ -6,6 +6,7 @@
+ 
+ - [DefaultView.js](./DefaultView.js) — `class DefaultView extends View`, and `view(thing, opts)`, the one call
+ - [DefaultView.test.js](./DefaultView.test.js) — its one core test, in a browser (16 checks); the result shows on the [watch page](/framework/core/Item/watch/)
++- [list-view.test.mjs](./list-view.test.mjs) — `List.View = DefaultView`: keyed add/remove/move/order (no redraw of unaffected members), a Ref member drawn by RefView (13 checks, headless)
+ - [InstanceTree.js](./InstanceTree.js) — the whole running site as a live tree of pages; each opens its `view()` ([doc](doc/instance-tree.md), [page](/framework/ux/Content/Object/instance-tree/))
+ - [Object.js](./Object.js), [Inspect.js](./Inspect.js) — ⚠ deprecated (2026-10-28): `object()` and `inspect()` draw the default view, open one level
+ - [doc/default-view.md](doc/default-view.md) — what the view reads, how it stays live, and why one view replaced three
+@@ -29,7 +30,7 @@ A class may carry `static icon = "material-symbol-name"` (else `"data_object"`),
+ - **Every view of an object is in `item.views`** (core/Item/Item.js; a WeakMap for other emitters). A view whose element has left the page drops out on the next change, so a view built and never attached stays listed.
+ - **Built outside a render, pass `capture: false`**, or the view lands in whatever is capturing at that moment (the page body).
+ - `item.view` (singular, core/Item) is a class's own view (`PageText.View`, `Task.View`), not this one.
+-- `List.render()` drawing each member through its own view is not built: `core/List/List.js` belongs to the data backbone build. `view(list)` already does it.
++- **`List.View = DefaultView`** (2026-11-02, chat-model step 4): `list.render()` and `view(list)` both draw through it now. Its `reconcile()` keeps one view per member, keyed by the member itself (a `Map`), so an `add`/`remove`/`move`/`order`/`clear` only touches the rows that changed — a new member gets a fresh row, a gone one's row leaves, the rest just move in the DOM if their position shifted. A Ref member (`core/Item/Ref.js`) is drawn by `RefView`, never a nested `DefaultView` of its own near-empty data.
+ 
+ ## More
+ 

@@ -1,0 +1,1 @@
+{"note":"This task logs to session.jsonl, not task.jsonl — set by mastermind-dictation-v3's own instruction mid-task (2026-11-01). Every review answer and landing line for piece (a), echo and the thinking cue lives in session.jsonl; read that file, not this one, for the full record. (review finding 2, 2026-11-02)"}

@@ -1,6 +1,6 @@
 # ext/remote — the tunnel MCP the Claude voice app talks to
 
-`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`, which says nothing about who called: a spawn from a tab takes its parent from the tab's `session_id` ([rule](../agents/doc/architecture.md)), and Servex agents have this connector blocked (`disallowedTools` in `Agents.door()`) so they use their own door. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
 
 - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
 - The tunnel and its keeper (Servex restarts it, shows the connector URL, the named-tunnel steps), and **the site from anywhere** (`monorepo.lew42.com` through `Server/SiteGateway.mjs`): [doc/tunnel.md](doc/tunnel.md)

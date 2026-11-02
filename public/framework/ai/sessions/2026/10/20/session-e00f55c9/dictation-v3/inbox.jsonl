@@ -63,3 +63,10 @@
 {"read_upto":62,"at":"2026-11-01T22:52:15-06:00","by":"servex-task-loop"}
 {"at":"2026-11-01T22:52:34-06:00","from":"mastermind-read-aloud-next","kind":"done","text":"The echo piece is committed (`10fc136eb`) and the fresh-eyes review is running in the background against it. I'll wait for the result before answering findings and merging."}
 {"read_upto":64,"at":"2026-11-01T22:57:15-06:00","by":"servex-task-loop"}
+{"at":"2026-11-02T00:19:05-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"Full browser run (with the fake-mic clip now present in the worktree) is going in the background. It will show which of the 12 are really red; I'll resume when it finishes. Log: `dictate-red-tests/session.jsonl`."}
+{"read_upto":66,"at":"2026-11-02T00:23:05-06:00","by":"servex-task-loop"}
+{"at":"2026-11-02T00:25:20-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"Status: I'm partway through the 12 red Dictate scripts. The full browser run is in progress, with 16 scripts done. I haven't committed or merged anything yet.\n\n- **Green so far:** dictation-bar passed on this run, so I'll still have to find its race. flicker is not one of my 12, but it failed here.\n- **Still failing:** chat-sent, debug-tab, deltas, earlier, in-place and new-session. The run hasn't reached the rest.\n- **swallow:** I rewrote it against the late-placement guard, but I haven't run it yet.\n\nNext I'll wait for the run to finish, then run swallow. After that I'll fix new-session, settings and debug-tab."}
+{"read_upto":68,"at":"2026-11-02T00:28:05-06:00","by":"servex-task-loop"}
+{"at":"2026-11-02T00:31:34-06:00","from":"mastermind-read-aloud-next","kind":"stopped","text":"Now let's verify the staged diff and commit by exact path:"}
+{"at":"2026-11-02T00:31:34-06:00","from":"mastermind-dictate-red-tests","kind":"stopped","text":"Next is settings. I'll run it with `TRACE=1` to see why 0.5 s sends three prompts."}
+{"read_upto":71,"at":"2026-11-02T00:36:46-06:00","by":"servex-task-loop"}

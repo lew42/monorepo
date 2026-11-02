@@ -6,3 +6,4 @@
 {"chat":{"at":"2026-09-30T17:02:17.000-05:00","session":"v-5ey9a9r","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"probe: hello from the plain page"}}
 {"chat":{"at":"2026-09-30T17:02:52.000-05:00","session":"v-5ey9a9r","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"probe: hello from the plain page"}}
 {"chat":{"at":"2026-10-01T23:39:11.741-05:00","session":"v-5ey9a9r","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-09-30T17:02:52.000-05:00"}}
+{"stop":{"at":"2026-11-02T00:02:30-06:00","why":"abandoned: no agent since 2026-10-02T04:39:11.741Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:30.065Z"}

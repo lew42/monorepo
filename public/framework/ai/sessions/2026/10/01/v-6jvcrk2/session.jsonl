@@ -222,3 +222,4 @@
 {"chat":{"at":"2026-10-01T15:40:14.000-05:00","session":"v-6jvcrk2","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"Can we figure out why these messages are double echoing?"}}
 {"chat":{"at":"2026-10-01T15:40:15.000-05:00","session":"v-6jvcrk2","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"Oh my God."}}
 {"chat":{"at":"2026-10-01T15:40:25.000-05:00","session":"v-6jvcrk2","path":"/framework/ux/Dictate/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-6jvcrk2"},"via":"text","text":"Flagged on the duplicate-messages task — sounds like a real pain point, it's being worked."}}
+{"stop":{"at":"2026-11-02T00:02:30-06:00","why":"abandoned: no agent since 2026-10-02T04:22:05.137Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:31.003Z"}

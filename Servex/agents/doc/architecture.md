@@ -92,6 +92,8 @@ minion can call `spawn_agent` itself, and the child lands in the **same** regist
 throwing away the project's own MCP servers an agent may need. Servex's door is added beside
 whatever it already has.
 
+**The parent of a spawn is the caller's own id.** `spawn_agent` takes `args.parent`, else `ctx.caller` (the `?as=<id>` of the agent's own door), else, from a tab, the `session_id` it passes. The remote door (`/mcp/remote`, `RemoteMCP.CALLER`) labels every call `voice-app`, and the owner's claude.ai "Servex" connector loads in every agent and goes through it, so a spawn made via `mcp__claude_ai_Servex__*` got parent `voice-app` (seen 2026-11-01). `door()` therefore disallows `mcp__claude_ai_Servex` for every agent; test `item-local.test.mjs`.
+
 **A mastermind that spawns masterminds** works the same way — the host does not care what
 `role` a caller asks for. `card()` carries `parent`, so the dashboard can draw the tree.
 

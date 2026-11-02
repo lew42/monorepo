@@ -8,7 +8,8 @@
 - [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
 - [Steps.js](./Steps.js) — `class Steps`: runs a class's core test written as steps (`X.steps.js`), the same in node and the browser
 - [TestView.js](./TestView.js) + [view/](/framework/core/Test/view/) — watch a test run: every object drawn live in the default view, every line beside it
-- [doc/health.md](./doc/health.md) — which tests exist, which gate runs them, what is red now, and the browser scripts nothing runs
+- [browser-scripts.mjs](./browser-scripts.mjs) · [run-all.mjs](./run-all.mjs) · [run-all.jsonl](./run-all.jsonl) · [timeouts.json](./timeouts.json) — the browser-script allow-list, the whole-suite command and its log, per-file time limits
+- [doc/health.md](./doc/health.md) — which tests exist, which gate runs them, what is red now, and the browser scripts and their results
 - [tasks/test-system/plan.md](./tasks/test-system/plan.md) — the design and why
 
 ## Use
@@ -35,6 +36,7 @@ test.node("writes the real file", async t => { const fs = await import("node:fs"
 - **Names:** `X.test.mjs` is a node test, passing when it exits 0 (old tests without `Test` count too). `X.test.js` is reserved for browser tests; none yet.
 - **One test, node and the browser:** a class's core test can be a list of steps, `X.steps.js` (`{title, code, note, run(t), check(t), show(t)}`; Item, List, Task have one). `X.steps.test.mjs` runs it in node with `new Steps(steps).all()`; [the test view](/framework/core/Test/view/?test=Item) runs the same steps on screen, one painted frame per step. `?step` waits for Next and stops at a `debugger` after each step, so DevTools shows that step's view. `t.click(label, fn)` is the UI path (a real button in the browser, a call in node); `t.same(a, b)` compares two objects as data and, on screen, as their drawn views (the `.store` row left out). Each test ends by rebuilding its object from the saved lines and checking the two views match.
 - **The one command:** `node public/framework/core/Test/TestRunner.mjs [folders…]`: whole repo by default, each file in its own process, 60 s timeout, 4 at once.
+- **Browser scripts and everything:** `TestRunner.mjs --browser [name]` runs the Playwright scripts listed in `browser-scripts.mjs` (headless, fake mic); `run-all.mjs [--browser]` runs all and appends one line to `run-all.jsonl` (not scheduled). A slow test gets its limit in `timeouts.json`. See [health.md](./doc/health.md).
 - **Coverage:** a test covers its own folder plus every file it imports, transitively. `--covers <file>` lists them; `--list [folders]` lists tests.
 - **Near:** `--near <file>` lists the tests *near* a changed file: the `*.test.mjs` in its folder plus the tests that import it directly (one level, cheaper than `--covers`). A single test file path runs that file.
 - **On change:** `TestRunner.mjs --watch core/Item core/Task` runs the covering tests (300 ms debounce, `.js`/`.mjs` only).

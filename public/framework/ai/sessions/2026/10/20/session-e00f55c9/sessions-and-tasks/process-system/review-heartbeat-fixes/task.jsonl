@@ -4,3 +4,4 @@
 {"review":{"at":"2026-10-23T20:27:04-05:00","answer":{"n":2,"reply":"noted: met."}}}
 {"review":{"at":"2026-10-23T20:27:04-05:00","answer":{"n":3,"reply":"noted: intended. A task waiting on the owner gets no checks; un-waiting it makes the heartbeat watch it again, including revive."}}}
 {"review":{"at":"2026-10-23T20:27:04-05:00","answer":{"n":4,"reply":"noted: accepted for a 21-line test."}}}
+{"stop":{"at":"2026-11-02T00:02:42-06:00","why":"abandoned: no agent since 2026-10-24T01:34:41.276Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:42.065Z"}

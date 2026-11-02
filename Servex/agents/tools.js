@@ -334,8 +334,11 @@ function log_tools(agents){
 const caller_is_from = t => t.name !== "start_job" ? t
 	: { ...t, handler: (args = {}, ctx = {}) => t.handler({ ...args, from: args.from ?? ctx.caller ?? undefined }, ctx) };
 
+/* What the remote door (RemoteMCP.CALLER) calls every connector client; it says nothing about WHO called, so a tab's own session_id outranks it. Kept equal to RemoteMCP.CALLER by spawn-parent.test.mjs. */
+const REMOTE_CALLER = "voice-app";
+
 /* The agent id for a session Servex does not hold: its registered external row, else one registered as vscode-<id8>. Null if it cannot. */
-function tab_parent(agents, session_id){
+export function tab_parent(agents, session_id){
 	const ext = agents.external;
 	if (!ext || !/^[0-9a-f-]{8,}$/i.test(String(session_id))) return null;
 	const rows = agents.reg().read(), hit = Object.values(rows).find(r => r?.kind === "external" && r.session_id === session_id);
@@ -391,7 +394,7 @@ return [
 			 * description) still works exactly as before whenever Servex has no caller to blame
 			 * either (a VS Code tab's own direct MCP call, ctx.caller null). */
 			const { session_id: tab_session, ...rest } = args;
-			let parent = args.parent ?? ctx.caller ?? null;
+			let parent = args.parent ?? (ctx.caller === REMOTE_CALLER && tab_session ? tab_parent(agents, tab_session) : null) ?? ctx.caller ?? null;
 			/* A TAB'S SPAWN HAS A PARENT (2026-10-22, honest-completion): a VS Code tab's MCP call carries no `?as=`, so ctx.caller is null.
 			 * The tab passes its own session uuid; the registered external agent with that uuid is the parent (registered now if new). */
 			if (!parent && tab_session) parent = tab_parent(agents, tab_session);

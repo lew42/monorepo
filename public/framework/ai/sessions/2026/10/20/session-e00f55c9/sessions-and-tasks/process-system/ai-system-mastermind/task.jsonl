@@ -17,3 +17,4 @@
 {"review":{"at":"2026-10-23T20:15:46-05:00","answer":{"n":3,"reply":"noted: checked by the deputy."}}}
 {"review":{"at":"2026-10-23T20:15:46-05:00","answer":{"n":4,"reply":"fixed: on-landing.mjs sends those lines to module_inbox ai (no fix, so they wait for its next wake); the old servex-mastermind log no longer existed, so they were being dropped."}}}
 {"review":{"at":"2026-10-23T20:15:46-05:00","answer":{"n":5,"reply":"noted: ALIASES lists old agent ids, which roles.js role-word aliases do not cover; one place, beside the script that uses it."}}}
+{"stop":{"at":"2026-11-02T00:02:41-06:00","why":"abandoned: no agent since 2026-10-24T01:26:15.515Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:41.841Z"}
