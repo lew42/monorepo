@@ -17,11 +17,11 @@ let d = door();
 ok(d.mcpServers.local?.type === "sdk", "local is an in-process sdk server");
 ok(d.mcpServers.servex?.type === "http", "HTTP servex entry stays");
 ok(NAMES.every(t => d.disallowedTools.includes("mcp__servex__" + t)), "six HTTP twins disallowed");
-ok(d.disallowedTools.length === 6, "only the twins");
+ok(d.disallowedTools.length === 7 && d.disallowedTools.includes("mcp__claude_ai_Servex"), "the twins plus the claude.ai Servex connector (its calls would be labelled voice-app)");
 
 process.env.SERVEX_LOCAL_TOOLS = "0";
 d = door();
-ok(!d.mcpServers.local && !d.disallowedTools && d.mcpServers.servex, "SERVEX_LOCAL_TOOLS=0: HTTP only");
+ok(!d.mcpServers.local && d.disallowedTools.length === 1 && d.disallowedTools[0] === "mcp__claude_ai_Servex" && d.mcpServers.servex, "SERVEX_LOCAL_TOOLS=0: HTTP only, connector still blocked");
 
 // The SDK server hides its handlers, so call the same function through page_tools().
 const REL = "public/framework/ai/sessions/2026/10/16/.item-local-test-" + process.pid;
