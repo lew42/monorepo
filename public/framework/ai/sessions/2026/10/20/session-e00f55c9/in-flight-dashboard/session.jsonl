@@ -23,3 +23,4 @@
 {"review":{"at":"2026-11-02T16:53:24-06:00","answer":{"n":6,"reply":"noted: two readers of one file is cheap"}}}
 {"review":{"at":"2026-11-02T16:53:24-06:00","answer":{"n":7,"reply":"noted: titles clamp to two lines at 360"}}}
 {"review":{"at":"2026-11-02T16:53:24-06:00","answer":{"n":8,"reply":"noted: the tmp index entry is generated, not mine"}}}
+{"commit":"186cfcc6c4df","by":"append.mjs","ts":"2026-11-02T22:54:05.014Z"}
