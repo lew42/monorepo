@@ -18,11 +18,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const repo = fs.mkdtempSync(path.join(os.tmpdir(), "sessions-single-test-"));
-fs.mkdirSync(path.join(repo, "public/a"), { recursive: true });
+for (const d of ["public/a", "public/b"]) fs.mkdirSync(path.join(repo, d), { recursive: true });
 const sent = [], spawned = [];
 const agents = {
 	live: new Map(),
-	spawn(spec){ spawned.push(spec); const id = spec.id ?? `${spec.role}-${spec.name}`, a = { id, state: "working", session_id: null }; this.live.set(id, a); return a; },
+	spawn(spec){ spawned.push(spec); if (process.env.DBG) console.log("SPAWN", spec.role, spec.name, new Error().stack.split(/\n/).slice(2, 7).join(" | ")); const id = spec.id ?? `${spec.role}-${spec.name}`, a = { id, state: "working", session_id: null }; this.live.set(id, a); return a; },
 	send(id, text){ sent.push({ id, text }); },
 	stop(id){ this.live.get(id).state = "stopped"; },
 };
@@ -57,7 +57,7 @@ await check("session_assistant() reads the word `single` from the file and the e
 
 await check("one session can choose `single` through settings(); the boot word stays the default for the others", () => {
 	const s = make({ assistant: "voice" });
-	const a = s.create({ path: "/a/" }), b = s.create({ path: "/a/" });
+	const a = s.create({ path: "/a/", fresh: true }), b = s.create({ path: "/b/", fresh: true });
 	assert.equal(s.single_seat(s.map[a.session]), false);
 	const r = s.settings({ session: a.session, assistant: "single" });
 	assert.equal(r.assistant, "single");
@@ -66,18 +66,18 @@ await check("one session can choose `single` through settings(); the boot word s
 	assert.equal(s.voice_seat(s.map[b.session]), true, "the other session is still dual");
 	assert.throws(() => s.settings({ session: a.session, assistant: "bogus" }), /assistant must be/);
 	assert.equal(s.settings({ session: a.session, assistant: null }).assistant ?? "voice", "voice", "null drops it back to the boot word");
-	const t = make({ assistant: "single" }), c = t.create({ path: "/a/" });
+	const t = make({ assistant: "single" }), c = t.create({ path: "/a/", fresh: true });
 	t.settings({ session: c.session, assistant: "voice" });
 	assert.equal(t.single_seat(t.map[c.session]), false, "a session can also step back to dual");
 });
 
 // 2. who is spawned
 await check("single: no fast agent, no code-filed Question, one agent in the smart seat with its own brief", async () => {
-	spawned.length = 0;
-	const s = make(), made = s.create({ path: "/a/" });
+	await tick(); spawned.length = 0;
+	const s = make(), made = s.create({ path: "/a/", fresh: true });
 	s.say({ session: made.session, path: "/a/", text: "Where does the single seat go?", via: "text" });
 	await tick();
-	assert.ok(!spawned.some(x => x.role === "voice-assistant" || x.role === "session-fast" || x.role === "session-smart"), "no other role spawned");
+	assert.ok(!spawned.some(x => x.role === "voice-assistant" || x.role === "session-fast" || x.role === "session-smart"), "no other role spawned: " + spawned.map(x => x.role));
 	const spec = spawned.find(x => x.role === "single-voice-assistant");
 	assert.ok(spec, "the single-voice-assistant role is spawned");
 	assert.equal(spec.name, made.session);
@@ -92,7 +92,7 @@ await check("single: no fast agent, no code-filed Question, one agent in the sma
 // 3. every sentence at once
 await check("single: each sentence reaches the seat at once, with no thought hold", async () => {
 	sent.length = 0;
-	const s = make(), made = s.create({ path: "/a/" });
+	const s = make(), made = s.create({ path: "/a/", fresh: true });
 	s.say({ session: made.session, path: "/a/", text: "First sentence", via: "voice", floor: "speaking" });
 	s.say({ session: made.session, path: "/a/", text: "Second sentence.", via: "voice", floor: "speaking" });
 	await tick();
@@ -107,7 +107,7 @@ await check("single: each sentence reaches the seat at once, with no thought hol
 // 4. the pause cue
 await check("pause cue: one cue after the pause, none while sentences keep coming, none while the seat is busy", async () => {
 	sent.length = 0;
-	const s = make(), made = s.create({ path: "/a/" });
+	const s = make(), made = s.create({ path: "/a/", fresh: true });
 	const say = text => s.say({ session: made.session, path: "/a/", text, via: "voice", floor: "speaking" });
 	say("One."); await tick();
 	const id = s.map[made.session].smart;
@@ -128,7 +128,7 @@ await check("pause cue: one cue after the pause, none while sentences keep comin
 
 await check("text without an open cue is dropped; an empty turn is dropped; a cue turn's text becomes the reply", async () => {
 	sent.length = 0;
-	const s = make(), made = s.create({ path: "/a/" }), file = file_of(made);
+	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
 	s.say({ session: made.session, path: "/a/", text: "Does it work?", via: "voice", floor: "speaking" });
 	await tick();
 	const id = s.map[made.session].smart, agent = { id };
@@ -159,10 +159,11 @@ await check("the brief is under 700 words and names its own files", () => {
 
 const REL = "public/framework/ai/sessions/2026/11/02/.single-voice-test-" + process.pid;
 const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "session.jsonl"), URL_ = "/" + REL.slice("public/".length) + "/";
-const S = make(), made = S.create({ path: "/a/" });
+const S = make(), made = S.create({ path: "/a/", fresh: true });
 for (const text of ["so um the tab bar is broken", "on my phone", "also we need a new logo"]) S.say({ session: made.session, path: "/a/", text, via: "text" });
 const owner = lines(file_of(made)).filter(l => l.chat?.from?.kind === "owner").map(l => l.chat);
 const [at1, at2, at3] = owner.map(c => c.at), prompt = owner[0].prompt;
+const message = Session.replay(lines(file_of(made))).messages.messages.find(m => m.constructor.name === "Prompt").id;
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(FILE, fs.readFileSync(file_of(made), "utf8"));
 const results = [];
@@ -170,7 +171,7 @@ try {
 	const blocks = [...brief.matchAll(/```js\n([\s\S]*?)```/g)].map(m => m[1]);
 	await check("the brief has item-tool examples (a clean, a paragraph, a card with a title, a move, an amend)", () => assert.ok(blocks.length >= 5, `${blocks.length} examples`));
 	for (const [i, block] of blocks.entries()){
-		const code = block.replaceAll("<session>", URL_).replaceAll("<at1>", at1).replaceAll("<at2>", at2).replaceAll("<at3>", at3).replaceAll("<prompt>", prompt);
+		const code = block.replaceAll("<session>", URL_).replaceAll("<at1>", at1).replaceAll("<at2>", at2).replaceAll("<at3>", at3).replaceAll("<prompt>", prompt).replaceAll("<message>", message);
 		const item = async args => { const r = await run_item(args, { caller: "single-voice-assistant-test" }); results.push({ i, r }); return r; };
 		await new (Object.getPrototypeOf(async function(){}).constructor)("item", code)(item);
 	}

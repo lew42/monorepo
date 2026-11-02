@@ -72,7 +72,8 @@ const env = (name, dflt) => { const n = Number(process.env[name]); return proces
  * voice-assistant role, woken per sentence to write one {place} line (THE DEFAULT: the owner, 2026-11-01, "the fast assistant
  * might be doing half of the work... turning it off isn't going to fix anything... put them to work"; then 2026-11-02: "I think
  * that we'll just have one assistant... that's the way we'll go for now", so the file now says `off`); `fast` = the old
- * session-fast chatter; `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
+ * session-fast chatter; `single` = ONE agent (role `single-voice-assistant`) in the smart seat and no fast one, fed every sentence at once and
+ * answering only on a pause cue (ux/Dictate/doc/single-voice-assistant.md); `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
  * code, which it never does while a seat is on, so the two never both file one). Read once at boot, first match wins:
  *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast or voice. This is the
  *      switch that survives a restart, because sustain.mjs relaunches Servex through WMI and pins only SERVEX_HOME and
@@ -80,7 +81,7 @@ const env = (name, dflt) => { const n = Number(process.env[name]); return proces
  *   2. the env var SERVEX_SESSION_ASSISTANT (a hand-started Servex or a private test one).
  *   3. `voice`.
  * To switch: write the word into the file and restart Servex (never during a voice call). */
-export const ASSISTANTS = ["fast", "voice", "off"];
+export const ASSISTANTS = ["fast", "voice", "single", "off"];
 const pick_assistant = v => { const w = String(v ?? "").trim().toLowerCase(); return ASSISTANTS.includes(w) ? w : null; };
 export function session_assistant(home = HOME){
 	let file = null;
@@ -247,7 +248,7 @@ export default class Sessions {
 			 * owner has been quiet `answer_quiet_ms` (the browser's `quiet` event, ux/Dictate/floor.js's
 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
-			answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
+			single_pause_ms: env("SERVEX_SESSION_SINGLE_PAUSE_MS", 1000), answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
 			/* GROUPING (the owner, 2026-10-25: "my chat logs are coming in very quickly"): a spoken Prompt (one bubble)
 			 * stays open for `prompt_close_ms` of quiet after the thought is handed to the seats, so the next sentences
 			 * join it as one paragraph instead of a new bubble every 2.5 s; it also closes the moment an assistant
@@ -351,10 +352,16 @@ export default class Sessions {
 		} catch (e){ console.error(`sessions: tail ${s.id}: ${e.message}`); return false; }
 	}
 
-	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?, tail?};
+	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?, tail?, assistant?};
 	 * null drops a knob back to the default; `tail: true` makes the smart seat follow its own session.jsonl (`tail_log`). Returns the knobs now in force. */
-	settings({ session, gap_ms, every, tail } = {}){
+	settings({ session, gap_ms, every, tail, assistant } = {}){
 		const s = this.get(session);
+		if (assistant !== undefined){
+			if (assistant !== null && !ASSISTANTS.includes(assistant)) throw Object.assign(new Error(`assistant must be ${ASSISTANTS.join(", ")} or null`), { status: 400 });
+			const before = this.assistant_of(s);
+			if (assistant === null) delete s.assistant; else s.assistant = assistant;
+			if (this.assistant_of(s) !== before && (this.awake(s, "fast") || this.awake(s, "smart"))) this.sleep(s, "assistant changed");   // the next sentence wakes the new seat (wake() reseats)
+		}
 		if (tail !== undefined){ tail ? s.tail = true : delete s.tail; }
 		const patch = {};
 		if (gap_ms !== undefined) patch.gap_ms = gap_ms;
@@ -362,7 +369,7 @@ export default class Sessions {
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
 		this.save();
-		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}) };
+		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), assistant: this.assistant_of(s) };
 	}
 
 	install(){
@@ -465,7 +472,7 @@ export default class Sessions {
 			 * it, to this one role only. Not gated by the wake policy: a recovery, not a new thought. */
 			try {
 					this.wake(s, from.role);
-					if (last_owner) from.role === "fast" && this.voice_seat() ? this.voice_say(s, [last_owner]) : this.send(s, from.role, last_owner.text);
+					if (last_owner) from.role === "fast" && this.voice_seat(s) ? this.voice_say(s, [last_owner]) : this.send(s, from.role, last_owner.text);
 				}
 			catch (e){ console.error(`sessions: fallback respawn failed: ${e.message}`); }
 		});
@@ -487,9 +494,13 @@ export default class Sessions {
 	}
 
 	/* THE VOICE SEAT: is this session's `fast` agent the voice assistant? */
-	voice_seat(){ return this.assistant === "voice"; }
+	/* The seat a SESSION runs: its own word (`s.assistant`, set through settings()) or the boot word (`this.assistant`). */
+	assistant_of(s){ return ASSISTANTS.includes(s?.assistant) ? s.assistant : this.assistant; }
+	voice_seat(s){ return this.assistant_of(s) === "voice"; }
+	/* THE SINGLE SEAT (ux/Dictate/doc/single-voice-assistant.md): ONE agent, role `single-voice-assistant`, in the smart seat; no fast agent. */
+	single_seat(s){ return this.assistant_of(s) === "single"; }
 	/** No fast seat at all (`session-assistant.txt` = off; the default is voice): `wake`, `send` and `mark_sent` skip the "fast" role. */
-	fast_off(){ return this.assistant === "off"; }
+	fast_off(s){ return ["off", "single"].includes(this.assistant_of(s)); }
 
 	/* Every owner sentence of the session so far, oldest first, as `{at, text, selection?}` (a refined line is the
 	 * assistant's, so only `from.kind === "owner"` lines count). */
@@ -682,10 +693,44 @@ export default class Sessions {
 		fs.appendFileSync(file, lead + JSON.stringify(line) + "\n");
 	}
 
+	/* THE SINGLE SEAT hears each sentence the moment it is said (no thought hold, no wake gate), files it with the item tool, and answers
+	 * only when `single_cue` tells it the owner paused. Nothing else runs: no refine(), no fast agent. */
+	single_say(s, line, { site, text, selection, floor }){
+		s.smart_re = line.at;
+		this.set_floor(s, floor ?? "done");
+		this.wake(s, "smart");
+		this.save();
+		this.mark_sent(s, "smart", [line]);
+		const mid = this.chat_writer.message_for(s.id, line.at);
+		this.send(s, "smart", `${selected_prefix(selection)}[on ${site} at ${line.at}] ${text}
+(sentence)` + (line.prompt ? `
+(prompt ${line.prompt})` : "") + (mid ? `
+(message ${mid})` : ""));
+		this.close_prompt_later(s);
+		this.single_cue(s);
+		return { ok: true, at: line.at, answered_by: [{ kind: "assistant", id: "smart", agent: s.smart }] };
+	}
+
+	/* The pause cue: `single_pause_ms` after the last sentence, once the seat is idle (a busy seat is retried), ONE short message opens a
+	 * reply turn. A new sentence cancels it. */
+	single_cue(s){
+		const timers = this.cue_timers ??= new Map();
+		clearTimeout(timers.get(s.id));
+		const fire = () => {
+			if (!this.single_seat(s) || !this.awake(s, "smart")) return;
+			if (this.servex.agents.live.get(s.smart)?.state === "working") return void timers.set(s.id, setTimeout(fire, this.single_pause_ms).unref());
+			s.cue_open = true;
+			this.send(s, "smart", "(pause: reply now only if a question is open)");
+		};
+		const t = setTimeout(fire, this.single_pause_ms);
+		t.unref?.();
+		timers.set(s.id, t);
+	}
+
 	/* A `{sent}` line: these owner lines have just been handed to the `to` seat ("fast" | "smart"). `delay_ms` is the time from the
 	 * words leaving the owner's draft (`said_at`, else arrival) to now. The chat draws it beside each line (ux/Dictate/Widget.js `Thread.sent`). */
 	mark_sent(s, to, lines){
-		if (to === "fast" && this.fast_off()) return;
+		if (to === "fast" && this.fast_off(s)) return;
 		try {
 			const ls = (lines ?? []).filter(l => l?.at);
 			if (!ls.length) return;
@@ -1082,7 +1127,8 @@ export default class Sessions {
 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
 		this.write(s, { chat: line });
 		/* With the fast seat off, code files the Question the voice assistant used to (one per "?" sentence, the same line shape). */
-		if (this.fast_off() && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
+		if (this.assistant_of(s) === "off" && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
+		if (this.single_seat(s)) return this.single_say(s, line, { site, text, selection, floor });
 		this.refine(s, line).catch(e => this.servex?.say?.(`sessions: could not refine an utterance: ${e.message || e}`));
 		if (line.thread){
 			(s.threaded ??= []).push(line.at);
@@ -1108,7 +1154,7 @@ export default class Sessions {
 		} else {
 			s.fast_re = s.fast_thought_at = line.at;
 			s.fast_heard = text;
-			if (this.voice_seat()) this.voice_say(s, [line]);
+			if (this.voice_seat(s)) this.voice_say(s, [line]);
 			else this.send(s, "fast", `${selected_prefix(selection)}[on ${site}] ${text}\n(prompt ${prompt})`);
 			this.mark_sent(s, "fast", [line]);
 			this.gather(s, line);
@@ -1267,7 +1313,7 @@ export default class Sessions {
 		s.fast_thought_at = h.lines[0].at;   // the FIRST owner line of this thought — a `(new paragraph)` marker's `re`
 		this.save();
 		this.wake(s, "fast");
-		if (this.voice_seat()) this.voice_say(s, h.lines);
+		if (this.voice_seat(s)) this.voice_say(s, h.lines);
 		else this.send(s, "fast", said + tail);
 		this.mark_sent(s, "fast", h.lines);
 		this.waker.add(s.id, h.lines, typed ? { hold_ms: this.quiet_ms } : { elapsed_ms: quiet ?? 0 });
@@ -1312,7 +1358,7 @@ export default class Sessions {
 	}
 
 	send(s, role, text){
-		if (role === "fast" && this.fast_off()) return;
+		if (role === "fast" && this.fast_off(s)) return;
 		const notes = s.notes?.[role]?.splice(0) ?? [];
 		if (notes.length){ text = notes.join("\n") + "\n" + text; this.save(); }
 		try { this.servex.agents.send(s[role], text, { from: "owner" }); }
@@ -1322,6 +1368,9 @@ export default class Sessions {
 	// ── the two agents ───────────────────────────────────────────────────────
 
 	brief(role){ return fs.readFileSync(path.join(HERE, `session-${role}.md`), "utf8"); }
+
+	/* The single voice assistant's whole system text: its own brief (Servex/agents/single-voice-assistant.md). */
+	single_brief(){ return fs.readFileSync(path.join(HERE, "single-voice-assistant.md"), "utf8"); }
 
 	/* The voice assistant's whole system text: the `voice-assistant` skill, minus its front matter. */
 	voice_brief(){
@@ -1337,6 +1386,7 @@ export default class Sessions {
 		const backend = s.fallback?.[role] ? "openrouter" : session_backend();
 		if (backend === "openrouter") return FALLBACK_MODEL;
 		if (backend === "local") return role === "fast" ? "local/qwen2.5-coder" : FALLBACK_MODEL;
+		if (role === "smart" && this.single_seat(s)) return tier_model("voice_single");
 		return this.claude_model(role);
 	}
 
@@ -1352,8 +1402,18 @@ export default class Sessions {
 			+ (!s.card ? "" : role === "fast" ? `\n\nThis session is about card ${s.card}.`
 				: `\n\nThis session is about card ${s.card}. Its record is public${s.home}page.jsonl; read that file first for the card's history.`)
 			+ (context ? `\n\nThis session ran before you; its last lines follow (the whole record is public${s.file}):\n${context}` : "");
-		const voice = role === "fast" && this.voice_seat();
-		const spec = voice ? {
+		const voice = role === "fast" && this.voice_seat(s);
+		const single = role === "smart" && this.single_seat(s);
+		const spec = single ? {
+			/* THE SINGLE VOICE ASSISTANT in the smart seat: lean like the voice assistant (no settings, no memory, no built-in tools) but WITH
+			 * Servex's door: the item tool files sentences, spawn_agent delegates. */
+			role: "single-voice-assistant", name: s.id, model: this.session_model(s, "smart"), effort: "low", urgent: true,
+			permission_mode: "bypassPermissions", cwd: this.repo, setting_sources: [],
+			system: this.single_brief() + where,
+			env: { ENABLE_CLAUDEAI_MCP_SERVERS: "false", CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" },
+			sdk: { tools: [] },
+			parent: "sessions", parent_session: s.id
+		} : voice ? {
 			/* THE VOICE ASSISTANT in the fast seat: same lean process (no settings, no memory, no built-in tools) but WITH Servex's
 			 * door, because its one job is the item tool (`mcp__local__item`). `name: s.id` makes Agents.name() mint
 			 * `voice-assistant-<session>`; the id is then kept in `s.fast` and reused, so it never respawns per sentence. */
@@ -1413,15 +1473,15 @@ export default class Sessions {
 	 * exactly the case right after a fallback deliberately clears it). A new pair first
 	 * makes room (max_pairs). Each spawn writes a `backing` line (the latest one wins). */
 	wake(s, role){
-		if (role === "fast" && this.fast_off()) return false;
+		if (role === "fast" && this.fast_off(s)) return false;
 		if (this.awake(s, role)) return false;
 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
 		const target_model = this.session_model(s, role);
 		/* A change of WHO SITS in the fast seat (SERVEX_SESSION_ASSISTANT flipped across a restart): the old agent's id and Claude
 		 * session belong to the other role, so drop both. The fresh voice agent gets a name from Agents.name(), plus the tail. */
-		const seat = role === "fast" ? (this.voice_seat() ? "voice" : "fast") : null;
-		const reseat = !!(seat && (s.fast || s.backing?.fast) && (s.fast_seat ?? "fast") !== seat);
-		if (reseat){ s.fast = null; (s.backing ??= {}).fast = null; }
+		const seat = role === "fast" ? (this.voice_seat(s) ? "voice" : "fast") : (this.single_seat(s) ? "single" : "smart"), seat_key = `${role}_seat`;
+		const reseat = !!((s[role] || s.backing?.[role]) && (s[seat_key] ?? role) !== seat);
+		if (reseat){ s[role] = null; (s.backing ??= {})[role] = null; }
 		const old = s.backing?.[role];
 		/* Only a change of PROVIDER forces a fresh spawn (review finding 5): the default Claude
 		 * path already switches `smart` between Opus and Sonnet on its own (`Usage.over_pace()`,
@@ -1443,7 +1503,7 @@ export default class Sessions {
 		try { agent = this.spawn(s, role, can ? { resume: old } : { context: give_context ? this.tail(s, 40) : "" }); }
 		catch (e){ this.sleep(s, "failed revive"); throw e; }
 		s[role] = agent.id;
-		if (seat) s.fast_seat = seat;
+		s[seat_key] = seat;
 		this.by_agent.set(agent.id, { id: s.id, role });
 		(s.backing ??= {})[role] = agent.session_id ?? null;
 		(s.backing_model ??= {})[role] = agent.model ?? target_model;
@@ -1505,11 +1565,17 @@ export default class Sessions {
 	heard(event, agent){
 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
 		if (!s) return;
-		if (event.type === "delta" && !event.nested) return this.streaming(s, who.role, agent.id, event.text);
+		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) && !s.cue_open ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: only a cue turn is a reply
 		if (event.type === "tool" && !event.nested) return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
 		if (event.stopped) return;
+		/* The single assistant files silently: a turn's text is a reply ONLY when a pause cue is open; the cue closes at its result. */
+		if (who.role === "smart" && this.single_seat(s)){
+			const cued = !!s.cue_open;
+			delete s.cue_open;
+			if (!cued || !String(event.text ?? agent.last_text ?? "").trim()) return;
+		}
 		/* The voice assistant answers with a {place} line (item tool), never in chat: whatever text its turn ends on is dropped. */
 		if (who.role === "fast" && s.fast_seat === "voice") return;
 		let text = String(event.text ?? agent.last_text ?? "").trim();
