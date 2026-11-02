@@ -101,7 +101,10 @@ class ModuleMove {
 			const history = ModuleMove.HISTORY.test(file) && !moved;
 			const code = ModuleMove.CODE.test(file), data = ModuleMove.DATA.test(file);
 			if (history && !code) continue;   // a dated record's prose and logs keep the name they had
-			const text = fs.readFileSync(path.join(this.repo, file), "utf8");
+			// A file listed but gone by the time it is read (another process's temp file, a test fixture) holds no link to rewrite.
+			// Before 2026-11-02 its ENOENT failed the whole move (Files.move.test.mjs, red whenever another test ran beside it).
+			let text;
+			try { text = fs.readFileSync(path.join(this.repo, file), "utf8"); } catch (e){ if (e.code === "ENOENT") continue; throw e; }
 			if (data && !text.includes('"class"')) continue;
 			const lines = text.split("\n"), edits = [];
 			lines.forEach((line, n) => {
