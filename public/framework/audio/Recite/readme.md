@@ -21,7 +21,7 @@ Tapping a reply bubble's text (or its ▶/⏸) plays or pauses that bubble — f
 
 **Echo settings:** `recite.echo_guard_ms` (default 1500) is how long after playback stops the echo guard below still applies; `recite.barge.echo_threshold_mult` (default 1.6) raises the barge-in loudness floor during that guard, so the voice itself and a cough right after it don't hold a reply or fire the fast trigger; `recite.barge.near_silent` (default 0.045) is the own-mic peak level below which a Whisper final is treated as hallucinated, not real speech.
 
-**The thinking cue:** `recite.thinking_cue` (default `true`) plays a short, subtle generated tone once the owner's line lands and a reply has not started yet, again `recite.cue_repeat_ms` (default 2000 ms) later if it still has not — then it stays quiet. Set `thinking_cue = false` to turn it off.
+**The thinking cue:** a short, subtle generated tone that replaces a long silence. It plays only when the voice agent fires it, by writing the session line `{"thinking":{"by":"smart"}}` (`item({path: <session>, delta: {thinking: {by: "smart"}}})`); `Recite.start_thinking()` then plays it and repeats every `recite.cue_repeat_ms` (default 2000 ms) until the reply starts (or 60 s pass with none). A plain owner line plays nothing. `recite.thinking_cue = false` turns it off.
 
 In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
 

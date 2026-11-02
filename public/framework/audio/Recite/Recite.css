@@ -32,8 +32,8 @@
 	.audio-recite-btn.is-open { color: var(--prime); }
 	/* The resume control: the same Play button, filled while state is `heard`/`paused`, so it reads as a
 	   distinct "tap to resume" rather than a generic play/pause toggle. */
-	.audio-recite-btn.is-resume { background: var(--prime); color: var(--prime-ink); }
-	.audio-recite-btn.is-resume:hover { background: var(--prime); color: var(--prime-ink); }
+	.audio-recite-btn.is-resume { background: var(--prime); color: #1a1a1a; }   /* --prime is the same colour in light and dark, so the ink is one fixed dark (#1a1a1a on the computed --prime rgb(255,97,87) is about 5.9:1; framework.css uses the same ink on orange); --prime-ink is orange in dark mode and vanished */
+	.audio-recite-btn.is-resume:hover { background: var(--prime); color: #1a1a1a; }
 
 	.audio-recite-track {
 		position: relative;
