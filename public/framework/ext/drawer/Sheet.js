@@ -87,7 +87,7 @@ export default class Sheet extends View {
 			} catch (e){ rows = null; recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
 			clearTimeout(timer);
 			if (chat.current?.()) return listen(chat.current(), `this page's session (${why}, found while searching)`);
-				if (chat.active?.().fresh) return listen(null, `New session pressed during the search (${why})`);
+			if (chat.active?.().fresh) return listen(null, `New session pressed during the search (${why})`);
 			if (!rows){   // the search failed or hung (the phone through the tunnel): a ?session= in the url, else the session this browser last followed
 				const last = Wire.last_session();   // written by every say, session pick and follow on this browser
 				const url = new URLSearchParams(location.search).get("session");
