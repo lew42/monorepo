@@ -20,7 +20,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   id                        // from the constructor, or line 1 of the log
   messages: Chat, sentences: List<Sentence>   // the chat, in order, and the owner's raw words: ./Chat/readme.md (written by Servex beside V1's {chat} lines since 2026-11-01)
   tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session"|"Prompt"|"Question", …}) (Prompt and Question: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)); each child knows created_at (its line's time)
-  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = done / total of its tasks. Never stored
+  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = the average of its tasks' own completions (stopped ones left out; doc/classes.md, "Completion"). Never stored
   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
   first_at, last_at, span_ms  // from the lines' own times, never stored
   static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder

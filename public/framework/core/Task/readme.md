@@ -107,7 +107,7 @@ Watch it live: [core/Task/live/](/framework/core/Task/live/).
   in `ai/objects.js`'s display `Task`, `ai/AITask`'s page renderer, `ext/JSONL`'s
   `TaskJSONL`, and `ai/AITask/nested.js`'s `TaskTree`.
 - **Fields** (getters that read data, never stored numbers): `expected`, `module`, `session` (`session ?? session_id`), `priority` (latest `{priority:{score,why,by}}` line or `null`), `commits` (short hashes from `{"commit":"…"}` lines, no duplicates; `commit(hash)` appends one). Replay reads both lines without leaving the legacy mapping. `sessions` ([{id, task}], node appends it), `source` (voice-app | vscode | dictate | servex:<id>; an old `/` doc path reads as `doc`) and `cost` (USD, computed from the agents on this task via `Task.cost_resolver`, wired in `Servex/agents/Agents.js`).
-- **`completion`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the share of complete subtasks (the only computed form); else old `steps`/`step` logs; else the agent's `data.completion`, or 1 when complete. New tasks no longer write `steps`.
+- **`completion`** (0 to 1): `checked_by` set (`check({by})`, final) is 1; else the average of the non-stopped subtasks' own completions (the only computed form; a half-done subtask counts 0.5, the average recurses, so a complete parent with open children reads below 1 unless `checked_by` is set; `Prompt` follows the same rule); else old `steps`/`step` logs; else the agent's `data.completion`, or 1 when complete. New tasks no longer write `steps`.
 
 ## More
 
