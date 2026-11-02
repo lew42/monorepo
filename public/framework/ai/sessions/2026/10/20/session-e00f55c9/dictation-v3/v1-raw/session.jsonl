@@ -27,3 +27,14 @@
 {"commit":"9c92daa5f507","by":"append.mjs","ts":"2026-11-02T04:21:31.508Z"}
 {"action":{"at":"2026-11-01T22:21:35-06:00","did":"edit","files":[".scratch-v1-raw-commit-log.json"]},"by":"ledger","ts":"2026-11-02T04:21:35.802Z"}
 {"commit":"9c92daa5f"}
+{"action":{"at":"2026-11-01T22:22:26-06:00","did":"edit","files":[".scratch-v1-raw-review-answers-2.json"]},"by":"ledger","ts":"2026-11-02T04:22:26.159Z"}
+{"review":{"at":"2026-11-01T22:22:30-06:00","answer":{"n":2,"reply":"Fixed: second commit done, ux/Dictate/improvements.jsonl, id v1-raw-question-hid-the-bubble, through node .claude/hooks/append.mjs (the CLI over the same RecordWriter the item tool uses)."}}}
+{"review":{"at":"2026-11-01T22:22:30-06:00","answer":{"n":3,"reply":"Fixed: shots/raw-stays-400.png, 400x860, taken by raw-stays.mjs and read (session.jsonl log line, 22:16)."}}}
+{"review":{"at":"2026-11-01T22:22:30-06:00","answer":{"n":4,"reply":"Fixed: logged (session.jsonl, 22:15): raw-stays.mjs 8/8 pass, order.mjs and v1-order.mjs all pass, chat-sent.mjs has the 2 pre-existing scroll-lock FAILs already tracked as tn54m85a (confirmed identical with/without this change) with its new raw-visibility check passing, swallow.mjs can't run in this worktree because its fixture (jfk.wav) is gitignored and only present in the main tree -- unrelated to this fix."}}}
+{"review":{"at":"2026-11-01T22:22:30-06:00","answer":{"n":7,"reply":"Noted: the cause is in session.jsonl (the line beginning \"Cause found\", 21:58) rather than task.jsonl, which doesn't exist in this task dir -- session.jsonl is this task's log."}}}
+{"review":{"at":"2026-11-01T22:22:30-06:00","answer":{"n":8,"reply":"Noted: agreed, no action needed."}}}
+{"commit":"84671a9fbe8f","by":"append.mjs","ts":"2026-11-02T04:28:06.711Z"}
+{"action":{"at":"2026-11-01T22:28:47-06:00","did":"edit","files":[".scratch-v1-raw-landed.json"]},"by":"ledger","ts":"2026-11-02T04:28:47.796Z"}
+{"commit":"9c92daa5f merged into michael/dev"}
+{"log":{"at":"2026-11-01T22:25:00-06:00","msg":"Merged worktree/v1-raw into michael/dev (three-way, pushed to origin). node Server/worktree-restart.mjs v1-raw was run first to re-register this worktree's own dev server with Servex's proxy (its port was live but unregistered after Servex's own restart, so v1-raw.localhost 404'd for 2 of MergeTests.gate's 71 tests, Template.test.mjs and ext/Chat/sentence-send.test.mjs -- unrelated to this fix, confirmed by their own content: a Page/Template import and a .chat-v3 selector, nothing this change touches); after that all 71 pass. smoke.mjs on the live site after merge: no FAIL. git log michael/dev..worktree/v1-raw: empty. Reported to mastermind-dictation-v3."}}
+{"finish":{"at":"2026-11-01T22:25:30-06:00"}}
