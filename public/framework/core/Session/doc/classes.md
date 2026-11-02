@@ -51,9 +51,7 @@ So the voice agents don't yet add or edit messages by id themselves: Servex does
 
 ## Completion
 
-Today, `Task.completion` with subtasks is **the share of subtasks that are complete**. A half-done subtask counts as 0, and stopped ones are left out.
-
-The owner's formula (2026-11-02) is **the average of each subtask's own completion**: the sum of their completions divided by their count. So a half-done subtask counts as 0.5, and a session at 100% means every task in it is at 100%. This is being changed in `core/Task/Task.js` (`progress_of` and `completion`), test first.
+`Task.completion` with subtasks is **the average of each subtask's own completion** (the owner, 2026-11-02): the sum of their completions divided by their count, stopped ones left out. A half-done subtask counts 0.5, the average recurses down the tree, and a session at 100% means every task in it is at 100%. `progress()` is unchanged: `{done, total, stopped}` still counts the direct tasks that are complete, for the counts. Tests: `core/Task/Task.test.mjs` ("a half-done subtask counts 0.5") and `core/Session/Session.test.mjs`.
 
 ## An open naming question: `session.sessions`
 

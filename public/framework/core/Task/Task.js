@@ -312,11 +312,11 @@ export class Task extends Item {
 		return this;
 	}
 
-	// 0..1. Order: owner check, subtasks (the one computed form), old `steps`, agent's value.
+	// 0..1. Order: owner check, subtasks (the average of their own completions, so it recurses), old `steps`, agent's value.
 	get completion(){
 		if (this.data.checked_by) return 1;
-		const { done, total } = Task.progress_of(this._tasks);
-		if (total) return done / total;
+		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;   // the average of each subtask's own completion (the owner, 2026-11-02); a stopped one is left out
 		const steps = this.data.steps;
 		if (Array.isArray(steps) && steps.length){
 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));

@@ -182,6 +182,13 @@ check("complete: subtasks are the share finished", () => {
 	t.tasks.find("a").complete(EV);
 	return t.completion === 0.5;
 });
+check("complete: a half-done subtask counts 0.5, a stopped one is left out (the owner's formula, 2026-11-02)", () => {
+	const t = new Task({ id: "t" }), half = new Task({ id: "half" });
+	t.tasks.add(new Task({ id: "done" })); t.tasks.add(half); t.tasks.add(new Task({ id: "gone" }));
+	t.tasks.find("done").complete(EV); t.tasks.find("gone").stop?.({ why: "dropped" });
+	half.tasks.add(new Task({ id: "h1" })); half.tasks.add(new Task({ id: "h2" })); half.tasks.find("h1").complete(EV);
+	return t.tasks.find("gone").state === "stopped" && half.completion === 0.5 && t.completion === 0.75 && t.progress().done === 1 && t.progress().total === 2;
+});
 check("complete: legacy steps, step is the current one", () => {
 	const t = Task.replay([{ assign: { steps: ["a", "b", "c", "d"], step: 3 } }]);
 	return t.completion === 0.5;
