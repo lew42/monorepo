@@ -1,0 +1,41 @@
+// The browser scripts (Playwright, run by hand before) that `TestRunner.mjs --browser` runs, and the allow-list.
+// status "pass": must pass, a red one fails the run. "red": known failing (why says what), reported but does not fail the run;
+// when a "red" one passes, the run says so, and you move it to "pass". "skip": never run (why says why).
+// args: "{site}" the checkout's SITE_URL, "{shots}" a temp folder, "{repo}" this checkout, "{wav}" the fake-mic clip.
+// ms: its own time limit (default 120000).
+export const SCRIPTS = [
+	{"file":"public/framework/ux/Dictate/test/active-session.mjs","args":["{site}","{repo}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/chat-gray.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/chat-sent.mjs","args":["{site}","{shots}"],"status":"red","why":"v2 chat at 400px: scroll-pinning checks fail (scroll max 0, newest not in view)"},
+	{"file":"public/framework/ux/Dictate/test/debug-tab.mjs","args":["{site}","{shots}"],"status":"red","why":"Debug view shows llm=wait, not all eight lights green"},
+	{"file":"public/framework/ux/Dictate/test/deltas.mjs","args":["{site}"],"status":"red","why":"owner bubble should read One. Two. Three. once; the repeat is drawn or the late line is misplaced"},
+	{"file":"public/framework/ux/Dictate/test/dictation-bar.mjs","args":["{site}"],"status":"red","why":"flaky under load: passed in 19 s once, failed in later runs"},
+	{"file":"public/framework/ux/Dictate/test/docs-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/earlier.mjs","args":["{site}"],"status":"red","why":"after show-earlier, the reader moved (144 -> -1115)"},
+	{"file":"public/framework/ux/Dictate/test/errors.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/flicker.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/freeze.mjs","args":["{site}"],"status":"pass","ms":180000},
+	{"file":"public/framework/ux/Dictate/test/handoff.mjs","args":["{site}"],"status":"skip","why":"a real run: asks the live Servex, so it starts real agents"},
+	{"file":"public/framework/ux/Dictate/test/in-place.mjs","args":["{site}","{shots}"],"status":"red","why":"4 checks fail (see its output)"},
+	{"file":"public/framework/ux/Dictate/test/load.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"red","why":"A2: New session does not clear the demo chat"},
+	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},
+	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"red","why":"flaky or slow: passed in 93 s once, failed and timed out at 180 s later","ms":180000},
+	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"red","why":"delay 0.5 s: 3 prompts sent, wanted 2"},
+	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
+	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"red","why":"page.evaluate: querySelectorAll of undefined"},
+	{"file":"public/framework/ux/Dictate/test/v1-order.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/watch.mjs","args":["{site}"],"status":"pass"},
+	{"file":"public/framework/ux/Dictate/test/repeat.mjs","args":[],"status":"pass"},
+	{"file":"public/framework/ext/Refine/test/composer-flow.mjs","args":["{site}","{shots}/composer.png"],"status":"red","why":"screenshot step fails (unsupported mime type); needs Whisper :8178 and Servex"},
+	{"file":"public/framework/ext/Refine/test/dictate-flow.mjs","args":["{site}","{wav}","{shots}"],"status":"red","why":"times out waiting for .voice-conn"},
+	{"file":"public/framework/ext/Refine/test/nothing-to-refine.mjs","args":["{site}","{shots}"],"status":"red","why":"loading Dictate.js request errors"},
+	{"file":"public/framework/ext/Refine/test/session-log.mjs","args":["{site}","{shots}"],"status":"pass"},
+	{"file":"public/framework/ext/Refine/test/refine-style.mjs","args":[],"status":"pass"},
+	{"file":"Servex/ext/refine/test/tag-router.mjs","args":[],"status":"pass"},
+	{"file":"Servex/ext/refine/test/live-refine-measure.mjs","args":[],"status":"skip","why":"spends model money (default cap 5 dollars) and writes into a session folder"},
+];
