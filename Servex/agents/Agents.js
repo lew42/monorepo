@@ -63,7 +63,7 @@ export class Agents {
 
 	/* `boot` names THIS host process — every registry row it writes carries it,
 	 * so the next boot can tell "alive a moment ago" from "long dead". */
-	constructor(...args){ this.assign({ live: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Session.agents_at_resolver = task => this.agents_at(task); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
+	constructor(...args){ this.assign({ live: new Map(), reviving: new Map(), boot: `${Date.now().toString(36)}-${process.pid}` }, ...args); Task.cost_resolver = task => this.task_cost(task); Session.agents_resolver = (dir, o) => this.agents_under(dir, o); Session.agents_at_resolver = task => this.agents_at(task); Task.turns_resolver = sid => this.session_turns(sid); setTimeout(() => { try { PastWork.tasks(); } catch {} }, 10000).unref(); }   // warms the past-work cache so the first spawn pays ~0.5 s, not 3 s
 	assign(...args){ return Object.assign(this, ...args); }
 
 	/* THE SINGLE WRITER, and the reason an agent never opens a file itself.
@@ -432,13 +432,13 @@ export class Agents {
 	 * Not revivable (so `gone`): a spawn that brought its own `system`, `sdk`
 	 * options or in-process MCP servers — those are code, not data, and their
 	 * owners (Assistant.js) spawn them again themselves — and a fork. */
-	revive({ window_min = 30 } = {}){
+	revive({ window_min = 30, gap_s = Number(process.env.SERVEX_REVIVE_GAP_S ?? 3) } = {}){
 		/* ONCE PER PROCESS (2026-10-18): a second sweep in the same process would treat agents spawned since boot as the
 		 * previous boot's. Servex.js calls this once; the guard keeps a reload or a second caller from re-running it. */
 		if (this.revived) return this.revived;
 		const reg = this.reg(), prev = reg.last_boot();
 		reg.mark_boot(this.boot);
-		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] }, reasons = {};
+		const out = { revived: [], told: [], gone: [], legacy: [], skipped: [] }, reasons = {}, waking = [];
 		const boot_at = parseInt(String(this.boot).split("-")[0], 36) || Date.now();   // `boot` = <base36 ms>-<pid>
 		/* A restart that took a snapshot first: exactly the agents it listed come back, however long they had been idle. */
 		const snap = this.restart_snapshot(prev);
@@ -497,28 +497,60 @@ export class Agents {
 				if (skip.dead && row.state !== "gone") out.gone.push(row.id);
 				continue;
 			}
-			if (ours && (legacy || row.revivable) && row.session_id)
-				try { agent = this.reopen(row); } catch {}
-			if (!agent){
-				reasons[row.id] = `servex restarted; not revived: ${!ours ? "not open in the previous boot, or idle past the window" : !row.session_id ? "no session to resume" : "its spawn carried code (system/sdk/in-process tools), its owner spawns it again"}`;
-				if (row.state !== "gone") out.gone.push(row.id);
+			const id = row.id;
+			const can = ours && (legacy || row.revivable) && row.session_id;
+			if (!can){
+				reasons[id] = `servex restarted; not revived: ${!ours ? "not open in the previous boot, or idle past the window" : !row.session_id ? "no session to resume" : "its spawn carried code (system/sdk/in-process tools), its owner spawns it again"}`;
+				if (row.state !== "gone") out.gone.push(id);
 				continue;
 			}
-			const id = row.id;
-			out.revived.push(id);
-			if (legacy) out.legacy.push(id);
 			/* Every agent that comes back is told (the owner, 2026-10-22). One that was mid-turn checks its last tool call; an idle
 			 * one learns its session was resumed, and that a background shell or sleep it started is gone (wake_me survives). */
 			const lost = !snap || snap.how === "crash";   // an uncaught error, a native crash or a kill: not a planned restart
 			const when = snap ? ` at ${snap.at.slice(11, 16)}${snap.by && !snap.how ? ` (asked by ${snap.by})` : ""}` : ` at about ${stamp(boot_at).slice(11, 16)}`;
 			const what = lost ? "crashed" : "restarted";
 			const was = snap?.agents?.find(x => x.id === id)?.state ?? row.state;   // a row stopped by the dying Servex still says what it was doing
-			agent.send(was === "working"
+			const text = was === "working"
 				? `Servex ${what}${when} mid-turn; resume. Your last tool call may not have finished. Check and continue.`
-				: `Servex ${what}${when}; resume. Your session was resumed and nothing was lost; any background shell or sleep you had running is gone, so set it again with wake_me if you were waiting on something. If you were idle, there is nothing to do: answer in one line.`,
-				{ from: "servex" });
+				: `Servex ${what}${when}; resume. Your session was resumed and nothing was lost; any background shell or sleep you had running is gone, so set it again with wake_me if you were waiting on something. If you were idle, there is nothing to do: answer in one line.`;
+			const start = () => {
+				if (this.reg().read()[id]?.stopped_by) return true;   // stopped while it waited its turn: stays stopped (the row said so after boot, `row` is the copy from boot)
+				const live = this.live.get(id);
+				if (live && live.state !== "stopped"){ live.send(text, { from: "servex" }); return true; }   // a message woke it first
+				let opened = null; try { opened = this.reopen(row); } catch {}
+				if (opened) opened.send(text, { from: "servex" });
+				return !!opened;
+			};
+			/* STAGGERED (2026-11-02): reopening 17 agents in one pass is a burst of 17 claude.exe plus ~30 /mcp posts in 2 s, and the native
+			 * crash at 09:47 came 62 s after such a boot. With a gap, mid-turn agents go first, one every `gap_s` seconds (SERVEX_REVIVE_GAP_S,
+			 * 0 = all at once). Not proved to be the cause: doc/restart.md. */
+			if (gap_s > 0){ waking.push({ id, was, start }); this.reviving.set(id, { was, session_id: row.session_id, parent: row.parent ?? null }); }
+			else if (!start()){
+				reasons[id] = "servex restarted; not revived: its session could not be reopened";
+				if (row.state !== "gone") out.gone.push(id);
+				continue;
+			}
+			out.revived.push(id);
+			if (legacy) out.legacy.push(id);
 			out.told.push(id);
 		}
+		/* A SECOND CRASH WHILE THEY WAIT must not lose them: their rows now belong to THIS boot (and read as open, not stopped), and
+		 * snapshot() lists them, so the next boot's sweep (previous boot's rows only) brings them back. */
+		if (waking.length){
+			const rows = reg.read();
+			for (const { id, was } of waking) if (rows[id]){ rows[id].boot = this.boot; if (rows[id].state === "stopped") rows[id].state = was; }
+			reg.save(rows);
+		}
+		waking.sort((a, b) => (b.was === "working") - (a.was === "working")).forEach(({ id, start }, i) => {
+			const go = () => {
+				this.reviving.delete(id);
+				let ok = false; try { ok = start(); } catch {}
+				if (ok) return;
+				reg.bury([id], "servex restarted; not revived: its session could not be reopened");
+				this.store().append("servex", { type: "revive-failed", id }).catch(() => {});
+			};
+			i === 0 ? go() : setTimeout(go, i * gap_s * 1000).unref?.();
+		});
 		reg.bury(out.gone, "servex restarted");
 		/* the reason on the row itself, not only in servex.jsonl (the owner, 2026-10-22) */
 		const rows = reg.read(); let wrote = false;
@@ -536,6 +568,7 @@ export class Agents {
 		const wakes = this.wakeups?.list() ?? [], rows = this.reg().read();
 		const agents = [...this.live.values()].filter(a => a.state !== "stopped")
 			.map(a => ({ id: a.id, state: a.state, session_id: a.session_id ?? null, parent: a.parent ?? null }));
+		for (const [id, p] of this.reviving) if (!rows[id]?.stopped_by && !agents.some(a => a.id === id)) agents.push({ id, state: p.was, session_id: p.session_id ?? null, parent: p.parent });   // revive's queue: not yet reopened
 		for (const w of wakes) if (!agents.some(a => a.id === w.agent))
 			agents.push({ id: w.agent, state: rows[w.agent]?.state ?? "unknown", session_id: rows[w.agent]?.session_id ?? null, parent: rows[w.agent]?.parent ?? null });
 		for (const a of agents) a.wakeups = wakes.filter(w => w.agent === a.id).map(w => ({ id: w.id, due: w.due, why: w.why }));

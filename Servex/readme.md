@@ -53,7 +53,7 @@ Inside the repo Servex writes only the AI records ([ai/](/framework/ai/)). Its o
 
 ## Crash and revive
 
-A planned restart and a crash both bring every working or idle agent back: `Servex.shutdown()` writes the snapshot before it stops anyone, and a boot with no snapshot rebuilds the list from the registry and tells each agent "Servex crashed at <time>; resume". The two crash kinds (a JavaScript error, a native fast-fail), the cause found for the 00:31 one, and what to watch for the other: [doc/restart.md](doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02). Browser tests are fenced off the live Servex ([Server/ServexFence.mjs](../Server/ServexFence.mjs)).
+A planned restart and a crash both bring every working or idle agent back: `Servex.shutdown()` writes the snapshot before it stops anyone, and a boot with no snapshot rebuilds the list from the registry and tells each agent "Servex crashed at <time>; resume". The two crash kinds (a JavaScript error, a native fast-fail), the cause found for the 00:31 one, and what to watch for the other: [doc/restart.md](doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02). A boot reopens its agents one every `SERVEX_REVIVE_GAP_S` seconds (default 3, 0 = all at once; mid-turn first), not all in the same two seconds. Browser tests are fenced off the live Servex ([Server/ServexFence.mjs](../Server/ServexFence.mjs)).
 
 ## Overlaps
 
