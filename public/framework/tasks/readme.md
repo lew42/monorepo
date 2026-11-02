@@ -34,6 +34,10 @@ Until then: one line per task below, and when one gets a real task folder, link 
   - **What happens (2026-11-02, three times this afternoon):** `quick_fix` and the voice seat both get "no quick-fix worktree is ready", while `Server/worktree-servers.mjs --list` shows pool slots qf-6, qf-7 and qf-8 "kept", and qf-1 and qf-2 taken by masterminds.
   - **To find:** why a kept slot isn't "ready" (stale branch? not current?), and whether masterminds should take pool slots at all.
   - **The fix to build:** one slot always reserved for the fixer. See `Servex/Pool.js`, the `hold()` notes at line 172.
+- **Agents still say the tab "isn't a live agent".**
+  - **What happens:** every report reaches the tab's inbox. Since 22:26Z, Servex answers a send to the tab with `{ok: true, delivered_to: "the inbox of the VS Code tab …", note: "Delivered…"}` (`Servex/agents/External.js:110`, test `External.test.mjs:90`).
+  - **Still,** v1-2-scroll-fix and process-runner-stall (16:51 and 16:53) wrote "couldn't message vscode-mastermind (not a live agent)" and posted an `owner_note` instead.
+  - **To find:** which tool or wording they read. Is it the card's `state: "external"`, `wait_for_agent`, or a role readme saying the tab isn't an agent? Fix that one place, so agents trust the delivery.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
   - **How it picks tests:** the module folder, or a hand-written watch list per test file. Static dependency analysis can come later.
