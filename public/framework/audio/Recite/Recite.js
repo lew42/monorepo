@@ -34,6 +34,10 @@ export default class Recite extends Part {
 	at = 0;                // the chunk playing, or paused in
 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
 	live = null;           // the reply being streamed: {text, queued, fresh}
+	wait_at = null;         // turn-taking: index of the chunk held back because the owner is talking (null: nothing held)
+	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
+	wait_timer = null;      // turn-taking: the check_wait() poll timer
+	turn_wait_ms = 1500;    // turn-taking: how much quiet before a held reply starts
 
 	constructor(...args){
 		super(...args);
@@ -202,9 +206,11 @@ export default class Recite extends Part {
 		if (ev?.kind !== "line") return;
 		const line = ev.line ?? {}, chat = line.chat;
 		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
-		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text) : undefined; }
+		// The id read aloud is marked played (Recite.mark_played), so a reload a moment later never reads it twice: the
+		// `{chat}` shape has no id of its own, so its `at` timestamp (one per line) stands in for one (dictation-v3, 2026-11-01, item 20).
+		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text, chat.at) : undefined; }
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
-		if (add) return add.by === "smart" ? this.final(add.text) : undefined;
+		if (add) return add.by === "smart" ? this.final(add.text, add.id) : undefined;
 		if (chat?.text && this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text); }   // ear off = manual playback
 	}
 
@@ -212,22 +218,36 @@ export default class Recite extends Part {
 	partial(text){
 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
 		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
-		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))) this.live = { text, queued: 0, fresh: true };
+		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true }; }
 		this.live.text = text;
 		this.take(text, false);
 	}
 
 	/** A settled reply. Read whole, unless its stream was already read. It QUEUES behind whatever is already being
-	 *  read — never replaces it (dictation-v3, 2026-11-01): only a real barge-in with a new question drops the rest. */
-	final(text){
+	 *  read — never replaces it (dictation-v3, 2026-11-01): only a real barge-in with a new question drops the rest.
+	 *  `id` (a message id, or a `{chat}` line's own `at`) marks it played so a reload within the 2-minute window
+	 *  above never reads it twice (item 20); no `id` means it is only guarded by `this.done` (in-memory, this page load). */
+	final(text, id){
 		if (!text) return;
 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: text.slice(0, 40) }); return; }
+		if (id && Recite.was_played(id)){ this.trace("not read: already played before a reload", { id }); return; }
 		const key = Recite.norm(text);
 		if (this.done.has(key)) return;
 		this.done.add(key);
+		if (id) Recite.mark_played(id);
 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){ this.live.text = text; this.take(text, true); this.live = null; return; }
+		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
 		this.live = null;
 		this.queue(text);
+	}
+
+	/** A new reply starts arriving while an old one sits paused by barge-in (`state === "heard"`): a reply is coming,
+	 *  the same signal as the owner's line ending in "?" (BargeIn.heard_speech) — finishing the cut-off reply first
+	 *  would talk over the new one, so it is dropped outright, not resumed (dictation-v3, 2026-11-01). */
+	drop_heard(){
+		if (this.state !== "heard") return;
+		this.barge.cancel_resume();
+		this.stop();
 	}
 
 	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
@@ -410,6 +430,20 @@ export default class Recite extends Part {
 
 	/** Text compared loosely: spaces and markdown marks do not count. */
 	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
+
+	/** Message ids already read in full, kept across a reload (item 20, dictation-v3 2026-11-01): a reload within the
+	 *  2-minute window in `from_wire` must never read a settled reply twice. localStorage, capped to the most recent
+	 *  200 so a long-lived tab does not grow this forever. */
+	static played_ids(){ try { return JSON.parse(globalThis.localStorage?.getItem("lew42.recite.played") ?? "[]"); } catch { return []; } }
+	static was_played(id){ return !!id && Recite.played_ids().includes(id); }
+	static mark_played(id){
+		if (!id) return;
+		try {
+			const ids = Recite.played_ids();
+			if (ids.includes(id)) return;
+			globalThis.localStorage?.setItem("lew42.recite.played", JSON.stringify([...ids, id].slice(-200)));
+		} catch {}
+	}
 
 	/** One remembered setting (the voice, barge-in on/off, its threshold) in localStorage. */
 	static remember(key, value){

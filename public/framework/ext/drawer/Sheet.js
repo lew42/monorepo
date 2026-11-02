@@ -45,7 +45,7 @@ export default class Sheet extends View {
 	 * hook (ux/Dictate/chat.js) reading the same reply does no harm.
 	 * It starts when this file is imported, not when a Sheet renders, and it traces every branch ("sheet: …" lines in the Whisper
 	 * bucket and the session file), so a phone that stays silent shows the step it stopped at. READ_ALOUD_V says which code ran. */
-	static READ_ALOUD_V = "2026-11-01e";   // bump on every change here: a phone's trace that lacks it runs older code
+	static READ_ALOUD_V = "2026-11-01f";   // bump on every change here: a phone's trace that lacks it runs older code
 	static RECENT_MS = 3000;               // how long the search for a recent voice session may take; then the fallbacks below
 	static read_aloud(from){
 		if (this.reading) return;
@@ -68,6 +68,7 @@ export default class Sheet extends View {
 		let followed, stop = null;   // undefined, not null: the first answer, even "no session", is logged
 		const listen = (session, why) => {
 			if (session === followed) return recite.trace("sheet: same session", { session, why });
+			if (followed !== undefined) recite.stop();   // a different session: its queue is not this one's to read (dictation-v3, 2026-11-01, note 8)
 			followed = session; stop?.(); stop = null;
 			if (session){ report.init(session); Wire.remember(session); }
 			recite.trace("sheet follows", { session, why });

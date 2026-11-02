@@ -28,6 +28,7 @@ export default class BargeIn extends Part {
 	heard = "";           // what Whisper heard last ("" = noise)
 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
 	quiet_ms = 1500;      // real speech heard: once this much quiet passes, pick the interrupted reply back up
+	resume_timer = null;   // the schedule_resume() timer waiting for quiet
 	whisper_url = Whisper.default_url();   // the same URL rule as Dictate: 127.0.0.1:8178 here, <origin>/whisper elsewhere
 
 	constructor(...args){
@@ -94,9 +95,9 @@ export default class BargeIn extends Part {
 		this.state = "heard";
 		if (/\?\s*$/.test(text)){
 			this.note = "heard a question: " + text;
-			clearTimeout(this.resume_timer); this.resume_timer = null;
+			this.cancel_resume();          // state is "off" before stop() runs, so its own sync() sees the right state (finding 5)
 			this.recite.stop();
-			this.state = "off";
+			this.sync();                   // belt and suspenders: stop()'s own set("idle") already calls this
 		} else this.schedule_resume();
 		this.recite.changed();
 	}
@@ -106,6 +107,13 @@ export default class BargeIn extends Part {
 	schedule_resume(){
 		clearTimeout(this.resume_timer);
 		this.resume_timer = setTimeout(() => this.try_resume(), this.quiet_ms);
+	}
+
+	/** The reply waiting to resume is gone some other way (a question, or Recite.drop_heard() because a new reply
+	 *  arrived): stop waiting for quiet, and drop back to "off" so the next real interruption starts clean. */
+	cancel_resume(){
+		clearTimeout(this.resume_timer); this.resume_timer = null;
+		if (this.state === "heard") this.state = "off";
 	}
 
 	/** quiet_ms of silence passed: pick the interrupted reply back up, from the START of the sentence the owner cut

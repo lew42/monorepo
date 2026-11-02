@@ -75,10 +75,11 @@ if (Recite) test("Recite: the first tap unlocks a refused reply", async t => {
 
 // Turn-taking (dictation-v3, 2026-11-01): a reply queues behind what is playing, never replaces it; a real barge-in
 // pauses and auto-resumes from the START of the cut sentence once things go quiet; a question drops the rest instead.
+// Driven through owner_spoke() — the real route a wire line takes (review note 7), not heard_speech() called directly.
 if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start, a question drops the rest", async t => {
 	const r = new Recite({ voice: fake_voice });
 	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
-	r.barge.on = false;   // heard_speech() is driven directly below; `on` only gates whether sync() opens a real mic
+	r.barge.on = false;   // owner_spoke()/sync() never open a real mic in a test; `on` only gates sync()'s own mic-open/close
 
 	r.queue("First reply, sentence one. First reply, sentence two.");
 	await new Promise(res => setTimeout(res, 20));   // the queue's own auto-play settles
@@ -89,30 +90,51 @@ if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start, 
 	t.eq(r.chunks[0].text, "First reply, sentence one.", "the first reply's own first sentence is unchanged");
 
 	await r.play(1, 1.5);   // simulate: partway into reply one's second sentence
-	r.pause("heard");
-	t.eq(r.state, "heard", "barge-in paused it");
 	r.barge.quiet_ms = 15;   // fast for the test
-	r.barge.heard_speech("wait, hold on");   // real speech, not a question
+	r.barge.owner_spoke("wait, hold on");   // a wire line, real speech, not a question
 	t.eq(r.state, "heard", "still paused, giving the owner a moment to keep talking");
 	await new Promise(res => setTimeout(res, 50));
 	t.eq(r.state, "playing", "resumed by itself once the owner went quiet");
 	t.eq(r.audio.currentTime, 0, "it started the cut sentence over, not mid-word");
 	t.eq(r.chunks.length, 3, "the queued second reply is still waiting its turn, untouched");
 
-	r.pause("heard");
-	r.barge.heard_speech("but what about the other one?");   // a question: a new answer is coming
+	let synced = 0; const real_sync = r.barge.sync.bind(r.barge); r.barge.sync = () => { synced++; real_sync(); };
+	r.barge.owner_spoke("but what about the other one?");   // a question: a new answer is coming
 	t.eq(r.state, "idle", "the old reply, and whatever was still queued behind it, is dropped");
 	t.eq(r.chunks.length, 0, "nothing left queued — talking over the new answer would make no sense");
+	t.ok(synced > 0, "dropping a question re-syncs the mic, ready for the next interruption (finding 5)");
+	return r;
+});
+
+// requirements.md: a question ("...?") drops the old reply, "or a reply to it is coming" — the second half needs no
+// "?" at all: a fresh reply itself arriving while the old one sits paused IS the signal (finding 3).
+if (Recite) test("Recite: a reply arriving while the old one is paused by barge-in drops it, even with no '?'", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.queue("An answer that gets interrupted, no less.");
+	await new Promise(res => setTimeout(res, 20));
+	r.barge.owner_spoke("actually never mind");   // real speech, no question mark
+	t.eq(r.state, "heard", "paused, waiting to see if the owner keeps talking");
+
+	r.final("A fresh reply has already started arriving.");   // "a reply to it is coming"
+	t.eq(r.state, "loading", "the reply arriving is itself the signal: the old one is dropped, and the new one starts right away — not resumed into");
+	t.eq(r.chunks.length, 1, "only the new reply is queued");
+	t.eq(r.chunks[0].text.startsWith("A fresh reply"), true, "and it is the new reply, not a leftover of the old one");
 	return r;
 });
 
 // Never start a fresh reply while the owner is talking; wait for a moment of quiet (the owner, 2026-11-01, "turn-taking").
-if (Recite) test("Recite: a reply waits for the owner to stop talking before it starts", async t => {
+// Proof for item 14: mic speech comes FIRST, then a reply arrives — nothing plays until the quiet window. Then a real
+// barge-in (owner_spoke) stops the reply mid-sentence, and the rest resumes once the owner is quiet again.
+if (Recite) test("Recite: a reply waits for the owner to stop talking before it starts, proof item 14", async t => {
 	const r = new Recite({ voice: fake_voice });
 	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
-	r.barge.on = true;
+	r.barge.on = true;      // start_or_hold() only holds when barge.on is true — but stub sync() below so it never opens a real mic (error 4: a real mic rejects async in a headless test and clobbers barge.state)
+	r.barge.sync = () => {};
 	r.turn_wait_ms = 15;
-	let talking = true;
+	let talking = true;   // the owner is already speaking BEFORE the reply arrives
 	r.barge.speaking = () => talking;
 
 	r.queue("A reply arriving while you are still talking.");
@@ -123,7 +145,36 @@ if (Recite) test("Recite: a reply waits for the owner to stop talking before it 
 	talking = false;
 	await new Promise(res => setTimeout(res, 150));
 	t.eq(r.state, "playing", "started once you had been quiet for a moment");
+
+	r.barge.quiet_ms = 15;
+	r.barge.owner_spoke("hold on a second");   // a real barge-in, mid-reply, through the real wire-line route
+	t.eq(r.state, "heard", "a barge-in mid-reply still stops playback");
+	await new Promise(res => setTimeout(res, 50));
+	t.eq(r.state, "playing", "and the rest resumes once the owner is quiet again");
 	return r;
+});
+
+// Played/unplayed per message id survives a reload (owner item 20, folded in 2026-11-01 21:08): a reload must never
+// re-read a reply already played, and never skip one not yet played. A second `Recite` (a stand-in for the reload)
+// shares the same localStorage, as the real page does.
+if (Recite) test("Recite: a played reply (by message id) is not read again after a reload", async t => {
+	const KEY = "lew42.recite.played", prior = localStorage.getItem(KEY);
+	try {
+		localStorage.removeItem(KEY);
+		const r1 = new Recite({ voice: fake_voice });
+		r1.barge.on = false;
+		r1.final("First reply, already read before.", "msg-1-test");
+		t.eq(r1.chunks.length, 1, "a fresh reply with an id is read");
+		t.eq(Recite.was_played("msg-1-test"), true, "its id is marked played, for a reload to see");
+
+		const r2 = new Recite({ voice: fake_voice });   // stands in for the page reloading: a new instance, same localStorage
+		r2.barge.on = false;
+		r2.final("First reply, already read before.", "msg-1-test");
+		t.eq(r2.chunks.length, 0, "the same id, after a reload, is not read again");
+		r2.final("A second, different reply.", "msg-2-test");
+		t.eq(r2.chunks.length, 1, "a reply with a new id is still read — nothing unplayed is skipped");
+		return r2;
+	} finally { if (prior == null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, prior); }
 });
 
 // Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.
