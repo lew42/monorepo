@@ -43,3 +43,5 @@
 {"file":"save-results.jsonl"}
 {"file":"playwright-fenced.mjs"}
 {"file":"save-results.jsonl","gone":true}
+{"file":"save-results.jsonl"}
+{"file":"failures.jsonl"}
