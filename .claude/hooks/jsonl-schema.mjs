@@ -54,6 +54,8 @@ export const schemas = {
 			resume:     { fields: ["at"], eg: { at: "NOW" } },
 			stop:       { fields: ["at"], eg: { at: "NOW", why: "…" } },
 			finish:     { fields: ["at"], eg: { at: "NOW" } },
+			// Work was logged and the task never completed (Servex/agents/Agents.js close_loop, Server/StaleClose.mjs, Server/Unclose.mjs): stops it if open, flags it; core/Task/Task.js replay_line.
+			unclosed:   { fields: ["at", "why", "by"], eg: { at: "NOW", why: "unclosed: 5 log lines, no outcome", by: "StaleClose" } },
 			wait:       { fields: ["at", "on"], eg: { at: "NOW", on: "owner", what: "approval of steps 3-11" } },
 			approve:    { fields: ["at", "by"], eg: { at: "NOW", by: "owner", note: "…" } },
 			// Written by Servex/TaskLoop.js: one line per reminder to a task waiting on the owner.
@@ -63,7 +65,7 @@ export const schemas = {
 			// An old session folder's pointer to the task's module home (Server/TaskMigrate.mjs); replay keeps it as data.home.
 			home:       { type: "string", eg: "/framework/core/Task/tasks/task-system-build/" },
 		},
-		pending: ["snooze", "kill", "priority", "start", "pause", "resume", "stop", "finish", "wait", "approve", "follow_up", "commit"],
+		pending: ["snooze", "kill", "priority", "start", "pause", "resume", "stop", "finish", "unclosed", "wait", "approve", "follow_up", "commit"],
 	},
 	"day.jsonl": {
 		what: "a day's log (public/framework/ai/sessions/YYYY/MM/DD/day.jsonl)",

@@ -37,7 +37,7 @@ fs.writeFileSync(path.join(root, "public/tasks/task.jsonl"), [{ id: "tasks", pat
 const registry = [{ id: "minion-f", role: "minion", state: "working", task_dir: flight, last_at: new Date(now - 60000).toISOString() }];
 const s = new AIIndex({ root, registry, now }).snapshot();
 assert.equal(s.today, "2026-10-17");
-assert.deepEqual(s.counts.tasks, { landed: 3, in_flight: 1, queued: 0, waiting: 0, idle: 1, stopped: 1, stale: 0 });
+assert.deepEqual(s.counts.tasks, { landed: 3, in_flight: 1, queued: 0, waiting: 0, idle: 1, stopped: 1, unclosed: 0, stale: 0 });
 assert.equal(s.counts.landed_by_day["2026-10-17"], 2); assert.equal(s.counts.landed_by_day["2026-10-16"], 1);
 const row = id => s.tasks.find(r => r.id.endsWith(id));
 assert.equal(row("t-finish").day, "2026-10-17");                       // local day, not the UTC 18th

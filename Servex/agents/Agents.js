@@ -21,6 +21,7 @@ import DatedFiles from "../../Server/DatedFiles.mjs";
 import PastWork from "../../Server/PastWork.mjs";
 import LandingCheck from "../../Server/LandingCheck.mjs";
 import Landed from "../Landed.js";
+import CloseLoop from "../CloseLoop.js";
 import { turn_costs } from "./turn-costs.js";
 import { env_for, provider_for, real_turn_cost, generation_cost, message_cost, read_key, disallowed_tools_for, spend_guard } from "../ext/openrouter/provider.js";
 import { env_for as local_env_for, is_local_model } from "../ext/local/provider.js";
@@ -1769,6 +1770,7 @@ Agents.Agent = class Agent {
 		if (this.provider === "openrouter" && this.turn_message_ids?.size) this.refresh_or_cost();
 		this.emit({ type: "result", stopped: true, mid_turn, turns: this.turns, cost: this.cost });
 		this.unlanded_note();
+		if (!mid_turn) this.close_loop(true);
 		this.host?.register?.(this);
 		this.settle();
 		return this;
@@ -2307,6 +2309,7 @@ Agents.Agent = class Agent {
 			else setImmediate(() => { if (this.state === "idle") this.nudge_send(); });
 		}
 		if (this.state === "idle") { this.landing_nag(); this.landing_check(); }
+		if (this.state === "idle") this.close_loop();
 	}
 
 	/* THE LANDING CHECK (2026-10-13, Servex/doc/landing.md): a task with a landing line whose branch work is
@@ -2351,6 +2354,40 @@ Agents.Agent = class Agent {
 		this.send(`Your work is merged but your task has no landing line. Append it now: {"assign": {"landed_at": "NOW", "title": …, "outcome": …, "links": […]}} via \`node .claude/hooks/append.mjs ${file} <lines.json>\`, then \`card_reply\` one screen.`, { from: "servex-landing-nag" });
 		this.host?.register?.(this);
 		return true;
+	}
+
+	/* THE CLOSE LOOP (2026-11-02, Servex/CloseLoop.js, agents/readme.md "When an agent stops"): the turn ended, or the agent was stopped
+	 * (`stopping`), and its task is still open. Clearly finished (clean end; an outcome, landing line or commit in the log): the task
+	 * is completed with the agent's last words. Otherwise the agent is woken ONCE (`close_nagged`, kept on the registry row, so a
+	 * revive does not nag again); a stopped agent is not woken, its log gets one line and StaleClose later reads the task `unclosed`.
+	 * Any role, a minion included; never a fork, a standing desk or a task-less agent. Returns "complete" | "wake" | null. */
+	close_loop(stopping = false){
+		const dir = this.task?.dir;
+		if (!dir || this.one_shot || STANDING.test(this.id ?? "")) return null;
+		let row = null; try { row = this.host?.reg?.().read?.()[this.id] ?? null; } catch {}
+		const nagged = !!(this.close_nagged || (row?.session_id === this.session_id && row?.close_nagged));
+		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
+		const kids = [...(this.host?.live?.values() ?? [])].filter(a => a.parent === this.id && (a.state === "working" || a.state === "starting")).length;
+		const text = this.words ?? this.last_text ?? "";
+		const lines = CloseLoop.lines(file);
+		const what = CloseLoop.decide({ lines, ok: !this.last_error && this.turns > 0, text, nagged, kids, role: this.role });
+		const by = "servex-close-loop";
+		if (what === "complete"){
+			const line = CloseLoop.complete_line(text, by, lines); line.complete.at = stamp();
+			try { LogLine.raw(file, line); } catch { return null; }
+			this.host?.store().append("servex", { type: "task-closed", agent: this.id, task: dir, by }).catch(() => {});
+			return what;
+		}
+		if (what !== "wake") return null;
+		this.close_nagged = stamp();
+		if (stopping){
+			try { LogLine.raw(file, { log: { at: stamp(), msg: "agent stopped with its task still open and no outcome logged; StaleClose will read it unclosed" }, by }); } catch {}
+			return what;
+		}
+		this.host?.store().append("servex", { type: "close-nag", agent: this.id, task: dir }).catch(() => {});
+		this.send(CloseLoop.WAKE, { from: "servex-close-loop" });
+		this.host?.register?.(this);
+		return what;
 	}
 
 	/* CONTEXT ALERTS (agent-base item 12; ai/doc/context.md): the first time a child's context passes 50% and then 75% of the window,

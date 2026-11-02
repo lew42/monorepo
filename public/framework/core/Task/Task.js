@@ -29,7 +29,7 @@ const CAN = {
 const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce", "unset"]);
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce", "unset", "unclosed"]);
 // DEPRECATED (2026-10-28): use `complete` (the `finish` verb and `Task#finish`). Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated; no live code calls `Task#finish`.
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 const VERDICTS = new Set(["approve", "improve", "reject"]);
@@ -573,6 +573,14 @@ export class Task extends Item {
 			if (!kid?.replay_line) continue;
 			kid.replay_line(v);
 			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
+		}
+		// {"unclosed":{at, why, by}}: work was logged and the task was never completed. Stops it if it is still open, and flags it; the flag counts only while the state is stopped.
+		if (line.unclosed && typeof line.unclosed === "object"){
+			const { at: _u, ...note } = line.unclosed;
+			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
+			this._at = rp.at; this._applying = true;
+			try { if (CAN.stop.has(this.state)) this.stop(note.why ?? "unclosed"); this.put("unclosed", { at: rp.at ?? null, ...note }); }
+			finally { this._at = null; this._applying = false; }
 		}
 		const verdict = line.verdict && typeof line.verdict === "object" && ["approve", "improve", "reject"].includes(line.verdict.is) && !verb ? line.verdict : null;
 		if (verdict || verb){
