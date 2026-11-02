@@ -24,3 +24,4 @@
 {"review":{"at":"2026-11-01T18:55:41-06:00","answer":{"n":6,"reply":"fixed: the pair is a rule in design/color/readme.md, without a stored ratio (that readme computes ratios, never stores them)"}}}
 {"review":{"at":"2026-11-01T18:55:41-06:00","answer":{"n":7,"reply":"declined: --final-ink is kept on purpose, so each view names which state it draws and the written state can be retuned in one place"}}}
 {"commit":"405e5038cc29","by":"append.mjs","ts":"2026-11-02T00:57:58.760Z"}
+{"commit":"54c9570258f6","by":"append.mjs","ts":"2026-11-02T00:58:26.747Z"}
