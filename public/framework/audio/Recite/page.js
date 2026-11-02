@@ -17,6 +17,10 @@ const example = () => {
 			recite.check().then(s => $server.text(s === "online" ? `recite-server is online (${recite.url})` : `recite-server is offline — the browser's own voice reads instead. ${recite.error}`));
 		});
 		recite.bar;
+		// A real chat bubble (data-recite-root): clicking it is tap to pause, the same gesture as the bar's own
+		// Play button (dictation-v3, 2026-11-02). The karaoke highlight above already reads from a bubble just
+		// like this one; this is the one place the demo shows that a bubble is tappable, not only the bar.
+		div.c("audio-recite-demo-bubble").attr("data-recite-root", "").text(SAMPLE);
 	});
 };
 

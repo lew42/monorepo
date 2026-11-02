@@ -565,3 +565,96 @@ if (Recite) test("Recite.Highlight: a mention chip's own icon word does not brea
 	root.remove();
 	return r;
 });
+
+// No-flood (dictation-v3, 2026-11-02): a reply from any assistant id but "smart" is an agent update, never read in
+// full — it collapses to one short line, and if the owner's own line is still awaiting the direct answer
+// (cue_pending), it waits behind that answer rather than flooding ahead of or instead of it.
+if (Recite) test("Recite: an agent update collapses to one line and queues behind the direct answer, not ahead of it", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_pending = true;   // the owner's line landed; a direct reply is still expected
+
+	r.from_wire({ kind: "line", line: { chat: { text: "The build finished, 3 files changed.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-read-aloud-b" } } } });
+	t.eq(r.chunks.length, 0, "held, not queued yet — the direct answer hasn't arrived");
+	t.eq(r.pending_updates.length, 1, "one update waiting");
+
+	r.from_wire({ kind: "line", line: { chat: { text: "Here is the direct answer.", at: new Date().toISOString(), from: { kind: "assistant", id: "smart" } } } });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 2, "the direct answer plus the held update, in that order");
+	t.eq(r.chunks[0].text, "Here is the direct answer.", "the direct answer plays first");
+	t.eq(r.chunks[1].text, "I have an update on read aloud b, tap to hear it.", "the update collapses to one short line, not the full text");
+	t.eq(r.pending_updates.length, 0, "nothing left waiting");
+	return r;
+});
+
+// With no direct answer pending, an update has nothing to wait behind — it just takes its turn like any other reply.
+if (Recite) test("Recite: an agent update queues right away when no direct answer is pending", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.from_wire({ kind: "line", line: { chat: { text: "Just a status line, unprompted.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-chat-model" } } } });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 1, "queued right away — nothing to wait behind");
+	t.eq(r.chunks[0].text, "I have an update on chat model, tap to hear it.", "the mastermind- prefix is stripped and dashes read as spaces");
+	t.eq(r.state, "playing", "and it started");
+	return r;
+});
+
+// A held update must not be lost forever if the direct answer never arrives (the owner's line may not have needed one).
+if (Recite) test("Recite: a held agent update is released on its own if no direct answer ever arrives", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.update_hold_ms = 20;   // fast for the test
+	r.cue_pending = true;
+
+	r.from_wire({ kind: "line", line: { chat: { text: "An update with nobody waiting to answer.", at: new Date().toISOString(), from: { kind: "assistant", id: "minion-scan-9" } } } });
+	t.eq(r.chunks.length, 0, "held at first");
+
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.chunks.length, 1, "released on its own once the safety window passed");
+	return r;
+});
+
+// Tap to pause (dictation-v3, 2026-11-02, item 2/b): tapping a chat bubble toggles play/pause, the same gesture as
+// the bar's own Play button — but a tap on a link, a mention chip or a button inside it does its own thing instead.
+if (Recite) test("Recite.Tap: tapping a chat bubble plays or pauses, but a link, a mention chip or a button inside it does not", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	root.innerHTML = 'Some reply text, <a href="#test-link">a link</a>, ' +
+		'<a class="item inline mention is-agent"><span class="material-icons icon item-icon">person</span><span class="item-name">Mike</span></a>, ' +
+		'and <button>a button</button>.';
+	document.body.appendChild(root);
+
+	r.queue("Some reply text.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	root.querySelector("a[href]").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "a tap on a plain link never toggles playback");
+
+	root.querySelector("a.mention").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "nor does a tap on a mention chip");
+
+	root.querySelector("button").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "nor a button");
+
+	document.body.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "nor a tap outside any chat bubble");
+
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "paused", "but a tap on the bubble's own text pauses it");
+
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	await new Promise(res => setTimeout(res, 20));   // resume()'s own audio.play() promise settles
+	t.eq(r.state, "playing", "and a second tap resumes it");
+
+	root.remove();
+	return r;
+});
