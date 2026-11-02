@@ -9,6 +9,24 @@ One list of framework-wide work, so an ask isn't lost in a chat. Newest date fir
 
 Until then: one line per task below, and when one gets a real task folder, link it.
 
+## 2026-11-02 (the owner's dictation in the VS Code tab, session `e00f55c9`; parked to save tokens)
+
+- **Class views: see any class's structure, live.**
+  - **The idea.** Next to `thing.view` (the instance), a `thing.classView` renders the class itself. `Class.render()` (a new static) makes one.
+  - **One shared template.** It prints the class name, its chain (`extends`), its properties and its methods. Each method links to its doc.
+  - **Method docs already exist** in `doc/method/` folders: `core/App`, `Item`, `List`, `Page`, `Router`, `Session`, `Shell`, `Sidebar`, `View` and `ui`. A per-method page could pull from them.
+  - **A rougher first version:** a debug view that loops over any object's properties.
+  - **What it's for:** the dictation flow's state (dictating, the floor, Recite playing, a reply queued) shown as live objects you can click through to their classes. The owner: "seeing as much of that structure is important."
+- **A live test runner for each worktree, feeding the builder.**
+  - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
+  - **How it picks tests:** the module folder, or a hand-written watch list per test file. Static dependency analysis can come later.
+  - **When it runs:** a few seconds after the last write, never in the middle of one. It ignores `.jsonl` data writes, so a log written 100 times a second doesn't rerun the suite.
+  - **Where results go:** test results and console errors stream straight into the building agent's session (an SDK feature), so it sees an error the moment it writes it.
+  - **Today:** tests run by hand, plus the merge gate (`core/Test/run-all.mjs [--browser]`). Test-first is now in the build process (`core/Task/processes/BuildProcess.js`).
+- **ProcessRunner: a finished step set back to waiting.**
+  - **What happened (2026-11-02):** on the `core/Plugin` build process, the improve-plan step completed. Then ProcessRunner counted the reviewer's turn-ends without checking the step's state: it pulsed it and set it `waiting`. vscode-mastermind completed it again by hand.
+  - **The fix:** a step that is already complete is never pulsed or set waiting. Log: `ai/sessions/2026/10/20/session-e00f55c9/core-plugin-one-plugin-system-for-every/task.jsonl`.
+
 ## 2026-11-01 (the owner's dictation, cloud session `e3fd9043`, branch `claude/oop-streaming-research`)
 
 - ~~**Merge `claude/oop-streaming-research` into `michael/dev`**~~ done 2026-11-01 (with `integration/data-shapes-2`); the PC still pulls and restarts. Steps and the one conflict: [build.md](../research/2026/10/29/persistence-sync/build.md#how-to-merge-owner-into-michaeldev-not-main-yet).
