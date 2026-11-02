@@ -40,6 +40,9 @@ Until then: one line per task below, and when one gets a real task folder, link 
   - **To find:** which tool or wording they read. Is it the card's `state: "external"`, `wait_for_agent`, or a role readme saying the tab isn't an agent? Fix that one place, so agents trust the delivery.
   - **Again at 17:04 and 17:17** (recite-cue-icon, in-flight-real-data), after the 22:26Z restart, so the cause is still live.
 - **A session page takes about 15 s to read its tasks** (2026-11-02, found by in-flight-real-data). Until then the In-flight block now says "Reading N tasks…". Each referenced task file loads on its own, so a session with hundreds of tasks is slow. To find: one index read instead of N file reads (see `core/Page/doc/index-jsonl.md`).
+- **A revived agent can end its turn empty.**
+  - **What happened (2026-11-02, 23:22Z):** `sustain.mjs --restart` revived mastermind-core-plugin-build, which was mid-merge. Its revive turn ended in 114 ms with 0 API turns and no cost ("its prompt was probably blocked (a hook timeout)"). It sat idle until vscode-mastermind resent the message by hand.
+  - **To find:** why a revive right after boot gets an empty turn (a hook that times out while Servex starts? a race in `Agents.revive`?). Then retry an empty revive once by itself.
 - **A worktree's dev server sometimes never boots** (in-flight-real-data, 17:10). The agent routed its changed files into the live site to take its shot instead. `Server/worktree-restart.mjs` exists; find why the first boot fails.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
