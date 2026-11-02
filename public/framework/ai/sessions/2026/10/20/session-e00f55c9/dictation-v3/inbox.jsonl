@@ -99,3 +99,6 @@
 {"at":"2026-11-02T03:11:27-06:00","from":"mastermind-read-aloud-b","kind":"error","text":"ended its first turn with no output and no cost: its prompt was probably blocked (a hook timeout). Treat it as a failed start and respawn it."}
 {"read_upto":99,"at":"2026-11-02T03:15:58-06:00","by":"servex-task-loop"}
 {"read_upto":100,"at":"2026-11-02T03:16:13-06:00","by":"mastermind-dictation-v3"}
+{"at":"2026-11-02T03:18:19-06:00","from":"mastermind-read-aloud-b","kind":"done","text":"The read-aloud-b worktree had a messy setup (leftover state from an earlier interrupted attempt), which I've now cleaned up. I've kicked off `node Server/worktree-up.mjs read-aloud-b` in the background to let it finish properly (npm ci, server boot, registration) without interruption — I'll build items 1 (no-flood + prioritise) and 2 (tap-to-pause) once it reports ready."}
+{"read_upto":102,"at":"2026-11-02T03:21:00-06:00","by":"servex-task-loop"}
+{"read_upto":103,"at":"2026-11-02T03:21:09-06:00","by":"mastermind-dictation-v3"}
