@@ -34,5 +34,21 @@ const unsure = new Placement().place("The cleaner keeps every word.", { paragrap
 assert.equal(unsure.confidence, 0.5);
 assert.match(unsure.reason, /^unsure/);
 
+// views-fix item 3, 2026-11-01: a long pause with no cue word starts a paragraph instead of
+// defaulting to "unsure: append" -- the rule a punctuation-less, cue-word-less run-on dictation
+// actually needs. A SHORT gap still appends (nothing has changed for ordinary speech).
+{
+	const p2 = new Placement(), st = Placement.state();
+	const after_long_gap = () => p2.place("the words just kept on going", st, 2500);
+	const after_short_gap = () => p2.place("the words just kept on going", st, 400);
+	await p2.add("the words just kept on going", st);   // first sentence: paragraph 0, no gap involved
+	const long_gap = after_long_gap();
+	assert.equal(long_gap.action, "new", "a 2.5s pause with no cue word starts a new paragraph");
+	assert.equal(long_gap.reason, "a 3s pause, no continuation cue");
+	const short_gap = after_short_gap();
+	assert.equal(short_gap.action, "append", "a 0.4s pause still appends, same as no gap given at all");
+	console.log("ok   gap-aware: long pause -> new, short pause -> append (both no cue word)");
+}
+
 console.log(failed ? `FAIL ${failed} of ${cases.length}` : `PASS ${cases.length} of ${cases.length}`);
 process.exitCode = failed ? 1 : 0;
