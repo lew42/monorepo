@@ -12,12 +12,12 @@ session.messages:  Chat               // the conversation, in order (class Chat 
 
 class Sentence extends Item { text, via: "voice"|"text", at, raw? }                // ./Sentence.js
 class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text }      // ./Message.js
-class Prompt   extends Message { sentences: [ids], title?, text?, state, prompt?, said }  // ./Prompt.js
+class Prompt   extends Message { sentences: [ids], clean: {<sentence id>: text}, title?, text?, state, prompt?, said, cleaned }  // ./Prompt.js
 class Reply    extends Message { re?: {to: <sentence id>}, level?, thread? }       // ./Reply.js
 class Chat     extends List { messages, last }                                      // ./Chat.js
 ```
 
-- **A Prompt** is what the owner said in one go. It holds its sentences **by id** and grows while the owner keeps talking. `said` is the words joined (the full dictation); `title` and `text` are a refined version, once someone writes one (then `state` is `"refined"`). `prompt` links today's Prompt *task* in `session.tasks` (Chat V2/V3).
+- **A Prompt** is what the owner said in one go. It holds its sentences **by id** and grows while the owner keeps talking. `said` is the words joined (the full dictation); `clean` holds the fast seat's cleaned text per sentence and `cleaned` is the words with those in place (what a view shows by default); `title` and `text` are a refined version, once someone writes one (then `state` is `"refined"`). `prompt` links today's Prompt *task* in `session.tasks` (Chat V2/V3).
 - **A Reply** is an assistant's answer, anchored to the sentence it answers (`re.to`). `level` marks a refined restatement (`Sessions.line` with a level).
 - **A plain Message** is a note, e.g. Servex saying an assistant could not be reached.
 - **Order is the list's order.** Nothing is sorted by time. A message's text may change in place; its position never does.
@@ -37,6 +37,7 @@ Lines in the session's `session.jsonl`, each right after the V1 line it mirrors.
 {"sentences":{"add":{"id":"s-1","at":"…19:43:21.551-05:00","text":"The tab bar is broken.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1","by":"owner","at":"…","sentences":["s-1"],"prompt":"p-1"}},"by":"servex","ts":"…"}
 {"sentences":{"add":{"id":"s-2","text":"On my phone.",…}},"messages":{"m-1":{"sentences":{"push":"s-2"}}},"by":"servex","ts":"…"}     ← the Prompt grows
 {"messages":{"add":{"id":"m-2","type":"Reply","by":"smart","at":"…","text":"Which phone?","re":{"to":"s-1"}}},"by":"servex","ts":"…"}
+{"messages":{"m-1":{"clean":{"s-2":"On my phone (an iPhone)."}}},"by":"voice-assistant-…","ts":"…"}                       ← a {place} improve: one sentence cleaned, in place
 {"messages":{"m-1":{"title":"Fix the mobile tab bar","text":"…"}},"by":"smart","ts":"…"}                                      ← refined in place
 ```
 
@@ -50,7 +51,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
   - A reply never splits a message in progress: while the owner is mid-thought (`Sessions.mid_thought`: the floor is `speaking`, or a thought is held), a reply waits in the writer and is appended when the thought ends (`release_thought`, or the floor going `done`), below the owner's last words.
   - Known edge: a reply held at the moment Servex restarts is lost from the list (V1 still has it).
 - **Any agent, through the item tool:** `item({path: <session url>, delta: {messages: {add: {type: "Reply", by: "smart", text: "…"}}}})`, or `{messages: {"<id>": {title, text}}}` to refine a message in place. A read of the session (`item({path})`) answers `messages: {count, last}` (the last 20).
-- **Not mirrored:** the fast seat's `{place}` lines. The seat is off by default since 2026-11-01; if it comes back, its cleaned text becomes `{text}` on the Prompt.
+- **The fast seat's `{place}` lines** (written by the voice assistant through the item tool): one with a cleaned `text` (edit `improve` or `both`) also writes `{"messages":{"<prompt id>":{"clean":{"<sentence id>":"…"}}}}`, so that sentence's text updates on its Prompt **in place**: the Prompt keeps its position and its raw words, and a later improve of the same sentence wins (`ChatWriter.place`, called from the item tool, `page_tools.js`). Where a sentence goes (`to`, `where`) is not mirrored: the list's order never changes.
 
 ## How a view reads it
 
@@ -60,7 +61,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 
 ## Check it
 
-- `node Servex/agents/chat-messages.test.mjs` (12 checks): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit.
+- `node Servex/agents/chat-messages.test.mjs` (13 checks; the last: two `{place}` improves through the real item tool merge on one Prompt, nothing moves, and an edit with no text writes no chat line): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit.
 - On a copy of the biggest real voice session (`v-9dvbbrn`, 2026-11-01): 1,004 owner lines gave 1,004 sentences in 330 Prompts, 316 replies gave 316 Replies; the replay took 86 ms.
 
 ## Migration (written, not run)

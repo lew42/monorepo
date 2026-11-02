@@ -54,7 +54,7 @@ export default class ChatList extends JSONL {
 		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
 		const text = document.createElement("div"); text.className = "chatlist-text md";
 		if (kind === "prompt" && m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(who, t); } else el.append(who);
-		md_into(text, kind === "prompt" ? (m.text || m.said) : m.text);
+		md_into(text, kind === "prompt" ? (m.text || m.cleaned) : m.text);
 		el.append(text);
 	}
 }
