@@ -209,8 +209,6 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 				: Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
 		});
 	});
-	// Recite's milestones also go to the session file (a log line each), the one record a phone is sure to reach (dictation-v3, 2026-11-01).
-	Recite.on_trace ??= (kind, f) => { if (/^(loaded|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
