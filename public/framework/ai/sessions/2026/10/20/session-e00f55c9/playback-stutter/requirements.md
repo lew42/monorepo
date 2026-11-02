@@ -1,4 +1,12 @@
-# Read-aloud stutters at the start: find why and fix it (you are a mastermind, on Sonnet, high effort)
+# Read-aloud stutters at the start: find why and fix it
+
+Agent: a mastermind on Sonnet, high effort.
+
+**Asks (tick each with proof when landed):**
+- [x] Cause found from the phone log, written to [findings.md](findings.md): the phone ran an older Recite whose `final()` called `read()` (stop + restart) when the settled text differed from the stream; the current code read the start twice. Log lines in the findings.
+- [x] Cause fixed: `Recite.unread_tail` — `final()` queues only what the stream did not read. Proof: `playback-stutter.test.mjs` cases 1-4 fail on the old code (chunk list repeats sentences 0-2) and pass now.
+- [x] Optional `words` interrupt, in `BargeIn.js` only (`mode`: volume|words, plugin shape id/label/defaults/start/stop; a button in the bar). Proof: test case 5-6, words mode keeps playing through noise, a phantom and an echo, and pauses on real words.
+- [x] Headless test passes: `FENCE_SERVEX=1 node public/framework/audio/Recite/playback-stutter.test.mjs <site url>` 15/15; `ReciteBubble.test.mjs` 37/37; `Recite.test.mjs` 33 tests 0 failed.
 
 **The owner (2026-11-02, about 14:20):** "There's a slight problem with the playback where it starts and then stutters and then restarts. I'm not sure if the interruption gets triggered, like it hears itself… or if there's some kind of buggy asynchronous restart."
 

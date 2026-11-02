@@ -38,6 +38,7 @@ export default class ReciteBar extends View {
 		this.$voice.append(() => Voice.PERSONAS.forEach(p => option(p.name).attr("value", p.name)));
 		this.$voice.el.value = r.voice.name;
 		this.$mic = button.c("audio-recite-btn", () => { this.$mic_icon = icon("hearing"); }).attr("title", "Pause when I talk (barge-in) — off: manual playback only").click(() => r.barge.set_on(!r.barge.on));
+		this.$mode = button.c("audio-recite-btn", () => { this.$mode_icon = icon("graphic_eq"); }).click(() => r.barge.set_mode(r.barge.mode === "words" ? "volume" : "words"));
 		this.$threshold = input.c("audio-recite-threshold").attr("type", "range").attr("min", "0.05").attr("max", "0.95").attr("step", "0.05")
 			.attr("value", String(r.barge.threshold)).attr("title", "How loud counts as talking (the bar behind it is the mic level)")
 			.on("input", e => r.barge.set_threshold(e.target.value));
@@ -66,6 +67,9 @@ export default class ReciteBar extends View {
 		this.$auto.tc("is-on", r.auto);
 		this.$mic_icon.text(b.on ? "hearing" : "hearing_disabled");
 		this.$mic.tc("is-on", b.on).tc("is-open", !!b.mic);
+		this.$mode_icon.text(b.mode === "words" ? "abc" : "graphic_eq");
+		this.$mode.attr("title", b.mode === "words" ? "Pause only when I say real words (a cough or a bang won't) — click for: pause when loud" : "Pause when I am loud — click for: pause only when I say real words").tc("is-on", b.mode === "words");
+		this.$mode.tc("audio-recite-hide", !b.on);
 		this.$threshold.tc("audio-recite-hide", !b.on);
 		if (b.mic && !this.meter) this.meter = requestAnimationFrame(() => this.draw_level());
 		this.draw_now();

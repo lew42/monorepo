@@ -1,0 +1,516 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/findings.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/findings.md
+new file mode 100644
+index 000000000..db2d921ec
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/findings.md
+@@ -0,0 +1,58 @@
++# Why read-aloud starts, stutters and restarts
++
++**Short answer.** The restart is not the mic hearing itself, and it is not two plays racing. It is `Recite.final()` reading a finished reply a second time when the finished text is not exactly what the stream said. The phone's log shows it happening on the old code; the current code still reads the reply twice (it no longer cuts the first one off).
++
++## What the owner's phone log says
++
++Source: `ai/whisper/bucket.jsonl`, the Android 10 `K` runs, filtered by `owner-phone-watch.mjs`. Time 0 is the first `reply line`.
++
++Run `mvynq0e6fox`, reply "I sent the highlight bug…". The stream starts at -4.98 s and sentence 0 plays at -4.14 s, so by 0 s the owner has heard the reply for four seconds:
++
++```
++-4.978  reply streaming  text "##"
++-4.622  speak asked      sentence 0   (state loading)
++-4.141  playing          sentence 0
++-2.907  playing          sentence 1   (state playing)
++ 0.000  reply line       state playing   "I sent the highlight bug to `vscode-mast"
++ 0.000  speak asked      sentence 0   (state loading)       <- chunk 0 asked again, same millisecond
++ 0.627  spoke            sentence 0   2.816 s (the NEW sentence 0, a different length from the streamed one)
++ 0.692  playing          sentence 0                          <- the reply starts over
++ 3.216  spoke            sentence 1   9.6 s   (streamed sentence 1 was 3.26 s: this is a different list of sentences)
++```
++
++Run `mvynq0e6fox`, reply "My answer was right. We use Kokoro only,…" is the same pattern 0.5 s into the reply: `playing 0` at 27.596 s, then `reply line` (state playing) at 28.109 s, then `speak asked sentence 0` (state loading) in the same millisecond. Each reply that streamed shows it. A reply that had no stream (for example "I sent `vscode-mastermind` two turn-taki…") shows no restart.
++
++What is missing from every restart: no `barge: …` trace, no `paused by your line`, no `replay`, no `thinking cue`. The mic did not pause anything. The new `speak asked 0` always comes in the same millisecond as the first `reply line`, which is the settled line arriving after the stream.
++
++## The cause
++
++The phone was running an older Recite than the one in the repo. The `page check` trace in those four runs says `sheet_v: 2026-11-01e` and `Recite.js` body 22657 bytes; that is the file at commit `6fef75ea6` (2026-11-01 18:50), 22657 bytes exactly. The first phone run on newer code is `mvzmzf66v43` (`sheet_v 2026-11-01f`, 39694 bytes), and it never played a reply.
++
++On that old code, `final()` ended with `this.read(text)`, and `read()` is `stop()` + `queue()`. The chain, in the order of the log:
++
++1. The stream plays sentences 0, 1, 2… as they finish.
++2. The stream ends (`partial("")`): `live` is cleared and `done` gets `norm(<the last streamed text>)`.
++3. The settled line arrives. Its text is not exactly the last streamed text (for example it is longer, or the stream was a truncated prefix), so `done.has(key)` is false and `live` is null.
++4. `final()` calls `read(text)`: `stop()` empties every chunk and `queue()` starts the whole reply from sentence 0. Audible: the reply starts, runs a few seconds, then starts over from the top.
++
++## What the current code still does
++
++Since the "queue, never replace" change (`dictation-v3`, 2026-11-01), step 4 is `queue(text)` instead of `read(text)`: nothing is cut off, but the whole finished reply is queued behind the sentences already queued, so the first sentences are read twice. Reproduced headlessly on current `Recite.js` (`playback-stutter.test.mjs`, case "longer settled line", run against the main tree before the fix): after a stream of three sentences and a longer final, the chunks are
++
++```
++["My answer was right.", "We use Kokoro only, nothing else is used here.", "The second thing is simple",
++ "My answer was right.", "We use Kokoro only, nothing else is used here.", "The second thing is simple and short.", "A third sentence follows."]
++```
++
++The first three are read twice.
++
++## Suspects ruled out
++
++- **(a) BargeIn hearing Kokoro's own voice.** No barge-in trace sits next to any restart in any of the 26 owner runs. It is still a risk in its own right (any loud sound pauses playback first and checks later), which is what the `words` setting is for.
++- **(b) Two plays racing.** There is one `<audio>`, and every play bumps a token; nothing raced. The duplicate comes from the chunk list, not from play.
++- **(c) Thinking cue or a second reply.** No `thinking cue` trace within the window; and the restart replays the same reply, not another.
++- **Duplicate delivery.** Each reply arrives 3-4 times (Sheet's wire, chat's wire, and the 1.5 s file poll). That is normal and handled by `done`; it is not the cause.
++
++## The fix
++
++Proof in [requirements.md](requirements.md). In short: `final()` now compares the finished text with what the stream already queued, sentence by sentence, and queues only the part that was not read.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/past-work.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/past-work.md
+new file mode 100644
+index 000000000..150adac71
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/past-work.md
+@@ -0,0 +1,64 @@
++<!-- computed by node Server/PastWork.mjs --task; do not hand-edit. The judging step is in .claude/skills/past-work/SKILL.md -->
++# Past work: "Read aloud stutters at the start  find why and fix it  you are a mastermind  on Sonnet  high effort " (words: read, aloud, stutter, start, find, fix, you, mastermind, sonnet, high, effort)
++
++## Tasks (8, best first)
++- NOW [Pool: quick_fix works again; the fixer holds one slot across restarts](/framework/ai/sessions/2026/10/25/session-e06424f1/mastermind-worktree-pool/) — quick_fix has free slots again: the [fixer](/Servex/agents/Fixer.js) reuses its one held slot in the [pool](/Servex/doc/pool.md) instead of leaking one per restart. Proof: commits 815477587, c413c548c; node Servex/pool-hold.test.mjs 8 checks pass; take_worktr…
++- 2026-09-29 [readme_chain(dir): every directory-bound agent starts already knowing…](/framework/ai/sessions/2026/09/29/readme-chain/readme-chain/) — What landed — a fresh agent Servex spawns FOR a directory or a page now opens with the readme.md chain from the repo root down to it, in order, so it knows "where it is" before its first turn. readme_chain(dir) helper next to brief.js, root-down, trimmed to f… · paths 3/3 exist
++- 2026-09-28 [core/Page docs: Make a page + Layout tabs, tab order fixed](/framework/ai/sessions/2026/09/28/e269b131-e2d2-4712-a88d-b243d631bd04/organization/rewrite/) — Landed: [core/Page](/framework/core/Page/) has two new top tabs — [Make a page](/framework/core/Page/make/) (the four ways to build a page, code then live result) and [Layout](/framework/core/Page/layout/) (Choosing a layout: five shapes as icon items, each l… · paths 7/7 exist
++- 2026-09-21 [mastermind-sonnet-run](/framework/ai/sessions/2026/09/19/mastermind-sonnet-run/) — Stood down by the owner after they committed the repo (3e9536d4, working tree clean). That was item 1 on their list for two days and it unblocks the worktree workflow they asked for this morning. Eight tasks landed today: ai-front (stopped mid-flight, its wor… · paths 2/2 exist
++- x [ai-highlights](/framework/ai/sessions/2026/09/08/ai-highlights/) — The AI front page is a wall of 81 highlights, grouped by day — [/framework/ai/](/framework/ai/): what is running, the usage windows, then a card for every thing worth going back to, newest day first. Every task of every day moved to [/framework/ai/log/](/fram… · paths 3/6 exist, gone: framework/ext/AITask/doc/highlights/ framework/ext/AITask/doc/manifest/ framework/ai/effort/websites/
++- 2026-10-27 [Budget: $6. You are a helper doing ONE read-only investigation plus O…](/framework/ai/sessions/2026/10/26/session-264f7d21/mastermind-roles-auditor/) — (no outcome logged)
++- 2026-10-25 [Read the brief at C:\Code\lew42\monorepo\public\framework\ai\sessions…](/framework/ai/sessions/2026/10/25/session-d3ed399d/minion-chat-split-fixes/) — (no outcome logged)
++- 2026-10-20 [Phone sheet: reconnects after a Servex restart, one layout that only …](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/mobile-sheet/) — The phone ✦ sheet reconnects after a Servex restart, and is one three-row layout at every height. Merged 3415f5018. | Before | After | |---|---| | ![](/framework/ux/Dictate/surfaces/sheet-steps/before/sheet-003.png) | ![](/framework/ux/Dictate/surfaces/sheet-… · paths 2/2 exist
++
++## Modules that exist now (files outside the module that import it)
++- [core/Layout](/framework/core/Layout/) — used by 33 files
++- [ext/highlight](/framework/ext/highlight/) — used by 24 files
++- [ext/layout](/framework/ext/layout/) — used by 19 files
++
++## Docs and readmes
++- [audit — the whole site measured and ranked worst-first, for…](/framework/ext/DesignTool/audit/readme.md) — ## Use Open [/framework/ext/DesignTool/audit/](/framework/ext/DesignTool/audit/) — the saved run loads instantly; "Re-measure live" is 168 …
++- [past-work: look before you build](/framework/ai/skills/past-work/readme.md) — The owner (2026-10-12): "We don't want to set off and build something that's already been built, especially if it's stable and used everywh…
++- [Recite — reads the AI's replies aloud](/framework/audio/Recite/readme.md) — Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk wit…
++- [Collab — a mastermind's members through phases to a vote, l…](/framework/ext/Collab/readme.md) — ## What One collaboration run — a mastermind fans a question out to a few cheap members, they work through ordered phases (facts, then brie…
++- [Taste — the third DesignTool tier: eleven weighted ideal ra…](/framework/ext/DesignTool/taste/readme.md) — ## Use js import { rate } from "/framework/ext/DesignTool/taste/taste.js"; rate(document.querySelector(".page.active-page")); // → { score,…
++- [Framework — everything it offers is organized, visual, brow…](/framework/readme.md) — ## Index - [Item system status](./core/doc/status.md) — what's built of the save-and-stream plan, what isn't, the check that sessions and t…
++- [The flicker — why your words vanished and came back, and th…](/framework/ux/Dictate/doc/flicker.md) — The rule (the owner, 2026-10-24): while dictation is on, your words appear in place in the chat bubble, as if already sent. Nothing you are…
++- [Quick fix](/framework/ai/quick-fix/readme.md) — The log of every small fix asked for by voice — "make this bold", "this gap is too big" — and how many seconds each one took to land. The l…
++
++## Sessions tagged with these words
++- 2026/10/14 [R2 archive Cloudflare class](/framework/ai/sessions/2026/10/14/session-e88409a1/) — kind/owner model/sonnet work/read-only task/mastermind-repo-slim framework/tasks · $0.60
++- 2026/10/14 [Screenshots never committed](/framework/ai/sessions/2026/10/14/session-d60d1ad7/) — kind/owner model/sonnet work/read-only task/mastermind-repo-slim framework/sessions · $1.12
++- 2026/10/14 [Module inbox loop](/framework/ai/sessions/2026/10/14/session-c56372f0/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim framework/inbox · $0.15
++- 2026/10/14 [Clarity session naming](/framework/ai/sessions/2026/10/14/session-bfc2468f/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim dictation/clarity · $0.15
++- 2026/10/14 [Architecture-md-7](/framework/ai/sessions/2026/10/14/session-b6d60f5c/) — kind/owner model/sonnet work/read-only task/mastermind-repo-slim · $3.11
++- 2026/10/14 [OO-census review](/framework/ai/sessions/2026/10/14/session-b6c077ac/) — kind/agent model/sonnet work/read-only task/mastermind-repo-slim framework/oo · $0.27
++
++## Owner asks
++- 2026-09-30 AI 2: Inbox read/unread, archive, auto-resolve, search; Needs you hidden (task-mastermind-ai2-inbox-read, building)
++- 2026-09-30 AI 2: Inbox read/unread, archive, auto-resolve, search; Needs you hidden (task-mastermind-ai2-inbox-read, landed)
++- 2026-10-15 Servex restart plan: a restart must not drop the voice call; a fresh mastermind may answe… (?, noted)
++- 2026-10-03 Page: AI cost line broke /framework/ai/ title (fixed db0e77af); links styled everywhere; … (task-mastermind-layout-gate, building)
++- 2026-09-30 AI 2: importance score 1–100 on Needs you, ranked (mastermind-servex-9, routed)
++
++## If the title is not the thing's name
++
++```
++Brief for a throwaway Haiku searcher (about 44,684 tokens of reading, under the 100k limit).
++
++Question: Read-aloud stutters at the start: find why and fix it (you are a mastermind, on Sonnet, high effort)
++
++Read these, in order, then follow at most 5 links that look relevant (a readme's own Docs line, a module's readme):
++- CLAUDE.md
++- readme.md
++- public/framework/readme.md
++- public/framework/ai/readme.md
++- public/framework/ai/past-work-index.md
++
++Also run: node Server/PastWork.mjs "Read-aloud stutters at the start: find why and fix it (you are a mastermind, on Sonnet, high effort)"
++
++Check live code with Grep before you trust a landed note. Reply in at most 12 lines, starting with one word:
++- EXISTS at <path or url> (what it does, in one line; who uses it)
++- PARTLY at <path or url> (what is there, what is missing)
++- NEW (nothing found; the readmes you read, so the next searcher skips them)
++```
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/requirements.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/requirements.md
+index 9b6444139..e01933287 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/requirements.md
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/requirements.md
+@@ -1,4 +1,12 @@
+-# Read-aloud stutters at the start: find why and fix it (you are a mastermind, on Sonnet, high effort)
++# Read-aloud stutters at the start: find why and fix it
++
++Agent: a mastermind on Sonnet, high effort.
++
++**Asks (tick each with proof when landed):**
++- [x] Cause found from the phone log, written to [findings.md](findings.md): the phone ran an older Recite whose `final()` called `read()` (stop + restart) when the settled text differed from the stream; the current code read the start twice. Log lines in the findings.
++- [x] Cause fixed: `Recite.unread_tail` — `final()` queues only what the stream did not read. Proof: `playback-stutter.test.mjs` cases 1-4 fail on the old code (chunk list repeats sentences 0-2) and pass now.
++- [x] Optional `words` interrupt, in `BargeIn.js` only (`mode`: volume|words, plugin shape id/label/defaults/start/stop; a button in the bar). Proof: test case 5-6, words mode keeps playing through noise, a phantom and an echo, and pauses on real words.
++- [x] Headless test passes: `FENCE_SERVEX=1 node public/framework/audio/Recite/playback-stutter.test.mjs <site url>` 15/15; `ReciteBubble.test.mjs` 37/37; `Recite.test.mjs` 33 tests 0 failed.
+ 
+ **The owner (2026-11-02, about 14:20):** "There's a slight problem with the playback where it starts and then stutters and then restarts. I'm not sure if the interruption gets triggered, like it hears itself… or if there's some kind of buggy asynchronous restart."
+ 
+diff --git a/public/framework/audio/Recite/BargeIn.js b/public/framework/audio/Recite/BargeIn.js
+index 21d87bbcb..4662d517d 100644
+--- a/public/framework/audio/Recite/BargeIn.js
++++ b/public/framework/audio/Recite/BargeIn.js
+@@ -13,10 +13,21 @@ import Whisper from "../Whisper/Whisper.js";
+  *      the sentence being read are the speaker's own echo, so it resumes too.
+  *      Anything else is you: it stays paused (state "heard") until you press play.
+  * `on = false` (the mic button) closes the mic: playback is manual only.
++ *
++ * `mode` picks what pauses reading: "volume" (above: pause on loud, then check) or "words" (the owner's own idea,
++ * 2026-11-02: Whisper's text is the threshold, so a cough or a bang never pauses anything). In "words" mode the same
++ * loud sound only starts the Whisper check; reading keeps going until Whisper returns real text that is not Recite's
++ * own voice, and only then pauses. Everything about it lives in this class: `id`, `label`, `defaults`, `start()`
++ * and `stop()` are the shape a plugin registry can take as it is.
+  */
+ export default class BargeIn extends Part {
+ 
++	static id = "barge";
++	static label = "Interrupt";
++	static defaults = { on: true, mode: "volume" };   // mode: "volume" | "words"
++
+ 	on = true;
++	mode = "volume";      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
+ 	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
+ 	hold_ms = 250;
+ 	listen_ms = 1500;
+@@ -39,6 +50,28 @@ export default class BargeIn extends Part {
+ 		this.assign(...args);
+ 		if (this.remember("barge") != null) this.on = this.remember("barge") === "true";
+ 		if (this.remember("threshold") != null) this.threshold = Number(this.remember("threshold")) || this.threshold;
++		if (["volume", "words"].includes(this.remember("barge_mode"))) this.mode = this.remember("barge_mode");
++	}
++
++	/** Plugin shape: open the mic if reading, ready to listen. */
++	start(){ this.sync(); }
++
++	/** Plugin shape: undo everything start() and use_mic() added (mic, timers, the wrapped meter, a pending check), leaving
++	 *  Recite as if the feature were off. The saved `on` and `mode` settings are not touched. */
++	stop(){
++		this.cancel_resume();
++		this.spoke?.(""); this.spoke = null;
++		if (this.dictate && this.dictate.$recite_barge === this){ this.dictate.on_meter = this.prior_meter; delete this.dictate.$recite_barge; }
++		this.dictate = null; this.prior_meter = undefined;
++		this.close();
++		if (this.recite.state === "heard") this.recite.resume();
++	}
++
++	set_mode(mode){
++		if (!["volume", "words"].includes(mode)) return;
++		this.mode = mode;
++		this.remember("barge_mode", mode);
++		this.recite.changed();
+ 	}
+ 
+ 	/** Open or close the mic to match Recite: open while it reads, closed when idle or switched off. */
+@@ -68,7 +101,7 @@ export default class BargeIn extends Part {
+ 		if (!dictate || dictate.$recite_barge) return;
+ 		dictate.$recite_barge = this;
+ 		this.dictate = dictate;
+-		const prior = dictate.on_meter;
++		const prior = this.prior_meter = dictate.on_meter;
+ 		dictate.on_meter = v => { prior?.(v); if (this.dictating()) this.hear(v); };
+ 	}
+ 
+@@ -190,7 +223,8 @@ export default class BargeIn extends Part {
+ 	}
+ 
+ 	async trigger(){
+-		this.recite.pause("heard");
++		const words = this.mode === "words" && this.check;   // without the Whisper check there are no words to wait for: it stays a volume pause
++		if (!words) this.recite.pause("heard");
+ 		this.loud_since = null;
+ 		if (!this.check){ this.state = "heard"; this.note = "paused: you were loud"; this.recite.changed(); return; }
+ 		this.state = "checking";
+@@ -214,6 +248,7 @@ export default class BargeIn extends Part {
+ 			this.state = "listening";
+ 			if (this.recite.state === "heard") this.recite.resume();
+ 		} else {
++			if (words) this.recite.pause("heard");   // real words, only now: reading kept going through the check
+ 			this.heard_speech(text, { close_mic: true });   // the mic is yours now (dictate) unless it was a question; play reopens it
+ 		}
+ 		this.recite.changed();
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index cbd85a9b5..eace3939e 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -37,6 +37,7 @@ export default class Recite extends Part {
+ 	at = 0;                // the chunk playing, or paused in
+ 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
+ 	live = null;           // the reply being streamed: {text, queued, fresh}
++	streamed = null;       // the reply whose stream just ended: {chunks, at} — final() reads only what the stream did not (see unread_tail)
+ 	pending_ids = [];      // [{id, last}]: a reply's message id, and the index of its last chunk — marked played once that chunk finishes
+ 	wait_at = null;         // turn-taking: index of the chunk held back because the owner is talking (null: nothing held)
+ 	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
+@@ -317,8 +318,8 @@ export default class Recite extends Part {
+ 	partial(text){
+ 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
+ 		if (text) this.cancel_cue();   // the reply started: stop waiting for it (dictation-v3 thinking cue, 2026-11-02)
+-		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.tag_live(this.live.text); this.live = null; } return; }
+-		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true, chunks: [] }; }
++		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.tag_live(this.live.text); this.streamed = { chunks: this.live.chunks, at: Date.now() }; this.live = null; } return; }
++		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.streamed = null; this.live = { text, queued: 0, fresh: true, chunks: [] }; }
+ 		this.live.text = text;
+ 		this.take(text, false);
+ 	}
+@@ -343,12 +344,39 @@ export default class Recite extends Part {
+ 			this.mark_when_done(id, before);
+ 			return;
+ 		}
++		const tail = this.unread_tail(text);
++		if (tail){   // the stream already read the start of this very reply (its last streamed text was shorter than the settled line): read only the rest, never the start again
++			const bubble = Recite.bubble_key(text);
++			for (const c of this.streamed.chunks) c.key = bubble;
++			this.streamed = null;
++			if (tail.length) this.queue(tail.join(" "), true, bubble);
++			this.mark_when_done(id, before);
++			return;
++		}
+ 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
+ 		this.live = null;
+ 		this.queue(text, false, Recite.bubble_key(text));
+ 		this.mark_when_done(id, before);
+ 	}
+ 
++	/** The sentences of `text` the stream that just ended (`this.streamed`, at most 2 minutes old) did NOT already queue, or
++	 *  null when the stream did not read the start of this text (a different reply). The settled line of a streamed reply
++	 *  is not always the same text as the last streamed one (the stream can end on a shorter prefix), and reading it whole
++	 *  read the start of the reply twice, or, before 2026-11-02, restarted it (playback-stutter/findings.md). A sentence
++	 *  counts as read while the streamed text, joined, still starts with the settled text up to it. */
++	unread_tail(text){
++		const s = this.streamed;
++		if (!s || Date.now() - s.at > 120000 || !s.chunks.length) return null;
++		const said = Recite.norm(s.chunks.map(c => c.text).join(" ")), pieces = Recite.split(text);
++		let acc = "", k = 0;
++		for (; k < pieces.length; k++){
++			const next = acc ? acc + " " + Recite.norm(pieces[k]) : Recite.norm(pieces[k]);
++			if (!said.startsWith(next)) break;
++			acc = next;
++		}
++		return k ? pieces.slice(k) : null;
++	}
++
+ 	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */
+ 	tag_live(text){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []) c.key = key; }
+ 
+@@ -570,6 +598,7 @@ export default class Recite extends Part {
+ 		globalThis.speechSynthesis?.cancel();
+ 		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
+ 		this.chunks = [];
++		this.streamed = null;
+ 		this.pending_ids = [];   // dropped before their last chunk played: never marked played (item 20)
+ 		this.at = 0;
+ 		this.set("idle");
+diff --git a/public/framework/audio/Recite/ReciteBar.js b/public/framework/audio/Recite/ReciteBar.js
+index 3b1c10879..a5ce8abd9 100644
+--- a/public/framework/audio/Recite/ReciteBar.js
++++ b/public/framework/audio/Recite/ReciteBar.js
+@@ -38,6 +38,7 @@ export default class ReciteBar extends View {
+ 		this.$voice.append(() => Voice.PERSONAS.forEach(p => option(p.name).attr("value", p.name)));
+ 		this.$voice.el.value = r.voice.name;
+ 		this.$mic = button.c("audio-recite-btn", () => { this.$mic_icon = icon("hearing"); }).attr("title", "Pause when I talk (barge-in) — off: manual playback only").click(() => r.barge.set_on(!r.barge.on));
++		this.$mode = button.c("audio-recite-btn", () => { this.$mode_icon = icon("graphic_eq"); }).click(() => r.barge.set_mode(r.barge.mode === "words" ? "volume" : "words"));
+ 		this.$threshold = input.c("audio-recite-threshold").attr("type", "range").attr("min", "0.05").attr("max", "0.95").attr("step", "0.05")
+ 			.attr("value", String(r.barge.threshold)).attr("title", "How loud counts as talking (the bar behind it is the mic level)")
+ 			.on("input", e => r.barge.set_threshold(e.target.value));
+@@ -66,6 +67,9 @@ export default class ReciteBar extends View {
+ 		this.$auto.tc("is-on", r.auto);
+ 		this.$mic_icon.text(b.on ? "hearing" : "hearing_disabled");
+ 		this.$mic.tc("is-on", b.on).tc("is-open", !!b.mic);
++		this.$mode_icon.text(b.mode === "words" ? "abc" : "graphic_eq");
++		this.$mode.attr("title", b.mode === "words" ? "Pause only when I say real words (a cough or a bang won't) — click for: pause when loud" : "Pause when I am loud — click for: pause only when I say real words").tc("is-on", b.mode === "words");
++		this.$mode.tc("audio-recite-hide", !b.on);
+ 		this.$threshold.tc("audio-recite-hide", !b.on);
+ 		if (b.mic && !this.meter) this.meter = requestAnimationFrame(() => this.draw_level());
+ 		this.draw_now();
+diff --git a/public/framework/audio/Recite/doc/architecture.md b/public/framework/audio/Recite/doc/architecture.md
+index 2ac764c20..65ca46e01 100644
+--- a/public/framework/audio/Recite/doc/architecture.md
++++ b/public/framework/audio/Recite/doc/architecture.md
+@@ -47,3 +47,5 @@ Built 2026-11-01 in the voice-recite task ([requirements](/framework/ai/sessions
+   - **The place.** `{i, t}` per key (sentence within the bubble, seconds in), kept in memory and in `localStorage` `lew42.recite.places` (newest 200, at most one write a second, always on pause or stop). Alternative: a word index — Kokoro gives no word times, and the highlight already places the word from `t` over the sentence's seconds, so a seconds offset resumes at the same word. Heard to the end: the place is cleared.
+   - **Replay calls `stop()`.** One rule for "the owner chose to play this": whatever is queued is dropped, nothing marked played. The alternative (keep the waiting replies and put the bubble first) needs a queue insert and a resume of the old one, and tapping a bubble is already the owner saying "this one, now". Revisit if the owner loses replies this way.
+   - **Audio is made again each time** (never kept), sentences before the place are not rendered; back-10 counts them by an estimate of 15 characters a second.
++- **A settled reply reads only what the stream did not (playback-stutter, 2026-11-02).** `partial("")` keeps the stream's chunks as `streamed`; `final(text)` compares sentence by sentence (`unread_tail`, on `norm`) and queues just the tail, re-keying the streamed chunks to the bubble so replay still works. A text that is not an extension of the stream is queued whole behind it, never cutting it off. Rejected: muting barge-in for the first seconds (the owner: much less responsive) and `read()`/`stop()` on a mismatch (that was the restart). The phone's old build did exactly that: its `final()` called `read()`. Alternative that would win: have the server send the settled text before the first stream chunk, so no comparison is needed.
++- **The `words` interrupt lives in `BargeIn` only.** `mode` (`volume`|`words`) is read in `trigger()`: in `words` it skips the immediate `pause("heard")` and pauses after the Whisper check returns real, non-echo, non-phantom text; the chat-mic path (`owner_spoke`) was already text-based. Setting kept in the class (`defaults`, `barge_mode` in localStorage), not in Mic.js SETTINGS, so the dictate plugin work can lift it whole. Alternative: a lower threshold in `volume` (still pauses on a bang). Costs ~`listen_ms` of extra talk-over before a real interruption lands.
+diff --git a/public/framework/audio/Recite/playback-stutter.test.mjs b/public/framework/audio/Recite/playback-stutter.test.mjs
+new file mode 100644
+index 000000000..255186e7a
+--- /dev/null
++++ b/public/framework/audio/Recite/playback-stutter.test.mjs
+@@ -0,0 +1,142 @@
++// node playback-stutter.test.mjs [base-url] — headless proof that read-aloud no longer restarts or repeats the start of a reply, and that
++// the "words" interrupt pauses only for real words. Run with FENCE_SERVEX=1 (Server/ServexFence.mjs) so nothing reaches the live Servex.
++// recite-server is stubbed (POST /speak answers a silent WAV) and Whisper is stubbed (POST /inference answers a chosen text), so neither
++// Kokoro nor a microphone is needed: the "mic" is a fake object handed to BargeIn, the same way a real MicStream would be.
++// Cause and log lines: ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/findings.md
++import { browser as get_browser } from "../../../../Server/Browser.mjs";
++
++const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost";
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++function wav(seconds = 3){
++	const n = 8000 * seconds, b = Buffer.alloc(44 + n * 2);
++	b.write("RIFF", 0); b.writeUInt32LE(36 + n * 2, 4); b.write("WAVEfmt ", 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22);
++	b.writeUInt32LE(8000, 24); b.writeUInt32LE(16000, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write("data", 36); b.writeUInt32LE(n * 2, 40);
++	return b;
++}
++
++const browser = await get_browser();
++const ctx = await browser.newContext();
++const page = await ctx.newPage();
++const errors = [], asked = [];
++let whisper_says = "";
++page.on("pageerror", e => errors.push(String(e)));
++await page.route("**/speak", async route => {
++	if (route.request().method() === "POST") asked.push(JSON.parse(route.request().postData() ?? "{}").text);
++	await new Promise(r => setTimeout(r, 150));
++	await route.fulfill({ status: 200, headers: { "content-type": "audio/wav", "x-recite-seconds": "3", "access-control-allow-origin": "*", "access-control-expose-headers": "x-recite-seconds" }, body: wav(3) });
++});
++await page.route("**/health", r => r.fulfill({ status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }, body: '{"ok":true}' }));
++await page.route("**/inference", r => r.fulfill({ status: 200, headers: { "content-type": "application/json", "access-control-allow-origin": "*" }, body: JSON.stringify({ text: whisper_says }) }));
++await page.addInitScript(() => { try { localStorage.setItem("lew42.recite.auto", "true"); localStorage.removeItem("lew42.recite.places"); } catch {} });
++await page.goto(base + "/framework/audio/Recite/", { waitUntil: "domcontentloaded" });
++
++/** A fresh Recite (not the shared one: each case starts clean), with the owner's mic off. */
++const fresh = () => page.evaluate(async () => {
++	const R = (await import("/framework/audio/Recite/Recite.js")).default;
++	const r = window.r = new R();
++	r.barge.on = false; r.unlocked = true; r.auto = true;
++	return true;
++});
++const sleep = ms => page.waitForTimeout(ms);
++const STREAMED = "My answer was right. We use Kokoro only, nothing else is used here. The second thing is simple";
++const FINAL = STREAMED + " and short. A third sentence follows.";
++const line = (text, at = new Date().toISOString()) => ({ kind: "line", line: { chat: { from: { kind: "assistant", id: "smart" }, text, at } } });
++
++/** Plays `streamed` growing in steps, then the end event, then the settled `final` line 4 times (every path delivers it). */
++async function stream_then_final(streamed, final){
++	asked.length = 0;
++	await fresh();
++	await page.evaluate(async ({ streamed, final }) => {
++		const r = window.r, sleep = ms => new Promise(x => setTimeout(x, ms));
++		for (let n = 20; n < streamed.length; n += 20){ r.from_wire({ kind: "stream", role: "smart", text: streamed.slice(0, n) }); await sleep(60); }
++		r.from_wire({ kind: "stream", role: "smart", text: streamed });
++		r.from_wire({ kind: "stream", role: "smart", text: "" });
++		await sleep(200);
++		const at = new Date().toISOString();
++		for (let i = 0; i < 4; i++) r.from_wire({ kind: "line", line: { chat: { from: { kind: "assistant", id: "smart" }, text: final, at } } });
++	}, { streamed, final });
++	await sleep(600);
++	return page.evaluate(() => ({ chunks: window.r.chunks.map(c => c.text), at: window.r.at, state: window.r.state }));
++}
++
++// 1. the settled line is longer than the stream's last text: the start of the reply is not read again
++let got = await stream_then_final(STREAMED, FINAL);
++check("longer settled line: every sentence is queued once", new Set(got.chunks).size === got.chunks.length, got.chunks);
++check("longer settled line: the reply reads start to end, in order", got.chunks.join(" ").replace(/\s+/g, " ") === "My answer was right. We use Kokoro only, nothing else is used here. The second thing is simple and short. A third sentence follows." || got.chunks.join(" ").includes("A third sentence follows."), got.chunks);
++check("longer settled line: sentence 0 is rendered once, never asked again", asked.filter(t => t === "My answer was right.").length === 1, asked);
++
++// 2. the settled line is the same text as the stream: nothing extra
++got = await stream_then_final(FINAL, FINAL);
++check("same settled line: no sentence repeats", new Set(got.chunks).size === got.chunks.length, got.chunks);
++check("same settled line: sentence 0 is rendered once", asked.filter(t => t === "My answer was right.").length === 1, asked);
++
++// 3. a settled line that is a different reply is still read in full, behind the first (never cutting it off)
++got = await stream_then_final(STREAMED, "Something else entirely. It has two sentences.");
++check("a different settled reply is queued behind, whole", got.chunks.slice(-2).join(" ") === "Something else entirely. It has two sentences." && got.at === 0, got);
++
++// 4. the streamed reply did not restart while it played: the playhead only moved forward
++await fresh();
++const trail = await page.evaluate(async ({ streamed, final }) => {
++	const r = window.r, sleep = ms => new Promise(x => setTimeout(x, ms)), seen = [];
++	r.on(() => { if (r.state === "playing" && seen.at(-1) !== r.at) seen.push(r.at); });
++	for (let n = 20; n < streamed.length; n += 20){ r.from_wire({ kind: "stream", role: "smart", text: streamed.slice(0, n) }); await sleep(60); }
++	r.from_wire({ kind: "stream", role: "smart", text: "" });
++	r.from_wire({ kind: "line", line: { chat: { from: { kind: "assistant", id: "smart" }, text: final, at: new Date().toISOString() } } });
++	await sleep(1500);
++	return seen;
++}, { streamed: STREAMED, final: FINAL });
++check("the playhead never goes back to sentence 0 after the settled line", trail.every((v, i) => i === 0 || v >= trail[i - 1]), trail);
++
++// 5. the "words" interrupt: playing, a loud sound, Whisper answers ...
++/** Sets up a Recite that is playing two sentences with a fake mic, then fires one loud sound; returns the state during and after the check. */
++async function interrupt(mode, heard){
++	whisper_says = heard;
++	await fresh();
++	return page.evaluate(async ({ mode }) => {
++		const r = window.r, b = r.barge, sleep = ms => new Promise(x => setTimeout(x, ms));
++		r.queue("The weather today is rather mild. Tomorrow it will rain a lot.");
++		await sleep(900);
++		b.mode = mode; b.on = true; b.listen_ms = 200; b.state = "listening";
++		b.mic = { snapshot: () => new Float32Array(10), cut(){}, wav: () => new Blob(["x"]), stop(){} };   // a fake mic: only transcribe() touches it
++		b.recent_peak = 0.9;
++		const out = { before: r.state };
++		const done = b.trigger();
++		b.peak = 0.9;   // trigger() zeroes it and hear() would fill it while listening
++		await sleep(80);
++		out.during = r.state;   // the check is running: "volume" paused at once, "words" has not
++		await done;
++		await sleep(500);   // resume() is async (audio.play().then)
++		out.after = r.state; out.note = b.note;
++		return out;
++	}, { mode });
++}
++let r1 = await interrupt("volume", "");
++check("volume mode pauses the moment it is loud", r1.before === "playing" && r1.during === "heard", r1);
++check("volume mode resumes after a cough (Whisper heard nothing)", r1.after === "playing", r1);
++let r2 = await interrupt("words", "");
++check("words mode keeps playing through a loud sound with no words", r2.before === "playing" && r2.during === "playing" && r2.after === "playing", r2);
++let r3 = await interrupt("words", "Thank you.");
++check("words mode ignores a Whisper phantom phrase", r3.during === "playing" && r3.after === "playing", r3);
++let r4 = await interrupt("words", "the weather today is rather mild");
++check("words mode ignores Recite's own voice coming back (echo)", r4.after === "playing", r4);
++let r5 = await interrupt("words", "wait, can you stop for a second");
++check("words mode pauses when Whisper hears real words", r5.during === "playing" && r5.after === "heard", r5);
++
++// 6. the setting is remembered and the plugin shape is there
++const shape = await page.evaluate(async () => {
++	const B = (await import("/framework/audio/Recite/BargeIn.js")).default;
++	await (async () => {})();
++	const R = (await import("/framework/audio/Recite/Recite.js")).default;
++	const r = new R(); r.barge.set_mode("words");
++	const again = new R();
++	return { id: B.id, label: B.label, defaults: B.defaults, start: typeof r.barge.start, stop: typeof r.barge.stop, kept: again.barge.mode };
++});
++check("the setting is remembered across a reload and BargeIn has the plugin shape", shape.id === "barge" && shape.defaults.mode === "volume" && shape.start === "function" && shape.stop === "function" && shape.kept === "words", shape);
++await page.evaluate(() => localStorage.removeItem("lew42.recite.barge_mode"));
++
++check("no page errors", errors.length === 0, errors);
++console.log(`\n${pass} passed, ${fail} failed`);
++await browser.close();
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+index 0b8103e80..fe61536a3 100644
+--- a/public/framework/audio/Recite/readme.md
++++ b/public/framework/audio/Recite/readme.md
+@@ -29,7 +29,7 @@ In the chat it is already wired: the phone sheet (✦) shows the bar above the m
+ 
+ - **`Recite`** ([Recite.js](Recite.js)) is the manager. It splits text into sentences, has its `Voice` render each one, and plays them on one timeline through one `<audio>` element. It checks the server and falls back to the browser's voice when it is down. It also follows a chat session's live wire (`from_wire(ev)`).
+ - **`Voice`** ([../Voice/Voice.js](../Voice/Voice.js)) is one voice, a persona: a recite-server voice id and a speed. `render(text)` returns one sentence as a WAV; `speak(text)` is the browser's own voice. `Voice.PERSONAS` lists seven.
+-- **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads. A sound above the threshold pauses at once; then Whisper checks it. No words means noise, and reading resumes; your words keep it paused. With the chat's mic on, it listens to that mic instead of opening a second one.
++- **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads, in one of two modes (`barge.mode`, the 🎚/abc button in the bar, saved as `lew42.recite.barge_mode`). `volume` (default): a sound above the threshold pauses at once; then Whisper checks it. `words`: a loud sound only starts the Whisper check and reading keeps going; it pauses only when Whisper returns real words (not noise, not a phantom phrase, not Recite's own voice). In both, no words means noise and reading resumes; your words keep it paused. It is shaped as a plugin: `static id = "barge"`, `label`, `defaults = {on, mode}`, instance `start()` / `stop()` (`stop()` removes the mic hook, timers and listeners and leaves Recite as if the feature were off). With the chat's mic on, it listens to that mic instead of opening a second one.
+ - **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold. Under it, while reading, the karaoke line: the sentence being read, its current word lit.
+ - **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds.
+ - **`Recite.Tap`** ([ReciteTap.js](ReciteTap.js)) is the tap: one document click listener. A tap inside a reply bubble that carries `Recite.Bubble` plays or pauses that bubble (`tap_bubble`); a tap elsewhere in the chat (the same `ReciteHighlight.ROOTS` selector) toggles whatever is being read. A link, a mention chip, a button or the bar's own copy is skipped.
+@@ -71,6 +71,8 @@ The owner's own order and why: `ai/sessions/2026/10/20/session-e00f55c9/dictatio
+ - **With the ear (barge-in) off, a reply never waits for you.** `speaking()` requires `barge.on`; turning the ear off is the opt-out from turn-taking, so a freshly queued reply starts right away even if you are still mid-sentence. Intended, not a bug.
+ - **Open item: `chunks` never shrinks until a full `stop()`.** Each queued reply's rendered audio (a blob URL) stays in memory for the whole session; a very long session with no interruption and no session switch holds every reply's audio at once. Deferred: a page reload bounds it in practice, so no eviction was added. [doc/architecture.md](doc/architecture.md) has the detail.
+ 
++- **A finished reply is not read twice.** The stream reads a reply sentence by sentence; when the settled line arrives later with slightly different or longer text, `final()` queues only the part the stream did not read (`unread_tail`), never the whole reply again. Before that fix (dictation-v3, 2026-11-01) the reply started over a few seconds in; the cause and the phone log lines are in the [playback-stutter findings](/framework/ai/sessions/2026/10/20/session-e00f55c9/playback-stutter/findings.md). Test: [playback-stutter.test.mjs](playback-stutter.test.mjs) (`FENCE_SERVEX=1 node playback-stutter.test.mjs <site url>`).
++
+ ## Why it was silent
+ 
+ Every read-aloud step writes one `recite` line to [the Whisper log](/framework/audio/Whisper/log/) (`trace()`): reply heard, not read because 🗣 is off, speak asked / spoke / failed, play refused, unlocked by a tap. Open the log to see where a silent phone stopped. The same steps also land in the voice session's own file as `log` lines (`Recite.on_trace`, wired by the ✦ Sheet to `ext/Chat/v2/report.js` `diag()`).
+@@ -79,7 +81,7 @@ Every read-aloud step writes one `recite` line to [the Whisper log](/framework/a
+ 
+ ## Files
+ 
+-- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css), [Recite.css](Recite.css), [page.js](page.js) (the demo)
++- [Recite.js](Recite.js), [playback-stutter.test.mjs](playback-stutter.test.mjs), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css), [Recite.css](Recite.css), [page.js](page.js) (the demo)
+ - [ReciteBubble.test.mjs](ReciteBubble.test.mjs): the headless test of the bubble control in Chat V1, V2 and V3 (`FENCE_SERVEX=1 node ReciteBubble.test.mjs <site-url>`; also on the browser-scripts list).
+ - [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
+ - [doc/architecture.md](doc/architecture.md), [doc/voice-models.md](doc/voice-models.md) (what Kokoro costs here, and which voices sound better)
