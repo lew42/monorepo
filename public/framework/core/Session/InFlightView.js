@@ -27,7 +27,7 @@ export default class InFlightView extends View {
 			div.c("if-session", () => {
 				if (this.all) a.c("if-session-name", p.s.get_one("title") ?? p.s.id ?? p.url).href(p.url.replace(/session\.jsonl$/, ""));
 				if (p.inflight.length) this.section("In flight", () => { p.inflight.forEach(t => this.row(t)); if (p.more) small.c("muted", `+ ${p.more} more running`); });
-				if (p.waiting.length) this.section("Waiting on you", () => p.waiting.forEach(w => this.row(w.task, w.what || "needs you")));
+				if (p.waiting.length) this.section("Waiting on you", () => p.waiting.forEach(w => this.row(w.task, w.what || "needs you", true)));
 				if (p.next.length && !this.all) this.section("Next", () => p.next.forEach(t => this.row(t)));
 				if (p.done && !this.all) small.c("muted if-done", `${p.done} done`);
 			});
@@ -36,12 +36,14 @@ export default class InFlightView extends View {
 
 	section(title, fill){ div.c("if-section", () => { strong.c("if-h", title); fill(); }); }
 
-	row(t, line){
+	row(t, line, bare){
 		const pct = Math.round(t.completion * 100), href = t.get_one("url") ?? t.get_one("path");
-		div.c("if-row", () => {
+		div.c("if-row" + (bare ? " if-bare" : ""), () => {
 			(href ? a.c("if-title", t.get_one("title") ?? t.id).href(href) : span.c("if-title", t.get_one("title") ?? t.id));
-			span.c("if-bar", () => span.c("if-fill").style({ width: pct + "%" })).attr("title", pct + "%");
-			small.c("if-pct", pct + "%");
+			if (!bare){
+				span.c("if-bar", () => span.c("if-fill").style({ width: pct + "%" })).attr("title", pct + "%");
+				small.c("if-pct", pct + "%");
+			}
 			const now = line ?? InFlight.now_of(t);
 			if (now) div.c("if-now muted", now);
 		});
