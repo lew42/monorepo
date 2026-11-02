@@ -34,6 +34,7 @@ export default class Recite extends Part {
 	at = 0;                // the chunk playing, or paused in
 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
 	live = null;           // the reply being streamed: {text, queued, fresh}
+	pending_ids = [];      // [{id, last}]: a reply's message id, and the index of its last chunk — marked played once that chunk finishes
 	wait_at = null;         // turn-taking: index of the chunk held back because the owner is talking (null: nothing held)
 	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
 	wait_timer = null;      // turn-taking: the check_wait() poll timer
@@ -110,7 +111,9 @@ export default class Recite extends Part {
 		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null });
 		if (this.chunks.length === first) return this;
 		this.retime();
-		if (this.state === "idle") this.start_or_hold(first);
+		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
+		// call start_or_hold again — it would move `wait_at` to this later chunk and skip everything held before it.
+		if (this.state === "idle" && this.wait_at == null) this.start_or_hold(first);
 		else this.prefetch(this.at);
 		return this;
 	}
@@ -194,7 +197,7 @@ export default class Recite extends Part {
 		}
 	}
 
-	ended(){ if (this.state === "playing") this.play(this.at + 1, 0); }
+	ended(){ this.settle_pending(this.at); if (this.state === "playing") this.play(this.at + 1, 0); }
 	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
 
 	/* ── replies from a chat session ────────────────────────────────── */
@@ -225,8 +228,10 @@ export default class Recite extends Part {
 
 	/** A settled reply. Read whole, unless its stream was already read. It QUEUES behind whatever is already being
 	 *  read — never replaces it (dictation-v3, 2026-11-01): only a real barge-in with a new question drops the rest.
-	 *  `id` (a message id, or a `{chat}` line's own `at`) marks it played so a reload within the 2-minute window
-	 *  above never reads it twice (item 20); no `id` means it is only guarded by `this.done` (in-memory, this page load). */
+	 *  `id` (a message id, or a `{chat}` line's own `at`) is marked played only once its last chunk actually
+	 *  finishes (`mark_when_done`), so a reload within the 2-minute window above never reads a played reply twice
+	 *  AND never skips one that was dropped (by a barge-in question, a session switch, or a reload) before it
+	 *  finished (item 20); no `id` means it is only guarded by `this.done` (in-memory, this page load). */
 	final(text, id){
 		if (!text) return;
 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: text.slice(0, 40) }); return; }
@@ -234,11 +239,30 @@ export default class Recite extends Part {
 		const key = Recite.norm(text);
 		if (this.done.has(key)) return;
 		this.done.add(key);
-		if (id) Recite.mark_played(id);
-		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){ this.live.text = text; this.take(text, true); this.live = null; return; }
+		const before = this.chunks.length;
+		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
+			this.live.text = text; this.take(text, true); this.live = null;
+			this.mark_when_done(id, before);
+			return;
+		}
 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
 		this.live = null;
 		this.queue(text);
+		this.mark_when_done(id, before);
+	}
+
+	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
+	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
+	 *  the moment that chunk finishes playing — never sooner, so a reply dropped mid-way is never marked played. */
+	mark_when_done(id, before){
+		if (!id) return;
+		if (this.chunks.length > before) this.pending_ids.push({ id, last: this.chunks.length - 1 });
+		else Recite.mark_played(id);
+	}
+
+	/** Chunk `i` just finished playing: mark played any reply whose last chunk that was. */
+	settle_pending(i){
+		this.pending_ids = this.pending_ids.filter(p => { if (p.last !== i) return true; Recite.mark_played(p.id); return false; });
 	}
 
 	/** A new reply starts arriving while an old one sits paused by barge-in (`state === "heard"`): a reply is coming,
@@ -325,6 +349,7 @@ export default class Recite extends Part {
 		globalThis.speechSynthesis?.cancel();
 		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
 		this.chunks = [];
+		this.pending_ids = [];   // dropped before their last chunk played: never marked played (item 20)
 		this.at = 0;
 		this.set("idle");
 	}
@@ -372,6 +397,7 @@ export default class Recite extends Part {
 		this.set("playing");
 		this.voice.speak(c.text, () => {
 			if (token !== this.token || this.state !== "playing") return;
+			this.settle_pending(i);
 			this.engine = this.server === "online" ? "kokoro" : "browser";
 			this.play(i + 1, 0);
 		});

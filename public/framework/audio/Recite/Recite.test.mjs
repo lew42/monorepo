@@ -156,25 +156,103 @@ if (Recite) test("Recite: a reply waits for the owner to stop talking before it 
 
 // Played/unplayed per message id survives a reload (owner item 20, folded in 2026-11-01 21:08): a reload must never
 // re-read a reply already played, and never skip one not yet played. A second `Recite` (a stand-in for the reload)
-// shares the same localStorage, as the real page does.
-if (Recite) test("Recite: a played reply (by message id) is not read again after a reload", async t => {
+// shares the same localStorage, as the real page does. Marked played only once the last chunk actually finishes
+// (a second review caught marking at queue time: a reply dropped before it played was wrongly skipped forever).
+if (Recite) test("Recite: a reply (by message id) is marked played only once it finishes, not when it is queued", async t => {
 	const KEY = "lew42.recite.played", prior = localStorage.getItem(KEY);
 	try {
 		localStorage.removeItem(KEY);
 		const r1 = new Recite({ voice: fake_voice });
+		r1.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
 		r1.barge.on = false;
 		r1.final("First reply, already read before.", "msg-1-test");
-		t.eq(r1.chunks.length, 1, "a fresh reply with an id is read");
-		t.eq(Recite.was_played("msg-1-test"), true, "its id is marked played, for a reload to see");
+		await new Promise(res => setTimeout(res, 20));
+		t.eq(r1.state, "playing", "the reply started");
+		t.eq(Recite.was_played("msg-1-test"), false, "not marked played yet — its one chunk has not finished");
+		r1.ended();   // its one sentence finishes
+		t.eq(Recite.was_played("msg-1-test"), true, "marked played once the last chunk actually finished");
 
 		const r2 = new Recite({ voice: fake_voice });   // stands in for the page reloading: a new instance, same localStorage
+		r2.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
 		r2.barge.on = false;
 		r2.final("First reply, already read before.", "msg-1-test");
 		t.eq(r2.chunks.length, 0, "the same id, after a reload, is not read again");
 		r2.final("A second, different reply.", "msg-2-test");
 		t.eq(r2.chunks.length, 1, "a reply with a new id is still read — nothing unplayed is skipped");
+
+		await new Promise(res => setTimeout(res, 20));
+		r2.stop();   // dropped before it finished (a barge-in question, a session switch, a reload)
+		t.eq(Recite.was_played("msg-2-test"), false, "a reply dropped before it finished is never marked played — it is read in full next time, never skipped");
 		return r2;
 	} finally { if (prior == null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, prior); }
+});
+
+// A second reply queued while the first still waits for quiet must not skip the first (review: queue() called
+// start_or_hold() on every queue while idle, including while already holding one — it moved `wait_at` to the new,
+// later chunk, orphaning everything held before it).
+if (Recite) test("Recite: a second reply queued while the first still waits for quiet does not skip the first", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = true;
+	r.barge.sync = () => {};   // never open a real mic in a test
+	r.turn_wait_ms = 15;
+	let talking = true;
+	r.barge.speaking = () => talking;
+
+	r.queue("First reply, held.");
+	t.eq(r.wait_at, 0, "the first reply is held at chunk 0");
+
+	r.queue("Second reply arrives while you are still talking.");
+	t.eq(r.wait_at, 0, "still held at chunk 0 — a second queue() while still talking must not move it");
+	t.eq(r.chunks.length, 2, "both replies are queued, in order");
+
+	talking = false;
+	clearTimeout(r.wait_timer);
+	r.check_wait();   // first poll: notices quiet, starts the clock — not long enough yet
+	t.eq(r.state, "idle", "not yet — the quiet window just started");
+	r.quiet_since_wait = performance.now() - (r.turn_wait_ms + 5);   // fast-forward past turn_wait_ms: no real sleep needed
+	clearTimeout(r.wait_timer);
+	r.check_wait();   // second poll: quiet long enough — starts
+	await new Promise(res => setTimeout(res, 20));   // let play()'s render promise settle
+	t.eq(r.state, "playing", "started once quiet");
+	t.eq(r.at, 0, "chunk 0 (the first reply) plays first, not chunk 1");
+
+	r.ended();   // chunk 0 finishes
+	t.eq(r.at, 1, "chunk 1 (the second reply) plays next — nothing was skipped");
+	return r;
+});
+
+// BargeIn.speaking() must go quiet once the mic closes, or a reply held by turn-taking would wait for quiet that
+// never arrives (close() used to leave the last loud `level` in place, with no more hear() frames to correct it).
+if (Recite) test("BargeIn: close() resets the level, so speaking() cannot stay stuck true", t => {
+	const r = new Recite({ voice: fake_voice });
+	r.barge.on = true;
+	r.barge.level = 0.9;   // a loud reading just before the mic closed
+	t.eq(r.barge.speaking(), true, "loud, by the stub level");
+	r.barge.close();
+	t.eq(r.barge.level, 0, "close() clears the stale level");
+	t.eq(r.barge.speaking(), false, "and speaking() reports quiet again — nothing holds a queued reply forever");
+	return r;
+});
+
+// A second owner line while already paused by an earlier barge-in must still get its own question check
+// (review: owner_spoke() ignored anything heard while recite.state was already "heard", so a second "wait... what
+// about the other one?" resumed anyway and talked over the new answer).
+if (Recite) test("Recite + BargeIn: a second owner line while already paused still drops on a question", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.barge.quiet_ms = 10000;   // long enough that it could not resume by itself during this test
+
+	r.queue("An answer that gets interrupted.");
+	await new Promise(res => setTimeout(res, 20));
+	r.barge.owner_spoke("wait, hold on");
+	t.eq(r.state, "heard", "paused by the first line");
+
+	r.barge.owner_spoke("actually, what about the other one?");   // a SECOND line, while still paused — a question
+	t.eq(r.state, "idle", "the question in the second line still drops the reply, even though it arrived while already paused");
+	t.eq(r.chunks.length, 0, "nothing left queued");
+	return r;
 });
 
 // Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.

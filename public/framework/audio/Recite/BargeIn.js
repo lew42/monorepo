@@ -71,11 +71,14 @@ export default class BargeIn extends Part {
 
 	dictating(){ return ["listening", "transcribing"].includes(this.dictate?.state); }
 
-	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused. */
+	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused.
+	 *  Also runs while already paused by an earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait…
+	 *  / what about the other one?") must still get its own question check, or it would otherwise resume and talk
+	 *  over the new answer; `heard_speech` just pushes the quiet window out when it isn't a question. */
 	owner_spoke(text){
 		this.spoke?.(text);
-		if (this.recite.state !== "playing" && this.recite.state !== "loading") return;
-		this.recite.pause("heard");
+		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
+		else if (this.recite.state !== "heard") return;
 		this.heard_speech(text);
 	}
 
@@ -132,6 +135,7 @@ export default class BargeIn extends Part {
 		this.mic?.stop();
 		this.mic = null;
 		this.state = "off";
+		this.level = 0;   // a stale loud reading, with no more hear() frames coming to refresh it, would make speaking() stick true forever (the next held reply never starts)
 		this.loud_since = this.quiet_since = null;
 		clearTimeout(this.resume_timer); this.resume_timer = null;
 		this.recite.changed();
