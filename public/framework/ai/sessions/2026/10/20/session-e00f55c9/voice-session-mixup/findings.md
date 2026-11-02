@@ -17,6 +17,12 @@ Nothing from another session leaked. The drawer's "Pick up where you left off?" 
 3. `draw()` drops a chat line stamped with another session than the one watched (a late event from the session just left).
 4. Switching: `deliver` reads `ctl.session` at send time, so a sentence follows the switch with no pause. Test 6 in `ux/Dictate/test/active-session.mjs` proves A, B, A with no wait between a switch and the next sentence.
 
+## A reply goes to the session its question came from
+It already did: each session has its own smart and fast agent, told only that session's lines, and they write into that session's own file (`v-qfzrnhh`: the smart seat's answer 4 s after "can you hear me"). The browser guard above is the second wall. No leak found, no code change.
+
+## Two copies of the resume rule
+`Layers.session_for()` (card prompts, one-hour window) and `Sessions.create()` (the drawer, 30 min) stay separate for now; unifying them is a follow-up.
+
 ## Tests
 `node Servex/agents/Sessions.test.mjs` (29 checks, new one for the project-wide resume); `node public/framework/ux/Dictate/test/active-session.mjs <worktree url> <worktree>` ALL PASS (new 5 and 6).
 

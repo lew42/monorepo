@@ -47,6 +47,10 @@ async function type(text){
 }
 const followed = () => last(streams);
 
+// 0. a drawer opening while a voice session spoke recently joins it AT ONCE, so its history is on screen before a word is said
+await wait(1500);
+check("0 open: joins the recently-active voice session before any sentence", (await active()).session === "v-old" && !(await active()).fresh, JSON.stringify(await active()));
+
 // 1. first open, no session: the first sentence joins the recent voice session (v-old); read-aloud follows the same one
 await type("first sentence");
 check("1 first open: sentence goes to the session the view shows", last(said) === (await active()).session, `said=${last(said)} view=${(await active()).session}`);

@@ -872,9 +872,7 @@ export default class Sessions {
 			if (!home) throw Object.assign(new Error(`"${card}" is not a known card (no page.jsonl in its folder, ai/sessions/<day>/cards/<slug>/)`), { status: 400 });
 		}
 		const project = this.project_of(host);
-		/* Resume is per card when a card was given (same one-hour rule as a page): `recent()` on
-		 * the card's own home only ever finds sessions of that card, since every one of them was
-		 * homed there too. */
+		/* A card was given: resume is per card (one hour); `recent()` on the card's own home only finds that card's sessions. */
 		/* No card: "the last session" is the project's newest voice session on any page, the same one the browser's join and offer name
 		 * (ux/Dictate/chat.js `latest_voice`), resumed within the same 30 min (`idle_ms`) as the browser's join, not only the newest one that passed through this page's folder (voice-session-mixup). */
 		const [last] = card != null && card !== "" ? this.recent({ page: home, project, limit: 1 })
