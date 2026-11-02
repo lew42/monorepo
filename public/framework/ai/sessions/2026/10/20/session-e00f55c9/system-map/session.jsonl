@@ -1,0 +1,10 @@
+{"assign":{"session_id":"e0b42060-d48b-41b3-aaa0-60abf4bf5e07","agent":"mastermind-system-map","role":"mastermind","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/system-map/requirements.md","model":"claude-sonnet-5-5","effort":"medium","role_readme":"Servex/agents/roles/mastermind.md","home":"/framework/ux/Dictate/","requested_at":"2026-11-01T21:46:20-06:00","now":"starting"}}
+{"action":{"at":"2026-11-01T21:47:06-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/system-map/requirements.md"]},"by":"ledger","ts":"2026-11-02T03:47:06.881Z"}
+{"action":{"at":"2026-11-01T21:47:21-06:00","did":"edit","files":["Server/PastWork.mjs"]},"by":"ledger","ts":"2026-11-02T03:47:21.756Z"}
+{"action":{"at":"2026-11-01T21:47:42-06:00","did":"edit","files":["public/framework/ai/handover.md"]},"by":"ledger","ts":"2026-11-02T03:47:42.346Z"}
+{"commit":"c557643d7708","by":"append.mjs","ts":"2026-11-02T03:47:45.706Z"}
+{"action":{"at":"2026-11-01T21:50:40-06:00","did":"edit","files":["public/framework/ux/Dictate/doc/background-work.md"]},"by":"ledger","ts":"2026-11-02T03:50:40.643Z"}
+{"action":{"at":"2026-11-01T21:50:47-06:00","did":"edit","files":["public/framework/ux/Dictate/readme.md"]},"by":"ledger","ts":"2026-11-02T03:50:47.492Z"}
+{"action":{"at":"2026-11-01T21:50:49-06:00","did":"edit","files":["public/framework/ux/Dictate/doc/map.md"]},"by":"ledger","ts":"2026-11-02T03:50:49.892Z"}
+{"commit":"cf8aa18bec97","by":"append.mjs","ts":"2026-11-02T03:50:52.273Z"}
+{"assign":{"landed_at":"2026-11-01T21:51:13-06:00","title":"Dictation: map the background work, and index what has been built","outcome":"Mapped 13 background jobs on a spoken sentence (models, costs, readers) and computed a 71-task built index. Surprises: four refiners clean the same sentence; in-session refinement costs ~$0.29/line; prompt-audit files have no reader.","links":["/framework/ux/Dictate/doc/background-work.md","/framework/ai/doc/built-index.md"]}}
