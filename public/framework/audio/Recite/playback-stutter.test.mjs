@@ -63,13 +63,13 @@ async function stream_then_final(streamed, final){
 
 // 1. the settled line is longer than the stream's last text: the start of the reply is not read again
 let got = await stream_then_final(STREAMED, FINAL);
-check("longer settled line: every sentence is queued once", new Set(got.chunks).size === got.chunks.length, got.chunks);
-check("longer settled line: the reply reads start to end, in order", got.chunks.join(" ").replace(/\s+/g, " ") === "My answer was right. We use Kokoro only, nothing else is used here. The second thing is simple and short. A third sentence follows." || got.chunks.join(" ").includes("A third sentence follows."), got.chunks);
+check("longer settled line: the chunks joined are exactly the reply once (the cut-off sentence is finished, not read again)", got.chunks.join(" ") === FINAL, got.chunks);
+check("longer settled line: the cut-off sentence's first words are asked of the voice once", asked.filter(t => t.includes("The second thing is simple")).length === 1, asked);
 check("longer settled line: sentence 0 is rendered once, never asked again", asked.filter(t => t === "My answer was right.").length === 1, asked);
 
 // 2. the settled line is the same text as the stream: nothing extra
 got = await stream_then_final(FINAL, FINAL);
-check("same settled line: no sentence repeats", new Set(got.chunks).size === got.chunks.length, got.chunks);
+check("same settled line: the chunks joined are exactly the reply once", got.chunks.join(" ") === FINAL, got.chunks);
 check("same settled line: sentence 0 is rendered once", asked.filter(t => t === "My answer was right.").length === 1, asked);
 
 // 3. a settled line that is a different reply is still read in full, behind the first (never cutting it off)

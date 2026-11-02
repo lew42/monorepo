@@ -374,7 +374,12 @@ export default class Recite extends Part {
 			if (!said.startsWith(next)) break;
 			acc = next;
 		}
-		return k ? pieces.slice(k) : null;
+		const tail = pieces.slice(k), rest = said.slice(acc.length).trim(), head = tail.length ? Recite.norm(tail[0]) : "";
+		if (rest && head.length > rest.length && head.startsWith(rest)){   // the stream stopped mid-sentence: that sentence's first words were already said, so read only its rest
+			tail[0] = tail[0].split(/\s+/).slice(rest.split(" ").length).join(" ");
+			return tail;
+		}
+		return k ? tail : null;
 	}
 
 	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */

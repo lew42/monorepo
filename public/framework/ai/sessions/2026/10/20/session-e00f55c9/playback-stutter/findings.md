@@ -56,3 +56,8 @@ The first three are read twice.
 ## The fix
 
 Proof in [requirements.md](requirements.md). In short: `final()` now compares the finished text with what the stream already queued, sentence by sentence, and queues only the part that was not read.
+
+## Left to watch on the phone
+
+- In `words` mode reading keeps going while Whisper checks the sound, so Whisper hears Kokoro's voice mixed with the owner's. The echo filter (own sentences) covers most of it; if a real interruption is missed while the reply is loud, that is the place to look.
+- A stream that ends mid-sentence ("…is simple") and a settled line that finishes it ("…is simple and short.") now reads only the rest ("and short."), found by the fresh reviewer ([review.md](review.md)); a settled line that is a genuinely different text is still queued whole, never cutting the first off.
