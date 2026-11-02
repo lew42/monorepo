@@ -28,6 +28,20 @@ export class Prompt extends Message {
 	}
 	/** The words as said: its sentences joined, the full dictation. */
 	get said(){ return this.sentence_items.map(s => s.text).join(" "); }
+	/** {<sentence id>: text}: the fast seat's cleaned text per sentence (a `{place}` with edit "improve"); the raw words stay in `sentences`. */
+	get clean(){ return { ...(this.get_one("clean") ?? {}) }; }
+	/** The words with each sentence's cleaned text where it has one: what a view shows by default. */
+	get cleaned(){ const c = this.clean; return this.sentence_items.map(s => c[s.id] ?? s.text).join(" "); }
+
+	/** Set the cleaned text of some sentences: `{clean: {"s-2": "…"}}` MERGES into what is there (the latest text for a sentence wins). */
+	merge_clean(value){
+		if (!value || typeof value !== "object" || Array.isArray(value)) return this;
+		const old = this.clean;
+		this.put("clean", { ...old, ...value });
+		this.emit("change", "clean", this.clean, old);
+		this.emit("delta", { clean: value }, this);
+		return this;
+	}
 
 	/** Grow it by one or more sentence ids: `{sentences: {push: "s-2"}}` or `{sentences: ["s-2"]}`. Nothing ever removes a sentence. */
 	push_sentences(value){
@@ -39,7 +53,11 @@ export class Prompt extends Message {
 		this.emit("delta", { sentences: { push: more } }, this);
 		return this;
 	}
-	set_one(key, value){ return key === "sentences" ? void this.push_sentences(value) : super.set_one(key, value); }
+	set_one(key, value){
+		if (key === "sentences") return void this.push_sentences(value);
+		if (key === "clean") return void this.merge_clean(value);
+		return super.set_one(key, value);
+	}
 	wire(){ return "Prompt"; }
 }
 

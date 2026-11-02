@@ -83,4 +83,15 @@ export default class ChatWriter {
 	}
 
 	held(key){ return this.sessions.get(key)?.held.length ?? 0; }
+
+	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
+	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
+	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
+	 * Where the sentence goes (`to`, `where`) is not mirrored: the list's order never changes. */
+	static place(session, place){
+		if (!place || !["improve", "both"].includes(place.edit) || !String(place.text ?? "").trim() || !place.re) return null;
+		const s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
+		const p = s && session._messages?.messages.find(m => m.sentences?.includes?.(s.id));
+		return p ? { messages: { [p.id]: { clean: { [s.id]: String(place.text) } } } } : null;
+	}
 }

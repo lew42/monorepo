@@ -127,6 +127,21 @@ try {
 	});
 	r = await run_item({ path: URL_ }, { caller: "t" });
 	check("a read of the session answers the chat: its count and the last messages", () => assert.equal(r.state.messages.count, back.length));
+
+	// The fast seat's {place} lines (ux/Dictate/doc/voice-assistant.md): an improve updates the sentence's text in place.
+	const owner_ats = owner_v1.map(l => l.chat.at), replay = () => Session.replay(fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l))).messages.messages;
+	const before = replay();
+	await run_item({ path: URL_, delta: { place: { re: owner_ats[1], to: "same", edit: "improve", text: "On my phone (an iPhone)." } } }, { caller: "voice-assistant-t" });
+	await run_item({ path: URL_, delta: { place: { re: owner_ats[0], to: "same", edit: "both", text: "The tab bar is broken!" } } }, { caller: "voice-assistant-t" });
+	await run_item({ path: URL_, delta: { place: { re: owner_ats[2], to: "card", where: "beside", edit: "nothing" } } }, { caller: "voice-assistant-t" });
+	const after = replay(), raw = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
+	check("a {place} improve updates the sentence's text in its Prompt, in place: same position, raw words kept, V1's {place} line still written", () => {
+		assert.deepEqual(after.map(m => m.id), before.map(m => m.id), "no message moved, none added");
+		assert.equal(after[0].cleaned, "The tab bar is broken! On my phone (an iPhone).", "two improves on two sentences merge");
+		assert.equal(after[0].said, "The tab bar is broken. On my phone.", "the raw words stay");
+		assert.equal(raw.filter(l => l.place).length, 3, "every {place} line is written as before");
+		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\") adds no chat line");
+	});
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 console.log(`chat-messages.test.mjs: ${checks} checks passed`);
