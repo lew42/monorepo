@@ -13,10 +13,21 @@ import Whisper from "../Whisper/Whisper.js";
  *      the sentence being read are the speaker's own echo, so it resumes too.
  *      Anything else is you: it stays paused (state "heard") until you press play.
  * `on = false` (the mic button) closes the mic: playback is manual only.
+ *
+ * `mode` picks what pauses reading: "volume" (above: pause on loud, then check) or "words" (the owner's own idea,
+ * 2026-11-02: Whisper's text is the threshold, so a cough or a bang never pauses anything). In "words" mode the same
+ * loud sound only starts the Whisper check; reading keeps going until Whisper returns real text that is not Recite's
+ * own voice, and only then pauses. Everything about it lives in this class: `id`, `label`, `defaults`, `start()`
+ * and `stop()` are the shape a plugin registry can take as it is.
  */
 export default class BargeIn extends Part {
 
+	static id = "barge";
+	static label = "Interrupt";
+	static defaults = { on: true, mode: "volume" };   // mode: "volume" | "words"
+
 	on = true;
+	mode = "volume";      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
 	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
 	hold_ms = 250;
 	listen_ms = 1500;
@@ -39,6 +50,28 @@ export default class BargeIn extends Part {
 		this.assign(...args);
 		if (this.remember("barge") != null) this.on = this.remember("barge") === "true";
 		if (this.remember("threshold") != null) this.threshold = Number(this.remember("threshold")) || this.threshold;
+		if (["volume", "words"].includes(this.remember("barge_mode"))) this.mode = this.remember("barge_mode");
+	}
+
+	/** Plugin shape: open the mic if reading, ready to listen. */
+	start(){ this.sync(); }
+
+	/** Plugin shape: undo everything start() and use_mic() added (mic, timers, the wrapped meter, a pending check), leaving
+	 *  Recite as if the feature were off. The saved `on` and `mode` settings are not touched. */
+	stop(){
+		this.cancel_resume();
+		this.spoke?.(""); this.spoke = null;
+		if (this.dictate && this.dictate.$recite_barge === this){ this.dictate.on_meter = this.prior_meter; delete this.dictate.$recite_barge; }
+		this.dictate = null; this.prior_meter = undefined;
+		this.close();
+		if (this.recite.state === "heard") this.recite.resume();
+	}
+
+	set_mode(mode){
+		if (!["volume", "words"].includes(mode)) return;
+		this.mode = mode;
+		this.remember("barge_mode", mode);
+		this.recite.changed();
 	}
 
 	/** Open or close the mic to match Recite: open while it reads, closed when idle or switched off. */
@@ -68,7 +101,7 @@ export default class BargeIn extends Part {
 		if (!dictate || dictate.$recite_barge) return;
 		dictate.$recite_barge = this;
 		this.dictate = dictate;
-		const prior = dictate.on_meter;
+		const prior = this.prior_meter = dictate.on_meter;
 		dictate.on_meter = v => { prior?.(v); if (this.dictating()) this.hear(v); };
 	}
 
@@ -190,7 +223,8 @@ export default class BargeIn extends Part {
 	}
 
 	async trigger(){
-		this.recite.pause("heard");
+		const words = this.mode === "words" && this.check;   // without the Whisper check there are no words to wait for: it stays a volume pause
+		if (!words) this.recite.pause("heard");
 		this.loud_since = null;
 		if (!this.check){ this.state = "heard"; this.note = "paused: you were loud"; this.recite.changed(); return; }
 		this.state = "checking";
@@ -214,6 +248,7 @@ export default class BargeIn extends Part {
 			this.state = "listening";
 			if (this.recite.state === "heard") this.recite.resume();
 		} else {
+			if (words) this.recite.pause("heard");   // real words, only now: reading kept going through the check
 			this.heard_speech(text, { close_mic: true });   // the mic is yours now (dictate) unless it was a question; play reopens it
 		}
 		this.recite.changed();
