@@ -112,3 +112,14 @@
 {"log":{"at":"2026-11-02T00:25:15-06:00","heartbeat":"answered","msg":"I'm waiting for the builder to finish the step 4 fixes; it is still working. When it reports, or my 00:37 check fires, I merge step 4 and start one builder for steps 5 and 6."}}
 {"log":{"at":"2026-11-02T00:26:16-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T06:26:16.509Z"}
 {"log":{"at":"2026-11-02T00:36:47-06:00","msg":"dropped: chat-model step 2: F7 + Ref as a chat member + resurface: owner minion-chat-model-s2 is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s2/","reason":"owner-stopped"}}
+{"log":{"at":"2026-11-02T01:20:27-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T07:20:27.451Z"}
+{"log":{"at":"2026-11-02T01:20:27-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T07:20:27.501Z"}
+{"log":{"at":"2026-11-02T01:20:27-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T07:20:27.588Z"}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":1,"reply":"fixed: 5f52687b8 — the keyed loop is DefaultView.place(box, members, cache, make, update); DefaultView.reconcile() and ChatList.paint() both call it, ChatList keeps only its bubble fill() as make/update."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":2,"reply":"fixed: 5f52687b8 — core/List readme now says ChatList keys through DefaultView.place(), and that List.View is set by loading DefaultView.js."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":3,"reply":"fixed: 5f52687b8 — documented in core/List readme: render() returns undefined on a page that never imports DefaultView.js."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":4,"reply":"fixed: 5f52687b8 — ChatList builds Ref rows with DefaultView.ref_view(m, {capture:false})."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":5,"reply":"fixed: 5f52687b8 — list-view.test.mjs imports Browser.mjs relatively and defaults SITE_URL to http://monorepo.localhost like its siblings."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":6,"reply":"fixed: 5f52687b8 — the fixture generator in chat-messages.test.mjs adds one root task through the real item tool, so the demo shows a resolved Ref row; ChatList now replays {tasks} lines so it resolves."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":7,"reply":"noted: index add-then-delete churn is pre-existing and already filed as improvement nm2irq3v."}}}
+{"review":{"at":"2026-11-02T01:21:01-06:00","answer":{"n":8,"reply":"fixed: 5f52687b8 — shots retaken of /framework/ext/Chat/list/ at 400 and 1200 (chat-model/shots/chatlist-*.png), Ref row visible."}}}
