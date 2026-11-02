@@ -79,7 +79,7 @@ export default class SessionStats extends View {
 					small.c("sov-k", "Running for"); SessionStats.running(strong.c("sov-v", "…"), work, root);
 				});
 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
-				div.c("sov-stat", () => { small.c("sov-k", "Root tasks done"); SessionStats.tasks(strong.c("sov-v", "…"), work); });
+				div.c("sov-stat", () => { small.c("sov-k", "Session tasks done"); SessionStats.tasks(strong.c("sov-v", "…").attr("title", "The session's own tasks (its log), dropped ones left out; Task folders done counts the folders on disk instead"), work); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
