@@ -69,7 +69,7 @@ test("real log: once, twice, tail then full, halves, reversed; AISession and the
 	near(total([rows.slice(mid).join("\n"), rows.slice(0, mid).join("\n")]), once, "second half then first half (order does not matter)");
 	const s = new AISession("x"); s.apply_text(text); near(s.total_usd, once, "AISession once");
 	s.apply_text(text); near(s.total_usd, once, "AISession replayed");
-	const t = new AISession("x"); t.apply_text(rows.slice(0, mid).join("\n")); t.apply_text(rows.slice(mid - 300).join("\n")); near(t.total_usd, once, "AISession overlapping tail");
+	const t = new AISession("x"); t.apply_text(rows.slice(0, mid).join("\n")); t.apply_text(rows.slice(Math.max(0, mid - 300)).join("\n")); near(t.total_usd, once, "AISession overlapping tail");   // max(0): on a log under 600 lines, mid - 300 is negative and slice() would count from the end
 	assert.ok(Math.abs(cost_of_transcript(file).total_usd - once) < 0.0005, "the audit's separate code agrees");
 	console.log("  real log", path.basename(file), rows.length, "lines, $" + once.toFixed(4));
 });
