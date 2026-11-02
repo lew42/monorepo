@@ -13,3 +13,4 @@
 {"reply":{"finding":8,"status":"fixed"}}
 {"reply":{"finding":9,"status":"fixed"}}
 {"stop":{"at":"2026-10-18T08:02:32-05:00","why":"abandoned: no agent since 2026-09-30T18:45:24.670Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:00:28-06:00","why":"unclosed: 14 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:32-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:28.688Z"}

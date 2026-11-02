@@ -29,7 +29,7 @@ const CAN = {
 const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce", "unset"]);
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce", "unset", "unclosed"]);
 // DEPRECATED (2026-10-28): use `complete` (the `finish` verb and `Task#finish`). Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated; no live code calls `Task#finish`.
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 const VERDICTS = new Set(["approve", "improve", "reject"]);
@@ -165,7 +165,7 @@ export class Task extends Item {
 		return this._ran_ms + (this._ran_since != null ? this.ms() - this._ran_since : 0);
 	}
 
-	// `{done, total}` from the subtasks' own states — never a stored number
+	// FOR COUNTS ONLY (completion is the average in `get completion`). `{done, total}` from the subtasks' own states — never a stored number
 	// (CLAUDE.md law 7: compute, don't recall). No subtasks yet is reported as
 	// 0/1 (or 1/1 once complete), so a progress bar still means something before
 	// the first subtask exists.
@@ -312,11 +312,11 @@ export class Task extends Item {
 		return this;
 	}
 
-	// 0..1. Order: owner check, subtasks (the one computed form), old `steps`, agent's value.
+	// 0..1. Order: owner check, subtasks (the average of their own completions, so it recurses), old `steps`, agent's value.
 	get completion(){
 		if (this.data.checked_by) return 1;
-		const { done, total } = Task.progress_of(this._tasks);
-		if (total) return done / total;
+		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;   // the average of each subtask's own completion (the owner, 2026-11-02); a stopped one is left out
 		const steps = this.data.steps;
 		if (Array.isArray(steps) && steps.length){
 			const step = Math.max(1, Math.min(Number(this.data.step) || 1, steps.length));
@@ -573,6 +573,14 @@ export class Task extends Item {
 			if (!kid?.replay_line) continue;
 			kid.replay_line(v);
 			if (typeof v.state === "string" && !VERBS.some(w => v[w])) kid.put("state", v.state);
+		}
+		// {"unclosed":{at, why, by}}: work was logged and the task was never completed. Stops it if it is still open, and flags it; the flag counts only while the state is stopped.
+		if (line.unclosed && typeof line.unclosed === "object"){
+			const { at: _u, ...note } = line.unclosed;
+			if (!rp.explicit){ rp.explicit = true; this.replay_legacy(true); }
+			this._at = rp.at; this._applying = true;
+			try { if (CAN.stop.has(this.state)) this.stop(note.why ?? "unclosed"); this.put("unclosed", { at: rp.at ?? null, ...note }); }
+			finally { this._at = null; this._applying = false; }
 		}
 		const verdict = line.verdict && typeof line.verdict === "object" && ["approve", "improve", "reject"].includes(line.verdict.is) && !verb ? line.verdict : null;
 		if (verdict || verb){

@@ -118,13 +118,13 @@ export class Prompt extends Task {
 		return { done, total: this.parts.length + this.uncovered.length };
 	}
 	settled_parts(){ return this.parts.filter(p => Prompt.settled(p, ref => this.task_state(ref))); }
-	/* With parts recorded, completion is settled parts over parts + uncited sentences; else the asks filed under it (Task.progress_of); else
+	/* With parts recorded, completion is settled parts over parts + uncited sentences; else the asks filed under it (the average of their own completions, as Task.completion); else
 	   my own stored state. Never reads `this.state`, which is computed from this. */
 	get completion(){
 		if (this.data.checked_by) return 1;
 		if (this.parts.length){ const { done, total } = this.progress_parts(); return total ? done / total : 0; }
-		const { done, total } = Task.progress_of(this._tasks);
-		if (total) return done / total;
+		const kids = [...(this._tasks ?? [])].filter(t => t.state !== "stopped");
+		if (kids.length) return kids.reduce((sum, t) => sum + (typeof t.completion === "number" ? t.completion : t.state === "complete" ? 1 : 0), 0) / kids.length;
 		return super.state === "complete" ? 1 : 0;
 	}
 	/* A prompt reads complete the moment everything it asks is settled, with nobody calling complete(): the session's tally then counts it. */

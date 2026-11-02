@@ -11,3 +11,4 @@
 {"log":{"at":"2026-10-12T17:36:59-05:00","heartbeat":"orphaned","msg":"minion-grid-core its agent is not running: its working directory C:\\Code\\lew42\\worktrees\\data-grid-2 no longer exists; not revived."}}
 {"log":{"at":"2026-10-13T17:17:31-05:00","heartbeat":"orphaned","msg":"minion-grid-core its agent is not running: its working directory C:\\Code\\lew42\\worktrees\\data-grid-2 no longer exists; not revived."}}
 {"stop":{"at":"2026-10-18T08:02:57-05:00","why":"abandoned: no agent since 2026-10-13T17:17:31-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:14-06:00","why":"unclosed: 12 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:57-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:14.428Z"}

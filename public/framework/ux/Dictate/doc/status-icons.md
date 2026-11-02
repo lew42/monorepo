@@ -5,6 +5,8 @@ of the chat): a check mark (✓, gray then green) and a brain (🧠, gray then c
 separate signals, set by two separate seats, so they almost never change at the same moment — that
 is expected, not a bug, except for one real mismatch between V1 and v2 (below).
 
+**Chat V1.2** ([`ext/Chat/v1-2`](/framework/ext/Chat/v1-2/readme.md)) draws one ✓ and no 🧠: the ✓ sits after the last sentence the assistant has, dim while later sentences wait, green once it has caught up, so the two sections below describe V1 and v2 only.
+
 ## ✓ — reached the fast seat
 
 Gray until the fast assistant (the one that cleans up your words) has the chunk; green once it has.

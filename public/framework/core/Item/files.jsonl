@@ -53,3 +53,4 @@
 {"file":"reset.test.mjs"}
 {"file":"failures.jsonl"}
 {"file":"batch.test.mjs"}
+{"file":"coalesce.test.mjs"}

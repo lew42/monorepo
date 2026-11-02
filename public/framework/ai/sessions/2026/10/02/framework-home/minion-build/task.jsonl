@@ -62,3 +62,4 @@
 {"log":{"at":"2026-10-02T20:12:27-05:00","heartbeat":"check","msg":"status check sent to minion-framework-home-2"}}
 {"log":{"at":"2026-10-02T20:12:31-05:00","heartbeat":"answered","msg":"All four review rounds' fixes are done, verified, and committed (latest `7e387f89`) — reported to `task-mastermind-framework-home` and now just waiting on their landing review, no action pending on my"}}
 {"stop":{"at":"2026-10-18T08:02:51-05:00","why":"abandoned: no agent since 2026-10-02T20:12:31-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:06-06:00","why":"unclosed: 63 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:51-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:06.578Z"}

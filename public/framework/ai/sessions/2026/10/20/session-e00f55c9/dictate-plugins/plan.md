@@ -1,5 +1,41 @@
 # Plan: Voice Chat, every feature a plugin you can switch on and off
 
+## ⏸ Paused for core/Plugin (2026-11-02, 14:50)
+
+**Why:** the owner moved the plugin base into the framework: `core/Plugin` (`class Plugin extends Events`, replacing `Server/Events.js`'s `use()`), with a plugins List and a generic toggle and config UI. A separate build process owns that now. Nothing below is merged. The Voice Chat-only registry in section 2 is superseded; the feature list in section 3 still holds.
+
+**What Merge A contains** (branch `worktree/dictate-plugins`, worktree `C:/Code/lew42/worktrees/dictate-plugins`; commits 088d46933, 6a3f7352c, c7330581d; finished and tested, not reviewed, not merged):
+- `ux/Dictate/VoiceChat/`:
+  - `VoiceChat.js` (registry: use, host, set, try, the store `voice-chat.plugins.1`, the `?vc.<id>.<key>=` override);
+  - `Plugin.js` (the base);
+  - `Features.js` (the gear's Features section);
+  - `plugins/ThinkingCue.js`, `plugins/index.js`;
+  - `readme.md`, `VoiceChat.test.mjs` (20 checks, under 1 s).
+- `ext/Chat/Mic.js`: `ComposerMic.panel_sections`, an `OVERRIDDEN` set, and `save_settings()` never saving an override.
+- `ux/Dictate/chat.js`: one host line (`VoiceChat.host("recite", Recite.shared)`).
+- `ux/Dictate/test/voice-chat-plugins.mjs`: browser test, passing at 400 and 1920; shots in [merge-a/shots/](merge-a/shots/).
+- The "Voice Chat" name line in `ux/Dictate/readme.md` and `doc/map.md`.
+- One finding worth keeping: a plugin saved *off* must still get one `stop()` when its host arrives, because the host's own default may be on (Recite's `thinking_cue = true`). So `stop()` must be safe before `start()`.
+- A second worktree, `dictate-plugins-test` (http://127.0.0.1:50703), was made only to serve the browser test. Remove it with `node Server/worktree-down.mjs dictate-plugins-test` once nobody needs it.
+
+**The feature census** ([census/census.jsonl](census/census.jsonl), 21 features):
+- 29 settings: 23 wired, 6 partly wired, 0 that do nothing.
+- Partly wired (they work but have no panel row and are not saved): `thinking_cue`, `cue_repeat_ms`, `turn_wait_ms`, `update_hold_ms`, `BargeIn.quiet_ms`, Servex `answer_quiet_ms`.
+- 5 features with no switch at all: word highlight, tap to pause, per-bubble replay, the send cursors, Whisper repeat collapse.
+
+**What Voice Chat needs from core/Plugin:**
+1. **Hosts that don't import the registry.** `audio/Recite` must not import `ux/` or a plugin list, so a plugin attaches to a host it is handed (`host(name, obj)`, or `Host.use(P)` with the host never knowing the list).
+2. **Switch off live:** `stop()` undoes `start()` exactly; a setting change is stop, then start with the new values.
+3. **Settings per plugin:** `static defaults` (with `on`), and `static fields` (key, label, kind) that drive the generic config UI.
+4. **One saved store, plus a not-saved override:** a URL parameter and a console call that last one page load. Saving must never write an overridden value.
+5. **The generic UI must fit inside an existing panel** (here the gear's `settings_panel()`), not only on its own page.
+6. **An off plugin gets one `stop()` when its host arrives** (the finding above).
+7. **Wrapping is enough:** existing classes (`Recite.Tap`, `Highlight`, `Bubble`, `BargeIn`) get `start()`/`stop()` and stay built by their host.
+
+**Barge-in is ready to plug in** (row 9): `mastermind-playback-stutter` landed it on `michael/dev` at b0fce2e7f. `audio/Recite/BargeIn.js` already has the plugin shape: `static id = "barge"`, a label, `defaults {on, mode: "volume"}` (or `"words"`), and `start()`/`stop()`, with no `ux/` import. `BargeIn.js` and `Recite.js` are free to edit again.
+
+**To resume:** port `VoiceChat.js` onto `core/Plugin` (most of it should become a thin list of plugins), keep ThinkingCue and the tests, then do section 3's rows 4 to 11 one merge each. The child tasks on this task's log are still the queue.
+
 **What it is:** each Voice Chat feature (barge-in, the thinking cue, read-aloud highlight, tap to pause…) becomes one class with an on/off switch. The gear panel lists them, one toggle each, and switching one takes effect at once, with no reload. Brief: [requirements.md](requirements.md). Census of what exists: [census/census.jsonl](census/census.jsonl).
 
 **The name:** *Voice Chat* is the browser experience as a whole: you talk (Dictate), Whisper listens, the assistants answer, Recite reads the replies aloud. *Voice session* stays the data word (the record's `kind: "voice"`). The Claude app's call is the *cloud voice agent*; the Claude app bridge is the *voice bridge*.

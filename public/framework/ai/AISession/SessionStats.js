@@ -39,7 +39,7 @@ export default class SessionStats extends View {
 		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
 	}
 
-	/** Root tasks done ÷ total (chat-model s7): the session's OWN `tasks` list only (Session.completion / Task.progress_of),
+	/** Root tasks done ÷ total (chat-model s7; the session's percentage is the average of the tasks' own completions, so it can differ from done ÷ total): the session's OWN `tasks` list only (Session.completion / Task.progress_of),
 	 *  never the nested task-folder tree `draw()` already shows below as "Task folders done". Same item-tool `summary` ask as `cost`. */
 	static tasks($v, work){
 		const base = work.id ? AICost.session_url(work.id) : work.dir;

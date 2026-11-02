@@ -23,3 +23,4 @@
 {"log":{"at":"2026-10-03T14:54:21-05:00","heartbeat":"deliberate","msg":"minion-voice-refine its agent is not running: it was stopped on purpose by task-mastermind-one-dictation at 2026-10-03T14:33:30-05:00; not revived."}}
 {"log":{"at":"2026-10-03T17:52:30-05:00","msg":"Mastermind landing this branch now: server restarted with worktree-restart.mjs (the reaper had closed it after 2 h of quiet), merge.mjs running."}}
 {"stop":{"at":"2026-10-18T08:02:36-05:00","why":"abandoned: no agent since 2026-10-03T17:52:30-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:00:33-06:00","why":"unclosed: 24 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:36-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:33.814Z"}

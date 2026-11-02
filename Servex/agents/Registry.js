@@ -43,7 +43,7 @@ export default class Registry {
 	row(agent){
 		const { id, role, name, topics, page, state, visibility, session_id, started_at, parent,
 			model, effort, cwd, permission_mode, allowed_tools, setting_sources,
-			forked_from, resumed_from, ended, context, stopped_by, stopped_at, landing_nagged, turns } = agent;
+			forked_from, resumed_from, ended, context, stopped_by, stopped_at, landing_nagged, close_nagged, turns } = agent;
 		const task_dir = agent.task?.dir ? path.resolve(agent.task.dir) : null;
 		return { id, role, name: name ?? null, topics: topics ?? null, page: page ?? null,
 			state, visibility, session_id, started_at, parent: parent ?? null, parent_session: agent.parent_session ?? null,   // the parent's SESSION id at spawn (Agents.register): `parent` is a name a later tab can reuse
@@ -57,7 +57,7 @@ export default class Registry {
 			ended: ended ?? null, context: context ?? null,
 			cost: +(Number(agent.cost) || 0).toFixed(6), turns: turns ?? 0,   // agent-cost: the row carries the running total, so GET /agents shows it
 			// the revive guard (Agents.blocked): a stop on purpose, and the task it works for
-			stopped_by: stopped_by ?? null, stopped_at: stopped_at ?? null, task_dir, landing_nagged: landing_nagged ?? null,
+			stopped_by: stopped_by ?? null, stopped_at: stopped_at ?? null, task_dir, landing_nagged: landing_nagged ?? null, close_nagged: close_nagged ?? null,
 			spec: agent.recipe?.() ?? null };
 	}
 
@@ -68,6 +68,7 @@ export default class Registry {
 		if (!row.task_dir && rows[agent.id]?.session_id && rows[agent.id].session_id === row.session_id) row.task_dir = rows[agent.id].task_dir ?? null;
 		if (!row.parent_session && rows[agent.id]?.session_id === row.session_id) row.parent_session = rows[agent.id].parent_session ?? null;   // kept across a revive, like task_dir
 		if (!row.landing_nagged && rows[agent.id]?.session_id === row.session_id) row.landing_nagged = rows[agent.id].landing_nagged ?? null;   // the once-flag survives a revive
+		if (!row.close_nagged && rows[agent.id]?.session_id === row.session_id) row.close_nagged = rows[agent.id].close_nagged ?? null;   // so does the close loop's (Servex/CloseLoop.js)
 		if (rows[agent.id]?.session_id === row.session_id && (rows[agent.id].cost ?? 0) > row.cost) row.cost = rows[agent.id].cost;   // never shrinks
 		rows[agent.id] = row;
 		this.save(rows);

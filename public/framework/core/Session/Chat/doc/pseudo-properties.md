@@ -45,4 +45,4 @@ Each step only starts once `node Server/ChatV1Compare.mjs` (read-only; `core/Ses
 5. **The other ~20 readers move one by one** (read-aloud, timeline, mobile — the list above, "Who draws them").
 6. **Last, Servex stops writing `{chat}` and `{place}`,** and every remaining old session is migrated for real: `node Server/ChatToMessages.mjs --apply` on each file the compare still finds `none`; a `partial` file is filled by the same command (step 2).
 
-Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Steps 4 to 6 are not built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are read-only tools, not a migration.
+Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Steps 4 to 6 are not built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are not a migration: the compare is a read-only check, and `V1Bubbles.js` also feeds the live view [Chat V1.2](/framework/ext/Chat/v1-2/readme.md) (V1 drawn from `session.messages`, step 6 of the plan above as an opt-in version).

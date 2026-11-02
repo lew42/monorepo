@@ -4,3 +4,4 @@
 {"review":{"at":"2026-10-17T10:48:14-05:00","answer":{"n":3,"reply":"noted: harmless, a fallback only"}}}
 {"review":{"at":"2026-10-17T10:48:14-05:00","answer":{"n":4,"reply":"noted: matches item_tool.test.mjs, cleans up in finally"}}}
 {"stop":{"at":"2026-10-19T00:04:12-05:00","why":"abandoned: no agent since 2026-10-17T15:48:14.126Z; closed by StaleClose 2026-10-19","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:43-06:00","why":"unclosed: 5 log lines of work, never completed; was closed as abandoned 2026-10-19T00:04:12-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:43.607Z"}

@@ -21,8 +21,8 @@ const p2 = n => String(n).padStart(2, "0");
 
 export default class AIIndex {
 	static REGISTRY = process.env.SERVEX_URL ?? "http://localhost:8090";
-	static VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
-	static BUCKETS = ["landed", "in_flight", "queued", "waiting", "idle", "stopped", "stale"];
+	static VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "unclosed", "wait", "approve", "improve", "reject"];
+	static BUCKETS = ["landed", "in_flight", "queued", "waiting", "idle", "stopped", "unclosed", "stale"];
 	static DAYS = 7;            // the landed window the dashboard can filter
 	static QUIET_MIN = 5;       // a working agent with no line for this long is marked ⚠
 	static BEAT = 60000;        // a quiet picture is still appended once a minute, so the page knows the writer is alive
@@ -131,7 +131,7 @@ export default class AIIndex {
 		const landed_at = state === "complete" ? (d.completed_at ?? null) : null;
 		const agent = typeof d.agent === "string" ? d.agent : d.agent?.id ?? null;
 		return { state, landed_at, started: d.started_at ?? d.requested_at ?? times[0] ?? null, last: times.length ? times.reduce((a, b) => Date.parse(b) > Date.parse(a) ? b : a) : null,
-			title: d.title ?? null, agent, session: t.session ?? d.sessions?.[0]?.id ?? null, module: d.module ?? null,
+			unclosed: state === "stopped" && d.unclosed ? d.unclosed : null, title: d.title ?? null, agent, session: t.session ?? d.sessions?.[0]?.id ?? null, module: d.module ?? null,
 			outcome: AIIndex.landing_text(d, f, lines), now: typeof d.now === "string" ? d.now : null,
 			waiting_on: d.waiting_on ?? null, waiting_since: d.waiting_since ?? null, alias: lines.find(l => typeof l.home === "string")?.home ?? null,
 			nested: this.nested(t) };
@@ -158,7 +158,7 @@ export default class AIIndex {
 		const home = this.kind(file) === "module" ? "module" : "session";
 		const rel = slash(path.relative(this.root, path.dirname(file))), f = AIIndex.fold(AIIndex.read_lines(file), this.public);
 		let started = f.started; if (!started) started = new Date(st.mtimeMs).toISOString();
-		const row = { id: AIIndex.id(rel), home, dir: rel, url: AIIndex.url(rel), title: f.title ?? path.basename(rel).replaceAll("-", " "), state: f.state, bucket: null,
+		const row = { id: AIIndex.id(rel), home, dir: rel, url: AIIndex.url(rel), title: f.title ?? path.basename(rel).replaceAll("-", " "), state: f.state, unclosed: f.unclosed, bucket: null,
 			started, landed_at: f.landed_at, last: f.last ?? new Date(st.mtimeMs).toISOString(), day: AIIndex.day(f.landed_at ?? started),
 			agent: f.agent, session: f.session, module: f.module ?? (home === "module" ? rel.replace(/^public\/framework\//, "").split("/tasks/")[0] : null),
 			line: AIIndex.first_sentence(f.state === "complete" ? (f.outcome ?? AIIndex.brief_heading(file) ?? AIIndex.NO_SUMMARY) : f.now), waiting_on: f.waiting_on, waiting_since: f.waiting_since, alias: home === "session" ? f.alias : null,
@@ -289,7 +289,7 @@ export default class AIIndex {
 		for (const r0 of all){
 			if (r0.alias){ aliases.push(r0.id); continue; }
 			const a = held.get(r0.dir), working = a?.state === "working", queued = a?.state === "queued";
-			const bucket = { complete: "landed", stopped: "stopped", waiting: "waiting", running: working ? "in_flight" : "stale", paused: working ? "in_flight" : "stale", idle: queued ? "queued" : "idle" }[r0.state] ?? null;
+			const bucket = { complete: "landed", stopped: r0.unclosed ? "unclosed" : "stopped", waiting: "waiting", running: working ? "in_flight" : "stale", paused: working ? "in_flight" : "stale", idle: queued ? "queued" : "idle" }[r0.state] ?? null;
 			const { nested = [], ...r1 } = r0;
 			tasks.push({ ...r1, bucket });
 			for (const n of nested) open_nested.push({ ...n, id: r0.id + "~" + n.id, session: r0.session ?? r0.id, url: r0.url, home: "session" });

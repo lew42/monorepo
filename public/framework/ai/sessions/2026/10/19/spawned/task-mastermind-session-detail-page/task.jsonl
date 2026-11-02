@@ -46,3 +46,4 @@
 {"log":{"at":"2026-10-20T00:44:45-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-20T00:49:37-05:00","heartbeat":"escalated","msg":"task-mastermind-session-detail-page it did not answer the status check, and was already revived 2 times this hour (3 today)"}}
 {"stop":{"at":"2026-10-22T00:02:51-05:00","why":"abandoned: no agent since 2026-10-20T01:00:00-05:00; closed by StaleClose 2026-10-22","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:45-06:00","why":"unclosed: 47 log lines of work, never completed; was closed as abandoned 2026-10-22T00:02:51-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:45.017Z"}

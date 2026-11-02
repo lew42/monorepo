@@ -1,0 +1,638 @@
+diff --git a/public/framework/ai/AISession/AISessionDetail.js b/public/framework/ai/AISession/AISessionDetail.js
+index 6af37681c..405934179 100644
+--- a/public/framework/ai/AISession/AISessionDetail.js
++++ b/public/framework/ai/AISession/AISessionDetail.js
+@@ -32,6 +32,7 @@ import SessionOutlineView from "./SessionOutlineView.js";
+ import SessionTimeline from "./SessionTimeline.js";
+ import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
+ import ChatV3 from "/framework/ext/Chat/v3/ChatV3.js";
++import ChatV1Dot2 from "/framework/ext/Chat/v1-2/ChatV1Dot2.js";
+ import SessionPopover from "./SessionPopover.js";
+ import "/framework/core/Page/parts/kinds.js";   // the kinds the page tool adds register themselves by import: one list
+ 
+@@ -134,7 +135,7 @@ export default class AISessionDetail extends Page {
+ 	// With tabs on (a `tab` line in the session's page.jsonl), the template itself is the first tab.
+ 	home_tab = "Conversation";
+ 
+-	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.chat_v2?.then(c => c?.unsubscribe?.()); this.chat_v2 = null; this.chat_v3?.then(c => c?.unsubscribe?.()); this.chat_v3 = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
++	deactivated(){ this.tasks_log?.unsubscribe(); this.tasks_log = null; this.chat_v2?.then(c => c?.unsubscribe?.()); this.chat_v2 = null; this.chat_v3?.then(c => c?.unsubscribe?.()); this.chat_v3 = null; this.chat_v12?.then(c => c?.unsubscribe?.()); this.chat_v12 = null; this.follow?.then(f => f.stop()); this.follow = null; this.live_off?.(); this.live_off = null; this.logs?.forEach(log => log.unsubscribe()); this.logs = null; }
+ 
+ 	/* THE SESSION'S OWN PAGE LOG (2026-10-09, the page tool): `page.jsonl` in the session's folder can
+ 	   reshape this page on top of the template — tabs, the six layout words — and carries the cards the
+@@ -284,21 +285,23 @@ export default class AISessionDetail extends Page {
+ 			panels.chat = div.c("flow sessions-panel sov-chat", () => {
+ 				// Chat v1 (below) or Chat v2 (the session's Prompts from session.jsonl, ext/Chat/v2); ?chat_view=v2 keeps the choice on reload (?chat= belongs to the DevBar assistant). v1 stays the default until v2 replaces it.
+ 				const pick = {};
+-				div.c("flex gap-50 wrap", () => { pick.v1 = button.c("sessions-chip", "Chat").on("click", () => choose(false)); pick.v2 = button.c("sessions-chip", "Chat v2").on("click", () => choose("v2")); pick.v3 = button.c("sessions-chip", "Chat v3").attr("title", "Rough draft: the conversation as a plain view over the session's tasks list").on("click", () => choose("v3")); });
++				div.c("flex gap-50 wrap", () => { pick.v1 = button.c("sessions-chip", "Chat").on("click", () => choose(false)); pick.v12 = button.c("sessions-chip", "Chat V1.2").attr("title", "V1, drawn from session.messages, with a send cursor").on("click", () => choose("v1-2")); pick.v2 = button.c("sessions-chip", "Chat v2").on("click", () => choose("v2")); pick.v3 = button.c("sessions-chip", "Chat v3").attr("title", "Rough draft: the conversation as a plain view over the session's tasks list").on("click", () => choose("v3")); });
+ 				const $v1 = div.c("flow", () => {
+ 					$tasks = div.c("flow session-tasks");   // the session's tasks, live; an owner prompt's asks arrive here as proposals (core/Session/SessionTasks.js)
+ 					$box = div.c("flow");     // which session this is (source tag, tab title, model)
+ 					$voice = div.c("flow");   // spoken prompts, stage by stage, live (ext/Refine/stages)
+ 					$conv = div.c("flow sessions-conv");   // the live conversation
+ 				});
+-				const $v2 = div.c("flow chat-v2"), $v3 = div.c("flow chat-v3");
+-				const choose = view => {   // false | "v2" | "v3"
+-					const v2 = view === true || view === "v2", v3 = view === "v3";
+-					$v1.el.hidden = v2 || v3; $v2.el.hidden = !v2; $v3.el.hidden = !v3;
+-					pick.v1.el.classList.toggle("sessions-chip-on", !v2 && !v3); pick.v2.el.classList.toggle("sessions-chip-on", v2); pick.v3.el.classList.toggle("sessions-chip-on", v3);
+-					const q = new URLSearchParams(location.search); v2 || v3 ? q.set("chat_view", v3 ? "v3" : "v2") : q.delete("chat_view");
++				const $v2 = div.c("flow chat-v2"), $v3 = div.c("flow chat-v3"), $v12 = div.c("flow");
++				const choose = view => {   // false | "v1-2" | "v2" | "v3"
++					const v2 = view === true || view === "v2", v3 = view === "v3", v12 = view === "v1-2";
++					$v1.el.hidden = v2 || v3 || v12; $v2.el.hidden = !v2; $v3.el.hidden = !v3; $v12.el.hidden = !v12;
++					pick.v12.el.classList.toggle("sessions-chip-on", v12);
++					pick.v1.el.classList.toggle("sessions-chip-on", !v2 && !v3 && !v12); pick.v2.el.classList.toggle("sessions-chip-on", v2); pick.v3.el.classList.toggle("sessions-chip-on", v3);
++					const q = new URLSearchParams(location.search); v2 || v3 || v12 ? q.set("chat_view", v12 ? "v1-2" : v3 ? "v3" : "v2") : q.delete("chat_view");
+ 					history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
+ 					if (v2) this.chat_v2 ??= this.record_if_there().then(file => file ? new ChatV2({ url: file, $box: $v2 }).live() : $v2.append(() => p.c("muted", "This session has no session.jsonl yet, so Chat v2 has nothing to draw.")));
++					if (v12) this.chat_v12 ??= this.record_if_there().then(file => file ? new ChatV1Dot2({ url: file, $box: $v12 }).live() : $v12.append(() => p.c("muted", "This session has no session.jsonl yet, so Chat V1.2 has nothing to draw.")));
+ 					if (v3) this.chat_v3 ??= this.record_if_there().then(file => file ? new ChatV3({ url: file, $box: $v3 }).live() : $v3.append(() => p.c("muted", "This session has no session.jsonl yet, so Chat v3 has nothing to draw.")));
+ 				};
+ 				choose(new URLSearchParams(location.search).get("chat_view"));
+diff --git a/public/framework/ai/AISession/readme.md b/public/framework/ai/AISession/readme.md
+index ef914d5ca..f3abe9f74 100644
+--- a/public/framework/ai/AISession/readme.md
++++ b/public/framework/ai/AISession/readme.md
+@@ -7,7 +7,7 @@
+ - `new AISessionsPage({ meta, classic: true })` draws the old all-controls-in-rows layout (`sessions/v/classic/`); its `data_url` getter strips a trailing `v/classic/` so every data file and row link still points at the real list.
+ - A rail card (`AISessionView` with `card: true`) shows four things: title, the one cost line, "N child sessions · M in all" and state. The rail lists root sessions only: `AISessionsPage.roots_for_cards` hides a row whose parent is in the list, and switching Table/Rail re-applies the grid.
+ - `AISessionDetail.js` · `AISessionConversation.js` · `AISessionCoverage.js` · `AISessionTrace.js` — a session's own page and its tabs. A clicked row opens that session's full page in place of the list (previews plus full detail views: [design/navigation](/framework/design/navigation/readme.md)); the sessions page no longer calls `columns()`. A named agent's url (`/framework/ai/sessions/<name>/`, a `reviewer-*` or `minion-*` row) resolves the name to its session through Servex's live agent list (`AISessionDetail.agent_row`), and every load asks the folder listing first, so the page never asks for a file that is not there.
+-- The session page's tab row is **Overview · Timeline · Chat · Tasks · More ▾**; Tasks is a grid of the session's tasks (`SessionTasksGrid` on ext/DataGrid, newest first) with Filters ▾ (state · day · kind; kind is derived, the records have none) and a Nested chip that shows the old nested `SessionWork` view with Approve; More ▾ (a `SessionPopover`, drawn once at build) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen, and shows as on when one of them is open. Under 600 px the stats bar is one line (cost · state · running) that a tap opens. Coverage reads the same prompt tail as the Timeline (`SessionTimeline.Tail`), not a second fetch. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. The Chat tab has three chips at its top, **Chat** (the transcript, stages and tasks, the default), **Chat v3** (a rough draft: a plain view over the same `tasks` list, [`ext/Chat/v3`](/framework/ext/Chat/v3/); `?chat_view=v3`) and **Chat v2** (the session's Prompts drawn from `session.jsonl` by [`ext/Chat/v2`](/framework/ext/Chat/v2/), mounted lazily on first pick); `?chat_view=v2` keeps the pick on reload (`?chat=` is the DevBar assistant's). Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, **Task folders done** X of Y (the folder tree), **Session tasks done** "N of M tasks done" (`SessionStats.tasks()`: the session's own root tasks from the item tool's `summary.progress`, dropped not counted, a dash when Servex does not answer), the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest (today "Other work" still includes Prompt/Question chat records, each shown by its own words — a Prompt's cleaned paragraph, a Question's text, read by `constructor.name` since `type` is consumed picking the class — as a link to the Timeline tab, where that record has its own row; not counting them as tasks at all is open, held pending the owner's sign-off: [sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md](../sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md)). The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a Cost/Newest toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
++- The session page's tab row is **Overview · Timeline · Chat · Tasks · More ▾**; Tasks is a grid of the session's tasks (`SessionTasksGrid` on ext/DataGrid, newest first) with Filters ▾ (state · day · kind; kind is derived, the records have none) and a Nested chip that shows the old nested `SessionWork` view with Approve; More ▾ (a `SessionPopover`, drawn once at build) holds Board, Coverage, Cost, Models and tokens, Related, Task queue → and Full screen, and shows as on when one of them is open. Under 600 px the stats bar is one line (cost · state · running) that a tap opens. Coverage reads the same prompt tail as the Timeline (`SessionTimeline.Tail`), not a second fetch. `?tab=work` opens Tasks and `?tab=conversation` opens Chat. The Chat tab has four chips at its top, **Chat** (the transcript, stages and tasks, the default), **Chat V1.2** (V1's bubbles drawn from `session.messages` with a send cursor, [`ext/Chat/v1-2`](/framework/ext/Chat/v1-2/); `?chat_view=v1-2`), **Chat v3** (a rough draft: a plain view over the same `tasks` list, [`ext/Chat/v3`](/framework/ext/Chat/v3/); `?chat_view=v3`) and **Chat v2** (the session's Prompts drawn from `session.jsonl` by [`ext/Chat/v2`](/framework/ext/Chat/v2/), mounted lazily on first pick); `?chat_view=v2` keeps the pick on reload (`?chat=` is the DevBar assistant's). Above the tabs sits the sticky stats bar (`SessionStats.js`: cost, model, running for, **Task folders done** X of Y (the folder tree), **Session tasks done** "N of M tasks done" (`SessionStats.tasks()`: the session's own root tasks from the item tool's `summary.progress`, dropped not counted, a dash when Servex does not answer), the one segmented bar); it reads the tree `SessionWork` loads, so one load serves the bar, the Overview and the Tasks tab. **A session's cost is one line from one function, `AICost.cost_line`: "$282 this tab · $1035 with children"** ("this session" when it is not a VS Code tab). The Cost tile, the Sessions list's Cost cell and its rail card all draw it. The own figure is the summary's `cost.own.usd` (before it arrives, the day snapshot's `usd`); "with children" is `summary.cost.total`, which the item tool computes (`AICost.summary(AICost.session_url(id))`, one cached answer per session for every surface), never `SessionWork`'s own sum. The list never asks for every row: it shows an answer already here, else a small "with children …" button that asks for that one row. Clicking the Cost tile opens the Cost tab, whose first block lists every child session behind the total (`AICost.draw_session`). **The Overview tab is `SessionOutlineView.js` (+ `SessionOutline.css`, prefix `soutline-`), drawn from `SessionOutline.js`, which has no DOM and is tested by `node SessionOutline.test.mjs`.** It groups the session's work by child session: one box per child (name linking to that child's own page, state, model, an `AICost` cost line, "N of M done") holding the tasks whose folder is the child's or below it, then "This session's own work", sub-grouped by the prompt that asked for it (`SessionOutline.source(session)` is the one place that join lives) with "Other work" for the rest (today "Other work" still includes Prompt/Question chat records, each shown by its own words — a Prompt's cleaned paragraph, a Question's text, read by `constructor.name` since `type` is consumed picking the class — as a link to the Timeline tab, where that record has its own row; not counting them as tasks at all is open, held pending the owner's sign-off: [sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md](../sessions/2026/10/25/session-5644835c/mastermind-session-page-tasks/requirements.md)). The children are the union, de-duplicated by session id, of the `sessions` lines of `session.jsonl`, the tree nodes that carry `session`, the day snapshot's `links.children`, and the snapshots whose `parent` is this session's agent; groups are ranked by cost × 0.5^(age days ÷ 2) plus recency, with a Cost/Newest toggle. A task is one full-width row (open, running, done and dropped icons; the child session's model, cost and state; subtasks folded in), and a done task opens its proof in place. The rows are the Overview's own markup (`SessionOutlineView.item`), not `TaskView`: they carry no start/pause/stop buttons (those live on `TaskView` rows in the Tasks tab), and a folder-only task has no `Task` object for `TaskView` to draw. `SessionTasks` hands it each replay through `on_session`, and the view redraws live. `SessionFeed.js` (+ `SessionFeed.css`, prefix `sfeed-`) is the older flat list and is no longer wired in. `SessionOverview.js` draws the Board tab's four cards side by side (Open, Project, Done, Dropped), with the phone's classes (`MobileRow`, `MobileTaskRow`, `mob-` CSS); `SessionTaskRow.js` is the phone's task row that opens the task's full page and shows its cost. Their styles, and the full-screen mode with two floating buttons (`AISessionDetail.full_screen`, `?full`), are `SessionOverview.css` (prefix `sov-`).
+ - **The Timeline tab** (`?tab=timeline`) is `SessionTimeline.js` (+ `SessionTimeline.css`, prefix `stl-`): everything the session recorded in time order, newest at the bottom, the list opening scrolled to the bottom. One compact row per event (time, icon, one or two lines): each line of `session.jsonl` is one row (task added and done, child session started, note, decision, review, commit, session start and stop, log and tag lines), each prompt of `prompts.jsonl` is one row (its subject, the raw words one click down), and each child session that has landed adds one (name linked with `AICost.session_url`, its state, model and `AICost.cost_line`, never summed here). The rows are built with no DOM by `SessionTimelineRows.js`, tested by `node SessionTimeline.test.mjs` (rows drawn = record lines + distinct prompts + landed children, counted by hand on a fixture; the page shows the same number as `data-total`). It fetches nothing of its own for the record: `AISessionDetail` feeds it `SessionTasks`' replay (`on_session(session, lines)`), the Overview's child list (`SessionOutlineView`'s `on_draw`) and its own prompt tail (`SessionTimeline.Tail`, a `JSONL` that follows `prompts.jsonl`), so new lines appear without a reload. **Filters ▾** is a checkbox per kind in the same popover the Sessions list header uses (`SessionPopover.open(anchor, content, cls)`, which wraps `ux/Popover` and the `sessions-pop` skin); log, tag and `plumbing` (a voice session's `place`/`sent`/`quiet` bookkeeping and a prompt's word-by-word text updates) are off until ticked — `chat` (the owner and assistant, by text) is on by default. The count line says how many are hidden when some are ("965 of 2704 events — 1739 hidden by Filters ▾"). With no record the tab shows the prompts alone, or one plain sentence.
+ - `SessionWork.js` (+ `.css`) — the **Tasks** tab (the old Work view; its `SessionWork.split(root)` also feeds the stats bar and the Overview): its work nested by task folder (`sessions/doc/variants/SessionTree.js` over `ai/index.json`), own and rolled cost, tasks complete of created, open tasks, the Today ▾ pill (`ux/Filter/TimeFilter`), Approve. `Approvals.js` writes `{"approve":{"at","by":"owner"}}` to the session's own `session.jsonl` plus a pointer in that day's `day.jsonl` (the line the tab streams); `Review.js` is the leak rule and its numbers (finished 1 h, over $0.50, over a day old).
+ - `AISessionLive.js` · `AISessionFollow.js` · `AISessionResume.js` · `AISessionFlags.js` — live tail, follow, resume, flags.
+@@ -21,6 +21,6 @@
+ 
+ **Which URL a session lives at.** A session's page is at its folder's path, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`, the same path where its `session.jsonl`, `page.jsonl` and task folders are saved, so the address bar and the disk agree. The folder name comes from the index (`session-<id8>`, or a Servex agent's own name), so it is unique and never changes when the session is renamed; the page shows the readable title. `StoreFolder.child()` reads line 1 of the folder's `session.jsonl` (`session` or `assign`), learns the id, and draws `AISessionDetail` there; real subfolders (task folders, a project folder such as `sessions-and-tasks/`) still route below it through `StoreFolder.route()`. The id URL `/framework/ai/sessions/<id>/` (uuid or agent id) is only a way in: `AISessionsPage.child()` looks up the folder (`AISessionDetail.folder_for`) and `route()` redirects there with `location.replace`, keeping `?search` and `#hash`. A session with no folder yet keeps its page at the id URL (no redirect, so no loop). Every link the site builds to a session goes through `AISession.page_url(id, fallback)`, which answers the folder path once the index has named the folder, else the fallback; the phone pages under `v/mobile/` keep their own routes.
+ 
+-**The Chat tab** has three chips (`?chat_view`): "Chat" (`AISessionConversation`, the Claude transcript through `ext/Chat/Chat.js`), "Chat v2" and "Chat v3" (on `session.jsonl`, the file the sheet's chat reads). How the session page relates to the sheet's chat and the voice session: [system-map.md, 3b](/framework/ai/system-map.md#3b-the-session-detail-page); where it should go: [system-proposal.md](/framework/ai/system-proposal.md).
++**The Chat tab** has four chips (`?chat_view`): "Chat" (`AISessionConversation`, the Claude transcript through `ext/Chat/Chat.js`), "Chat V1.2" (`ext/Chat/v1-2`), "Chat v2" and "Chat v3" (all three on `session.jsonl`, the file the sheet's chat reads). How the session page relates to the sheet's chat and the voice session: [system-map.md, 3b](/framework/ai/system-map.md#3b-the-session-detail-page); where it should go: [system-proposal.md](/framework/ai/system-proposal.md).
+ 
+ Watch out: a *Claude Code* session here is not [`ext/Session`](/framework/ext/Session/), the voice session. The old lowercase shims were retired to `ai/archive/retired/2026-10-13/sessions/`.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-2/walkthrough.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-2/walkthrough.md
+new file mode 100644
+index 000000000..273135816
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-2/walkthrough.md
+@@ -0,0 +1,9 @@
++# Chat V1.2: short walkthrough
++
++Demo: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/). Docs: [readme](/framework/ext/Chat/v1-2/readme.md). The pictures are committed under [`ext/Chat/v1-2/doc/`](/framework/ext/Chat/v1-2/doc/); regenerate with `FENCE_SERVEX=1 node ChatV1Dot2.test.mjs <base> <shots-dir>`).
++
++1. **Phone, 360×740, the test's final state** — [v1-2-360.png](/framework/ext/Chat/v1-2/doc/v1-2-360.png). With the shared Claude-style layout merged in: one owner bubble hugging its three sentences with the green ✓ after the last (the assistant has all three), the Reply as plain text on the left, and the words still being spoken ("Maybe we could", the last part faint) in a live draft pill after the ✓.
++2. **Phone, 360 wide, the demo page** — [demo-360.png](/framework/ext/Chat/v1-2/doc/demo-360.png). The fixture mid-flight: the ✓ is dim after sentence 3, and the fourth sentence ("Try a hard refresh.") is dimmed in its own bubble below the Reply, because the assistant has not got it yet. No horizontal scroll.
++3. **Desktop, 1920** — [demo-1920.png](/framework/ext/Chat/v1-2/doc/demo-1920.png). Same state; V1's bubble widths, no restyle.
++
++Proof it is V1 underneath: `node Server/ChatV1Compare.mjs` shows 0 differing bubbles across the five real sessions (170, 278, 765, 1314, 215 bubbles).
+diff --git a/public/framework/ai/system-map.md b/public/framework/ai/system-map.md
+index b57f92069..9f23b86ac 100644
+--- a/public/framework/ai/system-map.md
++++ b/public/framework/ai/system-map.md
+@@ -21,6 +21,7 @@ mic → Whisper (`ux/Dictate`) → live bubble in the composer → `POST /api/se
+ | **Chat V1 drawing helpers** | `ext/Chat/` | `Chat.js` is a **function bag** (`chat()`, `speak`, `patch_piece`, `live`, `mergeable`, `sticky_scroll`, `place_live_cursors`); `ChatPanel`, `Composer`, `ComposerMic`, `Drill` are classes; `chunks.js`, `cursors.js`, `roles.js`, `strip.js` | Called by `Widget.js` (the V1 bubbles use `speak`, `patch_piece`, `live`). |
+ | **Is `Chat.js` used at all?** | | | **Yes.** Imported by `ux/Dictate/Widget.js`, `ext/drawer/ChatView.js` (`sticky_scroll`), `ext/Chat/page.js`, `ChatPanel.js`, `Drill.js`, `ai/cards/CardChat.js` (a card's chat) and `ai/AISession/AISessionConversation.js` (the session page's conversation). It is the engine for V1 bubbles *and* for card/session chats. It is not dead; it is a function bag that should be a class. |
+ | **Chat V2** | `ext/Chat/v2/` | `ChatV2 extends JSONL`, `ChatV2Model` (pure fold of lines), `report.js` (click/error/context reports through `/api/session/say`) | Mounted in place of V1's bubbles by `ext/drawer/ChatView.js` when the **v2 chip** is on (`lew42.sheet.chat_view = "v2"`). Draws the `tasks` list as a tree: Prompt at the root, replies, questions and tasks nested. Folds lines by hand; does not use the `Prompt` class. |
++| **Chat V1.2** | `ext/Chat/v1-2/` | `ChatV1Dot2 extends JSONL` (wraps V1's `chat()`), `SendCursor` | Behind the **Chat V1.2 chip**, never the default. V1's bubbles drawn from `session.messages` through `core/Session/Chat/V1Bubbles.js`, with one ✓ after the last sentence the assistant has (dim while words wait, green when caught up), no 🧠. [readme](/framework/ext/Chat/v1-2/readme.md) |
+ | **Chat V3** | `ext/Chat/v3/` (built in worktree `chat-v3`, task `2026-10-25/mastermind-v3-draft`, **already merged** to `michael/dev`) | `ChatV3 extends JSONL` | Behind the **v3 chip**, never the default. Replays task-delta lines into a real `core/Session` (the item tool's own replay), then draws a card per Prompt. See "What V3 actually implements" below. |
+ | **The sheet** | `ext/drawer/` (lowercase, mixed) | `Sheet extends View` (`Sheet.of(app)`), `SheetPanel extends View`, `SheetSize` (closed / strip / split / full), `SheetDock` (desktop right drawer, open by default at ≥1920 px), `AIPage extends Page` (route `<path>/ai/`), `ChatView` (the v2/v3 chips), `AIFeed` | The ✦ button (`menu.js`) opens it; on a phone a bottom strip raises it. The sheet **mounts chat** in `ensure_mount()` (`Sheet.js:415`) by calling `chat(this.$slot.el, ...)`. |
+ | **The drawer** | `ext/drawer/drawer.js`, `tabs.js`, `tabs/*` | `drawer(fn)` function; tabs are modules: `ai`, `debug` (was `dictation`), `docs`, `settings`, `element`, `sessions`, `admin` | The plain right-hand container for desktop. The AI tab mounts the same `chat()` plus `session_header` (`tabs/ai.js:139`). |
+@@ -39,6 +40,7 @@ mic → Whisper (`ux/Dictate`) → live bubble in the composer → `POST /api/se
+ | | Reads | Default? | Uses `Prompt` class? | Uses `refine`/`place`? |
+ |---|---|---|---|---|
+ | **V1** (`Widget.js` + `Chat.js`) | `{chat}` `{place}` `{summary}` `{refined}` `{react}` | Yes | No | **Yes** (`place` and `refined`) |
++| **V1.2** (`ChatV1Dot2`) | `messages` / `sentences` lines, replayed into a real `Session` (V1's `{chat}` lines skipped) | No (Chat V1.2 chip) | Yes, via `Session` replay | No |
+ | **V2** (`ChatV2`) | `tasks` lines, folded by hand | No (v2 chip) | No (its own model) | No |
+ | **V3** (`ChatV3`) | `tasks` lines, replayed into a real `Session` | No (v3 chip) | Yes, via `Session` replay | No |
+ | **Session page "Chat" chip** (`AISessionConversation`) | the **Claude transcript** of an SDK agent, not `session.jsonl` | First chip on a session page | No | No |
+@@ -56,7 +58,7 @@ The page that shows one session. Code and tab detail: [ai/AISession](/framework/
+ - **Where it lives:** `ai/AISession/AISessionDetail.js` (`class AISessionDetail extends Page`). Routed by `AISessionsPage.child()` and `StoreFolder.child()` at the session's dated folder, `/framework/ai/sessions/YYYY/MM/DD/<folder>/`; the id url redirects there. Links come from `AISession.page_url(id, fallback)`; `AgentUrl.js` maps an agent name to its task folder.
+ - **Tabs** (`?tab=`): main = overview, timeline, chat, tasks; the More popover = board, coverage, cost, models, related. The old keys `work` and `conversation` map to tasks and chat. Chat and coverage show only when the session has prompts or is a VS Code tab.
+ - **Renderers:** overview = `SessionOutlineView` (`SessionOutline.js` holds the data, no DOM); timeline = `SessionTimeline`; tasks = `SessionTasksGrid` on `ext/DataGrid` with the nested `SessionWork`; board = `SessionOverview`; stats bar = `SessionStats`; cost = `AICost.cost_line`. The data is `SessionTasks` (`core/Session`) replaying `session.jsonl`. `SessionFeed.js` is the older flat list and is no longer wired in.
+-- **How it relates to the chat:** the Chat tab has three chips, kept in `?chat_view`. "Chat" is `AISessionConversation`, which wraps `ext/Chat/Chat.js` `chat()` and draws the **Claude transcript** (a fourth chat flavour). "Chat v2" and "Chat v3" mount `ChatV2` / `ChatV3` on `session.jsonl`, the file the sheet's chat reads. The sheet's chat follows the live voice session; the session page's chat is fixed to the session it shows.
++- **How it relates to the chat:** the Chat tab has four chips (Chat, Chat V1.2, Chat v2, Chat v3), kept in `?chat_view`; the ✦ sheet and the drawer's version dropdown also list V1.2. "Chat" is `AISessionConversation`, which wraps `ext/Chat/Chat.js` `chat()` and draws the **Claude transcript** (a fourth chat flavour). "Chat V1.2", "Chat v2" and "Chat v3" mount `ChatV1Dot2` / `ChatV2` / `ChatV3` on `session.jsonl`, the file the sheet's chat reads. The sheet's chat follows the live voice session; the session page's chat is fixed to the session it shows.
+ 
+ ## 3c. Lists, ids, replay and the tasks list (how the chat's data is held)
+ 
+diff --git a/public/framework/core/Session/Chat/doc/pseudo-properties.md b/public/framework/core/Session/Chat/doc/pseudo-properties.md
+index ffcc99238..777e36980 100644
+--- a/public/framework/core/Session/Chat/doc/pseudo-properties.md
++++ b/public/framework/core/Session/Chat/doc/pseudo-properties.md
+@@ -45,4 +45,4 @@ Each step only starts once `node Server/ChatV1Compare.mjs` (read-only; `core/Ses
+ 5. **The other ~20 readers move one by one** (read-aloud, timeline, mobile — the list above, "Who draws them").
+ 6. **Last, Servex stops writing `{chat}` and `{place}`,** and every remaining old session is migrated for real: `node Server/ChatToMessages.mjs --apply` on each file the compare still finds `none`; a `partial` file is filled by the same command (step 2).
+ 
+-Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Steps 4 to 6 are not built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are read-only tools, not a migration.
++Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Steps 4 to 6 are not built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are not a migration: the compare is a read-only check, and `V1Bubbles.js` also feeds the live view [Chat V1.2](/framework/ext/Chat/v1-2/readme.md) (V1 drawn from `session.messages`, step 6 of the plan above as an opt-in version).
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index 38ca0b266..f78fb2ca6 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -91,7 +91,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ - ✅ Tasks and child sessions written as Refs in `session.messages` by Servex (2026-11-02, chat-model step 3): `page_tools.js`'s `tasks.add`, `Server/SessionRecord.mjs`'s `add_ref`.
+ - ✅ List view hooks: `ext/Chat/list/ChatList.js` draws the list through `DefaultView.place()` (chat-model step 4).
+ - ✅ `Prompt.raw`, the sent/working marks on the message, and Prompt as a card (`kind`/`items`) (2026-11-02, chat-model steps 5–6). `working` is still written on whichever Prompt (task or message) an instruction names; no caller does yet.
+-- ✅ V1 side by side, read-only (2026-11-02, chat-model step 8): `V1Bubbles.js` turns `session.messages` into the bubble list V1 draws (merge, `place()`'s time-reordering, and a `fix`'s in-place correction, all mirrored as plain data); `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way for real sessions and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. Found: none of the 5 are fully mirrored (2 `none`, 1 `partial`, and `said_at` — mirrored nowhere today — is the main reason the two others' bubble lists drift once `{chat}`'s `said_at` differs from its `at`). The switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
++- ✅ V1 side by side (2026-11-02, chat-model step 8): `V1Bubbles.js` (also the live source of [Chat V1.2](/framework/ext/Chat/v1-2/readme.md), V1 drawn from `session.messages`) turns `session.messages` into the bubble list V1 draws (merge, `place()`'s time-reordering, and a `fix`'s in-place correction, all mirrored as plain data); `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way for real sessions and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. Found: none of the 5 are fully mirrored (2 `none`, 1 `partial`, and `said_at` — mirrored nowhere today — is the main reason the two others' bubble lists drift once `{chat}`'s `said_at` differs from its `at`). The switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
+ - ⬜ Question and Card as messages, when a writer needs them.
+ - ⬜ remove the old `said` alias once Chat V3 reads `sent.smart` (and `raw`) directly, instead of `ext/Chat/v3/ChatV3.js:163`'s `p.cleaned || p.said`.
+ - ✅ `said_at` is mirrored onto the Sentence by `ChatWriter` and read by `V1Bubbles` (2026-11-02, v1-switch-prep).
+diff --git a/public/framework/ext/Chat/files.jsonl b/public/framework/ext/Chat/files.jsonl
+index 1eab989a5..5b4c75229 100644
+--- a/public/framework/ext/Chat/files.jsonl
++++ b/public/framework/ext/Chat/files.jsonl
+@@ -53,3 +53,5 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"failures.jsonl","gone":true}
++{"file":"v1-2/"}
++{"file":"v1-2/page.js"}
+diff --git a/public/framework/ext/Chat/page.js b/public/framework/ext/Chat/page.js
+index d08c8dbe1..851fd7568 100644
+--- a/public/framework/ext/Chat/page.js
++++ b/public/framework/ext/Chat/page.js
+@@ -6,7 +6,7 @@ export default new Page({
+ 	title: "Chat",
+ 	description: "A scrolling chat log that follows new messages while you are at the bottom, and holds still once you scroll up.",
+ 	icon: "chat",
+-	children: "panel drill list v2 v3",
++	children: "panel drill list v1-2 v2 v3",
+ 
+ 	content(){
+ 		p("The log below, on its own. For the log plus the composer and the mic as ONE component — the widget the desktop drawer and the mobile sheet both use — see Chat Panel, `/framework/ext/Chat/panel/`.");
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index 3b208cbf3..e44cd6c97 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -2,7 +2,7 @@
+ 
+ Follows new messages while scrolled to bottom, formats Markdown bubbles with avatar icons, and supports threading and reactions.
+ 
+-`Chat.js` is a function bag used by the voice chat (`ux/Dictate/Widget.js`), the sheet's `ChatView`, a card's chat (`ai/cards/CardChat.js`) and the session page's Claude-transcript chat (`ai/AISession/AISessionConversation.js`). The three versions (v1 default, [v2](./v2/readme.md), [v3](./v3/readme.md)), who reads which line shape, and the proposal to make Chat one class: [ai/system-map.md](/framework/ai/system-map.md) · [ai/system-proposal.md](/framework/ai/system-proposal.md).
++`Chat.js` is a function bag used by the voice chat (`ux/Dictate/Widget.js`), the sheet's `ChatView`, a card's chat (`ai/cards/CardChat.js`) and the session page's Claude-transcript chat (`ai/AISession/AISessionConversation.js`). The versions (v1 default, [v1-2](./v1-2/readme.md), [v2](./v2/readme.md), [v3](./v3/readme.md)), who reads which line shape, and the proposal to make Chat one class: [ai/system-map.md](/framework/ai/system-map.md) · [ai/system-proposal.md](/framework/ai/system-proposal.md).
+ 
+ ## Use
+ 
+@@ -46,6 +46,7 @@ Like Claude's chat: **your words are a tinted pill on the right that hugs its te
+ - `Mic.js` / `strip.js`: the composer's mic (`ComposerMic`) and its pure already-sent word-dedup (`strip_words`, `strip_sent`), node-testable in `strip.test.mjs` with no browser.
+ - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
+ - [`list/`](./list/readme.md): the simplest live view of a session's real chat list, `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)): one bubble per message, in the list's order, drawn from the list's lines alone; demo at `/framework/ext/Chat/list/`.
++- [`v1-2/`](./v1-2/readme.md): Chat V1.2 (2026-11-02): V1 drawn from `session.messages` through `core/Session/Chat/V1Bubbles.js`, with one send cursor — a ✓ after the last sentence the assistant has, dim while words wait, green once caught up, no 🧠; a chip on the session page's Chat tab, demo at `/framework/ext/Chat/v1-2/`. V1 is untouched.
+ - [`v2/`](./v2/readme.md): Chat v2, `class ChatV2 extends ChatV3` (step 2 of [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md), 2026-11-01): draws `session.messages` like V3, adding only the ✓/🧠 marks and a Reply drawn beside the sentence it answers; shown as V2 in the version dropdown of the ✦ sheet and the drawer, and a chip on the session page's Chat tab, live demo at `/framework/ext/Chat/v2/`.
+ - **Links in a chat bubble** (`md.js` `site_path()`): a link to this site, under any of its hosts, becomes a site path with no new tab, so `core/Router` opens it in place and dictation keeps running; the gateway key is dropped; other sites open in a new tab.
+ - [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)), with the Replies that answer it (found by `re.to`) inside it, the reply being written, pause-based paragraphs, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`. The one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; step 2 makes v2 its subclass).
+diff --git a/public/framework/ext/Chat/v1-2/ChatV1Dot2.css b/public/framework/ext/Chat/v1-2/ChatV1Dot2.css
+new file mode 100644
+index 000000000..42c51f4c1
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/ChatV1Dot2.css
+@@ -0,0 +1,8 @@
++@layer base, theme, site, util;
++
++/* Chat V1.2 (ChatV1Dot2.js): V1's own markup and Chat.css, plus the send cursor's two states. The ✓ itself is cursors.css's `.chat-cursor`. */
++@layer site {
++	.chat-v1-2 .chat-cursor { color: var(--ok); opacity: 1; transition: opacity .6s ease; }
++	.chat-v1-2 .chat-cursor.chat-cursor-waiting { opacity: .55; }
++	.chat-v1-2 .chatbox-text.chat-unsent { color: var(--draft-ink, var(--subtle)); transition: color .6s ease; }
++}
+diff --git a/public/framework/ext/Chat/v1-2/ChatV1Dot2.js b/public/framework/ext/Chat/v1-2/ChatV1Dot2.js
+new file mode 100644
+index 000000000..e0c3ed3aa
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/ChatV1Dot2.js
+@@ -0,0 +1,61 @@
++// ChatV1Dot2.js — Chat V1.2: V1 (../Chat.js, untouched) drawing `session.messages` instead of `{chat}` lines, plus ONE send cursor.
++// V1's own `chat({source})` still does every draw (bubbles, merging, order, threads, replies); this class only swaps what feeds it:
++// `V1Bubbles.events(session)` (core/Session/Chat/V1Bubbles.js) becomes the `{chat}` entries `chat()` expects, so the 0-diff compare
++// (Server/ChatV1Compare.mjs) is also the proof the two feeds draw the same bubbles.
++// The cursor: after the last sentence of the newest Prompt the assistant has (`sent.fast.at >= sentence.at`). Sentences after it have
++// ended but are not received yet: they are dimmed (.chat-unsent), and the ✓ is dimmed while any wait, lit green once caught up.
++// Owner doc: ./readme.md.
++import View from "/framework/core/View/View.js";
++import JSONL from "/framework/ext/JSONL/JSONL.js";
++import Session from "/framework/core/Session/Session.js";
++import V1Bubbles from "/framework/core/Session/Chat/V1Bubbles.js";
++import LineKey from "/framework/core/Item/LineKey.js";
++import { chat } from "../Chat.js";
++import SendCursor from "./SendCursor.js";
++View.stylesheet(import.meta, "ChatV1Dot2.css");
++
++export default class ChatV1Dot2 extends JSONL {
++	session = new Session();
++	emitted = new Map();      // event id -> the text last handed to chat(); a changed text goes in again as a `fix`
++	send_cursor = new SendCursor({ session: this.session, root: () => this.talk?.view.el }).start();   // the ✓ + dimming; .stop() leaves plain V1.2
++
++	/** The `{chat}` entries V1's chat() reads, from the session's messages. A sentence whose text changed since (a fast-seat improve)
++	 * is sent again as a `fix`, the same way V1 corrects a line in place. */
++	entries(){
++		const out = [];
++		for (const e of V1Bubbles.events(this.session)){
++			const prior = this.emitted.get(e.id), said_at = new Date(e.at).toISOString();
++			const from = e.sender === "owner" ? { kind: "owner" } : { kind: "assistant", id: e.sender };
++			const chat = { at: e.id, said_at, from, text: e.text, ...(e.re ? { re: e.re } : {}), ...(e.level ? { level: e.level } : {}) };
++			if (prior === undefined) out.push({ at: said_at, chat });
++			else if (prior !== e.text) out.push({ at: said_at, chat: { ...chat, fix: true } });
++			this.emitted.set(e.id, e.text);
++		}
++		return out;
++	}
++
++	// { url: the session.jsonl url, $box: the View to draw into }
++	read(entries){
++		if (!this.talk){
++			this.talk = chat({ source: () => this.entries(), ...(this.options ?? {}) });
++			this.$box?.append(this.talk.view);
++			this.$box?.ac("chat-v1-2");
++		}
++		for (const raw of entries){
++			const line = LineKey.deep(raw);
++			if (line?.chat || line?.place) continue;   // V1's own lines: the real update is the messages/sentences mirror line
++			this.session.replay_line(line);
++		}
++		this.talk.sync();
++		this.send_cursor.mark();
++		return this;
++	}
++	reset(){ this.session = new Session(); this.emitted.clear(); this.send_cursor.clear(); this.send_cursor.session = this.session; this.talk?.view.el.replaceChildren(); this.talk = null; return super.reset(); }
++	// The words being spoken right now, before any sentence ends: V1's own growing draft bubble, after the ✓ (the composer's mic reports them as "chat-live").
++	listen(on){
++		this._live ??= e => this.talk?.live(e.detail ?? {});
++		window[on ? "addEventListener" : "removeEventListener"]("chat-live", this._live);
++	}
++	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); return this; }
++	unsubscribe(){ this.stopped = true; this.listen(false); return super.unsubscribe(); }
++}
+diff --git a/public/framework/ext/Chat/v1-2/ChatV1Dot2.test.mjs b/public/framework/ext/Chat/v1-2/ChatV1Dot2.test.mjs
+new file mode 100644
+index 000000000..eee70e536
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/ChatV1Dot2.test.mjs
+@@ -0,0 +1,113 @@
++// node ChatV1Dot2.test.mjs [base-url] [shots-dir] — headless proof for Chat V1.2: a dictated Prompt grows sentence by sentence, each
++// `sent` mark moves the one ✓ forward, the ✓ is dim while words wait and lit green once the assistant has them all, there is no 🧠,
++// and stop() leaves plain V1.2. Drives ChatV1Dot2.read() with lines in the page (no file, no live Servex); run with FENCE_SERVEX=1.
++import { browser as get_browser } from "../../../../../Server/Browser.mjs";
++import { mkdirSync } from "node:fs";
++
++const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++const T = ms => new Date(Date.parse("2026-11-02T14:00:00.000-06:00") + ms).toISOString();
++const sentence = (n, text, ms) => n === 1
++	? { sentences: { add: { id: "s-1", at: T(ms), text, via: "voice" } }, messages: { add: { type: "Prompt", id: "m-1", by: "owner", at: T(ms), sentences: ["s-1"] } } }
++	: { sentences: { add: { id: "s-" + n, at: T(ms), text, via: "voice" } }, messages: { "m-1": { sentences: { push: "s-" + n } } } };
++const live = detail => page.evaluate(d => window.dispatchEvent(new CustomEvent("chat-live", { detail: d })), detail);
++const sent = ms => ({ messages: { "m-1": { sent: { fast: { at: T(ms) } } } } });
++const S = [["Can you check the build?", 0], ["I think the cursor is lagging behind.", 3000], ["Maybe it is the cache.", 6000]];
++
++const b = await get_browser(), page = await b.newPage({ viewport: { width: 360, height: 740 }, userAgent: "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36" });
++const errors = []; page.on("pageerror", e => errors.push(String(e)));
++await page.goto(`${base}/framework/ext/Chat/v1-2/`, { waitUntil: "networkidle" });
++await page.evaluate(async () => {
++	const { default: ChatV1Dot2 } = await import("/framework/ext/Chat/v1-2/ChatV1Dot2.js");
++	const { div } = await import("/framework/core/View/View.js");
++	document.body.replaceChildren();
++	const $box = div.c("chat-v1-2"); document.body.append($box.el);
++	window.c = new ChatV1Dot2({ $box }); window.c.listen(true);
++});
++const feed = line => page.evaluate(l => window.c.read([l]), line);
++const state = () => page.evaluate(() => {
++	const cur = [...document.querySelectorAll(".chat-cursor")], one = cur[0];
++	return {
++		cursors: cur.length,
++		after: one?.closest("[data-re]")?.dataset.re ?? null,
++		waiting: one?.classList.contains("chat-cursor-waiting") ?? null,
++		unsent: [...document.querySelectorAll(".chat-unsent")].map(n => n.dataset.re),
++		brains: document.querySelectorAll(".chat-smart-cursor").length,
++		bubbles: document.querySelectorAll(".chatbox").length,
++		opacity: one ? Number(getComputedStyle(one).opacity) : null,
++		color: one ? getComputedStyle(one).color : null,
++		ok: getComputedStyle(document.documentElement).getPropertyValue("--ok").trim(),
++		text: document.querySelector(".chatbox-you")?.textContent ?? "",
++	};
++});
++const settle = () => page.waitForTimeout(800);   // the .6s dim/lit transition
++
++try {
++	await feed({ session: { id: "v-test", kind: "voice", at: T(0) } });
++	await feed(sentence(1, ...S[0]));
++	let s = await state();
++	check("a dictated sentence is drawn in one owner bubble", s.bubbles === 1 && s.text.includes("Can you check the build?"), s);
++	check("nothing is sent yet: no ✓, the sentence waits (dimmed)", s.cursors === 0 && s.unsent.join() === "s-1", s);
++
++	await feed(sentence(2, ...S[1]));
++	s = await state();
++	check("the Prompt grows into the SAME bubble, both sentences still after the cursor", s.bubbles === 1 && s.cursors === 0 && s.unsent.join() === "s-1,s-2", s);
++
++	await feed(sent(S[0][1]));
++	s = await state(); await settle();
++	check("sent #1: the ✓ sits after sentence 1, sentence 2 still waits", s.cursors === 1 && s.after === "s-1" && s.unsent.join() === "s-2", s);
++	check("…and the ✓ is dimmed while words wait", s.waiting === true && (await state()).opacity < 0.7, await state());
++
++	await feed(sentence(3, ...S[2]));
++	await feed(sent(S[1][1]));
++	s = await state(); await settle();
++	check("sent #2: the ✓ moved forward to the end of sentence 2 (still ONE ✓), sentence 3 waits", s.cursors === 1 && s.after === "s-2" && s.unsent.join() === "s-3", s);
++
++	await feed(sent(S[2][1]));
++	await settle();
++	s = await state();
++	check("sent #3: the ✓ is after the last sentence, nothing waits", s.cursors === 1 && s.after === "s-3" && s.unsent.length === 0 && s.waiting === false, s);
++	check("…and the ✓ is lit: full opacity, the --ok green", s.opacity === 1 && s.color.replace(/\s/g, "").length > 0, s);
++	const green = await page.evaluate(() => { const probe = document.createElement("span"); probe.style.color = "var(--ok)"; document.body.append(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; });
++	check("…the lit colour IS --ok", s.color === green, { got: s.color, green });
++	check("no 🧠 anywhere", s.brains === 0, s);
++
++	await feed({ messages: { "m-1": { clean: { "s-1": "Can you check the build, please?" } } } });
++	s = await state();
++	check("a cleaned sentence updates in place, the ✓ stays after sentence 3", s.text.includes("build, please?") && s.cursors === 1 && s.after === "s-3" && s.bubbles === 1, s);
++
++	await feed({ messages: { add: { id: "m-2", type: "Reply", by: "smart", at: T(7000), text: "Looking at the build now.", re: { to: "s-1" } } } });
++	s = await state();
++	check("a Reply lands as its own bubble; the owner's ✓ is untouched", s.bubbles === 2 && s.cursors === 1 && s.after === "s-3", s);
++	await live({ text: "Maybe we could", settled: "Maybe", guess: " we could" });
++	const d = await page.evaluate(() => { const dr = document.querySelector(".chatbox-draft"), cur = document.querySelector(".chat-cursor"); return { draft: !!dr, text: dr?.textContent ?? "", after: !!(dr && cur && (cur.compareDocumentPosition(dr) & Node.DOCUMENT_POSITION_FOLLOWING)), cursors: document.querySelectorAll(".chat-cursor").length }; });
++	check("the unfinished spoken words show as a draft bubble AFTER the ✓, still one ✓", d.draft && /Maybe\s+we could/.test(d.text) && d.after && d.cursors === 1, d);
++	if (shots) { mkdirSync(shots, { recursive: true }); await page.screenshot({ path: `${shots}/v1-2-360.png` }); }
++	await live({ text: "" });
++	check("…and the draft goes away when the words are sent", (await page.evaluate(() => document.querySelectorAll(".chatbox-draft").length)) === 0);
++
++	await page.evaluate(() => window.c.send_cursor.stop());
++	s = await state();
++	check("stop() removes the ✓ and the dimming, the bubble stays plain V1.2", s.cursors === 0 && s.unsent.length === 0 && s.bubbles === 2, s);
++	await page.evaluate(() => window.c.send_cursor.start());
++	check("start() brings it back", (await state()).cursors === 1);
++	const cv = await page.evaluate(async () => {
++		const { default: ChatView } = await import("/framework/ext/drawer/ChatView.js");
++		const { div } = await import("/framework/core/View/View.js");
++		localStorage.setItem(ChatView.KEY, "v1-2");
++		const slot = div.c("slot"); document.body.append(slot.el);
++		const view = new ChatView({ slot: () => slot.el, mount: () => ({ file: () => new URL("/framework/ext/Chat/v1-2/fixture/session.jsonl", location.href).href }) });
++		const label = view.chip().el.textContent; view.sync();
++		await new Promise(r => setTimeout(r, 1500));
++		const out = { mode: view.mode, label, versions: ChatView.VERSIONS.map(v => v.name).join(), box: !!slot.el.querySelector(".chat-v1-2"), cursors: slot.el.querySelectorAll(".chat-cursor").length, bubbles: slot.el.querySelectorAll(".chatbox").length };
++		view.release(); localStorage.removeItem(ChatView.KEY); slot.el.remove();
++		return out;
++	});
++	check("the ✦ sheet / drawer dropdown lists V1.2 and mounts it with its ✓", cv.mode === "v1-2" && cv.label.startsWith("Chat V1.2") && cv.versions === "V1,V1.2,V2,V3" && cv.box && cv.cursors === 1 && cv.bubbles >= 2, cv);
++	check("no page errors", errors.length === 0, errors);
++} catch (e) { fail++; console.log("FAIL threw", e); }
++console.log(`${pass} passed, ${fail} failed`);
++await b.close?.();
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v1-2/SendCursor.js b/public/framework/ext/Chat/v1-2/SendCursor.js
+new file mode 100644
+index 000000000..a6f58c32a
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/SendCursor.js
+@@ -0,0 +1,48 @@
++// SendCursor.js — Chat V1.2's one ✓: it sits after the last sentence of the newest Prompt the assistant has (`sent.fast.at >=
++// sentence.at`), sentences after it are dimmed (.chat-unsent), and the ✓ is dimmed while any wait, lit green once caught up.
++// A switchable part: start() begins marking, stop() removes its DOM and leaves the bubble plain V1.2. Doc: ./readme.md.
++import Prompt from "/framework/core/Session/Chat/Prompt.js";
++import { cursor_el } from "../cursors.js";
++
++export default class SendCursor {
++	static id = "send-cursor";
++	static defaults = { on: true };
++
++	cursor = cursor_el();   // the one ✓ — moved by re-appending, never a second one (cursors.css)
++	on = false;
++
++	// { session, root: () => the chat's log element (V1's view.el) }
++	constructor({ session, root }){ this.session = session; this.root = root; }
++
++	start(){ this.on = true; this.mark(); return this; }
++	stop(){ this.on = false; this.clear(); return this; }
++
++	/** The newest Prompt's sentences split at the cursor: { received, waiting } (sentence ids). Pure data, no DOM. */
++	split(){
++		const p = this.session.messages.messages.filter(m => m instanceof Prompt).at(-1);
++		if (!p) return { received: [], waiting: [] };
++		const got = Date.parse(p.sent?.fast?.at ?? 0) || 0, received = [], waiting = [];
++		for (const s of p.sentence_items) (got && (Date.parse(s.at) || 0) <= got ? received : waiting).push(s.id);
++		return { received, waiting };
++	}
++
++	clear(){
++		this.cursor.remove();
++		this.root()?.querySelectorAll(".chat-unsent").forEach(n => n.classList.remove("chat-unsent"));
++	}
++
++	/** Call after every draw: chat() rebuilds a bubble's text nodes whenever it grows, which drops the ✓ and the dimming. */
++	mark(){
++		const root = this.root();
++		if (!this.on || !root) return;
++		this.clear();
++		const { received, waiting } = this.split(), at = id => root.querySelector(`[data-re="${CSS.escape(id)}"]`);
++		for (const id of waiting) at(id)?.classList.add("chat-unsent");
++		const last = at(received.at(-1) ?? "");
++		if (!last) return;
++		this.cursor.classList.add("done");
++		this.cursor.classList.toggle("chat-cursor-waiting", waiting.length > 0);
++		this.cursor.title = waiting.length ? "the assistant has these words; the rest is on its way" : "the assistant has every word";
++		(last.lastElementChild ?? last).append(this.cursor);
++	}
++}
+diff --git a/public/framework/ext/Chat/v1-2/doc/demo-1920.png b/public/framework/ext/Chat/v1-2/doc/demo-1920.png
+new file mode 100644
+index 000000000..e8948b1e5
+Binary files /dev/null and b/public/framework/ext/Chat/v1-2/doc/demo-1920.png differ
+diff --git a/public/framework/ext/Chat/v1-2/doc/demo-360.png b/public/framework/ext/Chat/v1-2/doc/demo-360.png
+new file mode 100644
+index 000000000..7c49c71c5
+Binary files /dev/null and b/public/framework/ext/Chat/v1-2/doc/demo-360.png differ
+diff --git a/public/framework/ext/Chat/v1-2/doc/files.jsonl b/public/framework/ext/Chat/v1-2/doc/files.jsonl
+new file mode 100644
+index 000000000..a1504726a
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/doc/files.jsonl
+@@ -0,0 +1,3 @@
++{"file":"demo-1920.png"}
++{"file":"demo-360.png"}
++{"file":"v1-2-360.png"}
+diff --git a/public/framework/ext/Chat/v1-2/doc/v1-2-360.png b/public/framework/ext/Chat/v1-2/doc/v1-2-360.png
+new file mode 100644
+index 000000000..1a1384e71
+Binary files /dev/null and b/public/framework/ext/Chat/v1-2/doc/v1-2-360.png differ
+diff --git a/public/framework/ext/Chat/v1-2/files.jsonl b/public/framework/ext/Chat/v1-2/files.jsonl
+new file mode 100644
+index 000000000..d5ff22a7b
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/files.jsonl
+@@ -0,0 +1,8 @@
++{"file":"ChatV1Dot2.css"}
++{"file":"ChatV1Dot2.js"}
++{"file":"fixture/"}
++{"file":"SendCursor.js"}
++{"file":"page.js"}
++{"file":"ChatV1Dot2.test.mjs"}
++{"file":"readme.md"}
++{"file":"doc/"}
+diff --git a/public/framework/ext/Chat/v1-2/fixture/files.jsonl b/public/framework/ext/Chat/v1-2/fixture/files.jsonl
+new file mode 100644
+index 000000000..d41e87325
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/fixture/files.jsonl
+@@ -0,0 +1 @@
++{"file":"session.jsonl"}
+diff --git a/public/framework/ext/Chat/v1-2/fixture/session.jsonl b/public/framework/ext/Chat/v1-2/fixture/session.jsonl
+new file mode 100644
+index 000000000..716c47b36
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/fixture/session.jsonl
+@@ -0,0 +1,7 @@
++{"session":{"id":"v-fixture-v1-2","kind":"voice","at":"2026-11-02T20:00:00.000Z"}}
++{"sentences":{"add":{"id":"s-1","at":"2026-11-02T20:00:00.000Z","text":"Can you check the build?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1","by":"owner","at":"2026-11-02T20:00:00.000Z","sentences":["s-1"]}}}
++{"sentences":{"add":{"id":"s-2","at":"2026-11-02T20:00:04.000Z","text":"I think the cursor is lagging behind.","via":"voice"}},"messages":{"m-1":{"sentences":{"push":"s-2"}}}}
++{"sentences":{"add":{"id":"s-3","at":"2026-11-02T20:00:09.000Z","text":"Maybe it is the cache.","via":"voice"}},"messages":{"m-1":{"sentences":{"push":"s-3"}}}}
++{"sentences":{"add":{"id":"s-4","at":"2026-11-02T20:00:14.000Z","text":"Try a hard refresh.","via":"voice"}},"messages":{"m-1":{"sentences":{"push":"s-4"}}}}
++{"messages":{"m-1":{"sent":{"fast":{"at":"2026-11-02T20:00:10.000Z"}}}}}
++{"messages":{"add":{"id":"m-2","type":"Reply","by":"smart","at":"2026-11-02T20:00:12.000Z","text":"Looking at the build now.","re":{"to":"s-1"}}}}
+diff --git a/public/framework/ext/Chat/v1-2/page.js b/public/framework/ext/Chat/v1-2/page.js
+new file mode 100644
+index 000000000..0579062a7
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/page.js
+@@ -0,0 +1,16 @@
++import { Page, p, div } from "/app.js";
++import ChatV1Dot2 from "./ChatV1Dot2.js";
++
++export default new Page({
++	meta: import.meta,
++	title: "Chat V1.2",
++	description: "V1's chat, drawn from session.messages, with a send cursor: one ✓ after the words the assistant has.",
++	icon: "forum",
++
++	content(){
++		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/session.jsonl", import.meta.url).href;
++		p(src ? `This is the chat of the session file you chose (${src}), drawn live.` : "A demo of Chat V1.2. The green ✓ sits after the last sentence the assistant has received; the faded sentence after it is on its way. To see a real session, add ?src= and the address of its session.jsonl to this page's address.");
++		const $box = div.c("chat-v1-2");
++		new ChatV1Dot2({ url, $box }).live();
++	},
++});
+diff --git a/public/framework/ext/Chat/v1-2/readme.md b/public/framework/ext/Chat/v1-2/readme.md
+new file mode 100644
+index 000000000..fb01f3d0c
+--- /dev/null
++++ b/public/framework/ext/Chat/v1-2/readme.md
+@@ -0,0 +1,34 @@
++# Chat V1.2: V1 drawn from `session.messages`, with a send cursor and one green check
++
++V1.2 is V1 (`../Chat.js`, the bubbles you already know) fed from `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)) instead of `{chat}` lines, with one ✓ that shows how much of what you said the assistant has. The owner asked for it as "an additional version, add it to the list so we can try it out", to replace V1 once it works (2026-11-02). V1 itself is untouched.
++
++Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live. Live, with the mic: **V1.2** in the version dropdown of the ✦ sheet and the drawer's AI tab (`ext/drawer/ChatView.js`). On a session page, the Chat tab has a **Chat V1.2** chip (`?tab=chat&chat_view=v1-2`).
++
++## What you see
++
++- **The bubbles are V1's**, so the layout, links, read-aloud highlight and ordering rules are V1's, and `Server/ChatV1Compare.mjs` stays at 0 differing bubbles.
++- **One ✓ after the last sentence the assistant has.** A sentence is "had" when it is not newer than the newest Prompt's `sent.fast.at`. Sentences after the ✓ are dimmed: they are said, but not sent yet. When a sentence goes out the ✓ moves forward to its end.
++- **The ✓ is dim while words wait, and lit green (`--ok`) once it has caught up.** A slow CSS fade, no per-sentence grey/green flashing.
++- **The words still being spoken** (the live Whisper guess, before any sentence ends) show as V1's own growing draft bubble, after the ✓: `ChatV1Dot2` listens for the composer's `chat-live` window event, the same one V3 uses, and passes it to V1's `live()`. Start the listener with `live()`; `listen(false)` or `unsubscribe()` stops it.
++- **No 🧠.** One assistant, one mark. The `sent.smart` stamp is still written, just not drawn here.
++
++## Files
++
++- `ChatV1Dot2.js`: `class ChatV1Dot2 extends JSONL`. Replays every line into a real `Session`, turns `V1Bubbles.events(session)` into V1 `{chat}` entries (first sight of an id as is, a changed text again as a `fix`), and hands them to V1's `chat({source})`, then calls `send_cursor.mark()` after each `sync()` because V1 rebuilds its text nodes on every fill.
++- `SendCursor.js`: the ✓ and the dimming, one class with `start()`/`stop()`, `static id = "send-cursor"`, `static defaults = {on: true}` so a settings list can switch it. `stop()` leaves plain V1.2. The ✓ element is the shared `../cursors.js` `cursor_el()`.
++- `ChatV1Dot2.css`: the dim and lit states (`@layer site`; only `--ok` and `--draft-ink`). It restyles no bubble.
++- `page.js`, `fixture/session.jsonl`: the demo.
++- `ChatV1Dot2.test.mjs`: headless proof (below).
++
++## Pictures
++
++[Phone, test end state](doc/v1-2-360.png) · [demo at 360](doc/demo-360.png) · [demo at 1920](doc/demo-1920.png), with the shared Claude-style layout. The ✓ is the shared `.chat-cursor`; the assistant's round avatar on a Reply is V1's own role avatar, not the removed 🧠 mark.
++
++## Test
++
++`FENCE_SERVEX=1 node ChatV1Dot2.test.mjs [base-url] [shots-dir]` (default base `http://monorepo.localhost`; the fence keeps it off the live Servex). It drives `ChatV1Dot2.read()` at 360×740 with the phone UA: one bubble growing sentence by sentence, a live draft after the ✓, the ✓ after each `sent` mark, dimmed then lit green, no 🧠, a `clean` edit in place, a Reply as its own bubble, `stop()`/`start()`, no page errors. 18 checks, including the live draft bubble after the ✓ and the sheet/drawer dropdown mounting V1.2.
++
++## Decisions
++
++- **"Dim when sent" is read as "dim while words wait":** the ✓ is dim exactly while some ended sentence has not been received and lit when all are. Alternative: dim for a fixed time after each send, which would flash even when the assistant is instant. Revisit if the owner wants the other look.
++- **Wrap V1, don't copy it** (law 6): V1.2 feeds V1's own `chat()` synthetic entries, so a V1 fix lands here too. Alternative: a subclass of V1's internals, which has none (it is a function bag).
+diff --git a/public/framework/ext/drawer/ChatView.js b/public/framework/ext/drawer/ChatView.js
+index d0d588581..d7b719280 100644
+--- a/public/framework/ext/drawer/ChatView.js
++++ b/public/framework/ext/drawer/ChatView.js
+@@ -1,13 +1,14 @@
+ import { View, div, button } from "/framework/core/View/View.js";
+ import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
+ import ChatV3 from "/framework/ext/Chat/v3/ChatV3.js";
++import ChatV1Dot2 from "/framework/ext/Chat/v1-2/ChatV1Dot2.js";
+ import { sticky_scroll } from "/framework/ext/Chat/Chat.js";
+ import { menu as popover_menu } from "/framework/ux/Popover/Popover.js";
+ 
+ View.stylesheet(import.meta, "ChatView.css");
+ 
+ /**
+- * The chat version dropdown (V1 / V2 / V3) and the Chat v2 or v3 box it switches on, shared by the phone ✦ sheet (Sheet.js) and the
++ * The chat version dropdown (V1 / V1.2 / V2 / V3) and the Chat V1.2, v2 or v3 box it switches on, shared by the phone ✦ sheet (Sheet.js) and the
+  * desktop drawer's AI tab (tabs/ai.js). V2 or V3 swaps the chat's bubbles for ext/Chat/v2's or v3's drawing of the same
+  * session file; the composer and mic footer stay. One choice, kept on this device in localStorage, rules both.
+  *   slot  -> () => the element the chat mounted in (gets .drawer-rail-sheet-v2-on while v2 shows)
+@@ -18,23 +19,24 @@ export default class ChatView {
+ 
+ 	constructor({ slot, mount }){
+ 		this.slot = slot; this.mount = mount;
+-		this.mode = (() => { try { const m = localStorage.getItem(this.constructor.KEY); return m === "v2" || m === "v3" ? m : null; } catch { return null; } })();
++		this.mode = (() => { try { const m = localStorage.getItem(this.constructor.KEY); return m === "v1-2" || m === "v2" || m === "v3" ? m : null; } catch { return null; } })();
+ 	}
+ 
+ 	get on(){ return !!this.mode; }
+ 
+-	// The version dropdown: ONE button naming the version on screen ("Chat V1 ▾"), opening V1 / V2 / V3. Built like the session
++	// The version dropdown: ONE button naming the version on screen ("Chat V1 ▾"), opening V1 / V1.2 / V2 / V3. Built like the session
+ 	// dropdown beside it (ux/Dictate/chat.js session_switcher(): a drawer-ai-switch-btn plus ux/Popover's menu), so both look the same.
+ 	// V1 is the bubbles chat, always mounted underneath (the mic keeps recording across a switch); V2 and V3 draw over it. Returns the button.
+ 	static VERSIONS = [
+ 		{ mode: null, name: "V1", text: "V1: bubbles, live words" },
++		{ mode: "v1-2", name: "V1.2", text: "V1.2: V1 from the session's messages, with a send cursor" },
+ 		{ mode: "v2", name: "V2", text: "V2: Prompts, raw words one click down" },
+ 		{ mode: "v3", name: "V3", text: "V3: Prompt cards with every reply" },
+ 	];
+ 	chip(){
+ 		const V = this.constructor.VERSIONS;
+ 		this.$chip = button.c("drawer-ai-switch-btn drawer-chat-version", "").attr("type", "button")
+-			.attr("title", "Which chat view: V1, V2 or V3").attr("aria-haspopup", "menu");
++			.attr("title", "Which chat view: V1, V1.2, V2 or V3").attr("aria-haspopup", "menu");
+ 		this.menu = popover_menu(this.$chip.el, V.map(v => ({ text: v.text, current: v.mode === this.mode, pick: () => this.set(v.mode) })));
+ 		this.label();
+ 		return this.$chip;
+@@ -73,7 +75,7 @@ export default class ChatView {
+ 			this.pin_watch = new MutationObserver(() => scroll.pin());
+ 			this.pin_watch.observe(this.$box.el, { childList: true, subtree: true, characterData: true });
+ 		}
+-		if (file) this.chat_v2 = new (this.mode === "v3" ? ChatV3 : ChatV2)({ url: file, $box: this.$box }).live();
++		if (file) this.chat_v2 = new ({ "v1-2": ChatV1Dot2, v3: ChatV3 }[this.mode] ?? ChatV2)({ url: file, $box: this.$box }).live();
+ 		else this.$box.empty(() => div.c("chat-v2-empty", `Say something: Chat ${this.mode} draws this conversation once it has started.`));
+ 	}
+ 
+diff --git a/public/framework/ext/drawer/readme.md b/public/framework/ext/drawer/readme.md
+index e53899fce..f6dde1bae 100644
+--- a/public/framework/ext/drawer/readme.md
++++ b/public/framework/ext/drawer/readme.md
+@@ -32,7 +32,7 @@ drawer.showing();     // boolean
+ - `menu.js`: The top-right ✦ button. On a phone the strip's ☰ Menu opens the page's Sidebar tree from the bottom (`Sheet.open_nav()`).
+ - `tabs.js`: Tab switcher routing (`AI`, `Debug`, `Docs`, `Settings`, `Element`); `tabs/debug.js` draws Debug (`?drawer=dictation` still opens it); `tabs/docs.js` draws Docs, the `ux/Dictate` readme and docs ([doc](/framework/ux/Dictate/doc/docs-tab.md)).
+ - **Read-aloud:** `Sheet.read_aloud()` (first in `render()`) starts [Recite](/framework/audio/Recite/) on every page and follows a voice session's live wire, so each new smart reply is read aloud in any chat view. It follows the page's session (`chat.active()`), or with none the latest one within `JOIN_IDLE_MS` (`ux/Dictate/chat.js`), except right after New session, when it follows none until the first sentence starts one; it re-follows on every session change and checks every 5 s. Switching to follow a different session stops Recite first (`recite.stop()`, `Sheet.js:71`) — a different session's queued replies are not this one's to read. If DictationBar found no composer, the Recite bar goes at the panel's foot.
+-- `ChatView.js` / `ChatView.css`: the **chat version dropdown** (`Chat V1 ▾`: V1, V2, V3; the same `drawer-ai-switch-btn` and `ux/Popover` menu as the session dropdown beside it) and the Chat v2 / Chat v3 box it switches on, one class used by `Sheet.js` (head) and `tabs/ai.js` (beside the session switcher); `lew42.sheet.chat_view` (none for V1, "v2" or "v3") in localStorage rules both. V1, the bubbles, stays mounted underneath, so the mic keeps recording across a switch.
++- `ChatView.js` / `ChatView.css`: the **chat version dropdown** (`Chat V1 ▾`: V1, V1.2, V2, V3; the same `drawer-ai-switch-btn` and `ux/Popover` menu as the session dropdown beside it) and the Chat V1.2 / v2 / v3 box it switches on, one class used by `Sheet.js` (head) and `tabs/ai.js` (beside the session switcher); `lew42.sheet.chat_view` (none for V1, "v1-2", "v2" or "v3") in localStorage rules both. V1, the bubbles, stays mounted underneath, so the mic keeps recording across a switch.
+ - `Sheet.js` / `rail.css`: the phone's bottom strip and the voice sheet it raises, `export default class Sheet extends View` (`Sheet.of(app)`). It was `rail.js` / `DrawerRail` until 2026-10-16; `rail.js` now only re-exports it, so old imports keep working. **The mobile sheet for dictation is `Sheet.Panel`** (`class SheetPanel extends View`, one class since 2026-10-16; the old four-class chain `DrawerRailSheetV1` → `DrawerRailSheetChat` is kept in [`archive/sheet-chain-2026-10-16.js`](./archive/sheet-chain-2026-10-16.js), opt-in). Its sizes are one machine, `Sheet.Size`: ✦ opens the **strip** (about 100 px, above the bottom bar, the last line said and ⌃), drag up to **split**, past 90% to **full** (✕ and the drawer tabs); a drag down on the head steps one size down, and back steps down too Open means the url is `<path>/ai/`, an [`AIPage`](./AIPage.js) (`class AIPage extends Page`, minted by `Page.child()` for any page without a real `ai/` child; its views chat, live, sessions, debug and settings were the drawer's tabs). Old `?sheet=` and `?drawer=` links are rewritten once. On a desktop, `Sheet.Dock` opens the drawer docked by default at 1920 px and wider. [`AIFeed`](./AIFeed.js) streams the page's `ai/log.jsonl` events into the chat as one stream. The version dropdown in the sheet's head (`ChatView.sync()`) shows [Chat v2](../Chat/v2/readme.md) (`ChatV2`) in place of the bubbles, on the same session file. [doc/sheet.md](doc/sheet.md).
+ - `page.js`: Live interactive demo.
+ 
+diff --git a/public/framework/ux/Dictate/doc/status-icons.md b/public/framework/ux/Dictate/doc/status-icons.md
+index 77446a5f8..20ac750be 100644
+--- a/public/framework/ux/Dictate/doc/status-icons.md
++++ b/public/framework/ux/Dictate/doc/status-icons.md
+@@ -5,6 +5,8 @@ of the chat): a check mark (✓, gray then green) and a brain (🧠, gray then c
+ separate signals, set by two separate seats, so they almost never change at the same moment — that
+ is expected, not a bug, except for one real mismatch between V1 and v2 (below).
+ 
++**Chat V1.2** ([`ext/Chat/v1-2`](/framework/ext/Chat/v1-2/readme.md)) draws one ✓ and no 🧠: the ✓ sits after the last sentence the assistant has, dim while later sentences wait, green once it has caught up, so the two sections below describe V1 and v2 only.
++
+ ## ✓ — reached the fast seat
+ 
+ Gray until the fast assistant (the one that cleans up your words) has the chunk; green once it has.

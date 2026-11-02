@@ -566,3 +566,4 @@
 {"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-surfaces/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.545Z"}
 {"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-cleanup/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.546Z"}
 {"task":"/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/worktree-watch/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.547Z"}
+{"unclosed":{"at":"2026-11-02T15:01:27-06:00","why":"unclosed: 567 log lines of work, never completed; was closed as abandoned 2026-10-22T00:02:50-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:27.637Z"}

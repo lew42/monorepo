@@ -8,3 +8,4 @@
 {"shot":{"path":"C:\\Users\\mike\\AppData\\Local\\Temp\\ask-shot-1791053743887.png","url":"http://framework-home-grids.localhost/framework/","msg":"after, 1920 -- voids gone, Core/Styles both ~2 wide columns"}}
 {"shot":{"path":"C:\\Users\\mike\\AppData\\Local\\Temp\\ask-shot-1791053749662.png","url":"http://framework-home-grids.localhost/framework/","msg":"after, 3440 -- 3 sprawl columns, even gaps, no dead rectangles under any short card"}}
 {"stop":{"at":"2026-10-18T08:02:52-05:00","why":"abandoned: no agent since 2026-10-03T19:05:11.134Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:08-06:00","why":"unclosed: 9 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:52-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:08.578Z"}

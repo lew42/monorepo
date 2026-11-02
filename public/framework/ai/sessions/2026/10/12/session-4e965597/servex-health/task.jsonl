@@ -64,3 +64,4 @@
 {"log":{"at":"2026-10-12T16:43:12-05:00","msg":"session ended (other) without landing"}}
 {"log":{"at":"2026-10-12T16:51:42-05:00","heartbeat":"escalated","msg":"mastermind-servex-health its agent is not running, and was already revived 2 times this hour (2 today)"}}
 {"stop":{"at":"2026-10-18T08:02:57-05:00","why":"abandoned: no agent since 2026-10-12T16:51:42-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:14-06:00","why":"unclosed: 65 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:57-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:14.211Z"}

@@ -1,5 +1,7 @@
 # core/Session
 
+**The classes on one screen** (Session, Task, Process, Chat, Prompt, as pseudocode; who writes what; completion; the line spellings): [doc/classes.md](doc/classes.md).
+
 A `Session` is one run of an agent or a tab. **It is a Task** (`Session extends Task`, since 2026-10-24): it has Task's states, completion and `tasks` list, and adds a dated folder of its own, `<root>/YYYY/MM/DD/<slug>/`. Its tasks can be plain tasks, projects, processes and child sessions. Decisions: [doc/architecture.md](doc/architecture.md); the move to a Task: [doc/session-is-a-task.md](doc/session-is-a-task.md).
 
 Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.) The proposed move and the rest of the dictation/chat/session shape: [ai/system-proposal.md](/framework/ai/system-proposal.md); how the parts fit today: [ai/system-map.md](/framework/ai/system-map.md).
@@ -18,7 +20,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   id                        // from the constructor, or line 1 of the log
   messages: Chat, sentences: List<Sentence>   // the chat, in order, and the owner's raw words: ./Chat/readme.md (written by Servex beside V1's {chat} lines since 2026-11-01)
   tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session"|"Prompt"|"Question", …}) (Prompt and Question: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)); each child knows created_at (its line's time)
-  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = done / total of its tasks. Never stored
+  state, completion         // Task's getters; state comes from the record's own {"start"}/{"stop"} lines, completion = the average of its tasks' own completions (stopped ones left out; doc/classes.md, "Completion"). Never stored
   progress(): {done,total,stopped}  // Task.progress_of(this._tasks), the one counting code; a stopped task counts in neither done nor total
   first_at, last_at, span_ms  // from the lines' own times, never stored
   static agents_resolver    // node wires it (Servex/agents/Agents.js agents_under): dir -> [{id, parent, role, state, cost, …}], the agent sessions whose task lives in that folder

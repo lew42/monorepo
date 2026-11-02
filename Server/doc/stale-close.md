@@ -18,6 +18,12 @@ node Server/StaleClose.mjs --undo     append a `start` line to every log the man
 
 Test: `node Server/stale-close.test.mjs` (in a temp root, never the real store). A new task folder counts as its parent's task: [Session → task → child session](/framework/ai/sessions/doc/session-record.md). The child-folder and transcript rules come from a real miss on 2026-10-22: a live VS Code tab's session was closed because its own log had one line and all its work sat in a child folder.
 
+## Unclosed: abandoned is for tasks with no work
+
+`StaleClose` never calls real work "abandoned". A stale task with a commit line, or 3+ log lines besides its opening, start, stop and unclosed lines (`StaleClose.worked`), gets `{"unclosed":{at,why,by}}` instead of the abandoned `stop`; `Task.replay` stops it and flags it, and `AIIndex` buckets it as `unclosed`. A later `complete` or `start` supersedes the flag. `unclosed` is not a seventh state (it would touch the CAN tables and every caller of `state`).
+
+`node Server/Unclose.mjs --plan|--apply` re-closes history: tasks an earlier run stopped as abandoned that did real work get one `unclosed` line each (append-only, idempotent), and every file touched is a row in `ai/unclose-manifest.jsonl`. Run it in the main tree after the merge, not in a worktree: the live logs are there, and the result is ordinary uncommitted records to commit by path (its first run, 2026-11-02, is in the manifest and the task-close-loop outcome).
+
 ## Runs daily
 
 `Servex/TaskLoop.js` `follow_up_daily()` runs `--apply` just before `FollowUp.mjs --write`, and the session-links backfill beside it ([session-record.md](/framework/ai/sessions/doc/session-record.md)). It takes effect at the next Servex restart.

@@ -4,3 +4,4 @@
 {"review":{"at":"2026-10-23T20:40:15-05:00","answer":{"n":3,"reply":"noted: AISessionIndex visits every session with a transcript; a session it has not reached reads own: null, never a guess, and the stamp shows how fresh the cost is."}}}
 {"review":{"at":"2026-10-23T20:40:15-05:00","answer":{"n":4,"reply":"noted: agents_under lists agents by task folder, and a Servex agent session folder holds no session.jsonl of its own, so it cannot list itself; if that changes, the test is the place to catch it."}}}
 {"stop":{"at":"2026-11-02T00:02:42-06:00","why":"abandoned: no agent since 2026-10-24T01:46:22.289Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:42.217Z"}
+{"unclosed":{"at":"2026-11-02T15:01:48-06:00","why":"unclosed: 5 log lines of work, never completed; was closed as abandoned 2026-11-02T00:02:42-06:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:48.406Z"}

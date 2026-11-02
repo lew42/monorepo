@@ -87,10 +87,27 @@ Answer at the end with ONE JSON object and nothing else after it:
 	 *  SDK/CLI calls that inherit the VS Code entrypoint (clean-chunk calls, minion briefs: ~2,600 transcripts in 30 days) pass. */
 	static human(l){ return l?.turnOrigin === "human" || l?.origin?.kind === "human"; }
 
+	/** Calls fn(line, index) for each line of a file, reading 8 MB at a time: a transcript can pass 512 MB, the most a string
+	 *  holds (readFileSync threw on one on 2026-11-02). Synchronous so every caller stays as it was; a line is cut at a newline BYTE,
+	 *  so a multi-byte character is never split between two chunks. */
+	static each_line(file, fn, chunk = 8 * 1024 * 1024){
+		const fd = fs.openSync(file, "r"), buf = Buffer.allocUnsafe(chunk);
+		let rest = Buffer.alloc(0), i = 0;
+		try {
+			for (let n; (n = fs.readSync(fd, buf, 0, chunk, null)) > 0;){
+				const data = rest.length ? Buffer.concat([rest, buf.subarray(0, n)]) : buf.subarray(0, n);
+				let from = 0, nl;
+				while ((nl = data.indexOf(10, from)) >= 0){ fn(data.toString("utf8", from, nl), i++); from = nl + 1; }
+				rest = Buffer.from(data.subarray(from));
+			}
+			if (rest.length) fn(rest.toString("utf8"), i++);
+		} finally { fs.closeSync(fd); }
+	}
+
 	/** The owner's own prompts of one transcript, in order: { line, uuid, at, text }. */
 	static prompts(transcript){
 		const out = [];
-		fs.readFileSync(transcript, "utf8").split("\n").forEach((raw, i) => {
+		PromptAudit.each_line(transcript, (raw, i) => {
 			if (!raw.includes('"type":"user"')) return;
 			let l; try { l = JSON.parse(raw); } catch { return; }
 			if (l.entrypoint && l.entrypoint !== "claude-vscode") return;

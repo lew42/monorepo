@@ -8,3 +8,4 @@
 {"review":{"answer":{"n":5,"reply":"noted: drawer-rail labels at 400 are the bottom bar, untouched by this diff (same on michael/dev)"}}}
 {"review":{"answer":{"n":6,"reply":"noted"}}}
 {"stop":{"at":"2026-10-18T08:03:06-05:00","why":"abandoned: no agent since 2026-10-13T17:40:47-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:26-06:00","why":"unclosed: 9 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:06-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:26.574Z"}

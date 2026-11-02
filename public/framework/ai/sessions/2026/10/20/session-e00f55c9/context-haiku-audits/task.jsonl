@@ -54,3 +54,4 @@
 {"log":{"at":"2026-10-25T00:06:35-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-10-25T01:10:57-05:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"stop":{"at":"2026-11-02T00:02:39-06:00","why":"abandoned: no agent since 2026-10-25T01:10:57-05:00; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:39.892Z"}
+{"unclosed":{"at":"2026-11-02T15:01:45-06:00","why":"unclosed: 55 log lines of work, never completed; was closed as abandoned 2026-11-02T00:02:39-06:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:45.285Z"}

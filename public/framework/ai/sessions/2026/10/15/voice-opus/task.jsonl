@@ -352,3 +352,4 @@
 {"task":"/framework/ai/sessions/2026/10/15/voice-opus/past-work-audits/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.575Z"}
 {"task":"/framework/ai/sessions/2026/10/15/voice-opus/usage-pace-line/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.576Z"}
 {"task":"/framework/ai/sessions/2026/10/15/voice-opus/voice-mcp-directives/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.577Z"}
+{"unclosed":{"at":"2026-11-02T15:01:41-06:00","why":"unclosed: 353 log lines of work, never completed; was closed as abandoned 2026-10-19T00:04:12-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:41.662Z"}

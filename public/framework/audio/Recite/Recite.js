@@ -37,6 +37,7 @@ export default class Recite extends Part {
 	at = 0;                // the chunk playing, or paused in
 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
 	live = null;           // the reply being streamed: {text, queued, fresh}
+	streamed = null;       // the reply whose stream just ended: {chunks, at} — final() reads only what the stream did not (see unread_tail)
 	pending_ids = [];      // [{id, last}]: a reply's message id, and the index of its last chunk — marked played once that chunk finishes
 	wait_at = null;         // turn-taking: index of the chunk held back because the owner is talking (null: nothing held)
 	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
@@ -317,8 +318,8 @@ export default class Recite extends Part {
 	partial(text){
 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
 		if (text) this.cancel_cue();   // the reply started: stop waiting for it (dictation-v3 thinking cue, 2026-11-02)
-		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.tag_live(this.live.text); this.live = null; } return; }
-		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true, chunks: [] }; }
+		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.tag_live(this.live.text); this.streamed = { chunks: this.live.chunks, at: Date.now() }; this.live = null; } return; }
+		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.streamed = null; this.live = { text, queued: 0, fresh: true, chunks: [] }; }
 		this.live.text = text;
 		this.take(text, false);
 	}
@@ -343,11 +344,43 @@ export default class Recite extends Part {
 			this.mark_when_done(id, before);
 			return;
 		}
+		const tail = this.unread_tail(text);
+		if (tail){   // the stream already read the start of this very reply (its last streamed text was shorter than the settled line): read only the rest, never the start again
+			const bubble = Recite.bubble_key(text);
+			for (const c of this.streamed.chunks) c.key = bubble;
+			this.streamed = null;
+			if (tail.length) this.queue(tail.join(" "), true, bubble);
+			this.mark_when_done(id, before);
+			return;
+		}
 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
 		this.live = null;
 		this.queue(text, false, Recite.bubble_key(text));
 		for (const c of this.chunks.slice(before)) c.msg = id ?? null;
 		this.mark_when_done(id, before);
+	}
+
+	/** The sentences of `text` the stream that just ended (`this.streamed`, at most 2 minutes old) did NOT already queue, or
+	 *  null when the stream did not read the start of this text (a different reply). The settled line of a streamed reply
+	 *  is not always the same text as the last streamed one (the stream can end on a shorter prefix), and reading it whole
+	 *  read the start of the reply twice, or, before 2026-11-02, restarted it (playback-stutter/findings.md). A sentence
+	 *  counts as read while the streamed text, joined, still starts with the settled text up to it. */
+	unread_tail(text){
+		const s = this.streamed;
+		if (!s || Date.now() - s.at > 120000 || !s.chunks.length) return null;
+		const said = Recite.norm(s.chunks.map(c => c.text).join(" ")), pieces = Recite.split(text);
+		let acc = "", k = 0;
+		for (; k < pieces.length; k++){
+			const next = acc ? acc + " " + Recite.norm(pieces[k]) : Recite.norm(pieces[k]);
+			if (!said.startsWith(next)) break;
+			acc = next;
+		}
+		const tail = pieces.slice(k), rest = said.slice(acc.length).trim(), head = tail.length ? Recite.norm(tail[0]) : "";
+		if (rest && head.length > rest.length && head.startsWith(rest)){   // the stream stopped mid-sentence: that sentence's first words were already said, so read only its rest
+			tail[0] = tail[0].split(/\s+/).slice(rest.split(" ").length).join(" ");
+			return tail;
+		}
+		return k ? tail : null;
 	}
 
 	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */
@@ -571,6 +604,7 @@ export default class Recite extends Part {
 		globalThis.speechSynthesis?.cancel();
 		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
 		this.chunks = [];
+		this.streamed = null;
 		this.pending_ids = [];   // dropped before their last chunk played: never marked played (item 20)
 		this.at = 0;
 		this.set("idle");
