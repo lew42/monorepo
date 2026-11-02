@@ -9,10 +9,14 @@ import assert from "node:assert/strict";
 import SiteGateway from "./SiteGateway.mjs";
 import Browser from "./Browser.mjs";
 
-let ver = 1, cache = "max-age=86400", hits = [];
+let ver = 1, cache = "max-age=86400", hits = [], statuses = [];
 const site = http.createServer((req, res) => {
 	hits.push(req.url);
-	if (req.url === "/") return res.writeHead(200, { "content-type": "text/html" }).end(`<!doctype html><script type="module" src="/a.js"></script>`);
+	if (req.url === "/") res.on("finish", () => statuses.push(res.statusCode));
+	if (req.url === "/"){   // like the real site (express.static, compress.js): an ETag, and a 304 when the browser already has it
+		if (req.headers["if-none-match"] === `"page"`) return res.writeHead(304, { etag: `"page"`, "cache-control": "no-cache" }).end();
+		return res.writeHead(200, { "content-type": "text/html", etag: `"page"`, "cache-control": "no-cache" }).end(`<!doctype html><script type="module" src="/a.js"></script>`);
+	}
 	if (req.url === "/a.js") return res.writeHead(200, { "content-type": "text/javascript", "cache-control": cache }).end(`import b from "/b.js"; globalThis.done = { a: ${ver}, b };`);
 	if (req.url === "/b.js") return res.writeHead(200, { "content-type": "text/javascript", "cache-control": cache }).end(`export default ${ver};`);
 	res.writeHead(404).end();
@@ -32,7 +36,7 @@ let page = await ctx.newPage();
 const load = async () => {
 	const seen = { clear: null, net: [] };
 	hits = [];
-	const on = async r => { if (r.url() === base + "/") seen.clear = (await r.allHeaders())["clear-site-data"] ?? null; };
+	const on = async r => { if (r.url() === base + "/") { seen.clear = (await r.allHeaders())["clear-site-data"] ?? null; seen.status = statuses.at(-1); } };
 	page.on("response", on);
 	await page.goto(base + "/", { waitUntil: "load" });
 	await page.waitForFunction(() => globalThis.done);
@@ -47,11 +51,11 @@ const s1 = await load();
 check("1 seed: the page loads a.js and b.js v1, no clear", () => { assert.deepEqual(s1.done, { a: 1, b: 1 }); assert.equal(s1.clear, null); });
 ver = 2; cache = "no-cache";
 const s2 = await load();
-check("2 stale: v1 still runs after the site changed, a.js and b.js never asked for", () => { assert.deepEqual(s2.done, { a: 1, b: 1 }); assert.deepEqual(s2.net, []); });
+check("2 stale: the page is a 304, v1 still runs, a.js and b.js never asked for", () => { assert.equal(s2.status, 304); assert.deepEqual(s2.done, { a: 1, b: 1 }); assert.deepEqual(s2.net, []); });
 await cookie("0");   // the phone: its cookie is older than CACHE_V (or absent)
 // A new tab, as the phone opens one: the old tab keeps its renderer's in-memory copies for one more load (measured), and nothing can clear those.
 await page.close(); page = await ctx.newPage();
-const s3 = await load();
+const s3 = await load();   // the browser asks with If-None-Match; the gateway must drop it so the clear rides a 200
 check("3 heal: Clear-Site-Data on the page, then a.js and b.js fetched again, v2", () => { assert.deepEqual(s3.done, { a: 2, b: 2 }); assert.deepEqual(s3.net.sort(), ["/a.js", "/b.js"]); assert.equal(s3.clear, '"cache"'); });
 const s4 = await load();
 const jar = Object.fromEntries((await ctx.cookies()).map(c => [c.name, c.value]));

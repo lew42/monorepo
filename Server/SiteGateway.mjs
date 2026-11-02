@@ -64,8 +64,8 @@ export default class SiteGateway {
     set_cookie(){ return `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`; }
 
     // a page load (not a module, an image or a fetch) from a browser whose HTTP cache was not cleared at CACHE_V yet
-    stale_cache(req, r){
-        if (req.method !== "GET" || r.statusCode !== 200 || !/text\/html/i.test(String(r.headers["content-type"]))) return false;
+    stale_cache(req){
+        if (req.method !== "GET") return false;
         const dest = req.headers["sec-fetch-dest"];
         if (dest ? dest !== "document" : !/text\/html/i.test(String(req.headers.accept))) return false;
         const m = new RegExp(`(?:^|;\\s*)${SiteGateway.CACHE_COOKIE}=([^;]*)`).exec(req.headers.cookie ?? "");
@@ -129,12 +129,14 @@ export default class SiteGateway {
         const why = this.refuse(req.method, p, req.headers.origin);
         if (why) return res.writeHead(403, { "content-type": "text/plain" }).end("refused: " + why);
         let to; try { to = this.dest(); } catch (e) { return res.writeHead(502, { "content-type": "text/plain" }).end("site unreachable: " + e.message); }
-        const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: this.headers(req) }, r => {
+        const stale = this.stale_cache(req), ask = this.headers(req);
+        if (stale){ delete ask["if-none-match"]; delete ask["if-modified-since"]; }   // a 304 would skip the clear: make the site send the page whole
+        const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: ask }, r => {
             const h = { ...r.headers };
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
             h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
             h["cache-control"] ??= "no-cache";   // never left to a heuristic cache: the browser always asks (a 304 is cheap)
-            if (this.stale_cache(req, r)){   // once per browser per CACHE_V: drop its HTTP cache before this page loads its modules
+            if (stale && r.statusCode === 200 && /text\/html/i.test(String(r.headers["content-type"]))){   // once per browser per CACHE_V: drop its HTTP cache before this page loads its modules
                 h["clear-site-data"] = '"cache"';
                 h["set-cookie"].push(`${SiteGateway.CACHE_COOKIE}=${SiteGateway.CACHE_V}; Path=/; Max-Age=31536000; Secure; SameSite=Lax`);
             }
