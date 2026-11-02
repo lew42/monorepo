@@ -14,3 +14,4 @@
 {"review":{"at":"2026-11-01T19:20:51-06:00","answer":{"n":5,"reply":"noted: line numbers added to the doc table rows; the table in doc/chat.md is the per-row record"}},"by":"append.mjs","ts":"2026-11-02T01:20:51.985Z"}
 {"review":{"at":"2026-11-01T19:20:51-06:00","answer":{"n":6,"reply":"noted: the branch head is f3f491d03; landed by the parent with this merge"}},"by":"append.mjs","ts":"2026-11-02T01:20:51.986Z"}
 {"review":{"at":"2026-11-01T19:20:51-06:00","answer":{"n":7,"reply":"noted: also verified by the parent (fails on the old Sheet.js: new streams v-old)"}},"by":"append.mjs","ts":"2026-11-02T01:20:51.987Z"}
+{"stop":{"at":"2026-11-01T20:22:09-06:00","why":"dropped: owner mastermind-active-session is dormant and the task is untouched"}}
