@@ -584,7 +584,7 @@ if (Recite) test("Recite: an agent update collapses to one line and queues behin
 	await new Promise(res => setTimeout(res, 20));
 	t.eq(r.chunks.length, 2, "the direct answer plus the held update, in that order");
 	t.eq(r.chunks[0].text, "Here is the direct answer.", "the direct answer plays first");
-	t.eq(r.chunks[1].text, "I have an update on read aloud b, tap to hear it.", "the update collapses to one short line, not the full text");
+	t.eq(r.chunks[1].text, "I have an update on read aloud b, it is in the chat.", "the update collapses to one short line, not the full text");
 	t.eq(r.pending_updates.length, 0, "nothing left waiting");
 	return r;
 });
@@ -598,7 +598,7 @@ if (Recite) test("Recite: an agent update queues right away when no direct answe
 	r.from_wire({ kind: "line", line: { chat: { text: "Just a status line, unprompted.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-chat-model" } } } });
 	await new Promise(res => setTimeout(res, 20));
 	t.eq(r.chunks.length, 1, "queued right away — nothing to wait behind");
-	t.eq(r.chunks[0].text, "I have an update on chat model, tap to hear it.", "the mastermind- prefix is stripped and dashes read as spaces");
+	t.eq(r.chunks[0].text, "I have an update on chat model, it is in the chat.", "the mastermind- prefix is stripped and dashes read as spaces");
 	t.eq(r.state, "playing", "and it started");
 	return r;
 });
@@ -628,14 +628,14 @@ if (Recite) test("Recite: a held update waits for the whole stream to end, not j
 	r.from_wire({ kind: "stream", role: "smart", text: "" });   // the stream ends
 	await new Promise(res => setTimeout(res, 20));
 	t.eq(r.chunks.length, 3, "the update is queued now, behind BOTH of the answer's own sentences");
-	t.eq(r.chunks[2].text, "I have an update on read aloud b, tap to hear it.", "and it is the collapsed update line, not read in full");
+	t.eq(r.chunks[2].text, "I have an update on read aloud b, it is in the chat.", "and it is the collapsed update line, not read in full");
 	t.eq(r.pending_updates.length, 0, "nothing left waiting");
 	return r;
 });
 
 // Review finding, read-aloud-b 2026-11-02: "fast", "revise" and "card" post an assistant chat line too, but are not
 // agent updates — treating every non-"smart" id as one would read "revise" (every voice revision of the owner's own
-// sentence) aloud as "I have an update on revise, tap to hear it.", the very flood this task was meant to stop.
+// sentence) aloud as "I have an update on revise, it is in the chat.", the very flood this task was meant to stop.
 if (Recite) test("Recite: 'fast', 'revise' and 'card' are not agent updates — ignored, same as before this task", async t => {
 	const r = new Recite({ voice: fake_voice });
 	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };

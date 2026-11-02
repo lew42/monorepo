@@ -364,7 +364,7 @@ export default class Recite extends Part {
 		const key = Recite.norm(text);
 		if (this.done.has(key)) return;
 		this.done.add(key);
-		const line = `I have an update on ${Recite.agent_label(from_id)}, tap to hear it.`;
+		const line = `I have an update on ${Recite.agent_label(from_id)}, it is in the chat.`;
 		if (this.cue_pending){
 			this.pending_updates.push({ text: line, id });
 			clearTimeout(this.update_hold_timer);
