@@ -38,6 +38,9 @@ Until then: one line per task below, and when one gets a real task folder, link 
   - **What happens:** every report reaches the tab's inbox. Since 22:26Z, Servex answers a send to the tab with `{ok: true, delivered_to: "the inbox of the VS Code tab …", note: "Delivered…"}` (`Servex/agents/External.js:110`, test `External.test.mjs:90`).
   - **Still,** v1-2-scroll-fix and process-runner-stall (16:51 and 16:53) wrote "couldn't message vscode-mastermind (not a live agent)" and posted an `owner_note` instead.
   - **To find:** which tool or wording they read. Is it the card's `state: "external"`, `wait_for_agent`, or a role readme saying the tab isn't an agent? Fix that one place, so agents trust the delivery.
+  - **Again at 17:04 and 17:17** (recite-cue-icon, in-flight-real-data), after the 22:26Z restart, so the cause is still live.
+- **A session page takes about 15 s to read its tasks** (2026-11-02, found by in-flight-real-data). Until then the In-flight block now says "Reading N tasks…". Each referenced task file loads on its own, so a session with hundreds of tasks is slow. To find: one index read instead of N file reads (see `core/Page/doc/index-jsonl.md`).
+- **A worktree's dev server sometimes never boots** (in-flight-real-data, 17:10). The agent routed its changed files into the live site to take its shot instead. `Server/worktree-restart.mjs` exists; find why the first boot fails.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
   - **How it picks tests:** the module folder, or a hand-written watch list per test file. Static dependency analysis can come later.
