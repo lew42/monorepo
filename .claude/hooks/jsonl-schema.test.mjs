@@ -27,7 +27,7 @@ function classes(src){
 	let m;
 	while ((m = re.exec(src))){
 		const name = m[1] ?? m[4], parent = m[2] ?? m[5] ?? null;
-		const body = src.slice(re.lastIndex, re.lastIndex + 400);
+		const body = src.slice(re.lastIndex, re.lastIndex + 1500);
 		const v = body.match(/static\s+verbs\s*=\s*\[([^\]]*)\]/);
 		out[name] = { parent, raw: v ? v[1].split(",").map(s => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean) : null };
 	}
@@ -64,7 +64,7 @@ for (const [kind, s] of Object.entries(schemas)){
 	const folded = AskFold.fold([{ ask: { at: "t", title: "One ask" } }, { other: { at: "t" } }]);
 	ok(Object.keys(folded).length === 1, "asks.jsonl: AskFold.fold reads `ask` lines and skips anything else");
 	const fold_src = readFileSync(join(ROOT, "public/framework/ai/cards/fold.js"), "utf8");
-	ok(Object.keys(schemas["page.jsonl"].verbs).every(k => fold_src.includes(`key === "${k}"`)), "page.jsonl: every structured key is one ai2/fold.js absorb() reads");
+	ok(Object.entries(schemas["page.jsonl"].verbs).filter(([, v]) => !v.plain).map(([k]) => k).every(k => fold_src.includes(`key === "${k}"`)), "page.jsonl: every non-plain key is one cards/fold.js absorb() reads (plain-data keys like note fall through to state[key])");
 }
 
 console.log("— 2. check() judges lines —");

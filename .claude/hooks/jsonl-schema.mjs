@@ -137,7 +137,7 @@ export const schemas = {
 			// coordinator is used when it's left out — Servex/agents/inbox.js). The older
 			// `{"inbox": {...}}` shape (also page.jsonl, written by `drop`) keeps working too —
 			// it is plain data here already, kept for one release.
-			note:    { fields: ["id", "from", "text", "at"], eg: { id: "n-abc12", from: "agent-id", to: "owner", text: "…", at: "NOW" } },
+			note:    { plain: true, fields: ["id", "from", "text", "at"], eg: { id: "n-abc12", from: "agent-id", to: "owner", text: "…", at: "NOW" } },
 		},
 	},
 };
@@ -150,7 +150,7 @@ schemas["session.jsonl"] = { ...schemas["task.jsonl"], what: "a session folder's
 		// the session's own settings, one changed key per line, later lines win (core/Session/Session.js SETTINGS; the settings page writes it)
 		settings: { fields: [], eg: { model: "claude-sonnet-5-5" } },
 		// the owner's answer to a proposed task, pressed on the session page (core/Session/SessionTasks.js; Session.replay_line applies it)
-		decide: { fields: ["task", "is"], eg: { task: "<task id>", is: "approve", note: "optional" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task"] };   // tag lines: read by AISession.record(), not by the task reader
+		decide: { fields: ["task", "is"], eg: { task: "<task id>", is: "approve", note: "optional" } } }, pending: [...(schemas["task.jsonl"].pending ?? []), "tag", "task", "settings", "decide"] };   // tag lines: read by AISession.record(), not by the task reader
 
 /* Servex's `append_log` writes its OWN named logs (under SERVEX_HOME, never a repo file), and
  * every one of those is an event: one flat object with a string `type`. */
