@@ -155,3 +155,5 @@
 {"log":{"at":"2026-11-02T00:36:29-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T06:36:29.935Z"}
 {"log":{"at":"2026-11-02T00:36:48-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T06:36:48.403Z"}
 {"log":{"at":"2026-11-02T00:37:52-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T06:37:52.410Z"}
+{"log":{"at":"2026-11-02T01:19:28-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T07:19:28.577Z"}
+{"log":{"at":"2026-11-02T01:20:22-06:00","msg":"01:19 check: nothing merged. The 00:31 Servex restart stopped read-aloud-next (thinking cue committed in its worktree as e92485409, not merged) and dictate-red-tests (swallow c359881cc and new-session 33c607455 committed, settings in progress). Both revived. dictate-red-tests' first resumed turn ended at once with an empty done, so the message was sent again. chat-model is also stopped with step 4 unmerged (5f52687b8); vscode-mastermind was asked to revive it. Week 47% used, 79% of pace."}}
