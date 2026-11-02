@@ -6,6 +6,7 @@
 
 - [DefaultView.js](./DefaultView.js) — `class DefaultView extends View`, and `view(thing, opts)`, the one call
 - [DefaultView.test.js](./DefaultView.test.js) — its one core test, in a browser (16 checks); the result shows on the [watch page](/framework/core/Item/watch/)
+- [list-view.test.mjs](./list-view.test.mjs) — `List.View = DefaultView`: keyed add/remove/move/order (no redraw of unaffected members), a Ref member drawn by RefView (13 checks, headless)
 - [InstanceTree.js](./InstanceTree.js) — the whole running site as a live tree of pages; each opens its `view()` ([doc](doc/instance-tree.md), [page](/framework/ux/Content/Object/instance-tree/))
 - [Object.js](./Object.js), [Inspect.js](./Inspect.js) — ⚠ deprecated (2026-10-28): `object()` and `inspect()` draw the default view, open one level
 - [doc/default-view.md](doc/default-view.md) — what the view reads, how it stays live, and why one view replaced three
@@ -29,7 +30,7 @@ A class may carry `static icon = "material-symbol-name"` (else `"data_object"`),
 - **Every view of an object is in `item.views`** (core/Item/Item.js; a WeakMap for other emitters). A view whose element has left the page drops out on the next change, so a view built and never attached stays listed.
 - **Built outside a render, pass `capture: false`**, or the view lands in whatever is capturing at that moment (the page body).
 - `item.view` (singular, core/Item) is a class's own view (`PageText.View`, `Task.View`), not this one.
-- `List.render()` drawing each member through its own view is not built: `core/List/List.js` belongs to the data backbone build. `view(list)` already does it.
+- **`List.View = DefaultView`** (2026-11-02, chat-model step 4): `list.render()` and `view(list)` both draw through it now. Its `reconcile()` keeps one view per member, keyed by the member itself (a `Map`), so an `add`/`remove`/`move`/`order`/`clear` only touches the rows that changed — a new member gets a fresh row, a gone one's row leaves, the rest just move in the DOM if their position shifted. The loop itself is `DefaultView.place(box, members, cache, make, update)`, a static helper `ext/Chat/list/ChatList.js` reuses for its own bubbles (Law 6: one keyed-placement loop, not two). A Ref member (`core/Item/Ref.js`) is drawn by `DefaultView.ref_view(ref, opts)` (a thin `RefView` wrapper, also shared with `ChatList`), never a nested `DefaultView` of its own near-empty data.
 
 ## More
 

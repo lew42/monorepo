@@ -7,6 +7,7 @@
 	.chatlist-msg.is-prompt { align-self: flex-end; background: color-mix(in srgb, currentColor 8%, transparent); }
 	.chatlist-msg.is-reply { align-self: flex-start; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
 	.chatlist-msg.is-note { align-self: center; font-size: .85em; color: color-mix(in srgb, currentColor 80%, transparent); }
+	.chatlist-msg.is-ref { align-self: center; font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); max-width: 100%; }
 	.chatlist-who { font-size: .75em; color: color-mix(in srgb, currentColor 78%, transparent); }
 	.chatlist-msg.is-note .chatlist-who { color: inherit; }
 	.chatlist-text > :first-child { margin-top: 0; }

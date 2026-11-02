@@ -105,12 +105,19 @@ check("after a restart (empty writer memory) a reply still finds its sentence in
 	assert.equal(last.re.to, chat[2].sentences[0]);
 });
 
-// The demo page's file (public/framework/ext/Chat/list/fixture/): `CHAT_FIXTURE=<path> node chat-messages.test.mjs` copies this session there.
-if (process.env.CHAT_FIXTURE) fs.copyFileSync(file, process.env.CHAT_FIXTURE);
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+
+// The demo page's file (public/framework/ext/Chat/list/fixture/): `CHAT_FIXTURE=<path> node chat-messages.test.mjs` copies this
+// session there, then adds one root task through the real item tool — the same write step 3 covers below — so the demo page
+// shows a Ref row (`.chatlist-msg.is-ref`, ext/Chat/list/ChatList.js) without anyone hand-editing a generated fixture.
+if (process.env.CHAT_FIXTURE){
+	fs.copyFileSync(file, process.env.CHAT_FIXTURE);
+	const fixture_url = "/" + path.relative(path.join(ROOT, "public"), path.dirname(process.env.CHAT_FIXTURE)).replace(/\\/g, "/") + "/";
+	await run_item({ path: fixture_url, delta: { tasks: { add: "Fix the mobile tab bar" } } }, { caller: "fixture" });
+}
 
 // ── the item tool: an agent adds to the list and edits a message in place ────────────────
 const REL = "public/framework/ai/sessions/2026/10/16/.chat-messages-test-" + process.pid;
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "session.jsonl"), URL_ = "/" + REL.slice("public/".length) + "/";
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(FILE, fs.readFileSync(file, "utf8"));

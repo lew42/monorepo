@@ -1,4 +1,7 @@
 import View, { div, span, a, summary, icon } from "../../../core/View/View.js";
+import List from "../../../core/List/List.js";
+import Ref from "../../../core/Item/Ref.js";
+import RefView from "../../../core/Item/RefView.js";
 
 View.stylesheet(import.meta, "DefaultView.css");
 
@@ -221,9 +224,18 @@ export default class DefaultView extends View {
 		});
 	}
 
-	// A nested object: its own default view, one level less open, with this object added to the path.
-	child(value, key){
-		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject) });
+	// A nested object: its own default view, one level less open, with this object added to the path. A Ref
+	// (a list member standing in for an item elsewhere, core/Item/Ref.js) draws as RefView, never a nested
+	// DefaultView of its own near-empty data — `opts` carries `capture: false` for a view built outside a
+	// capturing context (reconcile(), below). `ref_view()` is static so ChatList.paint() (ext/Chat/list/
+	// ChatList.js) can build the same Ref row without a DefaultView of its own: one Ref branch, not two.
+	child(value, key, opts = {}){
+		if (value instanceof Ref) return DefaultView.ref_view(value, opts);
+		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject), ...opts });
+	}
+
+	static ref_view(ref, opts = {}){
+		return new RefView({ ref, where: false, ...opts });
 	}
 
 	// A class: its listed properties (names only, it has no values), then its own methods.
@@ -309,17 +321,33 @@ export default class DefaultView extends View {
 	}
 
 	// A List's members, after any verb (add, remove, move, order, clear): keep each member's view, make the new
-	// ones, drop the gone ones, and move only what is out of place, so nothing else redraws.
+	// ones, drop the gone ones, and move only what is out of place, so nothing else redraws. `place()` (below)
+	// is the shared loop — ChatList.paint() (ext/Chat/list/ChatList.js) keys its own bubbles through it too.
 	reconcile(){
-		const want = [...this.subject];
-		for (const [m, v] of this.kids) if (!want.includes(m)){ v.el.remove(); this.kids.delete(m); }
+		DefaultView.place(this.$body.el, [...this.subject], this.kids, m => {
+			const v = this.child(m, undefined, { capture: false });
+			DefaultView.flash(v.$head?.el ?? v.el);
+			return v;
+		});
+	}
+
+	/* Keyed list placement, ONE loop (Law 6) for every view that keeps one entry per member and redraws only
+	   what changed: `cache` (a Map, member -> a View or a bare element) keeps its entries across calls, `make(m)`
+	   builds a fresh one for a member `cache` has never seen, and `update(entry, m)` (optional) refreshes an
+	   existing one in place — a member not asking for a refresh keeps its exact node, never rebuilt. A member
+	   `members` no longer lists drops out, node and all. Order follows `members`; a node already in the right
+	   spot is left alone. `entry.el ?? entry` finds the DOM node, so `cache` can hold Views (DefaultView) or
+	   plain elements (ChatList) the same way. */
+	static place(box, members, cache, make, update){
+		for (const [m, entry] of cache) if (!members.includes(m)){ (entry.el ?? entry).remove(); cache.delete(m); }
 		let prev = null;
-		for (const m of want){
-			let v = this.kids.get(m);
-			if (!v){ v = new this.constructor({ subject: m, capture: false, open: this.levels - 1, path: new Set(this.path).add(this.subject) }); this.kids.set(m, v); DefaultView.flash(v.$head?.el ?? v.el); }
-			const at = prev ? prev.nextSibling : this.$body.el.firstChild;
-			if (at !== v.el) this.$body.el.insertBefore(v.el, at);
-			prev = v.el;
+		for (const m of members){
+			let entry = cache.get(m);
+			if (!entry){ entry = make(m); cache.set(m, entry); }
+			else update?.(entry, m);
+			const el = entry.el ?? entry;
+			if (el.previousElementSibling !== prev || el.parentNode !== box) prev ? prev.after(el) : box.prepend(el);
+			prev = el;
 		}
 	}
 
@@ -356,6 +384,11 @@ export default class DefaultView extends View {
 }
 
 DefaultView.prototype.tag = "details";
+
+// `List.render()` (core/List/List.js) checks `Object.hasOwn(List, "View")` before building one, so a bare
+// `List` draws through the default view too — its keyed `reconcile()` (above) already does the right thing
+// for add/remove/move/order, same as a List nested inside another object's row.
+List.View = DefaultView;
 
 /* `view(thing, opts)` — the one call. It picks `thing.constructor.View` when that class (or one it extends)
  * declares a View, else the default view above. `opts` go to the view: `open`, `properties`.
