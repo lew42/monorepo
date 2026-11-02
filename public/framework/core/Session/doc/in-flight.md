@@ -31,3 +31,4 @@ Not a new task card: the rows are plain links and bars over the same `Session` r
 - **`/framework/ai/` leaves out Next and Done**: across sessions the point is what is moving and what needs the owner. A session with only Next tasks is not listed there. The session page shows all four.
 - **The row is not `core/Task/TaskView.js`**: that is a full task card with its own state and actions; this row is one title, one bar and one line, so reusing it would have meant hiding most of it.
 - The `/framework/ai/` block asks the same `inflight` query as `ai/now/AINow.js` (`state`, `last_activity`, `url` per row). It draws nothing if the query fails.
+- **Which five** are shown: running tasks that have a current line or some progress first, then by most recent activity.

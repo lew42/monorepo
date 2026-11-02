@@ -16,7 +16,8 @@ export default class InFlight {
 	static pick(session, { max = this.MAX, next = this.NEXT } = {}){
 		const all = [...(session._tasks ?? [])].filter(t => t.state !== "stopped" && t.constructor.name !== "Prompt");
 		const when = t => Date.parse(t._last_ts ?? t.get_one("started_at") ?? t.created_at ?? "") || 0;
-		const running = all.filter(t => t.state === "running").sort((x, y) => when(y) - when(x));
+		const live = t => (this.now_of(t) || t.completion > 0) ? 1 : 0;   // a task with a current line or some progress is more "major" than a bare one
+		const running = all.filter(t => t.state === "running").sort((x, y) => live(y) - live(x) || when(y) - when(x));
 		const waiting = all.filter(t => t.state === "waiting" && [undefined, null, "owner", "creator"].includes(t.get_one("waiting_on"))).sort((x, y) => when(y) - when(x));
 		const idle = all.filter(t => t.state === "idle" || t.state === "paused").sort((x, y) => (Number(y.priority?.score) || 0) - (Number(x.priority?.score) || 0) || when(y) - when(x));
 		return {
