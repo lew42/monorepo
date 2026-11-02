@@ -45,6 +45,10 @@ async function run(scenario){
 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+		if (verb === "say" && body.kind && body.kind !== "speech"){   // a page report (ext/Chat/v2/report.js, Recite's "recite: …" lines): Servex files it as a log line, never as words
+			lines.push({ log: { at: new Date().toISOString(), msg: body.text } });
+			return json(route, { ok: true });
+		}
 		if (verb === "say"){   // written at once (the poll sees it), answered late
 			const at = new Date().toISOString();
 			lines.push({ chat: { at, from: { kind: "owner" }, via: "voice", text: body.text } });
@@ -150,7 +154,7 @@ async function run(scenario){
 		const m = both - L[x.length][y.length];
 		if (m > 0){ moved += m; moves.push({ from: i, to: i + 1, ms: frames[i + 1].ms, words: frames[i + 1].words.slice(0, 120) }); }
 	}
-	const sent = lines.map(l => l.chat.text);
+	const sent = lines.filter(l => l.chat).map(l => l.chat.text);   // the words; report log lines are not
 	const sent_row = await page.evaluate(async () => (await import("/framework/ux/Dictate/DictateHealth.js")).default.layers.sent.why);
 	const final_words = frames.at(-1)?.words ?? "";
 	const report = { scenario, frames: frames.length, every_ms: Math.round((frames.at(-1)?.ms ?? 0) / Math.max(1, frames.length - 1)),
