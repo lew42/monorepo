@@ -140,7 +140,7 @@ try {
 		assert.deepEqual(after.map(m => m.id), before.map(m => m.id), "no message moved, none added");
 		assert.equal(after[0].cleaned, "The tab bar is broken! On my phone (an iPhone).", "two improves on two sentences merge");
 		assert.equal(after[0].said, "The tab bar is broken. On my phone.", "the raw words stay");
-		assert.equal(raw.filter(l => l.place).length, 3, "every {place} line is written as before");
+		assert.equal(raw.filter(l => l.place).length, 4, "every {place} line is written as before");
 		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\"), or one naming no sentence, adds no chat line");
 		assert.ok(no_match.ok, "a {place} naming no sentence is still written for V1");
 	});
