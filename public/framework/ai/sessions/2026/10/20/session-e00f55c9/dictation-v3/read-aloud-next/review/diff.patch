@@ -1,0 +1,744 @@
+diff --git a/public/framework/audio/Recite/BargeIn.js b/public/framework/audio/Recite/BargeIn.js
+index 878f171e6..642e5332e 100644
+--- a/public/framework/audio/Recite/BargeIn.js
++++ b/public/framework/audio/Recite/BargeIn.js
+@@ -27,6 +27,8 @@ export default class BargeIn extends Part {
+ 	peak = 0;             // the loudest level while checking
+ 	heard = "";           // what Whisper heard last ("" = noise)
+ 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
++	quiet_ms = 1500;      // real speech heard: once this much quiet passes, pick the interrupted reply back up
++	resume_timer = null;   // the schedule_resume() timer waiting for quiet
+ 	whisper_url = Whisper.default_url();   // the same URL rule as Dictate: 127.0.0.1:8178 here, <origin>/whisper elsewhere
+ 
+ 	constructor(...args){
+@@ -69,17 +71,73 @@ export default class BargeIn extends Part {
+ 
+ 	dictating(){ return ["listening", "transcribing"].includes(this.dictate?.state); }
+ 
+-	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused. */
++	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused.
++	 *  Also runs while already paused by an earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait…
++	 *  / what about the other one?") must still get its own question check, or it would otherwise resume and talk
++	 *  over the new answer; `heard_speech` just pushes the quiet window out when it isn't a question. */
+ 	owner_spoke(text){
+ 		this.spoke?.(text);
+-		if (this.recite.state === "playing" || this.recite.state === "loading"){ this.recite.pause("heard"); this.note = "heard: " + text; this.state = "heard"; this.recite.changed(); }
++		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
++		else if (this.recite.state !== "heard") return;
++		this.heard_speech(text);
++	}
++
++	/** True while the owner is making sound loud enough to count as talking, by the same threshold the fast barge-in
++	 *  check uses. Recite asks this before it starts a freshly queued reply, so it never talks over the owner
++	 *  (turn-taking, dictation-v3 2026-11-01): it waits for quiet instead of starting, or interrupting. */
++	speaking(){ return this.on && this.level > Math.max(this.threshold, this.noise_floor * 1.15); }
++
++	/** Real speech was heard (this mic's own check, or the chat's own line): note it, and decide what happens to the
++	 *  paused reply. A question ("...?") means a new answer is coming, so the paused reply is dropped outright
++	 *  (recite.drop_heard() — only its own chunks; anything else already queued behind it keeps its place and still
++	 *  plays). Anything else schedules an auto-resume once things go quiet (schedule_resume). */
++	heard_speech(text, { close_mic = false } = {}){
++		if (close_mic && this.mic) this.close();   // close() resets state to "off"; set it below, after
++		this.heard = text;
++		this.note = "heard: " + text;
++		this.state = "heard";
++		if (/\?\s*$/.test(text)){
++			this.note = "heard a question: " + text;
++			this.cancel_resume();          // state is "off" before drop_heard() runs, so its own sync() sees the right state
++			this.recite.drop_heard();
++			this.sync();                   // belt and suspenders: drop_heard()'s own set() already calls this when it goes idle
++		} else this.schedule_resume();
++		this.recite.changed();
++	}
++
++	/** (Re)starts the quiet timer; each call while still "heard" pushes it further out (hear(), below), so the owner
++	 *  can keep talking and the old reply only resumes once they are actually done. */
++	schedule_resume(){
++		clearTimeout(this.resume_timer);
++		this.resume_timer = setTimeout(() => this.try_resume(), this.quiet_ms);
++	}
++
++	/** The reply waiting to resume is gone some other way (a question, or Recite.drop_heard() because a new reply
++	 *  arrived): stop waiting for quiet, and drop back to "off" so the next real interruption starts clean. */
++	cancel_resume(){
++		clearTimeout(this.resume_timer); this.resume_timer = null;
++		if (this.state === "heard") this.state = "off";
++	}
++
++	/** quiet_ms of silence passed: pick the interrupted reply back up, from the START of the sentence the owner cut
++	 *  off (resume(true)) — not mid-word, since the owner likely did not hear the first part clearly either. A no-op
++	 *  if the owner (or a tap on the bar) already resumed or dropped it some other way. */
++	try_resume(){
++		this.resume_timer = null;
++		if (this.state !== "heard" || this.recite.state !== "heard") return;
++		this.state = "off";
++		this.note = "";
++		this.recite.resume(true);
++		this.sync();
+ 	}
+ 
+ 	close(){
+ 		this.mic?.stop();
+ 		this.mic = null;
+ 		this.state = "off";
++		this.level = 0;   // a stale loud reading, with no more hear() frames coming to refresh it, would make speaking() stick true forever (the next held reply never starts)
+ 		this.loud_since = this.quiet_since = null;
++		clearTimeout(this.resume_timer); this.resume_timer = null;
+ 		this.recite.changed();
+ 	}
+ 
+@@ -88,6 +146,11 @@ export default class BargeIn extends Part {
+ 		this.level = shown;
+ 		this.noise_floor *= 0.9993;
+ 		if (this.state === "checking") this.peak = Math.max(this.peak, shown);
++		if (this.state === "heard"){
++			if (this.recite.state !== "heard"){ this.state = "off"; this.sync(); }   // resumed or dropped some other way: go back to listening for the next interruption
++			else if (shown > Math.max(this.threshold, this.noise_floor * 1.15)) this.schedule_resume();   // still talking: push the quiet window out
++			return;
++		}
+ 		if (this.state !== "listening" || this.recite.state !== "playing") return;
+ 		const now = performance.now();
+ 		if (shown > Math.max(this.threshold, this.noise_floor * 1.15)){
+@@ -120,9 +183,7 @@ export default class BargeIn extends Part {
+ 			this.state = "listening";
+ 			if (this.recite.state === "heard") this.recite.resume();
+ 		} else {
+-			this.note = "heard: " + text;
+-			this.state = "heard";
+-			if (this.mic) this.close();   // the mic is yours now (dictate); play reopens it
++			this.heard_speech(text, { close_mic: true });   // the mic is yours now (dictate) unless it was a question; play reopens it
+ 		}
+ 		this.recite.changed();
+ 	}
+diff --git a/public/framework/audio/Recite/Recite.css b/public/framework/audio/Recite/Recite.css
+index 6e40a81dc..f43b889d5 100644
+--- a/public/framework/audio/Recite/Recite.css
++++ b/public/framework/audio/Recite/Recite.css
+@@ -30,6 +30,10 @@
+ 	.audio-recite-btn.is-loading .icon { animation: audio-recite-pulse 1s ease-in-out infinite; }
+ 	.audio-recite-btn.is-on { color: var(--ink); }
+ 	.audio-recite-btn.is-open { color: var(--prime); }
++	/* The resume control: the same Play button, filled while state is `heard`/`paused`, so it reads as a
++	   distinct "tap to resume" rather than a generic play/pause toggle. */
++	.audio-recite-btn.is-resume { background: var(--prime); color: var(--prime-ink); }
++	.audio-recite-btn.is-resume:hover { background: var(--prime); color: var(--prime-ink); }
+ 
+ 	.audio-recite-track {
+ 		position: relative;
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index 250292610..02f7a5a1a 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -30,10 +30,16 @@ export default class Recite extends Part {
+ 	error = "";            // the last failure, one plain line, shown on the bar
+ 	url = Recite.default_url();
+ 	voice = null;          // a Voice (one persona); Voice.PERSONAS lists them
+-	chunks = [];           // one per sentence: {text, start, seconds, src, pending}
++	chunks = [];           // one per sentence: {text, start, seconds, src, pending, reply}
++	reply_id = -1;         // bumped by every queue() that is not a take() continuation: chunks.reply groups a reply's own sentences, so drop_heard() can cut just one reply out of the queue
+ 	at = 0;                // the chunk playing, or paused in
+ 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
+ 	live = null;           // the reply being streamed: {text, queued, fresh}
++	pending_ids = [];      // [{id, last}]: a reply's message id, and the index of its last chunk — marked played once that chunk finishes
++	wait_at = null;         // turn-taking: index of the chunk held back because the owner is talking (null: nothing held)
++	quiet_since_wait = null;   // turn-taking: performance.now() of the moment the owner fell quiet while `wait_at` was set
++	wait_timer = null;      // turn-taking: the check_wait() poll timer
++	turn_wait_ms = 1500;    // turn-taking: how much quiet before a held reply starts
+ 
+ 	constructor(...args){
+ 		super(...args);
+@@ -94,20 +100,51 @@ export default class Recite extends Part {
+ 
+ 	/* ── reading ─────────────────────────────────────────────────────── */
+ 
+-	/** Read `text` from the start, dropping whatever was being read. */
++	/** Read `text` from the start, dropping whatever was being read. Public API (the readme's `recite.read(...)`); a reply
++	 *  arriving from a chat session never calls this any more — it queues (below), so a new reply never cuts off the one
++	 *  being read (dictation-v3, 2026-11-01, "a new reply cut off the one being read"). */
+ 	read(text){ this.stop(); return this.queue(text); }
+ 
+-	/** Add `text` after what is already queued; starts reading if idle. */
+-	queue(text){
++	/** Add `text` after what is already queued; starts reading if idle, UNLESS the owner is talking right now — then it
++	 *  waits for about `turn_wait_ms` of quiet (turn-taking: never start a reply over the owner's own words).
++	 *  `continuing` (set only by take(), below): these chunks are more of the SAME live reply, not a new one — keep
++	 *  the current `reply_id` so drop_heard() still treats the whole streamed-so-far reply as one unit. */
++	queue(text, continuing = false){
+ 		const first = this.chunks.length;
+-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null });
++		if (!continuing) this.reply_id++;
++		const id = this.reply_id;
++		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id });
+ 		if (this.chunks.length === first) return this;
+ 		this.retime();
+-		if (this.state === "idle") this.play(first, 0);
++		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
++		// call start_or_hold again — it would move `wait_at` to this later chunk and skip everything held before it.
++		if (this.state === "idle" && this.wait_at == null) this.start_or_hold(first);
+ 		else this.prefetch(this.at);
+ 		return this;
+ 	}
+ 
++	/** Chunk `i` is freshly queued and nothing is playing: start now, or hold until the owner falls quiet. */
++	start_or_hold(i){
++		clearTimeout(this.wait_timer);
++		if (!this.barge?.on || !this.barge.speaking()){ this.wait_at = null; this.play(i, 0); return; }
++		this.wait_at = i;
++		this.quiet_since_wait = null;
++		this.trace("holding: the owner is talking", { sentence: i });
++		this.changed();
++		this.wait_timer = setTimeout(() => this.check_wait(), 80);
++	}
++
++	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `turn_wait_ms`. */
++	check_wait(){
++		if (this.wait_at == null) return;
++		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
++		this.quiet_since_wait ??= performance.now();
++		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 1500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
++		const i = this.wait_at;
++		this.wait_at = this.quiet_since_wait = null;
++		this.play(i, 0);
++	}
++
+ 	/** Play chunk `i` from `offset` seconds into it. */
+ 	async play(i, offset = 0){
+ 		const c = this.chunks[i];
+@@ -165,7 +202,7 @@ export default class Recite extends Part {
+ 		}
+ 	}
+ 
+-	ended(){ if (this.state === "playing") this.play(this.at + 1, 0); }
++	ended(){ this.settle_pending(this.at); if (this.state === "playing") this.play(this.at + 1, 0); }
+ 	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
+ 
+ 	/* ── replies from a chat session ────────────────────────────────── */
+@@ -177,9 +214,11 @@ export default class Recite extends Part {
+ 		if (ev?.kind !== "line") return;
+ 		const line = ev.line ?? {}, chat = line.chat;
+ 		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
+-		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text) : undefined; }
++		// The id read aloud is marked played (Recite.mark_played), so a reload a moment later never reads it twice: the
++		// `{chat}` shape has no id of its own, so its `at` timestamp (one per line) stands in for one (dictation-v3, 2026-11-01, item 20).
++		if (chat?.from?.kind === "assistant"){ this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) }); return chat.from.id === "smart" ? this.final(chat.text, chat.at) : undefined; }
+ 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
+-		if (add) return add.by === "smart" ? this.final(add.text) : undefined;
++		if (add) return add.by === "smart" ? this.final(add.text, add.id) : undefined;
+ 		if (chat?.text && this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text); }   // ear off = manual playback
+ 	}
+ 
+@@ -187,31 +226,88 @@ export default class Recite extends Part {
+ 	partial(text){
+ 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
+ 		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
+-		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))) this.live = { text, queued: 0, fresh: true };
++		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true }; }
+ 		this.live.text = text;
+ 		this.take(text, false);
+ 	}
+ 
+-	/** A settled reply. Read whole, unless its stream was already read. The newest reply replaces what was playing. */
+-	final(text){
++	/** A settled reply. Read whole, unless its stream was already read. It QUEUES behind whatever is already being
++	 *  read — never replaces it (dictation-v3, 2026-11-01): only a real barge-in with a new question drops the rest.
++	 *  `id` (a message id, or a `{chat}` line's own `at`) is marked played only once its last chunk actually
++	 *  finishes (`mark_when_done`), so a reload within the 2-minute window above never reads a played reply twice
++	 *  AND never skips one that was dropped (by a barge-in question, a session switch, or a reload) before it
++	 *  finished (item 20); no `id` means it is only guarded by `this.done` (in-memory, this page load). */
++	final(text, id){
+ 		if (!text) return;
+ 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: text.slice(0, 40) }); return; }
++		if (id && Recite.was_played(id)){ this.trace("not read: already played before a reload", { id }); return; }
+ 		const key = Recite.norm(text);
+ 		if (this.done.has(key)) return;
+ 		this.done.add(key);
+-		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){ this.live.text = text; this.take(text, true); this.live = null; return; }
++		const before = this.chunks.length;
++		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
++			this.live.text = text; this.take(text, true); this.live = null;
++			this.mark_when_done(id, before);
++			return;
++		}
++		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
+ 		this.live = null;
+-		this.read(text);
++		this.queue(text);
++		this.mark_when_done(id, before);
++	}
++
++	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
++	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
++	 *  the moment that chunk finishes playing — never sooner, so a reply dropped mid-way is never marked played. */
++	mark_when_done(id, before){
++		if (!id) return;
++		if (this.chunks.length > before) this.pending_ids.push({ id, last: this.chunks.length - 1 });
++		else Recite.mark_played(id);
++	}
++
++	/** Chunk `i` just finished playing: mark played any reply whose last chunk that was. */
++	settle_pending(i){
++		this.pending_ids = this.pending_ids.filter(p => { if (p.last !== i) return true; Recite.mark_played(p.id); return false; });
+ 	}
+ 
+-	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`). */
++	/** A new reply starts arriving while an old one sits paused by barge-in (`state === "heard"`): a reply is coming,
++	 *  the same signal as the owner's line ending in "?" (BargeIn.heard_speech) — finishing the cut-off reply first
++	 *  would talk over the new one, so it is dropped outright, not resumed (dictation-v3, 2026-11-01). Only the heard
++	 *  reply's own chunks go: a later reply already queued behind it (never heard yet) keeps its place and still
++	 *  plays — calling `stop()` here used to empty the whole queue, losing whatever came after (dictation-v3,
++	 *  2026-11-02). `chunks[i].reply` groups every sentence pushed by one `queue()` call (take()'s own calls share
++	 *  their live reply's id, so a streamed-so-far reply still drops as one unit). */
++	drop_heard(){
++		if (this.state !== "heard") return;
++		this.barge.cancel_resume();
++		this.live = null;   // the dropped reply might still be streaming in; left set, its next partial() would read as a
++		                    // continuation and queue only its unsent tail — a half reply the drop was meant to prevent
++		this.token++;
++		clearTimeout(this.wait_timer);
++		this.wait_at = this.quiet_since_wait = null;
++		this.audio?.pause();
++		globalThis.speechSynthesis?.cancel();
++		const id = this.chunks[this.at]?.reply;
++		let start = this.at, end = this.at;
++		while (this.chunks[start - 1]?.reply === id) start--;
++		while (this.chunks[end + 1]?.reply === id) end++;
++		const cut = this.chunks.splice(start, end - start + 1);
++		for (const c of cut) if (c.src) URL.revokeObjectURL(c.src);
++		this.pending_ids = this.pending_ids.filter(p => p.last > end).map(p => ({ id: p.id, last: p.last - cut.length }));
++		this.at = start;
++		if (this.chunks.length > start) this.start_or_hold(start);
++		else this.set("idle");
++	}
++
++	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
++	 *  whatever is already playing, never replacing it (dictation-v3, 2026-11-01). */
+ 	take(text, all){
+ 		const live = this.live, rest = text.slice(live.queued);
+ 		const cut = all ? rest.length : Recite.complete(rest);
+ 		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
+ 		live.queued += cut;
+-		if (live.fresh){ live.fresh = false; this.read(rest.slice(0, cut)); }
+-		else this.queue(rest.slice(0, cut));
++		live.fresh = false;
++		this.queue(rest.slice(0, cut), true);   // continuing the same live reply, not a new one
+ 	}
+ 
+ 	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }
+@@ -243,8 +339,11 @@ export default class Recite extends Part {
+ 		this.set(why === "heard" ? "heard" : "paused");
+ 	}
+ 
+-	resume(){
++	/** `from_start`: true for an automatic barge-in resume — the owner talked over part of the sentence, so it is said
++	 *  again from its start, not from where the mic cut it off; false (manual: the Play button, a tap) continues where it paused. */
++	resume(from_start = false){
+ 		if (!["paused", "heard"].includes(this.state)) return;
++		if (from_start) return this.play(this.at, 0);
+ 		const same = this.audio?.src && this.audio.src === this.chunks[this.at]?.src;
+ 		if (this.engine === "browser" || !same) return this.play(this.at, 0);
+ 		const token = ++this.token;
+@@ -269,10 +368,13 @@ export default class Recite extends Part {
+ 
+ 	stop(){
+ 		this.token++;
++		clearTimeout(this.wait_timer);
++		this.wait_at = this.quiet_since_wait = null;
+ 		this.audio?.pause();
+ 		globalThis.speechSynthesis?.cancel();
+ 		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
+ 		this.chunks = [];
++		this.pending_ids = [];   // dropped before their last chunk played: never marked played (item 20)
+ 		this.at = 0;
+ 		this.set("idle");
+ 	}
+@@ -320,6 +422,7 @@ export default class Recite extends Part {
+ 		this.set("playing");
+ 		this.voice.speak(c.text, () => {
+ 			if (token !== this.token || this.state !== "playing") return;
++			this.settle_pending(i);
+ 			this.engine = this.server === "online" ? "kokoro" : "browser";
+ 			this.play(i + 1, 0);
+ 		});
+@@ -379,6 +482,20 @@ export default class Recite extends Part {
+ 	/** Text compared loosely: spaces and markdown marks do not count. */
+ 	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
+ 
++	/** Message ids already read in full, kept across a reload (item 20, dictation-v3 2026-11-01): a reload within the
++	 *  2-minute window in `from_wire` must never read a settled reply twice. localStorage, capped to the most recent
++	 *  200 so a long-lived tab does not grow this forever. */
++	static played_ids(){ try { return JSON.parse(globalThis.localStorage?.getItem("lew42.recite.played") ?? "[]"); } catch { return []; } }
++	static was_played(id){ return !!id && Recite.played_ids().includes(id); }
++	static mark_played(id){
++		if (!id) return;
++		try {
++			const ids = Recite.played_ids();
++			if (ids.includes(id)) return;
++			globalThis.localStorage?.setItem("lew42.recite.played", JSON.stringify([...ids, id].slice(-200)));
++		} catch {}
++	}
++
+ 	/** One remembered setting (the voice, barge-in on/off, its threshold) in localStorage. */
+ 	static remember(key, value){
+ 		try {
+diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
+index c9c7084af..5e34811f8 100644
+--- a/public/framework/audio/Recite/Recite.test.mjs
++++ b/public/framework/audio/Recite/Recite.test.mjs
+@@ -73,6 +73,239 @@ if (Recite) test("Recite: the first tap unlocks a refused reply", async t => {
+ 	return r;
+ });
+ 
++// Turn-taking (dictation-v3, 2026-11-01): a reply queues behind what is playing, never replaces it; a real barge-in
++// pauses and auto-resumes from the START of the cut sentence once things go quiet; a question drops the rest instead.
++// Driven through owner_spoke() — the real route a wire line takes (review note 7), not heard_speech() called directly.
++if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start, a question drops the rest", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;   // owner_spoke()/sync() never open a real mic in a test; `on` only gates sync()'s own mic-open/close
++
++	r.queue("First reply, sentence one. First reply, sentence two.");
++	await new Promise(res => setTimeout(res, 20));   // the queue's own auto-play settles
++	t.eq(r.state, "playing", "nothing is talking: the first reply started on its own");
++
++	r.queue("Second reply arrives while the first still plays.");
++	t.eq(r.chunks.length, 3, "it queued behind the first reply — nothing already there was dropped");
++	t.eq(r.chunks[0].text, "First reply, sentence one.", "the first reply's own first sentence is unchanged");
++
++	await r.play(1, 1.5);   // simulate: partway into reply one's second sentence
++	r.barge.quiet_ms = 15;   // fast for the test
++	r.barge.owner_spoke("wait, hold on");   // a wire line, real speech, not a question
++	t.eq(r.state, "heard", "still paused, giving the owner a moment to keep talking");
++	await new Promise(res => setTimeout(res, 50));
++	t.eq(r.state, "playing", "resumed by itself once the owner went quiet");
++	t.eq(r.audio.currentTime, 0, "it started the cut sentence over, not mid-word");
++	t.eq(r.chunks.length, 3, "the queued second reply is still waiting its turn, untouched");
++
++	let synced = 0; const real_sync = r.barge.sync.bind(r.barge); r.barge.sync = () => { synced++; real_sync(); };
++	r.barge.owner_spoke("but what about the other one?");   // a question: a new answer is coming
++	await new Promise(res => setTimeout(res, 20));   // drop_heard()'s own play() of whatever is queued behind settles
++	t.eq(r.chunks.length, 1, "only the dropped reply (the one that was heard) is gone");
++	t.eq(r.chunks[0].text, "Second reply arrives while the first still plays.", "the reply that was already queued behind it was never touched, and starts right where it was waiting");
++	t.eq(r.state, "playing", "playback carries on with what was queued behind the dropped reply");
++	t.ok(synced > 0, "dropping a question re-syncs the mic, ready for the next interruption");
++	return r;
++});
++
++// requirements.md: a question ("...?") drops the old reply, "or a reply to it is coming" — the second half needs no
++// "?" at all: a fresh reply itself arriving while the old one sits paused IS the signal (finding 3).
++if (Recite) test("Recite: a reply arriving while the old one is paused by barge-in drops it, even with no '?'", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++
++	r.queue("An answer that gets interrupted, no less.");
++	await new Promise(res => setTimeout(res, 20));
++	r.barge.owner_spoke("actually never mind");   // real speech, no question mark
++	t.eq(r.state, "heard", "paused, waiting to see if the owner keeps talking");
++
++	r.final("A fresh reply has already started arriving.");   // "a reply to it is coming"
++	t.eq(r.state, "loading", "the reply arriving is itself the signal: the old one is dropped, and the new one starts right away — not resumed into");
++	t.eq(r.chunks.length, 1, "only the new reply is queued");
++	t.eq(r.chunks[0].text.startsWith("A fresh reply"), true, "and it is the new reply, not a leftover of the old one");
++	return r;
++});
++
++// Dropping the reply a barge-in cut off must not drop what is already queued behind it — only that one reply's own
++// chunks go (review: drop_heard() called stop(), which emptied the whole queue; a second reply that had not even
++// started yet was lost along with the first).
++if (Recite) test("Recite: dropping a cut-off reply keeps whatever is already queued behind it", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++	r.barge.quiet_ms = 10000;   // long enough that a non-question line could not auto-resume during this test
++
++	r.final("First reply.", "msg-q1");
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.state, "playing", "the first reply started");
++
++	r.final("Second reply, queued behind the first.", "msg-q2");
++	t.eq(r.chunks.length, 2, "both replies are queued, in order");
++
++	r.barge.owner_spoke("actually never mind");   // real speech, no question — just pauses it
++	t.eq(r.state, "heard", "paused mid first reply");
++
++	r.final("The answer that was coming is this one.", "msg-q3");   // a fresh reply arriving is itself the drop signal
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.chunks.length, 2, "the first reply is gone; the second (never heard) and the new third reply remain");
++	t.eq(r.chunks[0].text, "Second reply, queued behind the first.", "the one already waiting its turn kept its place — and plays first, not last");
++	t.eq(r.chunks[1].text, "The answer that was coming is this one.", "the new reply queues behind it, not ahead of it");
++	t.eq(r.state, "playing", "playback carries straight on with the reply that was already queued");
++	return r;
++});
++
++// A question drop must also clear `this.live`, or a reply still streaming in picks up as if nothing happened: its
++// next partial() would match the old live object's text prefix and queue only the unsent tail — a context-less
++// half reply (review note 6: drop_heard() left `this.live` set).
++if (Recite) test("Recite: a question drop also clears a still-streaming reply, so it is not half-read if it keeps coming", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++
++	r.partial("First partial sentence of a stream. ");
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.chunks.length, 1, "the first complete sentence streamed in and started playing");
++
++	r.barge.owner_spoke("wait, what?");   // a question: drop
++	t.eq(r.live, null, "the streaming reply being tracked is cleared along with the chunks it had queued");
++
++	r.partial("First partial sentence of a stream. Second partial sentence continues anyway. ");
++	await new Promise(res => setTimeout(res, 20));
++	t.ok(r.chunks.some(c => c.text.includes("First partial sentence")), "the stream continuing is read as a fresh reply from its own start, not a bare, context-less tail");
++	return r;
++});
++
++// Never start a fresh reply while the owner is talking; wait for a moment of quiet (the owner, 2026-11-01, "turn-taking").
++// Proof for item 14: mic speech comes FIRST, then a reply arrives — nothing plays until the quiet window. Then a real
++// barge-in (owner_spoke) stops the reply mid-sentence, and the rest resumes once the owner is quiet again.
++if (Recite) test("Recite: a reply waits for the owner to stop talking before it starts, proof item 14", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = true;      // start_or_hold() only holds when barge.on is true — but stub sync() below so it never opens a real mic (error 4: a real mic rejects async in a headless test and clobbers barge.state)
++	r.barge.sync = () => {};
++	r.turn_wait_ms = 15;
++	r.barge.hear(0.9);   // the owner is already speaking BEFORE the reply arrives — a real level fed through hear(), not a stubbed speaking()
++
++	r.queue("A reply arriving while you are still talking.");
++	t.eq(r.barge.speaking(), true, "speaking() computes true from the real level/threshold math, not a stub");
++	t.eq(r.state, "idle", "it does not start over you");
++	t.eq(r.wait_at, 0, "it is waiting for a moment of quiet");
++	await new Promise(res => setTimeout(res, 40));
++	t.eq(r.state, "idle", "still waiting — you are still talking");
++	r.barge.hear(0.05);   // the level actually drops below threshold: real quiet, not a flipped flag
++	t.eq(r.barge.speaking(), false, "and speaking() now reads quiet from that same real path");
++	await new Promise(res => setTimeout(res, 150));
++	t.eq(r.state, "playing", "started once you had been quiet for a moment");
++
++	r.barge.quiet_ms = 15;
++	r.barge.owner_spoke("hold on a second");   // a real barge-in, mid-reply, through the real wire-line route
++	t.eq(r.state, "heard", "a barge-in mid-reply still stops playback");
++	await new Promise(res => setTimeout(res, 50));
++	t.eq(r.state, "playing", "and the rest resumes once the owner is quiet again");
++	return r;
++});
++
++// Played/unplayed per message id survives a reload (owner item 20, folded in 2026-11-01 21:08): a reload must never
++// re-read a reply already played, and never skip one not yet played. A second `Recite` (a stand-in for the reload)
++// shares the same localStorage, as the real page does. Marked played only once the last chunk actually finishes
++// (a second review caught marking at queue time: a reply dropped before it played was wrongly skipped forever).
++if (Recite) test("Recite: a reply (by message id) is marked played only once it finishes, not when it is queued", async t => {
++	const KEY = "lew42.recite.played", prior = localStorage.getItem(KEY);
++	try {
++		localStorage.removeItem(KEY);
++		const r1 = new Recite({ voice: fake_voice });
++		r1.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++		r1.barge.on = false;
++		r1.final("First reply, already read before.", "msg-1-test");
++		await new Promise(res => setTimeout(res, 20));
++		t.eq(r1.state, "playing", "the reply started");
++		t.eq(Recite.was_played("msg-1-test"), false, "not marked played yet — its one chunk has not finished");
++		r1.ended();   // its one sentence finishes
++		t.eq(Recite.was_played("msg-1-test"), true, "marked played once the last chunk actually finished");
++
++		const r2 = new Recite({ voice: fake_voice });   // stands in for the page reloading: a new instance, same localStorage
++		r2.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++		r2.barge.on = false;
++		r2.final("First reply, already read before.", "msg-1-test");
++		t.eq(r2.chunks.length, 0, "the same id, after a reload, is not read again");
++		r2.final("A second, different reply.", "msg-2-test");
++		t.eq(r2.chunks.length, 1, "a reply with a new id is still read — nothing unplayed is skipped");
++
++		await new Promise(res => setTimeout(res, 20));
++		r2.stop();   // dropped before it finished (a barge-in question, a session switch, a reload)
++		t.eq(Recite.was_played("msg-2-test"), false, "a reply dropped before it finished is never marked played — it is read in full next time, never skipped");
++		return r2;
++	} finally { if (prior == null) localStorage.removeItem(KEY); else localStorage.setItem(KEY, prior); }
++});
++
++// A second reply queued while the first still waits for quiet must not skip the first (review: queue() called
++// start_or_hold() on every queue while idle, including while already holding one — it moved `wait_at` to the new,
++// later chunk, orphaning everything held before it).
++if (Recite) test("Recite: a second reply queued while the first still waits for quiet does not skip the first", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = true;
++	r.barge.sync = () => {};   // never open a real mic in a test
++	r.turn_wait_ms = 15;
++	r.barge.hear(0.9);   // a real level above threshold, fed through the real hear() path, not a stubbed speaking()
++
++	r.queue("First reply, held.");
++	t.eq(r.wait_at, 0, "the first reply is held at chunk 0");
++
++	r.queue("Second reply arrives while you are still talking.");
++	t.eq(r.wait_at, 0, "still held at chunk 0 — a second queue() while still talking must not move it");
++	t.eq(r.chunks.length, 2, "both replies are queued, in order");
++
++	r.barge.hear(0.05);   // the level drops below threshold: real quiet
++	clearTimeout(r.wait_timer);
++	r.check_wait();   // first poll: notices quiet, starts the clock — not long enough yet
++	t.eq(r.state, "idle", "not yet — the quiet window just started");
++	r.quiet_since_wait = performance.now() - (r.turn_wait_ms + 5);   // fast-forward past turn_wait_ms: no real sleep needed
++	clearTimeout(r.wait_timer);
++	r.check_wait();   // second poll: quiet long enough — starts
++	await new Promise(res => setTimeout(res, 20));   // let play()'s render promise settle
++	t.eq(r.state, "playing", "started once quiet");
++	t.eq(r.at, 0, "chunk 0 (the first reply) plays first, not chunk 1");
++
++	r.ended();   // chunk 0 finishes
++	t.eq(r.at, 1, "chunk 1 (the second reply) plays next — nothing was skipped");
++	return r;
++});
++
++// BargeIn.speaking() must go quiet once the mic closes, or a reply held by turn-taking would wait for quiet that
++// never arrives (close() used to leave the last loud `level` in place, with no more hear() frames to correct it).
++if (Recite) test("BargeIn: close() resets the level, so speaking() cannot stay stuck true", t => {
++	const r = new Recite({ voice: fake_voice });
++	r.barge.on = true;
++	r.barge.level = 0.9;   // a loud reading just before the mic closed
++	t.eq(r.barge.speaking(), true, "loud, by the stub level");
++	r.barge.close();
++	t.eq(r.barge.level, 0, "close() clears the stale level");
++	t.eq(r.barge.speaking(), false, "and speaking() reports quiet again — nothing holds a queued reply forever");
++	return r;
++});
++
++// A second owner line while already paused by an earlier barge-in must still get its own question check
++// (review: owner_spoke() ignored anything heard while recite.state was already "heard", so a second "wait... what
++// about the other one?" resumed anyway and talked over the new answer).
++if (Recite) test("Recite + BargeIn: a second owner line while already paused still drops on a question", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++	r.barge.quiet_ms = 10000;   // long enough that it could not resume by itself during this test
++
++	r.queue("An answer that gets interrupted.");
++	await new Promise(res => setTimeout(res, 20));
++	r.barge.owner_spoke("wait, hold on");
++	t.eq(r.state, "heard", "paused by the first line");
++
++	r.barge.owner_spoke("actually, what about the other one?");   // a SECOND line, while still paused — a question
++	t.eq(r.state, "idle", "the question in the second line still drops the reply, even though it arrived while already paused");
++	t.eq(r.chunks.length, 0, "nothing left queued");
++	return r;
++});
++
+ // Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.
+ if (Recite) test("Recite.Highlight: which word is playing", t => {
+ 	const H = Recite.Highlight, words = H.words("The voice server answers, on the phone.");
+diff --git a/public/framework/audio/Recite/ReciteBar.js b/public/framework/audio/Recite/ReciteBar.js
+index f56f99333..3b1c10879 100644
+--- a/public/framework/audio/Recite/ReciteBar.js
++++ b/public/framework/audio/Recite/ReciteBar.js
+@@ -53,9 +53,12 @@ export default class ReciteBar extends View {
+ 
+ 		const total = r.duration(), at = r.position();
+ 		this.$fill.style("inlineSize", total ? Math.min(100, at / total * 100).toFixed(1) + "%" : "0");
+-		const note = r.state === "heard" || b.state === "checking" ? b.note : r.error || (r.chunks.length ? `${ReciteBar.clock(at)} / ${ReciteBar.clock(total)}${r.engine === "browser" ? " · browser voice" : ""}` : "nothing to read yet");
++		const waiting = r.wait_at != null;
++		const note = waiting ? "waiting for you to finish talking…" : r.state === "heard" || b.state === "checking" ? b.note : r.error || (r.chunks.length ? `${ReciteBar.clock(at)} / ${ReciteBar.clock(total)}${r.engine === "browser" ? " · browser voice" : ""}` : "nothing to read yet");
+ 		this.$label.text(note);
+ 		this.$track.attr("title", r.error || b.note || "");
++		const resume = r.state === "heard" || r.state === "paused";
++		this.$play.attr("title", resume ? "Resume" : "Play / pause").tc("is-resume", resume);   // a visibly different control while paused/heard (finding 4), not only the tooltip
+ 		this.tc("is-heard", r.state === "heard");
+ 		this.tc("is-error", !!r.error && r.state !== "heard");
+ 
+diff --git a/public/framework/audio/Recite/doc/architecture.md b/public/framework/audio/Recite/doc/architecture.md
+index 88d2e4155..1c08312f7 100644
+--- a/public/framework/audio/Recite/doc/architecture.md
++++ b/public/framework/audio/Recite/doc/architecture.md
+@@ -12,3 +12,12 @@ Built 2026-11-01 in the voice-recite task ([requirements](/framework/ai/sessions
+ - **Never two mics.** With the chat's own mic on, barge-in listens to that mic's level, and the owner's line arriving on the wire is the check (no line in 5 s means noise).
+ - **Read new replies is on by default, on a phone and a PC alike** (the owner, 2026-11-01). The 🗣 button turns it off, and that choice is remembered on that browser. The first tap anywhere on the page unlocks sound.
+ - **The karaoke playhead marks text, it does not rebuild it** (2026-11-01). `Recite.Highlight` lights the sentence and word with `CSS.highlights`, so a chat that redraws a bubble is never fought over, and nothing is written into the page. The word is estimated (each word's share of the sentence's seconds, by length), because Kokoro returns no word timings. *Alternative:* wrap each word in a span (works in every browser, but every chat view would need to cooperate); exact timings from an engine that gives them (a later engine can supply `c.words` and `fraction()` reads it).
++- **Turn-taking: `chunks` is one running queue across replies, not reset per reply** (dictation-v3, 2026-11-01). A reply that arrives while another is playing (or waiting) is appended with `queue()` and never cuts it off; only `read()` (the public "start over now" call) empties the whole queue — a dropped barge-in question cuts out just the one reply it interrupted (`drop_heard()`, below). A freshly queued reply never starts over the owner's own voice: `queue()` checks `barge.speaking()` and, if true, `start_or_hold()`/`check_wait()` poll (about every 80 ms) until `turn_wait_ms` (1.5 s) of quiet, then plays. The poll is a local mic-level timer read straight off `BargeIn.level`, not a network fetch, so "stream, don't poll" does not apply to it. *Known limit, not fixed here:* `chunks` (and its rendered audio blobs) only shrinks on a full `stop()`, so a very long session without an interruption holds every reply's audio in memory; deferred as low-risk (a session is bounded by a page reload in practice) rather than adding chunk-eviction now.
++- **A barge-in interruption pauses; a question drops only the reply it interrupted, never what is queued behind it.** `BargeIn.heard_speech(text)` is the one place real speech (not noise, not echo) is decided: text ending in `?` means a new answer is coming, so the interrupted reply is dropped (`recite.drop_heard()`) rather than resumed into the new one; anything else schedules an auto-resume (`schedule_resume()`/`try_resume()`) once about `quiet_ms` (1.5 s) of silence passes — reset on every further loud frame while the chat's own mic is open, so a long aside does not get cut back in on. The resume itself restarts the cut sentence from its start (`resume(true)`), not mid-word, since the owner likely did not hear the first part either; a manual tap (the bar's Play button) still continues from exactly where it paused (`resume()`, no argument).
++- **"Or a reply to it is coming" does not depend on the "?" ever arriving.** The trailing-"?" check is a fast, immediate signal from the owner's own line; `Recite.drop_heard()` is the general one — called from `partial()`/`final()` whenever a *fresh* reply starts arriving while the old one still sits paused (`state === "heard"`). A reply arriving IS the proof an answer is coming, so a spoken question Whisper happens to punctuate with a full stop is still covered, with no text heuristics on the owner's words. Both paths funnel through `BargeIn.cancel_resume()` (clears the quiet timer, drops `state` back to `"off"`) before `recite.drop_heard()`, so the mic resyncs cleanly either way.
++- **`drop_heard()` cuts out one reply's chunks, not the whole queue.** Every chunk carries the `reply` id of the `queue()` call that pushed it (a `take()` continuation keeps its live reply's id, so a streamed-so-far reply still drops as one unit); `drop_heard()` widens out from `chunks[this.at]` to the full run sharing that id, splices just that span, and shifts `pending_ids` down to match. Anything already queued behind the dropped reply shifts into its place and keeps playing (`start_or_hold()`), or the state goes back to `"idle"` if nothing is left. Calling `stop()` here used to empty `chunks` outright, so a reply that had not even started yet was lost along with the one being dropped.
++- **A session switch drops the old session's queue.** `Sheet.js` `read_aloud()`'s `listen(session, why)` calls `recite.stop()` before following a *different* session (never on the very first follow, when nothing was queued yet) — a different voice session's replies are not this one's to read. `READ_ALOUD_V` bumped to `"2026-11-01f"`.
++- **Played ids survive a reload** (owner item 20, folded in 2026-11-01 21:08). `Recite.mark_played(id)`/`was_played(id)` persist to `localStorage` (`lew42.recite.played`, capped at 200 ids). Marked only once the reply's LAST chunk actually finishes playing (`Recite.pending_ids`, settled in `ended()`/`speak_browser()`), never at queue time: a reply dropped by a barge-in question, a session switch or a reload before it played must stay unmarked, the exact skip item 20 forbids. `stop()` clears `pending_ids` along with `chunks`, so a dropped reply is never marked. The id itself: a Prompt `replies.add` line already carries one (`add.id`); the plain `{chat}` line shape has none, so its own `at` timestamp stands in (one per line, stable across a reload).
++- **A second owner line while already paused (`BargeIn.state === "heard"`) now still gets a question check.** `owner_spoke()` used to return early unless `recite.state` was `"playing"`/`"loading"`, so "wait… / what about the other one?" — a second line heard while the first interruption was still being waited out — never reached `heard_speech()`: a trailing "?" would not drop the old reply, and it would resume a moment later and talk over the new answer. It now also runs `heard_speech()` while `recite.state === "heard"`, without re-pausing (already paused); an ordinary (non-question) second line just pushes the resume timer out further, the same as a held mic staying loud.
++- **`speaking()` could stick true forever after the mic closed.** `BargeIn.speaking()` reads `this.level`, set only by `hear()` frames; `heard_speech(text, {close_mic: true})` (the own-mic path, after a real check) closes the mic but never reset `level`, so a loud reading just before close stayed loud with no more frames to correct it — a reply then held by `start_or_hold()`/`check_wait()` (turn-taking) waited for quiet that could never arrive. `close()` now resets `level = 0`.
++- **A second reply queued while the first is still held for quiet no longer skips the first.** `queue()`'s `if (this.state === "idle") this.start_or_hold(first)` fired on every queue while idle, including while a reply was already held (`wait_at` set) — a second queue() moved `wait_at` to the new, later chunk, so the chunks held between the old `wait_at` and the new one were never played. `queue()` now only starts/holds when `wait_at == null`; a reply queued behind an already-held one simply waits in `chunks` and plays in its turn once the hold resolves.
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+index 8e58ad0b1..fe3ca8df2 100644
+--- a/public/framework/audio/Recite/readme.md
++++ b/public/framework/audio/Recite/readme.md
+@@ -1,6 +1,6 @@
+ # Recite — reads the AI's replies aloud
+ 
+-Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking. [The live demo](/framework/audio/Recite/).
++Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking — then picks back up once you go quiet, from the start of the sentence it cut off; a new question instead drops the rest, since a new answer is coming. A reply that arrives while another is already playing queues behind it, and a reply never starts over your own voice. [The live demo](/framework/audio/Recite/).
+ 
+ ## Use
+ 
+@@ -10,9 +10,11 @@ import Recite from "/framework/audio/Recite/Recite.js";
+ const recite = Recite.shared;        // one per page, so two chat views never read over each other
+ recite.read("A reply to read.");     // or recite.queue(text): after what is playing
+ recite.pause(); recite.back(10); recite.restart();
+-recite.bar;                          // the one-line control
++recite.bar;                          // the one-line control; while state is `heard` or `paused`, its Play button is the resume control
+ ```
+ 
++**Turn-taking settings:** `recite.turn_wait_ms` (default 1500) is how much quiet is needed before a freshly queued reply starts over the owner; `recite.barge.quiet_ms` (default 1500) is how much quiet is needed after a barge-in before the cut reply resumes.
++
+ In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
+ 
+ ## Architecture
+@@ -30,15 +32,34 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
+ - **The server:** recite-server, Kokoro-82M on the CPU, port 8177. Servex starts and watches it (`Servex/ext/recite/readme.md`).
+ - **The URL:** `http://127.0.0.1:8177` on this machine; `<origin>/recite` anywhere else, through the dev server's proxy ([Server/plugins/Recite.js](../../../../Server/plugins/Recite.js)).
+ - **The chat:** [ux/Dictate/chat.js](../../ux/Dictate/chat.js) passes every event on the session's live wire to `Recite.shared.from_wire(ev)`, and gives barge-in the chat's mic (`barge.use_mic`). [ux/Dictate/DictationBar.js](../../ux/Dictate/DictationBar.js) puts the bar above the mic.
+-- **Saved settings:** localStorage keys `lew42.recite.voice`, `.auto`, `.barge`, `.threshold`, per browser.
++- **Saved settings:** localStorage keys `lew42.recite.voice`, `.auto`, `.barge`, `.threshold`, per browser. `lew42.recite.played` holds the last 200 message ids read in full, so a reload a moment later never reads one twice (item 20, 2026-11-01); keyed by the reply's own id where one exists (a Prompt `replies.add` line), or its `{chat}` line's `at` timestamp otherwise.
++
++## Open, by the agreed build order
++
++Only resume + queueing + turn-taking (this page's piece (a)) has landed so far. Still to come, in this order:
++
++1. **No flood + prioritise** (if not folded into a small change already): one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
++2. **Echo suppression** — the read-aloud voice leaking into the mic: `echoCancellation`/`noiseSuppression` in `getUserMedia`, ignoring heard words that match the sentence being read, and a higher mic threshold while playing and ~1.5 s after (so coughs and leakage don't fire a barge-in).
++3. **A thinking cue**, its own small merge right after echo: once the owner stops speaking and a reply is pending, a short subtle cue (a generated tone or a tiny audio file, never Kokoro speech) — once, then once more at ~2 s if still pending, then quiet. A setting turns it off (`thinking_cue: true`).
++4. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
++5. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
++6. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
++7. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
++8. **(c) Karaoke follow** — without phrase-level streaming.
++
++Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in [ux/Dictate/doc/turn-taking.md](/framework/ux/Dictate/doc/turn-taking.md), "Voice dynamics".
++
++The owner's own order and why: [requirements.md, "Order now"](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/requirements.md).
+ 
+ ## Watch out
+ 
+ - **A phone plays sound only after a tap on the page.** A reply arrives from the network, not from a tap, so Recite unlocks its one `<audio>` on the first tap anywhere (the mic, a button: `unlock_on_tap()` plays a silent tenth of a second). A reply the browser refused before that tap starts on it; until then the bar says to tap play.
+ - **Back 10 s needs recite-server.** With the browser's voice it steps by sentence.
+-- **Speakers leak into the mic.** Echo cancelling removes most of it, and words that match the sentence being read are ignored. Headphones are best.
++- **Speakers leak into the mic.** Not built yet (the owner has heard the leak): the plan is echo cancelling in `getUserMedia`, plus ignoring words that match the sentence being read. Headphones are best until then.
+ - **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice (`Servex/ext/remote/doc/cloud-voice-agent.md`). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
+ - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
++- **With the ear (barge-in) off, a reply never waits for you.** `speaking()` requires `barge.on`; turning the ear off is the opt-out from turn-taking, so a freshly queued reply starts right away even if you are still mid-sentence. Intended, not a bug.
++- **Open item: `chunks` never shrinks until a full `stop()`.** Each queued reply's rendered audio (a blob URL) stays in memory for the whole session; a very long session with no interruption and no session switch holds every reply's audio at once. Deferred: a page reload bounds it in practice, so no eviction was added. [doc/architecture.md](doc/architecture.md) has the detail.
+ 
+ ## Why it was silent
+ 
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index 2f41ad798..44df279d0 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -45,7 +45,7 @@ export default class Sheet extends View {
+ 	 * hook (ux/Dictate/chat.js) reading the same reply does no harm.
+ 	 * It starts when this file is imported, not when a Sheet renders, and it traces every branch ("sheet: …" lines in the Whisper
+ 	 * bucket and the session file), so a phone that stays silent shows the step it stopped at. READ_ALOUD_V says which code ran. */
+-	static READ_ALOUD_V = "2026-11-01e";   // bump on every change here: a phone's trace that lacks it runs older code
++	static READ_ALOUD_V = "2026-11-01f";   // bump on every change here: a phone's trace that lacks it runs older code
+ 	static RECENT_MS = 3000;               // how long the search for a recent voice session may take; then the fallbacks below
+ 	static read_aloud(from){
+ 		if (this.reading) return;
+@@ -68,6 +68,7 @@ export default class Sheet extends View {
+ 		let followed, stop = null;   // undefined, not null: the first answer, even "no session", is logged
+ 		const listen = (session, why) => {
+ 			if (session === followed) return recite.trace("sheet: same session", { session, why });
++			if (followed !== undefined) recite.stop();   // a different session: its queue is not this one's to read (dictation-v3, 2026-11-01, note 8)
+ 			followed = session; stop?.(); stop = null;
+ 			if (session){ report.init(session); Wire.remember(session); }
+ 			recite.trace("sheet follows", { session, why });

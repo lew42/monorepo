@@ -27,6 +27,8 @@ export default class BargeIn extends Part {
 	peak = 0;             // the loudest level while checking
 	heard = "";           // what Whisper heard last ("" = noise)
 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
+	quiet_ms = 1500;      // real speech heard: once this much quiet passes, pick the interrupted reply back up
+	resume_timer = null;   // the schedule_resume() timer waiting for quiet
 	whisper_url = Whisper.default_url();   // the same URL rule as Dictate: 127.0.0.1:8178 here, <origin>/whisper elsewhere
 
 	constructor(...args){
@@ -69,17 +71,73 @@ export default class BargeIn extends Part {
 
 	dictating(){ return ["listening", "transcribing"].includes(this.dictate?.state); }
 
-	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused. */
+	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused.
+	 *  Also runs while already paused by an earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait…
+	 *  / what about the other one?") must still get its own question check, or it would otherwise resume and talk
+	 *  over the new answer; `heard_speech` just pushes the quiet window out when it isn't a question. */
 	owner_spoke(text){
 		this.spoke?.(text);
-		if (this.recite.state === "playing" || this.recite.state === "loading"){ this.recite.pause("heard"); this.note = "heard: " + text; this.state = "heard"; this.recite.changed(); }
+		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
+		else if (this.recite.state !== "heard") return;
+		this.heard_speech(text);
+	}
+
+	/** True while the owner is making sound loud enough to count as talking, by the same threshold the fast barge-in
+	 *  check uses. Recite asks this before it starts a freshly queued reply, so it never talks over the owner
+	 *  (turn-taking, dictation-v3 2026-11-01): it waits for quiet instead of starting, or interrupting. */
+	speaking(){ return this.on && this.level > Math.max(this.threshold, this.noise_floor * 1.15); }
+
+	/** Real speech was heard (this mic's own check, or the chat's own line): note it, and decide what happens to the
+	 *  paused reply. A question ("...?") means a new answer is coming, so the paused reply is dropped outright
+	 *  (recite.drop_heard() — only its own chunks; anything else already queued behind it keeps its place and still
+	 *  plays). Anything else schedules an auto-resume once things go quiet (schedule_resume). */
+	heard_speech(text, { close_mic = false } = {}){
+		if (close_mic && this.mic) this.close();   // close() resets state to "off"; set it below, after
+		this.heard = text;
+		this.note = "heard: " + text;
+		this.state = "heard";
+		if (/\?\s*$/.test(text)){
+			this.note = "heard a question: " + text;
+			this.cancel_resume();          // state is "off" before drop_heard() runs, so its own sync() sees the right state
+			this.recite.drop_heard();
+			this.sync();                   // belt and suspenders: drop_heard()'s own set() already calls this when it goes idle
+		} else this.schedule_resume();
+		this.recite.changed();
+	}
+
+	/** (Re)starts the quiet timer; each call while still "heard" pushes it further out (hear(), below), so the owner
+	 *  can keep talking and the old reply only resumes once they are actually done. */
+	schedule_resume(){
+		clearTimeout(this.resume_timer);
+		this.resume_timer = setTimeout(() => this.try_resume(), this.quiet_ms);
+	}
+
+	/** The reply waiting to resume is gone some other way (a question, or Recite.drop_heard() because a new reply
+	 *  arrived): stop waiting for quiet, and drop back to "off" so the next real interruption starts clean. */
+	cancel_resume(){
+		clearTimeout(this.resume_timer); this.resume_timer = null;
+		if (this.state === "heard") this.state = "off";
+	}
+
+	/** quiet_ms of silence passed: pick the interrupted reply back up, from the START of the sentence the owner cut
+	 *  off (resume(true)) — not mid-word, since the owner likely did not hear the first part clearly either. A no-op
+	 *  if the owner (or a tap on the bar) already resumed or dropped it some other way. */
+	try_resume(){
+		this.resume_timer = null;
+		if (this.state !== "heard" || this.recite.state !== "heard") return;
+		this.state = "off";
+		this.note = "";
+		this.recite.resume(true);
+		this.sync();
 	}
 
 	close(){
 		this.mic?.stop();
 		this.mic = null;
 		this.state = "off";
+		this.level = 0;   // a stale loud reading, with no more hear() frames coming to refresh it, would make speaking() stick true forever (the next held reply never starts)
 		this.loud_since = this.quiet_since = null;
+		clearTimeout(this.resume_timer); this.resume_timer = null;
 		this.recite.changed();
 	}
 
@@ -88,6 +146,11 @@ export default class BargeIn extends Part {
 		this.level = shown;
 		this.noise_floor *= 0.9993;
 		if (this.state === "checking") this.peak = Math.max(this.peak, shown);
+		if (this.state === "heard"){
+			if (this.recite.state !== "heard"){ this.state = "off"; this.sync(); }   // resumed or dropped some other way: go back to listening for the next interruption
+			else if (shown > Math.max(this.threshold, this.noise_floor * 1.15)) this.schedule_resume();   // still talking: push the quiet window out
+			return;
+		}
 		if (this.state !== "listening" || this.recite.state !== "playing") return;
 		const now = performance.now();
 		if (shown > Math.max(this.threshold, this.noise_floor * 1.15)){
@@ -120,9 +183,7 @@ export default class BargeIn extends Part {
 			this.state = "listening";
 			if (this.recite.state === "heard") this.recite.resume();
 		} else {
-			this.note = "heard: " + text;
-			this.state = "heard";
-			if (this.mic) this.close();   // the mic is yours now (dictate); play reopens it
+			this.heard_speech(text, { close_mic: true });   // the mic is yours now (dictate) unless it was a question; play reopens it
 		}
 		this.recite.changed();
 	}

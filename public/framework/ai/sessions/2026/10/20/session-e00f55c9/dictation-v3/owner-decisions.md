@@ -13,3 +13,8 @@
 3. **The list belongs to the chat widget.** A message can stand alone, and a prompt card links to its messages. Replies attached only to prompt cards would be too narrow.
 4. **No migration of old lines** until the new list exists and works.
 5. **Settings (later):** dictation settings are saved per browser today. The owner wants global settings that apply on every device.
+6. **What each view is for (18:19):**
+   - **V1 is the raw chat:** the owner still needs to see the raw dictation.
+   - **V2 and V3 are condensed cards** (prompts and questions) made by AI.
+   - **The end goal is ONE view showing both.** For now, V3 keeps the raw dictation visible, below or behind each card.
+   - **A bug to fix:** switching to V3 on v-u48msei made "a huge wall of text just randomly appear".

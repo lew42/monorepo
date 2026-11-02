@@ -29,6 +29,9 @@ A process that is killed hard (`taskkill /F`) cannot write its own end line. The
 
 - **It must not block Servex.** The sweep runs inside Servex, so a blocking call stalls every route and every agent's prompt hook (the SDK gives a hook 30 s). The process list is read with async `execFile` (`processes_async()`), and `task_for_worktree()` reads one task-log index kept 30 s (`Server/worktree-sweep.mjs`) instead of re-walking `ai/` per worktree (that was ~20 s of frozen event loop per sweep). Measure stalls with the gaps between the 5-second heartbeat lines in `logs/crumbs.log`.
 
+- **A wedged sweep recovers.** The process scan has a 30 s timeout and `reaper()` clears a sweep that has run over 3 min, so one hung PowerShell cannot silence the reaper.
+- **Idle worktree servers stop themselves** after 30 quiet minutes, and `node Server/worktree-servers.mjs` lists and clears stale ones by hand: [Server/doc/worktree-servers.md](../../Server/doc/worktree-servers.md).
+
 Every close writes an `end` line whose `why` says the reason in plain words.
 
 ## 3. What is never touched

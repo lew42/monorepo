@@ -5,3 +5,8 @@
 {"file":"failures.jsonl"}
 {"file":"readme.md"}
 {"file":"failures.jsonl","gone":true}
+{"file":"fixture/"}
+{"file":"placement.js"}
+{"file":"placement.test.mjs"}
+{"file":"public/"}
+{"file":"public/","gone":true}

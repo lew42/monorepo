@@ -230,3 +230,6 @@ public/framework/core/Test/save-results.jsonl
 
 # ChatV2.test.mjs writes a per-run live copy of its fixture and deletes it at the end; a killed run would leave it
 public/framework/ext/Chat/v2/fixture/live-*.jsonl
+
+# ChatV3.test.mjs does the same beside the v3 fixture
+public/framework/ext/Chat/v3/fixture/live-*.jsonl

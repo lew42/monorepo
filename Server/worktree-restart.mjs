@@ -116,7 +116,8 @@ console.log(`worktree-restart: booting node server.js in ${entry.path} on PORT $
  * inherit. Start-Process must not get -RedirectStandardOutput/-Error: that
  * forces a fresh console per launch regardless of -WindowStyle. */
 const cmdline = `/d /c ""${process.execPath}" server.js >>"${log_path}" 2>>"${log_path}.err""`;
-const ps = `$env:PORT='${entry.port}'; $p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${entry.path.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
+const idle_min = new RegExp(`^${process.env.SERVEX_POOL_PREFIX || "qf"}-\\d+$`).test(name) ? 0 : Number(process.env.WORKTREE_IDLE_MIN ?? 30);   // as worktree-up.mjs
+const ps = `$env:PORT='${entry.port}'; ${idle_min > 0 ? `$env:IDLE_EXIT_MIN='${idle_min}'; ` : ""}$p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${entry.path.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
 const started = spawnSync("powershell.exe", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
 if (started.stderr?.trim()) console.error("worktree-restart: launcher said:", started.stderr.trim());
 const pid = Number(String(started.stdout).trim()) || null;

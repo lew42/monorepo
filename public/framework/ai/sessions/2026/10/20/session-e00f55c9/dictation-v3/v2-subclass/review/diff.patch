@@ -1,0 +1,1480 @@
+diff --git a/public/framework/core/Session/Chat/doc/views-on-messages.md b/public/framework/core/Session/Chat/doc/views-on-messages.md
+index 4fc282e3d..0f5a6694e 100644
+--- a/public/framework/core/Session/Chat/doc/views-on-messages.md
++++ b/public/framework/core/Session/Chat/doc/views-on-messages.md
+@@ -29,9 +29,9 @@ The owner's wake rules ([turn-taking.md](/framework/ux/Dictate/doc/turn-taking.m
+ ## The steps, one merge each
+ 
+ 1. **V3 on messages — done, merged (`mastermind-v3-messages`, 2026-11-01).** `ext/Chat/v3/ChatV3.js` draws `session.messages` (Prompt with its sentences, Replies found by `re.to` under it), tasks/questions beside through the Prompt message's `prompt` link. Paragraphs are pause-based (`placement.js`, `PARAGRAPH_GAP_MS`), not "one per sent chunk". Proof: `placement.test.mjs` (18 node checks on a real-session fixture) + `ChatV3.test.mjs` (16 Playwright checks, incl. live append). Readme: [ext/Chat/v3/readme.md](/framework/ext/Chat/v3/readme.md).
+-2. **V2 on messages.** Same swap in V2; drop the `{chat}` lookup in `ChatV2Model`; keep the marks on the task.
++2. **V2 on messages — done, merged (`mastermind-v2-subclass`, 2026-11-01).** `ChatV2` is now `class ChatV2 extends ChatV3`: it draws `session.messages` like V3, adding the ✓/🧠 marks (still read off the Prompt TASK through a small `{chat}`/`{sent}` tracker, step 3 moves them to the message) and a Reply drawn beside the sentence it answers in dictation mode. `ChatV2Model.js` and the old task-shaped fixture moved to `v2/old/` — V1's `chat.js` still imports the model (it hasn't moved to messages yet, step 5). Step 4 (one view) folds into this step, as decided below. Readme: [ext/Chat/v2/readme.md](/framework/ext/Chat/v2/readme.md).
+ 3. **One home for the marks.** Move `sent.fast`, `sent.smart` and `working` onto the Prompt message (a new field, written by `Sessions.mark_sent` through `ChatWriter`), and make 🧠 "answered" in both views. Then V2's per-Prompt ✓ can become per-sentence.
+-4. **One view.** If dictation-v3 agrees (below), V2 and V3 become one class over the same model with two skins; otherwise two skins on one shared model class.
++4. **One view — folded into step 2** (decided below, "Open questions, answered" (2)): V2 is a ChatV3 subclass, not a second class over a shared model.
+ 5. **V1 switches** ([pseudo-properties.md](pseudo-properties.md), the plan), then `{chat}` / `{place}` stop.
+ 6. **The fast seat's comma feed** (owner item 30). `Mic.js` posts each sub-sentence piece of the live text as its own event (for example a `piece` line), separate from the message. `Sessions.js` routes only those pieces to the fast seat (`voice_say`, around line 495). Messages and the smart seat stay per sentence. Medium change; **after step 5's data cut-over** so it is built once, on the new data.
+ 
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index 84edff221..f0342af2b 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -38,7 +38,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - `Mic.js` / `strip.js`: the composer's mic (`ComposerMic`) and its pure already-sent word-dedup (`strip_words`, `strip_sent`), node-testable in `strip.test.mjs` with no browser.
+ - `Drill.js`: Deep-dive modal shell for inspecting sub-cards.
+ - [`list/`](./list/readme.md): the simplest live view of a session's real chat list, `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)): one bubble per message, in the list's order, drawn from the list's lines alone; demo at `/framework/ext/Chat/list/`.
+-- [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown as V2 in the version dropdown of the ✦ sheet and the drawer, and a chip on the session page's Chat tab, live demo at `/framework/ext/Chat/v2/`.
++- [`v2/`](./v2/readme.md): Chat v2, `class ChatV2 extends ChatV3` (step 2 of [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md), 2026-11-01): draws `session.messages` like V3, adding only the ✓/🧠 marks and a Reply drawn beside the sentence it answers; shown as V2 in the version dropdown of the ✦ sheet and the drawer, and a chip on the session page's Chat tab, live demo at `/framework/ext/Chat/v2/`.
+ - **Links in a chat bubble** (`md.js` `site_path()`): a link to this site, under any of its hosts, becomes a site path with no new tab, so `core/Router` opens it in place and dictation keeps running; the gateway key is dropped; other sites open in a new tab.
+ - [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)), with the Replies that answer it (found by `re.to`) inside it, the reply being written, pause-based paragraphs, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`. The one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; step 2 makes v2 its subclass).
+ - `roles.js`: Sender avatars and badges.
+diff --git a/public/framework/ext/Chat/v2/ChatV2.css b/public/framework/ext/Chat/v2/ChatV2.css
+index 04b882e83..9d509ca0c 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.css
++++ b/public/framework/ext/Chat/v2/ChatV2.css
+@@ -1,66 +1,16 @@
+ @layer base, theme, site, util;
+ 
++/* ChatV2 is a ChatV3 subclass (ChatV2.js): it draws ChatV3's own markup (`.chat-v3-*`, styled by ../v3/ChatV3.css, loaded
++   alongside this file — the page wraps the box in both "chat-v3 chat-v2" classes). This file adds only what V2 adds on top:
++   the ✓/🧠 marks and a sentence drawn with its Reply beside it. The two cursor marks are shared with V1 (../cursors.css). */
+ @layer site {
+-	/* The chat column: one readable measure, centred; each prompt sits at its root as a card (surface background, a line, a small radius), no bubble. */
+-	.chat-v2 { display: flex; flex-direction: column; gap: calc(var(--gap, 1rem) * 2); max-width: 46rem; margin-inline: auto; padding: var(--pad, 1rem); padding-block-end: calc(var(--pad, 1rem) * 4); }
+-	.chat-v2-empty { color: var(--subtle); }
+-	.chat-v2-prompt { display: flex; flex-direction: column; gap: .6em; background: var(--surface); border: 1px solid var(--line); border-radius: .6em; padding: var(--pad, 1rem); }
+-	/* head/raw-wrap/nest are the three parts a live patch can re-render on their own (ChatV2.patch): empty ones take no space. */
+-	.chat-v2-head, .chat-v2-raw-wrap { display: flex; flex-direction: column; gap: .6em; }
+-	.chat-v2-head:empty, .chat-v2-raw-wrap:empty, .chat-v2-nest:empty { display: none; }
+-	.chat-v2-title { margin: 0; font-size: 1.15em; }
+-	.chat-v2-text, .chat-v2-reply-text, .chat-v2-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
+-	.chat-v2-label { color: var(--subtle); display: block; margin-top: .4em; }
+-	.chat-v2-toggle { align-self: flex-start; background: none; border: 0; padding: 0; min-height: 44px; margin-block: -.8em; color: var(--subtle); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85em; }
+-	.chat-v2-toggle:hover { color: inherit; }
+-	.chat-v2-raw { display: flex; flex-direction: column; gap: .4em; padding-left: 1em; border-left: 2px dotted var(--line); }
+-	.chat-v2-raw-line { margin: 0; color: var(--final-ink); font-style: italic; overflow-wrap: anywhere; }   /* written to the session, so full ink (framework.css pair) */
+-	/* The live card, before anything is sent (views-fix item 2, 2026-11-01): the same shape as a landed
+-	   .chat-v2-prompt, dashed so it reads as "not yet real" like V3's own draft card. */
+-	.chat-v2-draft { border-style: dashed; }
+-	.chat-v2-draft-text { overflow-wrap: anywhere; line-height: 1.45; }
+-	.chat-v2-draft-text.is-moving { color: var(--final-ink); }
+-	.chat-v2-guess { color: var(--draft-ink); }   /* framework.css: the dim-to-strong pair */
+-	/* A sentence and the replies anchored to it: side by side when there is room, stacked on a phone. */
+-	.chat-v2-sentence { display: grid; grid-template-columns: minmax(0, 1fr); gap: .4em 1.2em; }
++	.chat-v2-marks { display: inline-flex; gap: .3em; align-items: baseline; flex: none; }
++
++	/* A sentence row (dictation mode only, no refined text yet): the words, and any Reply anchored to it beside them —
++	   side by side when there is room, stacked on a phone, same breakpoint idea as the old chat-v2-sentence. */
++	.chat-v2-sentence { display: grid; grid-template-columns: minmax(0, 1fr); gap: .3em 1rem; }
+ 	.chat-v2-sentence:has(.chat-v2-beside) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+ 	.chat-v2-sentence-text { overflow-wrap: anywhere; }
+-	/* B(ii)'s actual cause, fixed here: `.chat-v2-head`'s own `gap: .6em` (above) applied EQUALLY between
+-	   every sentence row, with no paragraph grouping at all — so even two sentences the fast seat placed
+-	   in the SAME paragraph (today, that is every sentence: it never answers "paragraph") read as two
+-	   separate paragraphs, purely from this renderer's spacing. Not the fast seat's text, not the raw
+-	   Prompt record (prompt-record.md confirms `{place}` is 100% "same" in the real session checked).
+-	   Pull same-paragraph rows close; a NEW paragraph (B(iii)) restores the full gap as a real break. */
+-	.chat-v2-sentence { margin-block-start: -.45em; }
+-	/* :first-child only matched when a prompt has no title — a title's `h3` is the actual first child of
+-	   `.chat-v2-head`, so the first sentence tucked up into it (review round 4 finding 4). An adjacent-
+-	   sibling selector reaches the right element regardless of what, if anything, sits before it. */
+-	.chat-v2-title + .chat-v2-sentence, .chat-v2-head > .chat-v2-sentence:first-child { margin-block-start: 0; }
+-	.chat-v2-new-paragraph { margin-block-start: .45em; }
+-	.chat-v2-mark { background-image: linear-gradient(var(--mark, #ffe58a), var(--mark, #ffe58a)); color: inherit; border-radius: 2px; padding: .1em .25em; }
+-	.chat-v2-beside { display: flex; flex-direction: column; gap: .5em; }
+-	/* Everything the smart assistant made from the prompt, nested under it with the brain. */
+-	.chat-v2-nest { display: flex; flex-direction: column; gap: .6em; padding-left: 1.2em; border-left: 2px solid var(--line); margin-left: .5em; }
+-	.chat-v2-reply, .chat-v2-child { display: flex; gap: .5em; align-items: flex-start; }
+-	.chat-v2-brain { flex: 0 0 auto; }
+-	.chat-v2-body { display: flex; flex-direction: column; gap: .3em; min-width: 0; flex: 1 1 auto; }
+-	.chat-v2-quote { margin: 0; padding-left: .6em; border-left: 2px solid var(--line); color: var(--subtle); font-size: .9em; overflow-wrap: anywhere; }
+-	.chat-v2-child-head { display: flex; align-items: center; flex-wrap: wrap; gap: .4em; }
+-	/* The text goes last and wants 18em: on a phone it drops to its own line under the icon, kind and phase. */
+-	.chat-v2-child-text { order: 1; flex: 1 1 18em; min-width: 0; overflow-wrap: anywhere; }
+-	h3.chat-v2-child-text { margin: 0; }
+-	.chat-v2-kind, .chat-v2-phase { color: var(--subtle); font-size: .8em; text-transform: uppercase; letter-spacing: .04em; }
+-	.chat-v2-state { color: var(--subtle); flex: 0 0 auto; }
+-	.chat-v2-state.is-complete { color: var(--ok, #2a9d4a); }
+-	.chat-v2-state.is-answered, .chat-v2-state.is-waiting { color: var(--task-amber, #e0a100); }
+-	.chat-v2-state.is-open { color: var(--bad, #d33); }
+-	.chat-v2-answer { padding-left: 1.6em; color: var(--subtle); }
+-	/* The two moving cursors (✓/🧠) are one shared class set now: ext/Chat/cursors.css, loaded by
+-	   ChatV2.js (`.chat-cursor`/`.chat-smart-cursor`, law 6, review finding 4, 2026-10-25). No "pink"
+-	   token exists anywhere in the framework's CSS (checked styles/*.css) — `--warn` is the closest
+-	   EXISTING distinct colour, used as the stand-in the owner asked to confirm (result.md). */
+-	/* ONE pulsing 🧠 at the bottom of the whole chat — a fallback only, hidden once a Prompt exists to carry the smart cursor above. */
+-	.chat-v2-smart-dots { align-self: flex-start; font-size: 1.1em; animation: chat-v2-pulse 1.1s ease-in-out infinite; }
+-	.chat-v2-smart-dots[hidden] { display: none; }
+-	@keyframes chat-v2-pulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
++	.chat-v2-beside { display: flex; flex-direction: column; gap: .4em; }
++	.chat-v2-beside .chat-v3-reply { border-top: none; padding-top: 0; }
+ }
+diff --git a/public/framework/ext/Chat/v2/ChatV2.js b/public/framework/ext/Chat/v2/ChatV2.js
+index ac40cd5f2..86c21940a 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.js
++++ b/public/framework/ext/Chat/v2/ChatV2.js
+@@ -1,339 +1,77 @@
+-// ChatV2.js — a session's chat, read only: its session.jsonl streamed, folded (ChatV2Model) and drawn in list order,
+-// then kept live by patching only what each new line touched (one element per id). Doc: readme.md
+-import View, { div, span, button, h3, mark, blockquote, small, icon } from "/framework/core/View/View.js";
+-import JSONL from "/framework/ext/JSONL/JSONL.js";
+-import TaskView from "/framework/core/Task/TaskView.js";
+-import ChatV2Model from "./ChatV2Model.js";
++// ChatV2.js — `class ChatV2 extends ChatV3` (views-on-messages.md, step 2): everything is ChatV3 (session.messages, a card per
++// Prompt, Replies found by `re.to`, pause-based paragraphs, the live draft). V2 adds only: the ✓/🧠 marks beside the newest
++// Prompt's title, a Reply drawn beside the sentence it answers (instead of in the trailing list), and its own CSS.
++// The marks stay on the Prompt TASK this step (sent.fast/sent.smart; step 3 moves them onto the message): Sessions.mark_sent
++// still writes `{sent:{to,at,re:[owner line "at"...]}}` as a broadcast line, matched to a Prompt TASK id through the V1 `{chat}`
++// line's `prompt` field — the same small lookup ChatV2Model used to do, kept here (not the whole old model) until step 3.
++import View, { span, div } from "/framework/core/View/View.js";
++import ChatV3 from "../v3/ChatV3.js";
++import Prompt from "/framework/core/Session/Chat/Prompt.js";
+ import { cursor_el, smart_cursor_el } from "../cursors.js";
+ View.stylesheet(import.meta, "ChatV2.css");
+ View.stylesheet(import.meta, "../cursors.css");
+ 
+-export default class ChatV2 extends JSONL {
+-	static Model = ChatV2Model;
+-	static QUESTION_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
++export default class ChatV2 extends ChatV3 {
++	prompt_of = new Map();     // an owner line's `at` -> the Prompt TASK id it belongs to, from V1 `{chat}` lines
++	sent_by_task = new Map();  // Prompt TASK id -> {fast?: {at}, smart?: {at}}, from `{sent}` broadcast lines
+ 
+-	lines = [];
+-	read_ids = new Set();   // answered Questions the owner tapped (green ?)
+-	raw_open = new Set();  // prompt ids whose raw text is showing; kept here so a live redraw does not close it
+-	els = new Map();        // id → the View that draws it (a prompt, a child, or a reply)
+-	parts = new Map();      // prompt id → { head, raw, nest }: the three containers a prompt patches separately
+-
+-	// { url: the session.jsonl url, $box: the View to draw into }
++	// Track the V1 `{chat}`/`{sent}` broadcast lines ChatV3 skips (they carry no `session.messages` shape of their own) so the
++	// marks below can still find them, same lookup ChatV2Model used to do; everything else replays exactly as ChatV3 does.
+ 	read(entries){
+-		const first = !this.model;
+-		this.lines.push(...entries);
+-		if (first) { this.draw(); return this; }
+-		for (const entry of entries) this.apply_one(entry);
+-		return this;
+-	}
+-	reset(){ this.lines = []; this.model = null; this.els.clear(); this.parts.clear(); return super.reset(); }   // the file was rewritten: the replay that follows is a first draw
+-	// JSONL.live() starts its stream only after the record's url resolves, so an unsubscribe() before then would miss it: stopped remembers.
+-	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); return this; }
+-	unsubscribe(){ this.stopped = true; this.listen(false); return super.unsubscribe(); }
+-
+-	// The words being spoken right now, before they are sent: faint, last in the chat (views-fix item 2,
+-	// 2026-11-01 -- the same "chat-live" window event ChatV3 already listens to; every composer with a
+-	// mic fires it, so this is the one thing to add, not a second live-guess mechanism, CLAUDE.md law 6).
+-	listen(on){
+-		this._live ??= e => this.draft(e.detail ?? {});
+-		window[on ? "addEventListener" : "removeEventListener"]("chat-live", this._live);
+-	}
+-	draft({ text = "", settled = text, guess = "" } = {}){
+-		if (!this.$box) return;
+-		if (!text) { this.$draft?.el.remove(); this.$draft = null; return; }
+-		if (!this.$draft?.el.isConnected) this.$draft = div.c("chat-v2-prompt chat-v2-draft");
+-		this.$draft.el.replaceChildren();
+-		const t = document.createElement("div"); t.className = "chat-v2-draft-text is-moving";
+-		t.textContent = settled; if (guess) { const g = document.createElement("span"); g.className = "chat-v2-guess"; g.textContent = (settled ? " " : "") + guess; t.append(g); }
+-		this.$draft.el.append(t);
+-		this.draft_at_end();
+-	}
+-	draft_at_end(){ if (this.$draft?.el.isConnected || this.$draft) this.$box?.el.append(this.$draft.el); }
+-
+-	draw(){
+-		this.model = this.constructor.Model.fold(this.lines);
+-		this.els.clear(); this.parts.clear();
+-		const roots = this.model.roots();
+-		// review round 3 finding 1: smart_dots is created OUTSIDE the empty-chat branch, so a session that
+-		// starts with nothing said still has it ready for the first Prompt that arrives later.
+-		this.$box?.empty(() => {
+-			if (!roots.length){ div.c("chat-v2-empty", "Nothing said in this session yet."); this.smart_dots = div.c("chat-v2-smart-dots", "🧠").attr("hidden", ""); return; }
+-			for (const n of roots) this.constructor.Model.kind(n) === "Prompt" ? this.prompt(n) : this.child(n);
+-			this.smart_dots = div.c("chat-v2-smart-dots", "🧠").attr("hidden", "");
+-		});
+-		this.watch_smart();
+-		this.place_cursors();
+-	}
+-
+-	// ONE animated 🧠 at the bottom, round 4 fix: shown whenever SOME Prompt's `working` is fresh (under
+-	// ~10 min old), full stop — never hidden just because a Prompt exists to carry a cursor (round 3's
+-	// mistake). The bottom dots and the smart cursor (place_cursors, below) answer different questions:
+-	// this one says "smart is doing something, somewhere, right now"; the cursor says "here is the one
+-	// newest chunk and whether smart has answered IT". Both can show at once. Checked on every patch and
+-	// a slow timer, since `working.at` ages even with no new line (review finding, round 2).
+-	watch_smart(){
+-		clearInterval(this._smart_timer);
+-		this._smart_timer = setInterval(() => this.update_smart_dots(), 15000);
+-		this.update_smart_dots();
+-	}
+-	update_smart_dots(){
+-		if (!this.smart_dots) return;
+-		const STALE_MS = 10 * 60 * 1000;
+-		const working = [...this.model.by_id.values()].some(n => n.working && Date.now() - (Date.parse(n.working.at ?? 0) || 0) < STALE_MS);
+-		this.smart_dots.el.hidden = !working;
+-	}
+-
+-	// One streamed line, already folded into the model (see read()): patch only what it touched.
+-	// An add appends one new element where it belongs; a field change re-renders only that item's own
+-	// element. Everything else — siblings, the parent's other children, every other prompt — is never
+-	// touched, so it keeps its DOM object (and the page keeps its scroll position).
+-	apply_one(line){
+-		const M = this.constructor.Model, newly_answered = M.newly_answered(this.model, line);
+-		const touch = this.model.apply(line);
+-		if (!touch) return;
+-		this.update_smart_dots();
+-		if (!touch.added) {
+-			this.patch(touch.id);
+-			if (newly_answered === touch.id) this.surface_answered(touch.id);   // a Question just gained its answer: to the root, no transition (the owner, 2026-10-25)
+-			this.place_cursors();
+-			return;
+-		}
+-		const node = this.model.by_id.get(touch.id);
+-		if (!node) return;
+-		if (touch.parent === null) {
+-			this.$box?.el.querySelector(":scope > .chat-v2-empty")?.remove();
+-			if (M.kind(node) === "Prompt") {
+-				this.$box?.append(() => this.prompt(node));
+-				if (this.smart_dots) this.$box.el.append(this.smart_dots.el);   // keep the one bottom indicator last
+-				this.place_cursors();
+-				return;
+-			}
+-			const home = node.from && this.parts.get(node.from);   // a root Task or Question whose `from` names a drawn prompt sits in its nest (ChatV2Model.children)
+-			home ? home.nest.append(() => this.child(node)) : this.$box?.append(() => this.child(node));
+-			return;
+-		}
+-		const owner = this.parts.get(touch.parent);
+-		if (!owner) return;   // the parent isn't a drawn prompt (deeper nesting the view never shows)
+-		touch.reply ? this.insert_reply(touch.parent, node) : owner.nest.append(() => this.child(node));
+-	}
+-
+-	// A Question that just gained its answer surfaces at the ROOT of the chat (not just the end of its own
+-	// prompt's nest — review round 2, 2026-10-25), the same spot a reload already draws it (ChatV2Model's
+-	// roots()/children()): its own element, pulled out of wherever it sits and appended to the root box,
+-	// right before the bottom 🧠 dots (which must stay last). A plain move, no transition.
+-	surface_answered(id){
+-		const el = this.els.get(id)?.el, box = this.$box?.el;
+-		if (!el || !box) return;
+-		this.smart_dots ? box.insertBefore(el, this.smart_dots.el) : box.appendChild(el);
+-	}
+-
+-	// A reply beside its sentence when sentences are shown for its prompt right now, else listed in the nest.
+-	insert_reply(prompt_id, r){
+-		const M = this.constructor.Model, n = this.model.by_id.get(prompt_id), owner = this.parts.get(prompt_id);
+-		if (!owner) return;
+-		const sentences_shown = this.sentences_shown(n);
+-		if (M.anchor(r) && sentences_shown) this.patch(prompt_id);   // re-place beside its sentence
+-		else owner.nest.append(() => this.reply(r, n));
+-	}
+-
+-	// Anchored replies sit beside their sentence while the sentences show (head), else in the nest. When that flips,
+-	// move just those replies, so every other element in the nest keeps its DOM object.
+-	move_anchored(n, owner, shown){
+-		const M = this.constructor.Model, kid = owner.nest.el.querySelector(":scope > .chat-v2-child");
+-		for (const r of M.replies(n).filter(r => M.anchor(r))) {
+-			owner.nest.el.querySelector(`:scope > [data-id="${r.id}"]`)?.remove();
+-			if (shown) continue;
+-			owner.nest.append(() => this.reply(r, n));
+-			owner.nest.el.insertBefore(this.els.get(r.id).el, kid);   // replies come before the children, as in prompt_nest
+-		}
+-	}
+-
+-	// A field changed on an item that is already drawn: re-render only its own element.
+-	patch(id){
+-		const n = this.model.by_id.get(id);
+-		if (!n) return;
+-		const M = this.constructor.Model;
+-		if (this.parts.has(id)) {
+-			const owner = this.parts.get(id), replies = M.replies(n);
+-			owner.head.empty(() => this.prompt_head(n, replies));
+-			owner.raw.empty(() => this.prompt_raw_wrap(n, replies));
+-			const shown = this.sentences_shown(n);   // where anchored replies sit flipped (show raw, or a first title): the nest's list changes too
+-			if (shown !== owner.shown) { owner.shown = shown; this.move_anchored(n, owner, shown); }
+-			// the open Prompt (the last one; nothing newer has started) always stays last, even if a reply or a
+-			// root task landed, as its own item, after it while it kept growing (the owner, 2026-10-25)
+-			if (this.last_prompt()?.id === id) {
+-				const view = this.els.get(id);
+-				if (view && this.$box?.el.lastElementChild !== view.el) {
+-					this.$box.el.append(view.el);
+-					if (this.smart_dots) this.$box.el.append(this.smart_dots.el);
++		for (const raw of entries) {
++			if (raw?.chat?.from?.kind === "owner" && raw.chat.prompt && raw.chat.at) this.prompt_of.set(raw.chat.at, raw.chat.prompt);
++			if (raw?.sent?.to) {
++				for (const at of raw.sent.re ?? []) {
++					const task_id = this.prompt_of.get(at);
++					if (!task_id) continue;
++					const rec = this.sent_by_task.get(task_id) ?? {};
++					rec[raw.sent.to] = { at: raw.sent.at };
++					this.sent_by_task.set(task_id, rec);
+ 				}
+ 			}
+-			return;
+ 		}
+-		if (!n.type) return;   // a reply: nothing here edits one once it is added
+-		const view = this.els.get(id);
+-		if (!view) return;
+-		view.attr("data-phase", M.phase(n));
+-		view.empty(() => this.child_body(n));
+-	}
+-
+-	// One prompt at the root of the chat (no bubble): the refined version, "show raw", then everything it
+-	// led to, nested under the brain. Three containers (head, raw, nest) so a later field change can
+-	// re-render just one of them without disturbing the others.
+-	prompt(n){
+-		const M = this.constructor.Model;
+-		let head, raw, nest;
+-		const view = div.c("chat-v2-prompt", () => {
+-			head = div.c("chat-v2-head", () => this.prompt_head(n, M.replies(n)));
+-			raw = div.c("chat-v2-raw-wrap", () => this.prompt_raw_wrap(n, M.replies(n)));
+-			nest = div.c("chat-v2-nest", () => this.prompt_nest(n, M.replies(n)));
+-		}).attr("data-id", n.id);
+-		this.els.set(n.id, view);
+-		this.parts.set(n.id, { head, raw, nest, shown: this.sentences_shown(n) });
+-		return view;
+-	}
+-
+-	prompt_head(n, replies){
+-		const M = this.constructor.Model, refined = M.refined(n);
+-		if (M.title(n)) h3.c("chat-v2-title", M.title(n));
+-		if (refined && M.text(n)) div.c("chat-v2-text", M.text(n));
+-		if (!refined) this.sentences(n, replies);
+-	}
+-
+-	// TWO moving marks for the whole chat, round 3-4 (supersedes round 2's single ✓ cursor + a 🧠 stamp per
+-	// Prompt): both sit after the NEWEST Prompt only, and both drop off the old Prompt the moment a newer
+-	// one exists — there is never more than one of each on screen.
+-	//   ✓ (fast): light gray once the Prompt exists, green once it has reached the fast seat (`sent.fast`).
+-	//   🧠 (smart): light gray while smart HAS the chunk but has not answered yet (`sent.smart` set, no
+-	//   answer seen) — this covers both "still working" and "sent but not started"; it colours in (the
+-	//   smart-reply colour) ONLY once an actual answer exists: `M.refined(n)` (title/text written) or a
+-	//   reply/question/task added after `sent.smart`'s own timestamp. Round 3 had this backwards (coloured
+-	//   while `!working`, which is also true before smart ever starts) — fixed here (review round 4).
+-	// Caveat, both marks: `sent.fast`/`sent.smart` are PROMPT-level (Sessions.mark_sent fires once per
+-	// Prompt reaching a seat), not per sentence/chunk — the owner's per-chunk ask needs a new Servex line;
+-	// exact shape in proposal.md. Fixed-width slots (ChatV2.css), never shown/hidden by display, so moving
+-	// either mark never reflows the text around it.
+-	cursor_el(){ return this._cursor ??= cursor_el(); }
+-	smart_cursor_el(){ return this._smart_cursor ??= smart_cursor_el(); }
+-	last_prompt(){ const M = this.constructor.Model; const roots = this.model?.roots().filter(n => M.kind(n) === "Prompt") ?? []; return roots.at(-1) ?? null; }
+-	// Has smart actually answered THIS Prompt: its own title/text, or any reply/question/task added since.
+-	smart_answered(n){
+-		const M = this.constructor.Model;
+-		if (M.refined(n)) return true;
+-		const sent_at = Date.parse(n.sent?.smart?.at ?? 0) || 0;
+-		return M.replies(n).some(r => Date.parse(r.ts ?? 0) >= sent_at) || this.model.own_and_from(n).some(k => Date.parse(k.ts ?? 0) >= sent_at);
+-	}
+-	place_cursors(){
+-		const fast = this.cursor_el(), smart = this.smart_cursor_el();
+-		fast.remove(); smart.remove();
+-		const n = this.last_prompt(), owner = n && this.parts.get(n.id);
+-		if (!owner) return;
+-		fast.classList.toggle("done", !!n.sent?.fast);
+-		owner.head.el.append(fast);
+-		if (n.sent?.smart){
+-			smart.classList.toggle("done", this.smart_answered(n));   // gray = has it, not answered yet; coloured = an answer exists
+-			owner.head.el.append(smart);
+-		}
+-	}
+-
+-	prompt_raw_wrap(n, replies){
+-		const M = this.constructor.Model, open = this.raw_open.has(n.id);
+-		const hidden = [...M.raw(n), ...(M.refined(n) ? M.paragraphs(n) : [])].length > 0;
+-		if (hidden) button.c("chat-v2-toggle", open ? "hide raw" : "show raw").attr("type", "button").attr("aria-expanded", String(open))
+-			.click(() => { open ? this.raw_open.delete(n.id) : this.raw_open.add(n.id); this.patch(n.id); });
+-		if (open) div.c("chat-v2-raw", () => {
+-			small.c("chat-v2-label", "What was said (raw)");
+-			for (const line of M.raw(n)) blockquote.c("chat-v2-raw-line", line);
+-			if (M.refined(n)) { small.c("chat-v2-label", "Cleaned into paragraphs"); this.sentences(n, replies); }
+-		});
+-	}
+-
+-	// The sentence rows show when there is no refined version yet, or "show raw" is open; an anchored reply then sits beside its sentence, not in the nest.
+-	sentences_shown(n){ return !this.constructor.Model.refined(n) || this.raw_open.has(n.id); }
+-
+-	prompt_nest(n, replies){
+-		const M = this.constructor.Model, sentences_shown = this.sentences_shown(n);
+-		const listed = replies.filter(r => !sentences_shown || !M.anchor(r));
+-		listed.forEach(r => this.reply(r, n));
+-		this.model.children(n).forEach(k => this.child(k));
+-	}
+-
+-	// The paragraphs as sentence rows; a reply anchored to a sentence sits beside it (below it on a phone).
+-	// Round 3, ask B(iii): which paragraph a sentence landed in is now VISIBLE — a real gap (margin, CSS)
+-	// opens before the first sentence of a paragraph after the first, and every sentence's title names its
+-	// paragraph letter and index (e.g. "paragraph b, sentence 2") — a hover away, never reflowing the row.
+-	sentences(n, replies){
+-		const M = this.constructor.Model;
+-		let last_para = null;
+-		// A sentence that became a Question card shows only as the card (view only; the log keeps it) — own_and_from(),
+-		// not children(), so the sentence stays hidden even once an answered Question has surfaced at the root.
+-		const asked = new Set(this.model.own_and_from(n).filter(k => M.kind(k) === "Question")
+-			.flatMap(k => [k.anchor?.sentence, k.sentence, ...(k.cites ?? [])]).filter(Boolean));
+-		for (const s of M.sentences(n)) {
+-			if (asked.has(s.id)) continue;
+-			const here = replies.filter(r => M.anchor(r)?.sentence === s.id);
+-			const new_para = s.para !== last_para && last_para !== null;
+-			last_para = s.para;
+-			div.c("chat-v2-sentence" + (new_para ? " chat-v2-new-paragraph" : ""), () => {
+-				div.c("chat-v2-sentence-text", () => this.words(s.text, here.map(r => M.words_range(M.anchor(r))).find(Boolean)))
+-					.attr("title", `paragraph ${s.para}, sentence ${s.n}`);
+-				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r, n, false)));
+-			}).attr("data-sentence", s.id).attr("data-paragraph", s.para);
+-		}
+-	}
+-
+-	// A sentence's text, with the words a reply points at marked ([start, end): end exclusive).
+-	words(text, range){
+-		if (!range) return span(text);
+-		const w = text.split(/\s+/), [a, b] = range;
+-		if (a > 0) span(w.slice(0, a).join(" ") + " ");
+-		mark.c("chat-v2-mark", w.slice(a, b).join(" "));
+-		if (b < w.length) span(" " + w.slice(b).join(" "));
+-	}
+-
+-	reply(r, prompt, quote = true){
+-		const view = div.c("chat-v2-reply", () => this.reply_body(r, prompt, quote)).attr("data-id", r.id);
+-		this.els.set(r.id, view);
+-		return view;
+-	}
+-
+-	reply_body(r, prompt, quote){
+-		const M = this.constructor.Model, a = M.anchor(r), s = a && M.sentences(prompt).find(x => x.id === a.sentence);
+-		span.c("chat-v2-brain", "🧠").attr("title", r.by ?? "the smart assistant");
+-		div.c("chat-v2-body", () => {
+-			if (quote && s) blockquote.c("chat-v2-quote", () => this.words(s.text, M.words_range(a)));
+-			div.c("chat-v2-reply-text", r.text);
+-		});
+-	}
+-
+-	// A Question or a Task under a prompt, or (once answered) surfaced at the root: its state as one icon,
+-	// its text, and a Question's answer under it. `data-from` is the one hint back to its prompt — reusing
+-	// the field the model already carries, not a new label system (review round 2, 2026-10-25).
+-	child(n){
+-		const view = div.c("chat-v2-child", () => this.child_body(n)).attr("data-id", n.id).attr("data-phase", this.constructor.Model.phase(n));
+-		if (n.from) view.attr("data-from", n.from);
+-		this.els.set(n.id, view);
+-		if (this.constructor.Model.kind(n) === "Question") view.click(() => {
+-			if (this.constructor.Model.phase(n) === "open") return;
+-			this.read_ids.has(n.id) ? this.read_ids.delete(n.id) : this.read_ids.add(n.id);
+-			this.patch(n.id);
+-		});
+-		return view;
+-	}
+-
+-	child_body(n){
+-		const M = this.constructor.Model, phase = M.phase(n), question = M.kind(n) === "Question", answer = question && M.answer(n);
+-		// A Question's avatar IS its state icon (amber ? while open, green once answered); a Task's avatar is its checkbox.
+-		if (question) {
+-			// red = asked, yellow = answered, green = answered and tapped (read; kept in this tab only, tap again to undo)
+-			const read = phase !== "open" && (phase === "complete" || this.read_ids.has(n.id));
+-			icon("help_outline").ac("chat-v2-state", "is-" + (read ? "complete" : phase));		}
+-		else icon(TaskView.STAGE[phase] ?? "help").ac("chat-v2-state", "is-" + phase);   // a Task's avatar IS its state checkbox
+-		div.c("chat-v2-body", () => {
+-			div.c("chat-v2-child-head", () => {
+-				(question ? h3 : span).c("chat-v2-child-text", M.label(n));
+-			});
+-			if (answer) div.c("chat-v2-answer", answer.text);
+-		});
++		return super.read(entries);
++	}
++	reset(){ this.prompt_of.clear(); this.sent_by_task.clear(); return super.reset(); }
++
++	// The ✓ (fast)/🧠 (smart) marks, moving: both sit beside the title of the NEWEST Prompt only (never more than one of
++	// each on screen), read through its Prompt TASK (`p.prompt`). ✓ colours once the fast seat has the line (`sent.fast`);
++	// 🧠 colours once an answer actually exists — a Reply after `sent.smart.at`, or the Prompt's own title/text
++	// (views-on-messages.md, "One meaning for the brain icon"). Gray while sent but not yet answered.
++	marks(p){
++		const newest = this.card_roots().filter(r => r instanceof Prompt).at(-1);
++		if (p !== newest) return null;
++		const sent = p.prompt && this.sent_by_task.get(p.prompt);
++		if (!sent) return null;
++		const wrap = span.c("chat-v2-marks");
++		if (sent.fast || sent.smart) { const fast = cursor_el(); fast.classList.toggle("done", !!sent.fast); wrap.el.append(fast); }
++		if (sent.smart) { const smart = smart_cursor_el(); smart.classList.toggle("done", this.smart_answered(p, sent.smart.at)); wrap.el.append(smart); }
++		return wrap;
++	}
++	smart_answered(p, sent_at){
++		if (p.text) return true;
++		const at = Date.parse(sent_at ?? 0) || 0;
++		if (this.replies_of(p).some(r => (Date.parse(r.at ?? 0) || 0) >= at)) return true;
++		const task = this.task_for(p);
++		return task ? [...(task._tasks ?? []), ...this.nested_tasks(task)].length > 0 : false;
++	}
++
++	// One paragraph, as sentence rows (not one joined string): a Reply with `re.to` naming this sentence is drawn right
++	// beside it, instead of in the trailing list after the whole card (ChatV3.trailing_replies, overridden below).
++	paragraph(group, p){
++		div.c("chat-v3-para", () => group.forEach(s => {
++			div.c("chat-v2-sentence", () => {
++				div.c("chat-v2-sentence-text", p.clean[s.id] ?? s.text);
++				const here = this.replies_of(p).filter(r => r.re?.to === s.id);
++				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r)));
++			}).attr("data-sentence", s.id);
++		}));
++	}
++	// Dictation mode (no refined text yet) draws every reply beside its sentence (paragraph(), above); once a Prompt has
++	// refined text, sentence rows never show, so replies stay in the normal trailing list, exactly as ChatV3 draws them.
++	trailing_replies(p){
++		if (p.text) return super.trailing_replies(p);
++		const anchored = new Set(p.sentence_items.map(s => s.id));
++		return this.replies_of(p).filter(r => !anchored.has(r.re?.to));
+ 	}
+ }
+diff --git a/public/framework/ext/Chat/v2/ChatV2.test.mjs b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+index d7520d342..3629299ca 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.test.mjs
++++ b/public/framework/ext/Chat/v2/ChatV2.test.mjs
+@@ -1,191 +1,77 @@
+-// node ChatV2.test.mjs [base-url] [shots-dir] — headless: order, nesting, show raw, live append, in-place patching. Needs the global playwright and the dev server.
++// node ChatV2.test.mjs [base-url] [shots-dir] — headless: ChatV2 is now a ChatV3 subclass (views-on-messages.md step 2),
++// drawn from the SAME fixture as V3 (session.messages, fixture/messages-session.jsonl, a copy of V3's own plus a few
++// {chat}/{sent} broadcast lines so the ✓/🧠 marks have something to read). Proves what V2 adds on top of V3: the marks
++// (only on the newest Prompt), a Reply drawn beside the sentence it answers, and live append. Needs the global playwright
++// and the dev server.
+ import { browser as get_browser, close as close_browser } from "../../../../../Server/Browser.mjs";
+ import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
+-import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
+ 
+-const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
+-// The live copy goes in the tree the site at `base` serves: with no url that is the main tree (first in `git worktree list`), even when
+-// this file runs from a worktree or merge.mjs's .merge-base checkout; with a url, this checkout. One name per run, so two runs never share a file.
+-const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
+-const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
+-const served = process.argv[2] || process.env.SITE_URL || !main_tree ? here + "fixture/" : `${main_tree}/${rel}`;
+-const dir = here + "fixture/", name = `live-${process.pid}.jsonl`, copy = served + name, src = `/framework/ext/Chat/v2/fixture/${name}`;
++const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
++const here = fileURLToPath(new URL(".", import.meta.url));
++const fixture = here + "fixture/messages-session.jsonl", live = `live-v2-${process.pid}.jsonl`;
+ let pass = 0, fail = 0;
+ const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
+ 
+-copyFileSync(dir + "session.jsonl", copy);
+-const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });
++copyFileSync(fixture, here + "fixture/" + live);
++const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1920, height: 1200 } });
+ const errors = []; page.on("pageerror", e => errors.push(String(e)));
+ const ids = sel => page.$$eval(sel, els => els.map(e => e.dataset.id));
+-const tap = sel => page.$eval(sel, e => e.click());   // the dev drawer overlays the page at 1920: click the element itself
+-const on_chat = () => page.waitForSelector(".chat-v2-prompt", { timeout: 15000 });
++const tap = sel => page.$eval(sel, e => e.click());
++const ready = () => page.waitForSelector(".chat-v3-prompt", { timeout: 15000 });
++const src = `/framework/ext/Chat/v2/fixture/${live}`;
++const first = ".chat-v3-prompt[data-id='m-1793586471880']", newest = ".chat-v3-prompt[data-id='m-1793586760769']";
+ 
+ try {
+-	// 1. the fixture page: prompts in file order, replies and cards under their prompt
+-	await page.goto(`${base}/framework/ext/Chat/v2/`); await on_chat();
+-	check("three prompts, in file order", JSON.stringify(await ids(".chat-v2 > .chat-v2-prompt")) === JSON.stringify(["p-1761382800000", "p-1761382900000", "p-1761382950000"]), await ids(".chat-v2 > .chat-v2-prompt"));
+-	const first = ".chat-v2-prompt[data-id='p-1761382800000']";
+-	check("refined title shown", (await page.textContent(first + " .chat-v2-title")).includes("refined prompt first"));
+-	check("plain reply sits under its prompt", await page.$(first + " .chat-v2-nest [data-id='r-1761382840000']") !== null);
+-	check("anchored reply is in the prompt, with its quote and marked words", (await page.textContent(first + " .chat-v2-nest [data-id='r-1761382830000'] .chat-v2-mark")) === "The raw words");
+-	// Both questions under the first prompt are already answered in the fixture (one inline, one by a later root
+-	// line) — resurface (review round 2) surfaces an answered Question to the ROOT, so only the 2 tasks nest here.
+-	check("children: 2 tasks under the first prompt (both questions already answered, surfaced at the root)", (await page.$$(first + " .chat-v2-nest > .chat-v2-child")).length === 2);
+-	check("answered question phase", await page.getAttribute("[data-id='q-1761382835000']", "data-phase") === "answered");
+-	check("question answered by a later line", await page.getAttribute("[data-id='q-1761382836000']", "data-phase") === "answered");
+-	check("both surfaced at the root, in the order they were answered", JSON.stringify(await page.$$eval(".chat-v2 > [data-phase='answered']", els => els.map(e => e.dataset.id))) === JSON.stringify(["q-1761382835000", "q-1761382836000"]));
+-	check("a surfaced question keeps the hint back to its prompt (data-from)", await page.getAttribute("[data-id='q-1761382835000']", "data-from") === "p-1761382800000");
+-	check("done task", await page.getAttribute(first + " [data-id='t-1761382837000']", "data-phase") === "complete");
+-	check("open task (running)", await page.getAttribute(first + " [data-id='t-1761382838000']", "data-phase") === "running");
+-	const second = ".chat-v2-prompt[data-id='p-1761382900000']";
+-	check("paragraph-only prompt shows its paragraphs as sentences", (await page.$$(second + " .chat-v2-sentence")).length === 2);
+-	check("root Question with `from` sits under its prompt, open", await page.getAttribute(second + " [data-id='q-1761382910000']", "data-phase") === "open");
+-	const third = ".chat-v2-prompt[data-id='p-1761382950000']";
+-	check("a `subject` with no `title` reads as the title (Prompt.label's order)", (await page.textContent(third + " .chat-v2-title")) === "A quick aside about naming");
+-	check("an anchor given as {from,to} marks the same words as {words}", (await page.textContent(third + " .chat-v2-nest [data-id='r-1761382955000'] .chat-v2-mark")) === "Call it");
+-	check("raw hidden by default", (await page.$(first + " .chat-v2-raw")) === null);
+-	await tap(first + " .chat-v2-toggle");
+-	check("show raw reveals the whisper text", (await page.textContent(first + " .chat-v2-raw")).includes("yeah so I think the chat"));
+-	check("show raw moves the anchored reply beside its sentence, drawn once", (await page.$$("[data-id='r-1761382830000']")).length === 1 && await page.$(first + " .chat-v2-beside [data-id='r-1761382830000']") !== null);
+-	check("raw open: anchored reply now sits beside its sentence", await page.$(first + " .chat-v2-sentence[data-sentence='a2'] .chat-v2-beside [data-id='r-1761382830000']") !== null);
++	// 1. the fixture, read-only: card order and nesting are exactly ChatV3's own (no bubbles, Replies/Tasks inside their Prompt).
++	await page.goto(`${base}/framework/ext/Chat/v2/`); await ready();
++	check("six prompts, in the chat list's own order (same as V3)", JSON.stringify(await ids(".chat-v3 > .chat-v3-card")) === JSON.stringify([
++		"m-1793586471880", "m-1793586544363", "m-1793586591861", "m-1793586626953", "m-1793586755261", "m-1793586760769",
++	]), await ids(".chat-v3 > .chat-v3-card"));
++	check("a Question still nests under its Prompt (through the task link), not at the root", await page.$(first + " .chat-v3-nest [data-id='q-1793586471874']") !== null);
++
++	// 2. the marks: only the NEWEST Prompt carries them, even when an older one has sent/answered data too.
++	check("the oldest prompt has sent/answered data in the fixture but shows no marks (not the newest)", await page.$(first + " .chat-v2-marks") === null);
++	check("the newest prompt shows both marks", await page.$(newest + " .chat-v2-marks .chat-cursor") !== null && await page.$(newest + " .chat-v2-marks .chat-smart-cursor") !== null);
++	check("✓ is done (fast has the line)", await page.$eval(newest + " .chat-cursor", e => e.classList.contains("done")));
++	check("🧠 is done (a reply already answers it)", await page.$eval(newest + " .chat-smart-cursor", e => e.classList.contains("done")));
++
++	// 3. replies drawn beside the sentence they answer (re.to), not in the trailing list — the first prompt has two
++	// replies, both anchored to its first sentence, plus two more sentences pushed later with no reply.
++	check("three sentence rows (the original plus two pushed live in the fixture)", (await page.$$(first + " .chat-v2-sentence")).length === 3);
++	check("both replies sit beside the sentence they answer", (await page.$$(first + " [data-sentence='s-1793586471880'] .chat-v2-beside .chat-v3-reply")).length === 2);
++	check("a reply drawn beside its sentence is not ALSO drawn in the trailing list", (await page.$$(first + " .chat-v3-reply")).length === 2);
++	check("a sentence with no reply has no beside box", await page.$(first + " [data-sentence='s-test-2'] .chat-v2-beside") === null);
++
++	// 4. once a Prompt gets refined text, sentence rows (and marks' data source aside) are gone: it draws like plain V3 —
++	// a card with no `title`/`text` but an existing `clean` override still shows "show raw" (ChatV3's own feature).
++	check("a prompt with per-sentence clean overrides has 'show raw' (ChatV3's own feature, unchanged)", await page.$(first + " .chat-v3-toggle") !== null);
++
+ 	if (shots) {
+ 		mkdirSync(shots, { recursive: true });
+-		// The dev drawer covers the page in a headless profile and the page scrolls inside its own frame: hide the drawer, make the window tall.
+ 		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });
+-		await page.setViewportSize({ width: 1920, height: 1500 });
+-		await page.screenshot({ path: shots + "/chat-v2-1920.png" });
+-		await page.setViewportSize({ width: 390, height: 2400 });
+-		await page.screenshot({ path: shots + "/chat-v2-390.png" });
+-		await tap(first + " .chat-v2-toggle");   // raw closed again for the live check
+-		await page.setViewportSize({ width: 1920, height: 1000 });
+-	} else await tap(first + " .chat-v2-toggle");
+-
+-	// 2. live: ?src= a copy of the fixture, append a Prompt, it appears without a reload; raw state survives the redraw
+-	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
+-	check("?src= draws the copy", (await page.$$(".chat-v2 > .chat-v2-prompt")).length === 3);
+-	await tap(first + " .chat-v2-toggle");
++		await page.screenshot({ path: shots + "/chat-v2-1920.png", fullPage: true });
++		await page.setViewportSize({ width: 400, height: 2200 });
++		await page.screenshot({ path: shots + "/chat-v2-400.png", fullPage: true });
++		await page.setViewportSize({ width: 1920, height: 1200 });
++	}
++
++	// 5. live: ?src= a copy of the fixture, append a Prompt with a Reply beside its sentence, no reload.
++	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await ready();
+ 	await page.evaluate(() => { window.__no_reload = true; });
+-	appendFileSync(copy, JSON.stringify({ tasks: { add: { type: "Prompt", id: "p-1761383000000", title: "Appended live", text: "This one arrived after the page loaded.", raw: ["this one arrived"] } } }) + "\n");
+-	appendFileSync(copy, JSON.stringify({ "p-1761383000000": { replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
+-	await page.waitForSelector(".chat-v2-prompt[data-id='p-1761383000000']", { timeout: 15000 });
+-	check("appended prompt appears, last, without a reload", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === "p-1761383000000" && await page.evaluate(() => window.__no_reload === true), await ids(".chat-v2 > .chat-v2-prompt"));
+-	await page.waitForSelector("[data-id='p-1761383000000'] [data-id='r-1761383010000']", { timeout: 15000 });
+-	check("a reply appended to it nests under it", true);
+-	check("an open 'show raw' survives the live redraw", await page.$(first + " .chat-v2-raw") !== null);
+-
+-	// 3. in-place updates: each append patches only what it touched. Every element not named by that
+-	// line keeps its exact DOM object (never recreated) and stays connected; the scroll position holds.
+-	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
+-	// The page scrolls inside its own frame, not the window: find the chat's scrolling ancestor and scroll it mid-page.
+-	await page.setViewportSize({ width: 1920, height: 600 });
+-	await page.evaluate(() => {
+-		let el = document.querySelector(".chat-v2");
+-		while (el && !(el.scrollHeight > el.clientHeight + 50 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
+-		window.__scroller = el ?? document.scrollingElement;
+-		window.__scroller.scrollTop = 300;
+-	});
+-	check("the chat's scroller is scrolled mid-page, so a jump would show", await page.evaluate(() => window.__scroller.scrollTop > 0), await page.evaluate(() => [window.__scroller.className, window.__scroller.scrollTop]));
+-	await page.evaluate(() => {
+-		window.__refs = new Map([...document.querySelectorAll("[data-id]")].map(el => [el.dataset.id, el]));
+-		window.__scroll = [window.scrollY, window.__scroller.scrollTop];
+-	});
+-	const untouched = (...skip) => page.evaluate(skip => {
+-		for (const [id, el] of window.__refs) {
+-			if (skip.includes(id)) continue;
+-			if (document.querySelector(`[data-id="${id}"]`) !== el || !document.body.contains(el)) return id;
+-		}
+-		return null;
+-	}, skip);
+-	const scroll_held = () => page.evaluate(() => window.scrollY === window.__scroll[0] && window.__scroller.scrollTop === window.__scroll[1]);
+-	const live_append = line => appendFileSync(copy, JSON.stringify(line) + "\n");
+-
+-	live_append({ "p-1761382900000": { paragraphs: { append: { id: "c", text: " And scroll to the newest one." } } } });
+-	await page.waitForFunction(() => [...document.querySelectorAll(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-sentence-text")].at(-1)?.textContent.includes("scroll to the newest"), { timeout: 15000 });
+-	check("paragraph append: every other element keeps its DOM object", await untouched() === null, await untouched());
+-	check("paragraph append: scroll position holds", await scroll_held());
+-
+-	live_append({ "p-1761382800000": { replies: { add: { id: "r-1761383100000", text: "One more note.", by: "smart" } } } });
+-	await page.waitForSelector("[data-id='r-1761383100000']", { timeout: 15000 });
+-	check("reply add: every other element keeps its DOM object", await untouched() === null, await untouched());
+-	check("reply add: scroll position holds", await scroll_held());
+-
+-	live_append({ "t-1761382838000": { complete: {} } });
+-	await page.waitForFunction(() => document.querySelector("[data-id='t-1761382838000']")?.getAttribute("data-phase") === "complete", { timeout: 15000 });
+-	check("child task state change: other elements keep their DOM object", await untouched("t-1761382838000") === null, await untouched("t-1761382838000"));
+-	check("child task state change: the touched element shows the new phase", await page.getAttribute("[data-id='t-1761382838000']", "data-phase") === "complete");
+-	check("child task state change: scroll position holds", await scroll_held());
+-
+-	// The same change addressed through the task's prompt, the way the item tool writes it ({"<prompt>":{"<task>":{…}}}).
+-	live_append({ "p-1761382800000": { "t-1761382837000": { start: {} } } });
+-	await page.waitForFunction(() => document.querySelector("[data-id='t-1761382837000']")?.getAttribute("data-phase") === "running", { timeout: 15000 });
+-	check("task changed through its prompt: the task shows the new phase", await page.getAttribute("[data-id='t-1761382837000']", "data-phase") === "running");
+-
+-	live_append({ "q-1761382910000": { answer: { text: "Yes, every time.", by: "smart", at: "2026-10-25T09:03:00Z" } } });
+-	await page.waitForFunction(() => document.querySelector("[data-id='q-1761382910000']")?.getAttribute("data-phase") === "answered", { timeout: 15000 });
+-	check("question answer: other elements keep their DOM object", await untouched("q-1761382910000") === null, await untouched("q-1761382910000"));
+-	check("question answer: the touched element shows the answer", (await page.textContent("[data-id='q-1761382910000'] .chat-v2-answer")).includes("every time"));
+-	check("question answer: scroll position holds", await scroll_held());
+-
+-	live_append({ "p-1761382900000": { title: "One more thing" } });
+-	await page.waitForFunction(() => document.querySelector(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-title")?.textContent === "One more thing", { timeout: 15000 });
+-	check("title set: other elements (its own children included) keep their DOM object", await untouched("p-1761382900000") === null, await untouched("p-1761382900000"));
+-	check("title set: scroll position holds", await scroll_held());
+-
+-	live_append({ "p-1761382800000": { tasks: { add: { type: "Task", id: "t-1761383200000", title: "A task added live", state: "running" } } } });
+-	await page.waitForSelector("[data-id='t-1761383200000']", { timeout: 15000 });
+-	check("new child task: every other element keeps its DOM object", await untouched() === null, await untouched());
+-	check("new child task: scroll position holds", await scroll_held());
+-
+-	live_append({ tasks: { add: { type: "Prompt", id: "p-1761383300000", title: "One more after that", text: "Said once everything above had already landed." } } });
+-	await page.waitForSelector(".chat-v2-prompt[data-id='p-1761383300000']", { timeout: 15000 });
+-	check("new root prompt: appended last", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === "p-1761383300000");
+-	check("new root prompt: every other element keeps its DOM object", await untouched() === null, await untouched());
+-	check("new root prompt: scroll position holds", await scroll_held());
+-
+-	// Most root adds in a real session are plain Tasks, and a Question filed at the root names its prompt in `from`.
+-	live_append({ tasks: { add: { type: "Task", id: "t-1761383400000", title: "A root task added live", state: "idle" } } });
+-	await page.waitForSelector(".chat-v2 > [data-id='t-1761383400000']", { timeout: 15000 });
+-	check("new root task: drawn at the root, other elements keep their DOM object", await untouched() === null, await untouched());
+-	live_append({ tasks: { add: { type: "Question", id: "q-1761383500000", text: "Asked at the root, about the first prompt?", from: "p-1761382800000" } } });
+-	await page.waitForSelector("[data-id='p-1761382800000'] .chat-v2-nest > [data-id='q-1761383500000']", { timeout: 15000 });
+-	check("root question with from: nests under its prompt, other elements keep their DOM object", await untouched() === null, await untouched());
+-	check("root adds: scroll position holds", await scroll_held());
+-
+-	// paragraphs.replace, duplicate paragraphs.add (core's one-paragraph-per-id no-op rule), and raw.push with an array (ChatV2Model fixes, mastermind-dictation-2)
+-	// p-1761382900000 got a title above, so it reads "refined" now; its paragraphs only draw under "show raw".
+-	await tap(second + " .chat-v2-toggle");
+-	const raw_lines_before = (await page.$$(second + " .chat-v2-raw-line")).length;
+-	live_append({ "p-1761382900000": { paragraphs: { replace: { id: "c", text: "Replaced paragraph text entirely." } } } });
+-	await page.waitForFunction(() => [...document.querySelectorAll(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-sentence-text")].some(e => e.textContent.includes("Replaced paragraph")), { timeout: 15000 });
+-	check("paragraphs.replace: rewrites the paragraph in place", true);
+-	live_append({ "p-1761382900000": { paragraphs: { add: { id: "c", text: "A duplicate id must be ignored." } } } });
+-	await page.waitForTimeout(300);
+-	const sentence_texts = await page.$$eval(second + " .chat-v2-sentence-text", els => els.map(e => e.textContent));
+-	check("paragraphs.add with an id already present is a no-op, same as core's List.insert", sentence_texts.some(t => t.includes("Replaced paragraph")) && !sentence_texts.some(t => t.includes("must be ignored")), sentence_texts);
+-	live_append({ "p-1761382900000": { raw: { push: ["one more raw line", "and another"] } } });
+-	await page.waitForFunction(({ sel, n }) => document.querySelectorAll(sel).length === n, { sel: second + " .chat-v2-raw-line", n: raw_lines_before + 2 }, { timeout: 15000 });
+-	check("raw.push with an array appends every string", true);
+-
+-	// 4. The open bubble stays last (the owner, 2026-10-25): a root item that lands between two chunks of the same
+-	// still-growing (last) Prompt must not leave the Prompt stranded above it — the Prompt re-anchors below the
+-	// new item, as the SAME DOM node (never split, never recreated).
+-	const last_prompt_id = "p-1761383300000";
+-	check("setup: the appended prompt is the last root item", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === last_prompt_id);
+-	await page.evaluate(id => { window.__prompt_ref = document.querySelector(`[data-id="${id}"]`); }, last_prompt_id);
+-	live_append({ tasks: { add: { type: "Task", id: "t-open-bubble-1", title: "An update that lands mid-dictation", state: "idle" } } });
+-	await page.waitForSelector(".chat-v2 > [data-id='t-open-bubble-1']", { timeout: 15000 });
+-	check("the new root task lands after the open prompt", (await page.evaluate(() => [...document.querySelectorAll(".chat-v2 > [data-id]")].at(-1).dataset.id)) === "t-open-bubble-1");
+-	live_append({ [last_prompt_id]: { paragraphs: { append: { id: "x", text: " More, after the update landed." } } } });
+-	await page.waitForFunction(id => [...document.querySelectorAll(".chat-v2 > [data-id]")].at(-1)?.dataset.id === id, last_prompt_id, { timeout: 15000 });
+-	check("the still-open prompt re-anchors below the new item, as the same node (never split)",
+-		await page.evaluate(id => document.querySelector(`[data-id="${id}"]`) === window.__prompt_ref, last_prompt_id));
+-	check("exactly one element for the prompt", (await page.$$(`[data-id="${last_prompt_id}"]`)).length === 1);
++	const at = "2026-11-01T20:40:00.000-06:00", sid = "s-live-1";
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: sid, at, text: "A live sentence." } }, messages: { add: { type: "Prompt", id: "m-live-1", by: "owner", at, sentences: [sid] } } }) + "\n");
++	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-1']", { timeout: 15000 });
++	check("appended prompt appears, last, without a reload", (await ids(".chat-v3 > .chat-v3-card")).at(-1) === "m-live-1" && await page.evaluate(() => window.__no_reload === true));
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-2", type: "Reply", by: "smart", at, text: "Seen, live.", re: { to: sid } } } }) + "\n");
++	await page.waitForFunction(sid => document.querySelector(`[data-sentence="${sid}"] .chat-v2-beside`)?.textContent.includes("Seen, live."), sid, { timeout: 15000 });
++	const live_card_replies = await page.$$eval("[data-id='m-live-1'] .chat-v3-reply", els => els.length);
++	check("a live reply lands beside its sentence, drawn exactly once (not also in the trailing list)", live_card_replies === 1, live_card_replies);
+ 
+ 	check("no page errors", errors.length === 0, errors);
+ } finally {
+ 	await close_browser();
+-	rmSync(copy, { force: true });
++	rmSync(here + "fixture/" + live, { force: true });
+ }
+ console.log(`\n${pass} passed, ${fail} failed`);
+ process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v2/ChatV2Model.js b/public/framework/ext/Chat/v2/ChatV2Model.js
+deleted file mode 100644
+index 373d24bdf..000000000
+--- a/public/framework/ext/Chat/v2/ChatV2Model.js
++++ /dev/null
+@@ -1,177 +0,0 @@
+-// ChatV2Model.js — a session.jsonl folded into plain objects, in list order. Every field read the chat does is a method here, so a renamed field or the real Prompt/Question classes (core/Task/Prompt.js) change this one file. See readme.md.
+-import split from "../../../core/Task/sentences.js";
+-import LineKey from "../../../core/Item/LineKey.js";
+-const VERB_STATE = { start: "running", pause: "paused", resume: "running", stop: "stopped", complete: "complete", finish: "complete", wait: "waiting" };
+-
+-export default class ChatV2Model {
+-	root = [];            // entries in the order Node appended them: never sorted
+-	by_id = new Map();
+-
+-	static fold(lines){ const m = new this(); for (const line of lines) m.apply(line); return m; }
+-
+-	// One line: {tasks:{add:entry}} at the root, or {"<id>":{…}} for something already in the list (any depth).
+-	// Returns what it touched (null for a line this model has nothing to do with): {id, parent, added}
+-	// — `added` true for a brand-new node (`parent` is its owner's id, or null at the root); false for a
+-	// field changed on a node that already exists (`parent` is undefined: there is nothing new to place).
+-	apply(line){
+-		if (!line || typeof line !== "object") return null;
+-		line = LineKey.deep(line);   // `start()` and `#c3` read as start and c3 (D13)
+-		// An owner chat line names its prompt: remembered so a later {sent} line (which names the chat line's `at`) finds the prompt.
+-		if (line.chat){ const c = line.chat; if (c.from?.kind === "owner" && c.prompt) (this.prompt_of ??= new Map()).set(c.at, c.prompt); return null; }
+-		// {sent:{to:"fast"|"smart", at, re:[owner line at…], delay_ms}}: that prompt reached an assistant (Servex Sessions.mark_sent).
+-		if (line.sent){
+-			let touch = null;
+-			for (const r of line.sent.re ?? []){
+-				const n = this.by_id.get(this.prompt_of?.get(r));
+-				if (n){ (n.sent ??= {})[line.sent.to] = { at: line.sent.at, delay_ms: line.sent.delay_ms }; touch = { id: n.id, parent: undefined, added: false }; }
+-			}
+-			return touch;
+-		}
+-		if (line.tasks?.add){
+-			const node = this.add(this.root, line.tasks.add);
+-			return node ? { id: node.id, parent: null, added: true } : null;
+-		}
+-		for (const [key, delta] of Object.entries(line)) {
+-			const node = this.by_id.get(key);
+-			if (node && delta && typeof delta === "object") return this.edit(node, delta);
+-		}
+-		return null;
+-	}
+-
+-	add(list, entry){
+-		if (!entry || typeof entry !== "object") return null;
+-		const { tasks = [], ...own } = entry, node = { ...own, kids: [] };
+-		if (node.id) this.by_id.set(node.id, node);
+-		list.push(node);
+-		// Every kid remembers its parent, even one the writer left off `from` — the one hint an answered
+-		// Question keeps once it surfaces at the root (ChatV2.js child(), data-from).
+-		for (const kid of [].concat(tasks)) { const k = this.add(node.kids, kid); if (k && node.id && k.from === undefined) k.from = node.id; }
+-		return node;
+-	}
+-
+-	is_kid(node, id){ const kid = this.by_id.get(id); return !!kid && kid !== node && (node.kids.includes(kid) || (node.id && kid.from === node.id)); }
+-
+-	edit(node, delta){
+-		let touch = { id: node.id, parent: undefined, added: false };
+-		for (const [k, v] of Object.entries(delta)) {
+-			if (k === "tasks") { if (v?.add){ const kid = this.add(node.kids, v.add); if (kid) touch = { id: kid.id, parent: node.id, added: true }; } }
+-			// A child addressed through its parent ({"<prompt>":{"<task>":{"complete":{…}}}}): the change is the child's, not a field on the parent.
+-			// Its kids are its own `tasks` plus root Tasks/Questions whose `from` is its id (`children()`).
+-			else if (this.is_kid(node, k) && v && typeof v === "object") touch = this.edit(this.by_id.get(k), v);
+-			else if (k === "raw" && v !== undefined) {
+-				const more = [].concat(v && typeof v === "object" && !Array.isArray(v) ? v.push ?? [] : v).filter(s => typeof s === "string" && s.length);
+-				if (more.length) (node.raw ??= []).push(...more);
+-			}
+-			else if (k === "paragraphs" && v && !Array.isArray(v)) {
+-				const list = node.paragraphs ??= [];
+-				// An id already present is a no-op, the same rule as core's List.insert (one paragraph per id).
+-				if (v.add && !list.some(x => x.id === v.add.id)) list.push({ ...v.add });
+-				if (v.append) { const p = list.find(x => x.id === v.append.id); if (p) p.text = (p.text ?? "") + v.append.text; else list.push({ ...v.append }); }
+-				if (v.replace) { const p = list.find(x => x.id === v.replace.id); if (p) Object.assign(p, v.replace); else list.push({ ...v.replace }); }
+-			}
+-			else if (k === "replies" && v && !Array.isArray(v)) {
+-				if (v.add) { const r = { ...v.add }; (node.replies ??= []).push(r); if (r.id) this.by_id.set(r.id, r); touch = { id: r.id, parent: node.id, added: true, reply: true }; }
+-			}
+-			else if (VERB_STATE[k] && typeof v === "object") node.state = VERB_STATE[k];
+-			else if (k === "set" && typeof v === "object") Object.assign(node, v);
+-			else node[k] = v;
+-		}
+-		return touch;
+-	}
+-
+-	// --- the field reads: one small method per field ---------------------------------------------------------------------------
+-	static title(n){ return n.title ?? n.subject ?? null; }           // same order as core/Task/Prompt.js's `label`
+-	static text(n){ return n.text ?? null; }
+-	// What a child card shows as its one line: its title, else its text, else its id.
+-	static label(n){ return n.title ?? n.text ?? n.id; }
+-	static refined(n){ return !!(this.title(n) || this.text(n)); }    // the smart assistant's version exists
+-	static raw(n){ return n.raw ?? []; }
+-	static paragraphs(n){ return n.paragraphs ?? []; }
+-	static replies(n){ return n.replies ?? []; }
+-	static anchor(reply){ return reply.anchor ?? null; }
+-	// `words:[start,end)` or `{from,to}` — core's own Reply/anchor shape (end exclusive either way).
+-	static words_range(anchor){ return anchor ? (anchor.words ?? (anchor.from !== undefined ? [anchor.from, anchor.to] : null)) : null; }
+-	static answer(n){ return n.answer ?? null; }
+-	static kind(n){ return n.type ?? "Task"; }
+-	static answered_question(n){ return this.kind(n) === "Question" && !!this.answer(n); }
+-	// The answer's own time — written as `at` (Question.js's documented shape) or `ts` (the fixture's older lines): either reads.
+-	static answered_at(n){ const a = this.answer(n); return a ? Date.parse(a.at ?? a.ts ?? "") || 0 : 0; }
+-
+-	// One static switch (round 2 of the review, 2026-10-25): off is the old behaviour — never sorted, never
+-	// moved, a Question always stays in its prompt's nest. Read by ordered()/children()/roots() here, and by
+-	// ChatV2.apply_one/move_to_end (V2) and chat.js draw_task (V1).
+-	static RESURFACE = true;
+-
+-	// The id a line just answered, direct ({"<id>":{answer:…}}) or through its parent ({"<prompt>":{"<id>":{answer:…}}});
+-	// null for every other line. Used to move that one card, the same signal V1 (Widget.show_task) and V2 (ChatV2.apply_one) read.
+-	static answer_edit(line){
+-		if (!line || typeof line !== "object") return null;
+-		for (const [k, v] of Object.entries(line)) {
+-			if (!v || typeof v !== "object") continue;
+-			if ("answer" in v) return k;
+-			for (const [k2, v2] of Object.entries(v)) if (v2 && typeof v2 === "object" && "answer" in v2) return k2;
+-		}
+-		return null;
+-	}
+-
+-	// answer_edit(line), but only when it is genuinely NEW: a Question that had no answer before this line
+-	// (never a Task, never a second edit replacing one it already had). Call BEFORE model.apply(line) mutates
+-	// the node — the whole reason for the guard is reading its state as it was just before this line.
+-	static newly_answered(model, line){
+-		if (!this.RESURFACE) return null;
+-		const id = this.answer_edit(line), n = id && model.by_id.get(id);
+-		return n && this.kind(n) === "Question" && !this.answer(n) ? id : null;
+-	}
+-
+-	// Answered questions sort after everything else in the list, by WHEN they were answered (answered_at) —
+-	// not where they were asked; everything else (prompts, tasks, an open question) keeps its own arrival
+-	// order, exactly as the list already holds it. A slow answer must never stay buried above cards that
+-	// arrived after it (the owner, 2026-10-25), and two answers land in the order they actually happened.
+-	static ordered(list){
+-		if (!this.RESURFACE) return list;
+-		const head = [], tail = [];
+-		for (const n of list) (this.answered_question(n) ? tail : head).push(n);
+-		tail.sort((a, b) => this.answered_at(a) - this.answered_at(b));
+-		return [...head, ...tail];
+-	}
+-
+-	// A Question: open (no answer) → answered (answer, not complete) → complete, the same rule as core's Question.phase.
+-	// A Task: its own state.
+-	static phase(n){
+-		if (this.kind(n) === "Question") return n.state === "complete" ? "complete" : this.answer(n) ? "answered" : "open";
+-		return n.state ?? "idle";
+-	}
+-
+-	// Sentences are computed, never stored: id = paragraph id + 1-based index (a1, a2, b1), so earlier ids survive appended text.
+-	static sentences(prompt){
+-		const out = [];
+-		for (const para of this.paragraphs(prompt)) {
+-			split(para.text).forEach((text, i) => out.push({ id: para.id + (i + 1), n: i + 1, para: para.id, text }));
+-		}
+-		return out;
+-	}
+-
+-	// A prompt's own tasks plus any root-level Question/Task whose `from` is its id, in list order — the raw
+-	// union children()/sentences() both start from, answered or not (sentences() needs the unanswered-only
+-	// filter NOT applied here, so a sentence that became a Question stays hidden even once the Question
+-	// itself has surfaced at the root).
+-	own_and_from(prompt){ return [...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]; }
+-
+-	// A prompt's children for drawing: own_and_from(), minus an answered Question — RESURFACE moves that one
+-	// to the root (roots(), below), by answer time, not asked time.
+-	children(prompt){
+-		const list = this.own_and_from(prompt);
+-		return this.constructor.RESURFACE ? list.filter(n => !this.constructor.answered_question(n)) : list;
+-	}
+-
+-	// What the chat draws at the root: prompts, anything whose `from` names no prompt here, PLUS — once
+-	// RESURFACE is on — every answered Question that would otherwise be nested inside a prompt, surfaced to
+-	// the newest end of this same list, in the order it was actually answered (ordered(), above).
+-	roots(){
+-		const prompts = new Set(this.root.filter(n => this.constructor.kind(n) === "Prompt").map(n => n.id));
+-		const base = this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from));
+-		if (!this.constructor.RESURFACE) return base;
+-		const surfaced = [...this.by_id.values()].filter(n => this.constructor.answered_question(n) && prompts.has(n.from) && !base.includes(n));
+-		return this.constructor.ordered([...base, ...surfaced]);
+-	}
+-}
+diff --git a/public/framework/ext/Chat/v2/fixture/messages-session.jsonl b/public/framework/ext/Chat/v2/fixture/messages-session.jsonl
+new file mode 100644
+index 000000000..6ec351fcc
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/fixture/messages-session.jsonl
+@@ -0,0 +1,41 @@
++{"session":{"id":"v-fixture","kind":"voice","at":"2026-11-01T20:27:51.000-06:00"}}
++{"sentences":{"add":{"id":"s-1793586471880","at":"2026-11-01T20:27:51.878-06:00","text":"Can you hear me?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586471880","by":"owner","at":"2026-11-01T20:27:51.878-06:00","sentences":["s-1793586471880"],"prompt":"p-1793586471873"}},"by":"servex","ts":"2026-11-02T02:27:51.880Z"}
++{"messages":{"m-1793586471880":{"clean":{"s-1793586471880":"Can you hear me?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:27:57.272Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586471873","raw":["Can you hear me?"]}},"by":"fast","ts":"2026-11-02T02:27:51.880Z"}
++{"p-1793586471873":{"tasks":{"add":{"id":"q-1793586471874","type":"Question","text":"Can you hear me?","from":"p-1793586471873"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:27:57.601Z"}
++{"messages":{"add":{"id":"m-1793586491661","type":"Reply","by":"smart","at":"2026-11-01T20:28:11.659-06:00","text":"Your words are arriving. Do you hear anything from me now?","re":{"to":"s-1793586471880"}}},"by":"servex","ts":"2026-11-02T02:28:11.661Z"}
++{"messages":{"add":{"id":"m-1793586506610","type":"Reply","by":"smart","at":"2026-11-01T20:28:26.608-06:00","text":"## Why there's no voice\n\nYour phone's browser is using an old saved copy of the voice code.","re":{"to":"s-1793586471880"}}},"by":"servex","ts":"2026-11-02T02:28:26.610Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586544360","raw":["Is there not an easier way to do a hard refresh on mobile?"]}},"by":"fast","ts":"2026-11-02T02:29:04.360Z"}
++{"sentences":{"add":{"id":"s-1793586544363","at":"2026-11-01T20:29:04.362-06:00","text":"Is there not an easier way to do a hard refresh on mobile?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586544363","by":"owner","at":"2026-11-01T20:29:04.362-06:00","sentences":["s-1793586544363"],"prompt":"p-1793586544360"}},"by":"servex","ts":"2026-11-02T02:29:04.363Z"}
++{"messages":{"m-1793586544363":{"clean":{"s-1793586544363":"Is there not an easier way to do a hard refresh on mobile?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:07.602Z"}
++{"p-1793586544360":{"tasks":{"add":{"id":"q-1793586544361","type":"Question","text":"Is there not an easier way to do a hard refresh on mobile?","from":"p-1793586544360"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:07.984Z"}
++{"messages":{"add":{"id":"m-1793586550433","type":"Reply","by":"smart","at":"2026-11-01T20:29:10.431-06:00","text":"Not really. Chrome on Android has no hard-refresh button.","re":{"to":"s-1793586544363"}}},"by":"servex","ts":"2026-11-02T02:29:10.433Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586591858","raw":["So the automatic fix, is that like a cache buster script?"]}},"by":"fast","ts":"2026-11-02T02:29:51.858Z"}
++{"sentences":{"add":{"id":"s-1793586591861","at":"2026-11-01T20:29:51.860-06:00","text":"So the automatic fix, is that like a cache buster script that's going to add a query string to the scripts on import ? I mean, how does that even work?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586591861","by":"owner","at":"2026-11-01T20:29:51.860-06:00","sentences":["s-1793586591861"],"prompt":"p-1793586591858"}},"by":"servex","ts":"2026-11-02T02:29:51.861Z"}
++{"messages":{"m-1793586591861":{"clean":{"s-1793586591861":"So the automatic fix, is that like a cache buster script that's going to add a query string to the scripts on import? How does that even work?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:54.740Z"}
++{"p-1793586591858":{"tasks":{"add":{"id":"q-1793586591859","type":"Question","text":"How does the cache buster work?","from":"p-1793586591858"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:55.336Z"}
++{"messages":{"add":{"id":"m-1793586598049","type":"Reply","by":"smart","at":"2026-11-01T20:29:58.047-06:00","text":"I asked `vscode-mastermind` to explain which method it's using, in plain English.","re":{"to":"s-1793586591861"}}},"by":"servex","ts":"2026-11-02T02:29:58.049Z"}
++{"messages":{"add":{"id":"m-1793586610256","type":"Reply","by":"smart","at":"2026-11-01T20:30:10.255-06:00","text":"The plan avoids query strings, renamed files and reload scripts.","re":{"to":"s-1793586591861"}}},"by":"servex","ts":"2026-11-02T02:30:10.256Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586626950","raw":["So I just used the three dots and the refresh button."]}},"by":"fast","ts":"2026-11-02T02:30:26.950Z"}
++{"sentences":{"add":{"id":"s-1793586626953","at":"2026-11-01T20:30:26.951-06:00","text":"So I just used the three dots and the refresh button. Can you check whether it's the new code yet?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586626953","by":"owner","at":"2026-11-01T20:30:26.951-06:00","sentences":["s-1793586626953"],"prompt":"p-1793586626950"}},"by":"servex","ts":"2026-11-02T02:30:26.953Z"}
++{"messages":{"m-1793586626953":{"clean":{"s-1793586626953":"So I just used the three dots and the refresh button. Can you check whether it's the new code yet?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:30:29.486Z"}
++{"p-1793586626950":{"tasks":{"add":{"id":"q-1793586626951","type":"Question","text":"Can you check whether it's the new code yet?","from":"p-1793586626950"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:30:29.949Z"}
++{"messages":{"add":{"id":"m-1793586638453","type":"Reply","by":"smart","at":"2026-11-01T20:30:38.452-06:00","text":"I asked `vscode-mastermind` to check your phone's log.","re":{"to":"s-1793586626953"}}},"by":"servex","ts":"2026-11-02T02:30:38.453Z"}
++{"messages":{"add":{"id":"m-1793586642350","type":"Reply","by":"smart","at":"2026-11-01T20:30:42.347-06:00","text":"No, it's still the old code. The delete step is needed.","re":{"to":"s-1793586626953"}}},"by":"servex","ts":"2026-11-02T02:30:42.350Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586755252","raw":["All right, can you hear me?"]}},"by":"fast","ts":"2026-11-02T02:32:35.252Z"}
++{"sentences":{"add":{"id":"s-1793586755261","at":"2026-11-01T20:32:35.256-06:00","text":"All right, can you hear me? All right. I did it. I deleted all the cache. Try to refresh now.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586755261","by":"owner","at":"2026-11-01T20:32:35.256-06:00","sentences":["s-1793586755261"],"prompt":"p-1793586755252"}},"by":"servex","ts":"2026-11-02T02:32:35.261Z"}
++{"messages":{"add":{"id":"m-1793586760380","type":"Reply","by":"smart","at":"2026-11-01T20:32:40.378-06:00","text":"I'll tell you as soon as `vscode-mastermind` reports what your phone loaded.","re":{"to":"s-1793586755261"}}},"by":"servex","ts":"2026-11-02T02:32:40.380Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586760764","raw":["Should I refresh now, I said?"]}},"by":"fast","ts":"2026-11-02T02:32:40.764Z"}
++{"sentences":{"add":{"id":"s-1793586760769","at":"2026-11-01T20:32:40.766-06:00","text":"Should I refresh now, I said?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586760769","by":"owner","at":"2026-11-01T20:32:40.766-06:00","sentences":["s-1793586760769"],"prompt":"p-1793586760764"}},"by":"servex","ts":"2026-11-02T02:32:40.769Z"}
++{"messages":{"m-1793586755261":{"clean":{"s-1793586755261":"All right, can you hear me? All right. I did it. I deleted all the cache. Try to refresh now."}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:41.332Z"}
++{"p-1793586755252":{"tasks":{"add":{"id":"q-1793586755253","type":"Question","text":"Can you hear me?","from":"p-1793586755252"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:41.591Z"}
++{"messages":{"add":{"id":"m-1793586762462","type":"Reply","by":"smart","at":"2026-11-01T20:32:42.460-06:00","text":"Yes, refresh now. Reload the page, then tap once anywhere.","re":{"to":"s-1793586760769"}}},"by":"servex","ts":"2026-11-02T02:32:42.462Z"}
++{"messages":{"m-1793586760769":{"clean":{"s-1793586760769":"Should I refresh now, I said?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:43.501Z"}
++{"p-1793586760764":{"tasks":{"add":{"id":"q-1793586760765","type":"Question","text":"Should I refresh now?","from":"p-1793586760764"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:43.962Z"}
++{"sentences":{"add":{"id":"s-test-2","at":"2026-11-01T20:27:53.878-06:00","text":"A second thought, no pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-2"}}},"by":"test-fixture","ts":"2026-11-02T02:27:53.880Z"}
++{"sentences":{"add":{"id":"s-test-3","at":"2026-11-01T20:28:01.878-06:00","text":"A third thought, after a long pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-3"}}},"by":"test-fixture","ts":"2026-11-02T02:28:01.880Z"}
++{"at":"2026-11-01T22:28:07-06:00","chat":{"from":{"kind":"owner"},"prompt":"p-1793586471873","at":"2026-11-01T20:27:51.878-06:00"},"ts":"2026-11-02T02:27:51.879Z","by":"test-fixture"}
++{"at":"2026-11-01T22:28:07-06:00","sent":{"to":"fast","at":"2026-11-02T02:27:52.000Z","re":["2026-11-01T20:27:51.878-06:00"]},"ts":"2026-11-02T02:27:52.000Z","by":"test-fixture"}
++{"at":"2026-11-01T22:28:07-06:00","chat":{"from":{"kind":"owner"},"prompt":"p-1793586760764","at":"2026-11-01T20:32:40.766-06:00"},"ts":"2026-11-02T02:32:40.800Z","by":"test-fixture"}
++{"at":"2026-11-01T22:28:07-06:00","sent":{"to":"fast","at":"2026-11-02T02:32:41.000Z","re":["2026-11-01T20:32:40.766-06:00"]},"ts":"2026-11-02T02:32:41.000Z","by":"test-fixture"}
++{"at":"2026-11-01T22:28:07-06:00","sent":{"to":"smart","at":"2026-11-02T02:32:41.200Z","re":["2026-11-01T20:32:40.766-06:00"]},"ts":"2026-11-02T02:32:41.200Z","by":"test-fixture"}
+diff --git a/public/framework/ext/Chat/v2/fixture/session.jsonl b/public/framework/ext/Chat/v2/fixture/session.jsonl
+deleted file mode 100644
+index 10a2b5775..000000000
+--- a/public/framework/ext/Chat/v2/fixture/session.jsonl
++++ /dev/null
+@@ -1,6 +0,0 @@
+-{"session":{"id":"chat-v2-fixture","kind":"voice","at":"2026-10-25T09:00:00Z"}}
+-{"tasks":{"add":{"type":"Prompt","id":"p-1761382800000","title":"Show the refined prompt first","text":"The chat should show the cleaned-up version of what I said, with the assistant's work nested under it. The raw words stay one click away.\n\nAlso: can a question be answered later, after I have moved on?","raw":["yeah so I think the chat should show the cleaned up version first","the raw words stay one click away also can a question be answered later"],"paragraphs":[{"id":"a","text":"Yeah, so I think the chat should show the cleaned up version first. The raw words stay one click away."},{"id":"b","text":"Also, can a question be answered later?"}],"replies":[{"id":"r-1761382830000","text":"Yes: the refined text is the main view; raw and cleaned text sit behind \"show raw\".","by":"smart","ts":"2026-10-25T09:00:30Z","anchor":{"sentence":"a2","words":[0,3]}},{"id":"r-1761382840000","text":"I made two cards from this, below.","by":"smart","ts":"2026-10-25T09:00:40Z"}],"tasks":[{"type":"Question","id":"q-1761382835000","text":"Does a question extend Task?","from":"p-1761382800000","answer":{"text":"Yes. It is open until answered, answered until you tick it, then complete.","by":"smart","ts":"2026-10-25T09:00:35Z"}},{"type":"Question","id":"q-1761382836000","text":"Can a question be answered after the owner moved on?","from":"p-1761382800000"},{"type":"Task","id":"t-1761382837000","title":"Draw the prompt at the root of the chat","state":"complete"},{"type":"Task","id":"t-1761382838000","title":"Add the show-raw toggle","state":"running"}]}}}
+-{"tasks":{"add":{"type":"Prompt","id":"p-1761382900000","raw":["and then one more thing the sheet should open on the latest prompt"],"paragraphs":[{"id":"c","text":"And then one more thing. The sheet should open on the latest prompt."}]}}}
+-{"tasks":{"add":{"type":"Question","id":"q-1761382910000","text":"Should the sheet scroll to the newest prompt on open?","from":"p-1761382900000"}}}
+-{"q-1761382836000":{"answer":{"text":"Yes: the answer lands on the question, wherever you are in the chat.","by":"smart","ts":"2026-10-25T09:02:00Z"}}}
+-{"tasks":{"add":{"type":"Prompt","id":"p-1761382950000","subject":"A quick aside about naming","paragraphs":[{"id":"d","text":"One more thing. Call it a sidebar, not a tangent."}],"replies":[{"id":"r-1761382955000","text":"Noted — sidebar it is.","by":"smart","ts":"2026-10-25T09:01:00Z","anchor":{"sentence":"d2","from":0,"to":2}}]}}}
+diff --git a/public/framework/ext/Chat/v2/live-guess.test.mjs b/public/framework/ext/Chat/v2/live-guess.test.mjs
+index 3f6cc0b9c..d6507d802 100644
+--- a/public/framework/ext/Chat/v2/live-guess.test.mjs
++++ b/public/framework/ext/Chat/v2/live-guess.test.mjs
+@@ -1,7 +1,6 @@
+-// node live-guess.test.mjs [base-url] [shots-dir] — headless: proves views-fix item 2 (V2 shows the live guess).
+-// Fires the real "chat-live" window event -- the exact one every mic composer dispatches (Widget.js:828,
+-// "Chat v3 draws the same unsent words") and the one ChatV3 already listens to (ChatV3.js:204-207) -- at
+-// V2's own demo page. Not a V2-only mechanism: proof that ChatV2 now subscribes to the shared one (law 6).
++// node live-guess.test.mjs [base-url] [shots-dir] — headless: V2 shows the live guess (owner item 6), inherited unchanged
++// from ChatV3 (step 2 of views-on-messages.md made ChatV2 a ChatV3 subclass; the draft card, `draft()`, is not overridden).
++// Fires the real "chat-live" window event every mic composer dispatches, at V2's own demo page.
+ import Browser from "file:///C:/Code/lew42/monorepo/Server/Browser.mjs";
+ 
+ const base = process.argv[2] ?? process.env.SITE_URL ?? "http://views-fix.localhost";
+@@ -15,7 +14,7 @@ const errors = []; page.on("pageerror", e => errors.push(String(e)));
+ 
+ try {
+ 	await page.goto(`${base}/framework/ext/Chat/v2/`, { waitUntil: "networkidle" });
+-	await page.waitForSelector(".chat-v2-prompt", { timeout: 15000 });   // the fixture's own prompts are drawn first
++	await page.waitForSelector(".chat-v3-prompt", { timeout: 15000 });   // the fixture's own prompts are drawn first
+ 
+ 	// The composer isn't live on this read-only demo page, so dispatch the same event a real mic would.
+ 	await page.evaluate(() => {
+@@ -26,11 +25,11 @@ try {
+ 			sent: false,
+ 		} }));
+ 	});
+-	await page.waitForSelector(".chat-v2-draft", { timeout: 2000 });
++	await page.waitForSelector(".chat-v3-draft", { timeout: 2000 });
+ 
+ 	const colors = await page.evaluate(() => {
+-		const sent = document.querySelector(".chat-v2-draft-text");
+-		const guess = document.querySelector(".chat-v2-guess");
++		const sent = document.querySelector(".chat-v3-text.is-moving");
++		const guess = document.querySelector(".chat-v3-guess");
+ 		return {
+ 			settled_text: sent?.textContent.replace(guess?.textContent ?? "", "").trim(),
+ 			guess_text: guess?.textContent.trim(),
+@@ -46,8 +45,8 @@ try {
+ 
+ 	// "sent" (the full message lands): the draft clears once nothing is left mid-utterance.
+ 	await page.evaluate(() => window.dispatchEvent(new CustomEvent("chat-live", { detail: { text: "", settled: "", guess: "", sent: true } })));
+-	await page.waitForSelector(".chat-v2-draft", { state: "detached", timeout: 2000 }).catch(() => {});
+-	const after = await page.evaluate(() => !!document.querySelector(".chat-v2-draft"));
++	await page.waitForSelector(".chat-v3-draft", { state: "detached", timeout: 2000 }).catch(() => {});
++	const after = await page.evaluate(() => !!document.querySelector(".chat-v3-draft"));
+ 	check("the draft card is removed once the words are sent", after === false, after);
+ 
+ 	check("no page errors", errors.length === 0, errors);
+diff --git a/public/framework/ext/Chat/v2/old/ChatV2Model.js b/public/framework/ext/Chat/v2/old/ChatV2Model.js
+new file mode 100644
+index 000000000..187196767
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/old/ChatV2Model.js
+@@ -0,0 +1,177 @@
++// ChatV2Model.js — a session.jsonl folded into plain objects, in list order. Every field read the chat does is a method here, so a renamed field or the real Prompt/Question classes (core/Task/Prompt.js) change this one file. See readme.md.
++import split from "../../../../core/Task/sentences.js";
++import LineKey from "../../../../core/Item/LineKey.js";
++const VERB_STATE = { start: "running", pause: "paused", resume: "running", stop: "stopped", complete: "complete", finish: "complete", wait: "waiting" };
++
++export default class ChatV2Model {
++	root = [];            // entries in the order Node appended them: never sorted
++	by_id = new Map();
++
++	static fold(lines){ const m = new this(); for (const line of lines) m.apply(line); return m; }
++
++	// One line: {tasks:{add:entry}} at the root, or {"<id>":{…}} for something already in the list (any depth).
++	// Returns what it touched (null for a line this model has nothing to do with): {id, parent, added}
++	// — `added` true for a brand-new node (`parent` is its owner's id, or null at the root); false for a
++	// field changed on a node that already exists (`parent` is undefined: there is nothing new to place).
++	apply(line){
++		if (!line || typeof line !== "object") return null;
++		line = LineKey.deep(line);   // `start()` and `#c3` read as start and c3 (D13)
++		// An owner chat line names its prompt: remembered so a later {sent} line (which names the chat line's `at`) finds the prompt.
++		if (line.chat){ const c = line.chat; if (c.from?.kind === "owner" && c.prompt) (this.prompt_of ??= new Map()).set(c.at, c.prompt); return null; }
++		// {sent:{to:"fast"|"smart", at, re:[owner line at…], delay_ms}}: that prompt reached an assistant (Servex Sessions.mark_sent).
++		if (line.sent){
++			let touch = null;
++			for (const r of line.sent.re ?? []){
++				const n = this.by_id.get(this.prompt_of?.get(r));
++				if (n){ (n.sent ??= {})[line.sent.to] = { at: line.sent.at, delay_ms: line.sent.delay_ms }; touch = { id: n.id, parent: undefined, added: false }; }
++			}
++			return touch;
++		}
++		if (line.tasks?.add){
++			const node = this.add(this.root, line.tasks.add);
++			return node ? { id: node.id, parent: null, added: true } : null;
++		}
++		for (const [key, delta] of Object.entries(line)) {
++			const node = this.by_id.get(key);
++			if (node && delta && typeof delta === "object") return this.edit(node, delta);
++		}
++		return null;
++	}
++
++	add(list, entry){
++		if (!entry || typeof entry !== "object") return null;
++		const { tasks = [], ...own } = entry, node = { ...own, kids: [] };
++		if (node.id) this.by_id.set(node.id, node);
++		list.push(node);
++		// Every kid remembers its parent, even one the writer left off `from` — the one hint an answered
++		// Question keeps once it surfaces at the root (ChatV2.js child(), data-from).
++		for (const kid of [].concat(tasks)) { const k = this.add(node.kids, kid); if (k && node.id && k.from === undefined) k.from = node.id; }
++		return node;
++	}
++
++	is_kid(node, id){ const kid = this.by_id.get(id); return !!kid && kid !== node && (node.kids.includes(kid) || (node.id && kid.from === node.id)); }
++
++	edit(node, delta){
++		let touch = { id: node.id, parent: undefined, added: false };
++		for (const [k, v] of Object.entries(delta)) {
++			if (k === "tasks") { if (v?.add){ const kid = this.add(node.kids, v.add); if (kid) touch = { id: kid.id, parent: node.id, added: true }; } }
++			// A child addressed through its parent ({"<prompt>":{"<task>":{"complete":{…}}}}): the change is the child's, not a field on the parent.
++			// Its kids are its own `tasks` plus root Tasks/Questions whose `from` is its id (`children()`).
++			else if (this.is_kid(node, k) && v && typeof v === "object") touch = this.edit(this.by_id.get(k), v);
++			else if (k === "raw" && v !== undefined) {
++				const more = [].concat(v && typeof v === "object" && !Array.isArray(v) ? v.push ?? [] : v).filter(s => typeof s === "string" && s.length);
++				if (more.length) (node.raw ??= []).push(...more);
++			}
++			else if (k === "paragraphs" && v && !Array.isArray(v)) {
++				const list = node.paragraphs ??= [];
++				// An id already present is a no-op, the same rule as core's List.insert (one paragraph per id).
++				if (v.add && !list.some(x => x.id === v.add.id)) list.push({ ...v.add });
++				if (v.append) { const p = list.find(x => x.id === v.append.id); if (p) p.text = (p.text ?? "") + v.append.text; else list.push({ ...v.append }); }
++				if (v.replace) { const p = list.find(x => x.id === v.replace.id); if (p) Object.assign(p, v.replace); else list.push({ ...v.replace }); }
++			}
++			else if (k === "replies" && v && !Array.isArray(v)) {
++				if (v.add) { const r = { ...v.add }; (node.replies ??= []).push(r); if (r.id) this.by_id.set(r.id, r); touch = { id: r.id, parent: node.id, added: true, reply: true }; }
++			}
++			else if (VERB_STATE[k] && typeof v === "object") node.state = VERB_STATE[k];
++			else if (k === "set" && typeof v === "object") Object.assign(node, v);
++			else node[k] = v;
++		}
++		return touch;
++	}
++
++	// --- the field reads: one small method per field ---------------------------------------------------------------------------
++	static title(n){ return n.title ?? n.subject ?? null; }           // same order as core/Task/Prompt.js's `label`
++	static text(n){ return n.text ?? null; }
++	// What a child card shows as its one line: its title, else its text, else its id.
++	static label(n){ return n.title ?? n.text ?? n.id; }
++	static refined(n){ return !!(this.title(n) || this.text(n)); }    // the smart assistant's version exists
++	static raw(n){ return n.raw ?? []; }
++	static paragraphs(n){ return n.paragraphs ?? []; }
++	static replies(n){ return n.replies ?? []; }
++	static anchor(reply){ return reply.anchor ?? null; }
++	// `words:[start,end)` or `{from,to}` — core's own Reply/anchor shape (end exclusive either way).
++	static words_range(anchor){ return anchor ? (anchor.words ?? (anchor.from !== undefined ? [anchor.from, anchor.to] : null)) : null; }
++	static answer(n){ return n.answer ?? null; }
++	static kind(n){ return n.type ?? "Task"; }
++	static answered_question(n){ return this.kind(n) === "Question" && !!this.answer(n); }
++	// The answer's own time — written as `at` (Question.js's documented shape) or `ts` (the fixture's older lines): either reads.
++	static answered_at(n){ const a = this.answer(n); return a ? Date.parse(a.at ?? a.ts ?? "") || 0 : 0; }
++
++	// One static switch (round 2 of the review, 2026-10-25): off is the old behaviour — never sorted, never
++	// moved, a Question always stays in its prompt's nest. Read by ordered()/children()/roots() here, and by
++	// ChatV2.apply_one/move_to_end (V2) and chat.js draw_task (V1).
++	static RESURFACE = true;
++
++	// The id a line just answered, direct ({"<id>":{answer:…}}) or through its parent ({"<prompt>":{"<id>":{answer:…}}});
++	// null for every other line. Used to move that one card, the same signal V1 (Widget.show_task) and V2 (ChatV2.apply_one) read.
++	static answer_edit(line){
++		if (!line || typeof line !== "object") return null;
++		for (const [k, v] of Object.entries(line)) {
++			if (!v || typeof v !== "object") continue;
++			if ("answer" in v) return k;
++			for (const [k2, v2] of Object.entries(v)) if (v2 && typeof v2 === "object" && "answer" in v2) return k2;
++		}
++		return null;
++	}
++
++	// answer_edit(line), but only when it is genuinely NEW: a Question that had no answer before this line
++	// (never a Task, never a second edit replacing one it already had). Call BEFORE model.apply(line) mutates
++	// the node — the whole reason for the guard is reading its state as it was just before this line.
++	static newly_answered(model, line){
++		if (!this.RESURFACE) return null;
++		const id = this.answer_edit(line), n = id && model.by_id.get(id);
++		return n && this.kind(n) === "Question" && !this.answer(n) ? id : null;
++	}
++
++	// Answered questions sort after everything else in the list, by WHEN they were answered (answered_at) —
++	// not where they were asked; everything else (prompts, tasks, an open question) keeps its own arrival
++	// order, exactly as the list already holds it. A slow answer must never stay buried above cards that
++	// arrived after it (the owner, 2026-10-25), and two answers land in the order they actually happened.
++	static ordered(list){
++		if (!this.RESURFACE) return list;
++		const head = [], tail = [];
++		for (const n of list) (this.answered_question(n) ? tail : head).push(n);
++		tail.sort((a, b) => this.answered_at(a) - this.answered_at(b));
++		return [...head, ...tail];
++	}
++
++	// A Question: open (no answer) → answered (answer, not complete) → complete, the same rule as core's Question.phase.
++	// A Task: its own state.
++	static phase(n){
++		if (this.kind(n) === "Question") return n.state === "complete" ? "complete" : this.answer(n) ? "answered" : "open";
++		return n.state ?? "idle";
++	}
++
++	// Sentences are computed, never stored: id = paragraph id + 1-based index (a1, a2, b1), so earlier ids survive appended text.
++	static sentences(prompt){
++		const out = [];
++		for (const para of this.paragraphs(prompt)) {
++			split(para.text).forEach((text, i) => out.push({ id: para.id + (i + 1), n: i + 1, para: para.id, text }));
++		}
++		return out;
++	}
++
++	// A prompt's own tasks plus any root-level Question/Task whose `from` is its id, in list order — the raw
++	// union children()/sentences() both start from, answered or not (sentences() needs the unanswered-only
++	// filter NOT applied here, so a sentence that became a Question stays hidden even once the Question
++	// itself has surfaced at the root).
++	own_and_from(prompt){ return [...prompt.kids, ...this.root.filter(n => n !== prompt && n.from === prompt.id && this.constructor.kind(n) !== "Prompt")]; }
++
++	// A prompt's children for drawing: own_and_from(), minus an answered Question — RESURFACE moves that one
++	// to the root (roots(), below), by answer time, not asked time.
++	children(prompt){
++		const list = this.own_and_from(prompt);
++		return this.constructor.RESURFACE ? list.filter(n => !this.constructor.answered_question(n)) : list;
++	}
++
++	// What the chat draws at the root: prompts, anything whose `from` names no prompt here, PLUS — once
++	// RESURFACE is on — every answered Question that would otherwise be nested inside a prompt, surfaced to
++	// the newest end of this same list, in the order it was actually answered (ordered(), above).
++	roots(){
++		const prompts = new Set(this.root.filter(n => this.constructor.kind(n) === "Prompt").map(n => n.id));
++		const base = this.root.filter(n => this.constructor.kind(n) === "Prompt" || !prompts.has(n.from));
++		if (!this.constructor.RESURFACE) return base;
++		const surfaced = [...this.by_id.values()].filter(n => this.constructor.answered_question(n) && prompts.has(n.from) && !base.includes(n));
++		return this.constructor.ordered([...base, ...surfaced]);
++	}
++}
+diff --git a/public/framework/ext/Chat/v2/old/session.jsonl b/public/framework/ext/Chat/v2/old/session.jsonl
+new file mode 100644
+index 000000000..10a2b5775
+--- /dev/null
++++ b/public/framework/ext/Chat/v2/old/session.jsonl
+@@ -0,0 +1,6 @@
++{"session":{"id":"chat-v2-fixture","kind":"voice","at":"2026-10-25T09:00:00Z"}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1761382800000","title":"Show the refined prompt first","text":"The chat should show the cleaned-up version of what I said, with the assistant's work nested under it. The raw words stay one click away.\n\nAlso: can a question be answered later, after I have moved on?","raw":["yeah so I think the chat should show the cleaned up version first","the raw words stay one click away also can a question be answered later"],"paragraphs":[{"id":"a","text":"Yeah, so I think the chat should show the cleaned up version first. The raw words stay one click away."},{"id":"b","text":"Also, can a question be answered later?"}],"replies":[{"id":"r-1761382830000","text":"Yes: the refined text is the main view; raw and cleaned text sit behind \"show raw\".","by":"smart","ts":"2026-10-25T09:00:30Z","anchor":{"sentence":"a2","words":[0,3]}},{"id":"r-1761382840000","text":"I made two cards from this, below.","by":"smart","ts":"2026-10-25T09:00:40Z"}],"tasks":[{"type":"Question","id":"q-1761382835000","text":"Does a question extend Task?","from":"p-1761382800000","answer":{"text":"Yes. It is open until answered, answered until you tick it, then complete.","by":"smart","ts":"2026-10-25T09:00:35Z"}},{"type":"Question","id":"q-1761382836000","text":"Can a question be answered after the owner moved on?","from":"p-1761382800000"},{"type":"Task","id":"t-1761382837000","title":"Draw the prompt at the root of the chat","state":"complete"},{"type":"Task","id":"t-1761382838000","title":"Add the show-raw toggle","state":"running"}]}}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1761382900000","raw":["and then one more thing the sheet should open on the latest prompt"],"paragraphs":[{"id":"c","text":"And then one more thing. The sheet should open on the latest prompt."}]}}}
++{"tasks":{"add":{"type":"Question","id":"q-1761382910000","text":"Should the sheet scroll to the newest prompt on open?","from":"p-1761382900000"}}}
++{"q-1761382836000":{"answer":{"text":"Yes: the answer lands on the question, wherever you are in the chat.","by":"smart","ts":"2026-10-25T09:02:00Z"}}}
++{"tasks":{"add":{"type":"Prompt","id":"p-1761382950000","subject":"A quick aside about naming","paragraphs":[{"id":"d","text":"One more thing. Call it a sidebar, not a tangent."}],"replies":[{"id":"r-1761382955000","text":"Noted — sidebar it is.","by":"smart","ts":"2026-10-25T09:01:00Z","anchor":{"sentence":"d2","from":0,"to":2}}]}}}
+diff --git a/public/framework/ext/Chat/v2/page.js b/public/framework/ext/Chat/v2/page.js
+index ea38e378e..756c1427b 100644
+--- a/public/framework/ext/Chat/v2/page.js
++++ b/public/framework/ext/Chat/v2/page.js
+@@ -8,9 +8,9 @@ export default new Page({
+ 	icon: "forum",
+ 
+ 	content(){
+-		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/session.jsonl", import.meta.url).href;
+-		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v2: a made-up session's conversation, read from a fixture file and drawn live. Pass ?src=<url of any session.jsonl> to draw a real one.");
+-		const $box = div.c("chat-v2");
++		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/messages-session.jsonl", import.meta.url).href;
++		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v2, drawn from the same fixture as Chat v3 (session.messages). Pass ?src=<url of any session.jsonl> to draw a real one.");
++		const $box = div.c("chat-v3 chat-v2");   // ChatV2 extends ChatV3 and draws its markup: the v3 class gets ChatV3.css's layout, v2 is this page's own hooks
+ 		new ChatV2({ url, $box }).live();
+ 	},
+ });
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index 8e889202d..b1b7ff7ea 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -1,55 +1,34 @@
+-# Chat v2: a session's chat, drawn from its `tasks` list
++# Chat v2: ChatV3, plus the ✓/🧠 marks and replies beside their sentence
+ 
+-- ⬜ **Goal:** the owner calls the whole experience "chat": the first view ([`ux/Dictate`](/framework/ux/Dictate/readme.md)) and Chat v2 become one chat, no renames yet. How a chat is made today, and where the two views differ: [`ux/Dictate/doc/pipeline.md`](/framework/ux/Dictate/doc/pipeline.md).
++`class ChatV2 extends ChatV3` ([`../v3/`](../v3/readme.md), step 2 of [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md)). Everything is ChatV3: it draws `session.messages` (a card per Prompt, in the chat list's own order, with the Replies that answer it found by `re.to`), the live draft, pause-based paragraphs, "show raw". V2 adds only three things:
+ 
+-Read-only step 1 of the new chat (the owner's decision, [chat-shape.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/chat-shape.md)): a session's conversation is its `tasks` list in `session.jsonl`. Each Prompt sits at the root of the chat (a card each, no bubbles) as the smart assistant's refined version; its replies, questions and child tasks nest under it, marked 🧠. The raw Whisper text and the fast assistant's cleaned paragraphs are one click down, "show raw", never dropped. The old chat ([Chat.js](../Chat.js), `ux/Dictate/chat.js`) is untouched until v2 replaces it.
++- **The ✓/🧠 marks**, beside the title of the newest Prompt only. ✓ colours once the fast seat has the line; 🧠 colours once an answer actually exists (a Reply after the smart seat's receipt, or the Prompt's own title/text). They still read the Prompt TASK's `sent.fast`/`sent.smart` (`Sessions.mark_sent`), not a field on the message — step 3 of the plan moves them there. Until then, `ChatV2.js` keeps a small tracker (`prompt_of`, `sent_by_task`) over the V1 `{chat}`/`{sent}` broadcast lines ChatV3 skips, the one piece of the old `ChatV2Model` this step still needs.
++- **A Reply beside the sentence it answers**, while a Prompt has no refined text yet (dictation mode): `ChatV2.js` overrides two small hooks ChatV3 exposes for this (`paragraph()`, `trailing_replies()`) to draw one row per sentence, with the Reply whose `re.to` names it drawn right beside, instead of in the trailing list below the whole card. Once a Prompt gets refined text, replies go back to the normal trailing list, same as plain ChatV3.
++- **Its own CSS** (`ChatV2.css`): the marks and the beside-sentence layout only; everything else is `../v3/ChatV3.css`'s own rules (the demo page wraps the box in both `chat-v3 chat-v2` classes).
+ 
+-Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live.
++Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (V3's own fixture, plus a few `{chat}`/`{sent}` lines so the marks have data); `?src=<url of any session.jsonl>` draws that session, live.
+ 
+-## Classes
++## What moved to `old/` (2026-11-01, this step)
+ 
+-- `ChatV2.js`: `class ChatV2 extends JSONL`. `read()` draws everything on the first load, then patches in place: each later line updates only the element(s) `ChatV2Model.apply(line)` says it touched (`apply_one`, `patch`, `insert_reply`, `move_anchored`). A root Task or Question added live goes to the root, or into its prompt's nest when its `from` names one; "show raw" or a first title moves only the anchored replies between the nest and their sentences; `reset()` (the file was rewritten) drops the model so the replay draws whole. Parts are its methods: `prompt` (+ `prompt_head`, `prompt_raw_wrap`, `prompt_nest`), `sentences`, `reply` (+ `reply_body`), `child` (+ `child_body`).
+-  - **The sent/working marks (2026-10-25):** two fixed-width marks move to sit after the newest Prompt only, never one per message or per sentence — `place_cursors()`, called after every patch. `.chat-cursor` (✓): gray, green once `sent.fast`. `.chat-smart-cursor` (🧠): gray once `sent.smart`, the smart-reply colour once `working` is also clear. Both classes are shared with V1's bubble chat now — `ext/Chat/cursors.js`/`cursors.css` (one maker, one class set, law 6). `.chat-v2-smart-dots` at the bottom is a fallback only, hidden once any Prompt exists to carry the smart cursor. Both are per-PROMPT signals (`Sessions.mark_sent` fires once per Prompt, not per sentence) — a true per-sentence mark needs a new Servex line, named in the `chat-live` task's `proposal.md`.
+-- `ChatV2Model.js`: folds the lines into plain objects and holds every field read (`title`, `raw`, `paragraphs`, `replies`, `answer`), the computed `sentences(prompt)` and `phase(question)`. `apply(line)` also says what the line touched, for `ChatV2`'s in-place patch (see Decisions).
+-- `ChatV2.css`: the `chat-v2-` classes, all in `@layer site`. Column max 46rem.
+-- `ChatV2.test.mjs`: headless Playwright, 53 checks (order, nesting, show raw, live append, in-place patch with the chat's own scroller held, `paragraphs.replace`/dedupe-by-id/`raw.push` array, the open-bubble-stays-last re-anchor, an answered Question surfaced at the root): `node ChatV2.test.mjs [base-url] [shots-dir]`. The live checks write a per-run copy of the fixture, `fixture/live-<pid>.jsonl`, into the tree the site at `base-url` serves (with no url, the main tree, even when the test runs from a worktree or merge.mjs's base checkout), and delete it at the end; a killed run leaves it behind, and `.gitignore` covers it.
+-- `resurface.test.mjs`: plain node, no browser — `ChatV2Model.ordered()`/`roots()`/`children()`: an answered Question sorts by `answer.at` (not when it was asked) and surfaces at the root, not just the end of its prompt's nest; live (one `apply()` per line) and a cold reload (`fold()`) land on the same order; the `RESURFACE` switch off reverts to the old, never-moved behaviour. `node resurface.test.mjs`.
+-- **The open bubble stays last** (the owner, 2026-10-25): if a reply or a root task lands, as its own item, while the LAST Prompt is still growing (no newer Prompt has started), `patch()` moves that Prompt's element below the new item instead of leaving it stranded above — same DOM node, never recreated or split. Shared rule with V1: [`../readme.md`](../readme.md), [`../doc/notes.md#bubble-order`](../doc/notes.md#bubble-order).
++- **`ChatV2Model.js`**: the old fold of the TASK-shaped lines (`{tasks:{add:{type:"Prompt",…}}}`, with `raw`/`paragraphs`/`replies`/`anchor` inline on the task). V2 no longer reads it — it reads `session.messages` through ChatV3 instead. **V1's dictation widget (`ux/Dictate/chat.js`) still imports it** (it hasn't moved to messages yet, step 5) — don't delete it.
++- **`fixture/session.jsonl` → `old/session.jsonl`**: the old task-shaped fixture, kept for the record.
++- `resurface.test.mjs` keeps testing `old/ChatV2Model.js` directly (plain node, no browser): the "an answered Question surfaces at the chat's root" behaviour it proves has no equivalent in ChatV3 — ChatV3 never surfaces a task out of its Prompt's nest (`kids`, drawn by `TaskView.row`/`question()`), so this is a dropped feature for V2 from this step on, not a bug. The alternative (re-introducing root-level surfacing on top of messages) would need a new, bigger change to ChatV3's own render model; left for the owner to ask for if the behaviour is missed.
+ 
+-## The shape it reads (one line each in `session.jsonl`)
++## What changed in ChatV3 itself (small, same output)
+ 
+-```js
+-{tasks:{add:{type:"Prompt", id:"p-<ms>", title, text,          // the smart assistant's version; may be absent early
+-  raw:["whisper text", …], paragraphs:[{id:"a", text}],        // one raw per utterance; the fast assistant's cleaned text
+-  replies:[{id:"r-<ms>", text, by, ts, anchor?:{sentence:"a1", words?:[start,end]} | {sentence:"a1", from, to}}],   // end exclusive, either shape
+-  tasks:[ …child Task / Question entries… ]}}}
+-{tasks:{add:{type:"Question", id:"q-<ms>", text, from:"p-<ms>", answer?:{text, by, ts}}}}
+-{"<id>":{answer:{…}}}  {"<id>":{complete:{}}}  {"<id>":{replies:{add:{…}}}}   // later lines edit by id
+-{"<prompt id>":{"<task id>":{complete:{…}}}}   // or through the parent, as the item tool writes it: the change is the child's
+-```
++Two methods were extracted so V2 could override only what it needs, with ChatV3's own tests (`ChatV3.test.mjs`, `placement.test.mjs`) unchanged: `paragraph(group, p)` (one paragraph's sentences, joined — V2 overrides to draw sentence rows instead) and `trailing_replies(p)` (the replies drawn after the body — V2 overrides to drop any it already drew beside a sentence). `placement.js` gained `paragraph_groups()` (the same pause-grouping as `paragraphs()`, kept as sentence objects instead of joined text).
+ 
+-Sentences are computed, not stored: a sentence id is its paragraph id plus a 1-based index (`a1`, `a2`, `b1`). A Question is open (no answer), answered (answer, not complete) or complete. A prompt's children are its own `tasks` plus any root Question or Task whose `from` is its id. A prompt with no title or text draws its paragraphs; an anchored reply sits beside its sentence (below on a phone) with the words marked.
++## Test
+ 
+-## Who writes the data
++- `ChatV2.test.mjs` (headless Playwright, `node ChatV2.test.mjs [base-url] [shots-dir]`): card order/nesting match ChatV3's own; the marks show only on the newest Prompt (an older Prompt with the same sent/answered data shows none); a Reply drawn beside its sentence is not duplicated in the trailing list; a sentence with no reply has no beside box; live append of a Prompt and a Reply beside its sentence, no reload.
++- `live-guess.test.mjs`: the live draft (owner item 6, "V2 shows no live Whisper text") — inherited unchanged from ChatV3's own `draft()`, fires the shared `chat-live` window event.
++- `resurface.test.mjs`: the old model's own logic (`old/ChatV2Model.js`), for the record — see "What moved to old/" above.
+ 
+-Step 3 landed, round 2 (chat-v2-writers): a Prompt starts the moment the owner starts speaking — any seat, voice or not. `Servex/agents/Sessions.js`'s `say()` opens it (`assign_prompt`) on the first line of a thought, pushes raw words and grows the one paragraph "a" on every later line of the same thought, through the one small writer `Servex/agents/PromptLines.js` (every function it exports matches a line shape above). The Prompt closes the moment its thought is handed to a seat (`release_thought`, or a standalone line with nothing held) — `s.prompt` is cleared there, so the next line always starts fresh, and a fallback respawn (`woken()`, re-sending the last owner line) never writes a second one. The smart seat writes the refined title/text, replies, questions and their answers through the `item` tool directly (it is an LLM, not code); its instructions are the "Chat v2" section of `Servex/agents/session-smart.md`. **Both seats are told the Prompt's id**: every message either gets, as a trailing `(prompt p-…)` line (`voice_say`, `release_thought`, `feed_smart`) — there is no other way for either seat to learn an id `say()` just minted. Needs a Servex restart to take effect (dev-server-only code).
++## Where it shows
+ 
+-**The page's own reports** (errors, opt-in clicks, context) reach the assistants down the REAL dictation path, `POST /api/session/say` (`Servex/agents/Sessions.js`'s `say()`), tagged `kind`: `speech` (the default, an owner utterance, unchanged) or `error`/`click`/`context`. `public/framework/ext/Chat/v2/report.js`: `init(session)` once, then `window.onerror`/`unhandledrejection` post themselves; `click(label)`/`context(text)` are opt-in calls. A non-speech `say()` call never wakes a seat and never touches a Prompt: `error` is filed as a `log` line on that session, `click`/`context` are queued for the smart seat's next turn. Wired into `ux/Dictate/chat.js`, which calls `init(session)` each time its voice session changes.
+-
+-**Checked once:** the smart seat's `item` tool writes land in a session folder's `session.jsonl`, not a stray `page.jsonl` beside it. `Servex/agents/page_tools.js`'s own file-resolution rule (`resolve_file`, item-tool mode) run against a real voice session folder with no `page.jsonl` (`public/framework/ai/sessions/2026/10/01/v-6jvcrk2/`) resolved to that folder's `session.jsonl`, matching the rule verbatim: a folder with no `page.jsonl` is checked for `task.jsonl` then `session.jsonl` before falling back to `page.jsonl`.
+-
+-**Where it shows:** the standalone page (`?src=<session.jsonl url>`), the session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`; `ai/AISession/AISessionDetail.js`), the ✦ sheet under the **v2** chip in its head, and the desktop drawer's AI tab under the same chip beside "+ New session" (both use `ext/drawer/ChatView.js`: one chip, one `lew42.sheet.chat_view` choice for both): it draws the sheet's own voice session file in place of the bubbles, follows a New session or a resume, and keeps the choice on this device (`localStorage` `lew42.sheet.chat_view`); the composer and the mic footer stay. Sessions migrated by `Server/PromptsToSession.mjs` already hold Prompts, for example [session e00f55c9](/framework/ai/sessions/2026/10/20/session-e00f55c9/?tab=chat&chat_view=v2).
++The session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`), the ✦ sheet and the desktop drawer's AI tab under the same chip (`ext/drawer/ChatView.js`).
+ 
+ ## Decisions
+ 
+-- Fields are still read from a plain fold, not the real `Prompt`/`Question` classes (`core/Task/Prompt.js`, `Question.js`, now landed): the view needs the raw LINES, never an Item tree built from them, so `ChatV2Model` keeps its own small reads (`title`, `anchor`, `phase`…) matched by hand to the classes' own rules. The alternative, `Prompt.from(line)` read-only getters straight off the lines, wins once core exposes a cheap fold that does not require hydrating a live Item.
+-- Child cards are `ChatV2.child`, not `TaskView.row`, which needs a live Task; it reuses `TaskView.STAGE` for the icons.
+-- **In place, never redraw:** `ChatV2` keeps one `View` per item id (`els`), plus three containers per prompt (`head`, `raw`, `nest`) so a change to its own fields never touches its children. `ChatV2Model.apply(line)` says what the line touched — an add (with its parent, `null` at the root) or a field change on an id already drawn — and `ChatV2.apply_one` either appends one new element where it belongs or calls `view.empty(bodyFn)` to refill that ONE element's content, keeping its `.el` (so references elsewhere, and the scroll position, never move). The alternative, a keyed diff of the whole tree (React/morphdom-style), wins once the model's shape gets deep enough that per-field patch rules like this one outnumber the handful here — this chat is three levels deep at most, so hand-written patches stay cheaper.
+-- **One Prompt per thought, not one per `say()` call.** `s.prompt` stays open across every line of a held thought (pushing raw, growing paragraph "a") and closes only when that thought is handed to a seat. Alternative (round 1's build): one Prompt per `voice_say` call — wrong whenever a thought held several spoken lines before release, since `voice_say` only ever saw the already-released batch, so live speech reached Chat v2 only after the pause, not while the owner talked.
+-- **`p-<ms>` ids, minted fresh, not `Server/PromptsToSession.mjs`'s `prompt_delta()`.** That helper folds an EXISTING `prompts.jsonl` row into a Prompt; a voice session never has one (`Servex/agents/PromptTasks.js`'s `record_for()` only recognizes a VS Code tab, `kind: "vscode-tab"`), so there is no row to fold and no risk of a second Prompt for one utterance — this is the first writer, not a second one. A millisecond collision (two Prompts made in the same `Date.now()`) is guarded in `PromptLines.js` with a per-prefix monotonic bump, found desk-checking back-to-back standalone lines.
+-- **`kind` lives on `/api/session/say` (Sessions.js), not `Servex/Servex.js`'s `/api/voice`.** Round 1 reused `/api/voice` because the brief named that exact route and line; it turned out to belong to a different system (`ext/refine/VoicePage.js`, the Live-Refine demo, keyed by a Claude transcript uuid, not a voice session id) and was reverted whole. `/api/session/say` is the real speech path the owner's words already travel, so the page's own reports travel the same wire a spoken line does, just tagged differently.
+-- **Errors are filed by the route (`say()`), not the fast seat.** The fast seat never sees a `kind: "error"` line at all (an early return in `say()`, before anything is sent to either seat) — simpler and cheaper than teaching an LLM to recognize and re-route its own crash reports.
+-
+-## To fix
+-
+-`Servex/agents/session-smart.md` carries a Chat v2 section (Prompt/Question/reply/working-sign rules). Version-specific rules should not live in a role file loaded for every chat version, and we should not create a second system for them. Move them into the proper READMEs and the item tool's own instructions so v1/v2/v3 share the same tooling. Wait until the prompt-refinement work settles.
++- **Word-range marking is gone.** The old `anchor.words`/`{from,to}` let a reply highlight specific words inside a sentence (`ChatV2.words()`, `.chat-v2-mark`). `Reply.re` on `session.messages` is `{to: <sentence id>}` only — a whole-sentence anchor, no word range. Not rebuilt this step: the new data simply doesn't carry it, and adding a word range to `Reply` is its own, separate change (ask for it if the highlight is missed).
++- **Raw-toggle-open does not move replies beside the raw sentences.** ChatV3's "show raw" (shown when `Prompt.clean` has entries) draws the sentences' raw words as plain blockquotes, independent of `dictation()`; replies stay in the trailing list in that case, where old V2 would have moved an anchored one beside its raw sentence too. Smaller scope, logged here rather than built: most sessions read a Prompt's refined text, not its raw words, with "show raw" open.
+diff --git a/public/framework/ext/Chat/v2/resurface.test.mjs b/public/framework/ext/Chat/v2/resurface.test.mjs
+index 46ce56772..27cf0bcd9 100644
+--- a/public/framework/ext/Chat/v2/resurface.test.mjs
++++ b/public/framework/ext/Chat/v2/resurface.test.mjs
+@@ -1,7 +1,11 @@
+ // node resurface.test.mjs — plain node, no browser: a Question with an answer sorts after a newer
+ // Prompt/Task row, by WHEN it was answered (answer.at), not where it was asked — and (review round 2,
+ // 2026-10-25) it surfaces at the ROOT of the chat, not just the end of its own prompt's nest.
+-import ChatV2Model from "./ChatV2Model.js";
++// ChatV2Model moved to old/ (views-on-messages.md step 2, 2026-11-01): ChatV2 is now a ChatV3 subclass and
++// no longer reads this model or the old task-shaped fixture. This test keeps proving the OLD model's own
++// logic, for the record, against the file it was moved with — the resurface behaviour has no equivalent
++// in ChatV3 (it never surfaces a task to the chat's root; everything nests under its Prompt card).
++import ChatV2Model from "./old/ChatV2Model.js";
+ 
+ let pass = 0, fail = 0;
+ const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index 1ee55875b..d89cfa394 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -15,7 +15,7 @@ import TaskView from "/framework/core/Task/TaskView.js";
+ import LineKey from "/framework/core/Item/LineKey.js";
+ import { md_into } from "../md.js";
+ import * as Wire from "/framework/ext/Session/Session.js";
+-import { owning_prompt, paragraphs } from "./placement.js";
++import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
+ View.stylesheet(import.meta, "ChatV3.css");
+ 
+ export default class ChatV3 extends JSONL {
+@@ -92,6 +92,8 @@ export default class ChatV3 extends JSONL {
+ 
+ 	// The Replies that answer one Prompt, in the chat list's own order.
+ 	replies_of(p){ return this.session.messages.messages.filter(m => m instanceof Reply && this.owning_prompt(m) === p); }
++	// Replies drawn after the body, in the trailing list: all of them (V2 overrides to drop any it already drew beside a sentence).
++	trailing_replies(p){ return this.replies_of(p); }
+ 
+ 	/* THE REPLY BEING WRITTEN: the session's live wire (ext/Session stream(), the one V1 reads) sends {kind:"stream", role, text}, the whole
+ 	 * reply so far, and text "" when it ends. Drawn at the end of the newest Prompt card until the settled Reply message arrives. */
+@@ -171,7 +173,7 @@ export default class ChatV3 extends JSONL {
+ 		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
+ 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
+ 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
+-		for (const r of this.replies_of(p)) this.reply(r);
++		for (const r of this.trailing_replies(p)) this.reply(r);
+ 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
+ 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+ 		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+@@ -186,9 +188,17 @@ export default class ChatV3 extends JSONL {
+ 	/** The words as dictated, when no AI text exists yet: one paragraph per run of sentences with no long pause between them, clamped to
+ 	 *  a few lines with "show all (N words)". Replaces the old "one paragraph per sent chunk, cut every 3 sentences" (views-on-messages.md). */
+ 	dictation(p){
+-		const paras = this.constructor.paragraphs(p.sentence_items, p.clean);
+-		const words = paras.join(" ").split(/\s+/).filter(Boolean).length, long = words > 80, all = this.all_open?.has(p.id);
+-		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), () => paras.forEach(s => div.c("chat-v3-para", s)));
++		const groups = this.constructor.paragraph_groups(p.sentence_items);
++		const words = groups.flat().map(s => p.clean[s.id] ?? s.text).join(" ").split(/\s+/).filter(Boolean).length;
++		return this.clamped_text(p, words, () => groups.forEach(g => this.paragraph(g, p)));
++	}
++	// One paragraph: its sentences' cleaned (or raw) text, joined into one string. Small and overridable: V2 draws one row per
++	// sentence instead, with a Reply beside the one it answers (`re.to`), step 2 of views-on-messages.md.
++	paragraph(group, p){ div.c("chat-v3-para", group.map(s => p.clean[s.id] ?? s.text).join(" ")); }
++	// The clamp-to-a-few-lines wrapper with "show all (N words)", shared by `dictation()` (and V2's sentence rows, same words count).
++	clamped_text(p, words, fill){
++		const long = words > 80, all = this.all_open?.has(p.id);
++		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), fill);
+ 		if (long) button.c("chat-v3-toggle", all ? "show less" : `show all (${words} words)`).attr("type", "button").click(() => {
+ 			(this.all_open ??= new Set())[all ? "delete" : "add"](p.id); this.els.get(p.id)?.empty(() => this.prompt(p));
+ 		});
+@@ -196,6 +206,7 @@ export default class ChatV3 extends JSONL {
+ 	}
+ 	// Delegates to placement.js (DOM-free, node-testable): a new paragraph where the gap to the previous sentence's `at` is a long pause.
+ 	static paragraphs(sentence_items, clean = {}){ return paragraphs(sentence_items, clean); }
++	static paragraph_groups(sentence_items){ return paragraph_groups(sentence_items); }
+ 	static first_words(text, n = 8){ const w = String(text ?? "").split(/\s+/).filter(Boolean); return w.slice(0, n).join(" ") + (w.length > n ? "…" : ""); }
+ 
+ 	// A Question is a few words; its answer is one or two short sentences.
+diff --git a/public/framework/ext/Chat/v3/placement.js b/public/framework/ext/Chat/v3/placement.js
+index 695146888..f4e702083 100644
+--- a/public/framework/ext/Chat/v3/placement.js
++++ b/public/framework/ext/Chat/v3/placement.js
+@@ -13,17 +13,24 @@ export function owning_prompt(list, reply){
+ 	return prompts.at(-1) ?? null;
+ }
+ 
+-/** One paragraph per run of sentences with no long pause between them: a gap to the previous sentence's `at` of `gap_ms` or more starts
+- *  a new paragraph. `clean` prefers the fast seat's cleaned text per sentence id (Prompt.clean), else the sentence's own raw words. */
+-export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
++/** Sentence items grouped by the same pause rule as `paragraphs()`, kept as sentence objects (not joined into text): a gap to the
++ *  previous sentence's `at` of `gap_ms` or more starts a new group. ChatV2 draws one row per sentence, so a Reply can sit beside
++ *  the one it answers (`re.to`); `paragraphs()` below is this grouping, joined into one string per paragraph. */
++export function paragraph_groups(sentence_items, gap_ms = PARAGRAPH_GAP_MS){
+ 	const out = [];
+ 	let cur = [], prev_at = null;
+ 	for (const s of sentence_items) {
+ 		const gap = prev_at && s.at ? Date.parse(s.at) - Date.parse(prev_at) : 0;
+-		if (cur.length && gap >= gap_ms) { out.push(cur.join(" ")); cur = []; }
+-		cur.push(clean[s.id] ?? s.text);
++		if (cur.length && gap >= gap_ms) { out.push(cur); cur = []; }
++		cur.push(s);
+ 		if (s.at) prev_at = s.at;
+ 	}
+-	if (cur.length) out.push(cur.join(" "));
++	if (cur.length) out.push(cur);
+ 	return out;
+ }
++
++/** One paragraph per run of sentences with no long pause between them (`paragraph_groups`), each joined into one string.
++ *  `clean` prefers the fast seat's cleaned text per sentence id (Prompt.clean), else the sentence's own raw words. */
++export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
++	return paragraph_groups(sentence_items, gap_ms).map(group => group.map(s => clean[s.id] ?? s.text).join(" "));
++}
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index a98902795..e86b80a1a 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -3,7 +3,7 @@ import { menu as popover_menu } from "../Popover/Popover.js";
+ import Widget from "./Widget.js";
+ import floor from "./floor.js";
+ import * as Session from "/framework/ext/Session/Session.js";
+-import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
++import ChatV2Model from "/framework/ext/Chat/v2/old/ChatV2Model.js";   // V1 still folds tasks with the old model; ChatV2 itself moved on (ChatV2.js, step 2 of views-on-messages.md)
+ import DictateHealth from "./DictateHealth.js";
+ import Link from "/framework/dev/Socket/Link.js";
+ import Recite from "/framework/audio/Recite/Recite.js";

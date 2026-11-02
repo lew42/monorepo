@@ -1,7 +1,6 @@
-// node live-guess.test.mjs [base-url] [shots-dir] — headless: proves views-fix item 2 (V2 shows the live guess).
-// Fires the real "chat-live" window event -- the exact one every mic composer dispatches (Widget.js:828,
-// "Chat v3 draws the same unsent words") and the one ChatV3 already listens to (ChatV3.js:204-207) -- at
-// V2's own demo page. Not a V2-only mechanism: proof that ChatV2 now subscribes to the shared one (law 6).
+// node live-guess.test.mjs [base-url] [shots-dir] — headless: V2 shows the live guess (owner item 6), inherited unchanged
+// from ChatV3 (step 2 of views-on-messages.md made ChatV2 a ChatV3 subclass; the draft card, `draft()`, is not overridden).
+// Fires the real "chat-live" window event every mic composer dispatches, at V2's own demo page.
 import Browser from "file:///C:/Code/lew42/monorepo/Server/Browser.mjs";
 
 const base = process.argv[2] ?? process.env.SITE_URL ?? "http://views-fix.localhost";
@@ -15,7 +14,7 @@ const errors = []; page.on("pageerror", e => errors.push(String(e)));
 
 try {
 	await page.goto(`${base}/framework/ext/Chat/v2/`, { waitUntil: "networkidle" });
-	await page.waitForSelector(".chat-v2-prompt", { timeout: 15000 });   // the fixture's own prompts are drawn first
+	await page.waitForSelector(".chat-v3-prompt", { timeout: 15000 });   // the fixture's own prompts are drawn first
 
 	// The composer isn't live on this read-only demo page, so dispatch the same event a real mic would.
 	await page.evaluate(() => {
@@ -26,11 +25,11 @@ try {
 			sent: false,
 		} }));
 	});
-	await page.waitForSelector(".chat-v2-draft", { timeout: 2000 });
+	await page.waitForSelector(".chat-v3-draft", { timeout: 2000 });
 
 	const colors = await page.evaluate(() => {
-		const sent = document.querySelector(".chat-v2-draft-text");
-		const guess = document.querySelector(".chat-v2-guess");
+		const sent = document.querySelector(".chat-v3-text.is-moving");
+		const guess = document.querySelector(".chat-v3-guess");
 		return {
 			settled_text: sent?.textContent.replace(guess?.textContent ?? "", "").trim(),
 			guess_text: guess?.textContent.trim(),
@@ -46,8 +45,8 @@ try {
 
 	// "sent" (the full message lands): the draft clears once nothing is left mid-utterance.
 	await page.evaluate(() => window.dispatchEvent(new CustomEvent("chat-live", { detail: { text: "", settled: "", guess: "", sent: true } })));
-	await page.waitForSelector(".chat-v2-draft", { state: "detached", timeout: 2000 }).catch(() => {});
-	const after = await page.evaluate(() => !!document.querySelector(".chat-v2-draft"));
+	await page.waitForSelector(".chat-v3-draft", { state: "detached", timeout: 2000 }).catch(() => {});
+	const after = await page.evaluate(() => !!document.querySelector(".chat-v3-draft"));
 	check("the draft card is removed once the words are sent", after === false, after);
 
 	check("no page errors", errors.length === 0, errors);

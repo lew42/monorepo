@@ -479,9 +479,10 @@ Widget.Thread = class WidgetThread extends View {
 			after.insertAdjacentElement("afterend", node);
 		}
 		if (parent) node.dataset.under = t.at;
-		// A Question card replaces the plain bubble it came from: hide that source bubble (view only, the log keeps it).
-		// Hiding is idempotent, so a second Question from the same bubble changes nothing.
-		if (parent && t.question) parent.style.display = "none";
+		// V1 is the raw log (the owner, 2026-11-01): a Question or Task made from a sentence is drawn IN
+		// ADDITION to it, never in place of it — the source bubble used to be hidden here, which swallowed
+		// the owner's own words the moment the fast seat turned one into a Question (dictation-v3/v1-raw,
+		// /framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v1-raw/).
 		rows.set(t.id, node);
 		this.anchor();
 	}
@@ -575,12 +576,15 @@ Widget.Thread = class WidgetThread extends View {
 	}
 
 	/** One placement from the voice assistant, {re, to, where, edit, text, title} (doc/voice-assistant.md); the latest per sentence wins.
-	 * `same` changes nothing; `paragraph` splits the bubble at `re`; `card` does that and marks the bubble a card. Raw words stay in `said`. */
+	 * `same` changes nothing; `paragraph` splits the bubble at `re`; `card` does that and marks the bubble a card.
+	 * V1 is the raw log (the owner, 2026-11-01): an "improve" edit draws the cleaned `text` the same way a revision
+	 * line already does — raw muted above, improved below, click to toggle (`revision_pair_node()`, ext/Chat/Chat.js)
+	 * — never swapping the raw words out, which used to happen here via a bare `{ text }` patch (ux/Dictate dictation-v3/v1-raw). */
 	place({ re, to = "same", where = "beside", edit = "nothing", text, title } = {}){
 		const hit = this.lines.get(re);
 		if (!hit) return false;
 		this.settled.add(re);   // a placed line is no longer raw
-		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { text });
+		if (text && (edit === "improve" || edit === "both")) patch_piece(hit.bubble, hit.ref.id, { revision: { text, level: edit } });
 		// a late split (later lines already joined this bubble) would cut a thought in two: keep it where it is (doc/voice-assistant.md#late-placements)
 		const lines = hit.bubble?.querySelectorAll(":scope > [data-re]") ?? [];
 		if (lines.length && String(lines[lines.length - 1].dataset.re) !== String(re)) to = "same";

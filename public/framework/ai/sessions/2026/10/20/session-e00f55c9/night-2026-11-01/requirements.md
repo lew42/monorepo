@@ -1,4 +1,16 @@
-# The owner's dictation before sleep (2026-11-01, about 21:45), and the night's plan
+# Night plan 2026-11-01: five streams, one owner each
+
+The five streams are listed first; the owner's dictation (about 21:45) that they come from follows.
+
+- [ ] A. Views and read-aloud, plus the urgent V1 raw-text bug: `mastermind-dictation-v3` (running)
+- [ ] B. Chat data model, Refs, Item/List tests: `mastermind-chat-model`
+- [ ] C. System map of dictation's background work: `mastermind-system-map`
+- [ ] D. Git branching proposal (proposal only): `mastermind-git-strategy`
+- [ ] E. Leaked worktree dev servers: `mastermind-dev-server-leak`
+
+Details of each stream are in the table at the bottom.
+
+## The owner's dictation, in essence
 
 The verbatim prompt is logged by the prompt-relay hook, in this tab's session (e00f55c9) at about 21:45. Below are its essence and the plan. **The owner is asleep. Don't ask them questions:** decide, record the alternative, and keep going.
 

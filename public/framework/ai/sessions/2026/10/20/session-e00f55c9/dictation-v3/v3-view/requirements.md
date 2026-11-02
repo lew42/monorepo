@@ -4,13 +4,18 @@ Budget: $9
 
 Load the `minion` skill first, then the `code` and `ui` skills. Owner's words: [../requirements.md](../requirements.md) and the V3 trail in [../findings.md](../findings.md) §1. The whole plan, and why: [../plan.md](../plan.md) (you are piece A). Readme first: `public/framework/ext/Chat/v3/readme.md`.
 
-**Worktree:** `C:/Code/lew42/worktrees/dictation-v3` (branch `task/dictation-v3`, its own server at `http://dictation-v3.localhost/`). Work and commit only there, by path, after each working step.
+**Worktree:** `C:/Code/lew42/worktrees/dictation-v3` (branch `worktree/dictation-v3`, which already holds voice-recite, its own server at `http://dictation-v3.localhost/`). Work and commit only there, by path, after each working step.
 
 **Fence (only these files):** `public/framework/ext/Chat/v3/*`, `public/framework/ext/drawer/ChatView.js`, the lines in `ext/drawer/Sheet.js` and `ext/drawer/tabs/ai.js` that call `this.v2.chip()`, and the drawer CSS the dropdown needs. Another builder works in `audio/`, `ext/Chat/Mic.js` and `ux/Dictate/chat.js` at the same time: do not edit those.
 
 ## Build, in this order
 
-1. **Every reply in its Prompt card (read-only).** V3 also reads `{chat}` lines. An owner `{chat}` line carries `prompt` (the Prompt id) and `at`; a smart reply `{chat}` (`from.kind === "assistant"`) carries `re` = the owner line's `at`. Map `at → prompt`, then draw each reply inside that Prompt's card, after any replies already in the Prompt's own `replies` list, deduped by text. A reply whose `re` names no known line goes to the newest Prompt at that time. Never write to the file. Proof: on a copy of `public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl`, count replies drawn vs smart `{chat}` lines (expect at least 300 of 316; today it is about 6%). Put both numbers in your log.
+1. **Every reply in its Prompt card (read-only).** V3 also reads `{chat}` lines; it never writes to the file.
+   - An owner `{chat}` line carries `prompt` (the Prompt id) and `at`.
+   - A smart reply `{chat}` (`from.kind === "assistant"`) carries `re` = the owner line's `at`.
+   - Map `at → prompt`, then draw each reply inside that Prompt's card, after the replies already in its `replies` list, deduped by text.
+   - A reply whose `re` names no known line goes to the newest Prompt at that time.
+   - **Proof:** on a copy of `public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl`, count replies drawn vs smart `{chat}` lines. Expect at least 300 of 316 (today about 6%). Put both numbers in your log.
 2. **The live reply.** Subscribe to the session's wire the way V1 does (`Session.stream(session, ev)`, see `ux/Dictate/chat.js:300`; `ev.kind === "stream"` carries `role` and the partial `text`) and draw the partial reply in the newest Prompt's card; when the settled `{chat}` arrives, it replaces the partial (no double).
 3. **Markdown in replies** through `ext/Chat/md.js` (what V1 uses).
 4. **Gray only for unsent words.** The `chat-live` draft (unsent Whisper guesses) stays gray. A sentence written to the file is final: draw it solid at once. Remove the 8-second `MOVING_MS` gray. The owner, 2026-10-26 16:26: "light gray to black should be reserved only for the whisper finalization."

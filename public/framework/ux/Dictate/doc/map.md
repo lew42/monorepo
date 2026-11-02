@@ -1,5 +1,7 @@
 # Dictation map — every piece, where it lives, and what to do about the duplicates
 
+What *runs* behind a spoken sentence (jobs, models, costs, readers): [background-work.md](background-work.md).
+
 **What this is:** one page that finds any piece of the dictation system in one click: the mic, Whisper, the cleaners, the chat box, the voice session and the assistants. Made 2026-10-20 as a **plan only**: nothing was moved or changed. The proposals at the bottom wait for the owner's approval ([decisions](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/)).
 
 How the facts were found: an import-graph script over `public/`, `Server/`, `Servex/` (importer counts, and which files the real site reaches from `public/app.js`), `git log` for dates, and `grep` for each `file:line` proof. The script and its raw output live in the task folder's history; rerun it before acting on a count.

@@ -49,3 +49,4 @@
 {"file":"person-icon.test.mjs"}
 {"file":"improvements.jsonl"}
 {"file":"failures.jsonl","gone":true}
+{"file":"failures.jsonl"}

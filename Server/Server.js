@@ -82,5 +82,21 @@ export default class Server extends Events {
             console.log(`Server listening on ${host}:${port}`);
             this.emit("listening", { port, host });
         });
+        this.idle_exit();
+    }
+
+    /* A worktree's dev server (worktree-up sets IDLE_EXIT_MIN) ends itself after that many minutes with no
+     * HTTP request, so an abandoned one never lingers. Under the server.js supervisor it asks the supervisor
+     * to stop (a bare exit would be respawned); bare, it exits. Server/doc/worktree-servers.md. */
+    idle_exit(){
+        const min = Number(process.env.IDLE_EXIT_MIN);
+        if (!(min > 0) || process.env.BOOT_TEST) return;
+        let last = Date.now();
+        this.http.on("request", () => { last = Date.now(); });
+        setInterval(() => {
+            if (Date.now() - last < min * 60000) return;
+            console.log(`[idle] no request for ${min} min — stopping this worktree server`);
+            if (process.send) process.send({ idle_exit: true }); else process.exit(0);
+        }, 60000).unref();
     }
 }

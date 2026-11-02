@@ -1,0 +1,3 @@
+# Chat V3: no wall of text
+
+The owner, 2026-11-01 18:19 (Recite tab, session v-u48msei): switching to V3 made "a huge wall of text just randomly appear". Cause: the smart seat never wrote a Prompt title or text there, so V3 showed the raw dictation, and one Prompt held 6,760 characters as one paragraph. Decision (owner-decisions.md 6): V1 is the raw chat, V2/V3 condensed cards, one view later; for now V3 keeps the raw dictation visible. Change: `ext/Chat/v3/ChatV3.js` `prompt()`/`dictation()`: the AI text when it exists, else the dictation in paragraphs (one per sent chunk, every 3 sentences), clamped with "show all (N words)", under a muted first-words title. Shot: ../shots/v3-owner-session-400.png (the biggest card is 245 px). Test: ChatV3.test.mjs 23 of 23.

@@ -30,6 +30,10 @@
 	.audio-recite-btn.is-loading .icon { animation: audio-recite-pulse 1s ease-in-out infinite; }
 	.audio-recite-btn.is-on { color: var(--ink); }
 	.audio-recite-btn.is-open { color: var(--prime); }
+	/* The resume control: the same Play button, filled while state is `heard`/`paused`, so it reads as a
+	   distinct "tap to resume" rather than a generic play/pause toggle. */
+	.audio-recite-btn.is-resume { background: var(--prime); color: var(--prime-ink); }
+	.audio-recite-btn.is-resume:hover { background: var(--prime); color: var(--prime-ink); }
 
 	.audio-recite-track {
 		position: relative;
