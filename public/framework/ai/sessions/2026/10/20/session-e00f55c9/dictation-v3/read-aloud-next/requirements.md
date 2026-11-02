@@ -78,4 +78,11 @@ The owner's notes, items 13–18: [owner-notes-2026-11-01-2040.md](../owner-note
 - **Tap a bubble to play, tap to pause/resume (item 21), in the (b) merge, with resumable bubbles:** links inside the bubble keep working. The tap ignores clicks on `a`, mention chips and buttons.
 - **Raise the mic threshold while read-aloud plays (item 22), in the echo merge:** a higher level gates send/barge-in while playing and ~1.5 s after, so coughs and the leaking voice don't fire. Name the factor as a setting.
 
-**Order now:** (a)+queue+turn-taking (+ no flood if small) → no flood + prioritise (if not folded in) → echo → highlight dropout → (b) tap to pause → resumable bubbles → (c) karaoke follow, without phrase streaming.
+## Folded in (2026-11-01 21:11): owner items 23–26, no new merge before (c)
+
+- **Subtle lit words (item 24), in the highlight-dropout merge** (same file, `ReciteHighlight.js`): the bubble text is muted while it waits; each word lights up as it is read and STAYS lit. That is the visible "read" marker; item 20's played flag stays in the data only.
+- **Tap a card (item 25) is item 21:** it is already in the (b) merge.
+- **One bubble-UI merge after resumable bubbles:** a voice toolbar per bubble (item 26), above or below it, with big targets the right thumb reaches, in place of the tiny bottom-left play button; and a dropdown chevron on the voice name in `ReciteBar` (item 23; "heart" reads as a like button), styled like the light-mode selects.
+- Item 27 (a tooltip on the person icon) goes to `mastermind-ink-check`; it lives in the Dictate bar, not in Recite.
+
+**Order now:** (a)+queue+turn-taking (+ no flood if small) → no flood + prioritise (if not folded in) → echo → highlight dropout (+ lit words) → (b) tap to pause → resumable bubbles → bubble toolbar + voice chevron → (c) karaoke follow, without phrase streaming.
