@@ -1,0 +1,103 @@
+diff --git a/public/framework/ext/Chat/v3/ChatV3.css b/public/framework/ext/Chat/v3/ChatV3.css
+index 9434b5170..0f685f876 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.css
++++ b/public/framework/ext/Chat/v3/ChatV3.css
+@@ -20,6 +20,9 @@
+ 	.chat-v3-text.is-moving { color: color-mix(in srgb, currentColor 75%, transparent); }
+ 	.chat-v3-text > :first-child { margin-top: 0; }
+ 	.chat-v3-text > :last-child { margin-bottom: 0; }
++	.chat-v3-title.is-untitled { font-weight: 500; color: color-mix(in srgb, currentColor 60%, transparent); }
++	.chat-v3-dictation { display: flex; flex-direction: column; gap: .5em; }
++	.chat-v3-dictation.is-clamped { max-block-size: 9.5em; overflow: hidden; mask-image: linear-gradient(to bottom, black 70%, transparent); }
+ 	.chat-v3-guess { color: color-mix(in srgb, currentColor 60%, transparent); }
+ 
+ 	.chat-v3-toggle { align-self: flex-start; font: inherit; font-size: .78em; background: none; border: 0; padding: 0; cursor: pointer; color: color-mix(in srgb, currentColor 50%, transparent); }
+@@ -31,6 +34,7 @@
+ 	.chat-v3-brain { flex: none; }
+ 	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
+ 	.chat-v3-reply-text > * { margin-block: 0; }
++	.chat-v3-reply-text :is(h1, h2, h3, h4) { font-size: 1.05em; margin-block: .5em .2em; line-height: 1.3; }   /* a heading in a reply is a label, not a page title */
+ 
+ 	.chat-v3-nest { display: flex; flex-direction: column; gap: .4rem; padding-left: .7rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
+ 	.chat-v3-ask { display: flex; gap: .5rem; align-items: flex-start; }
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index 9356183f0..2fe0e310f 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -147,14 +147,17 @@ export default class ChatV3 extends JSONL {
+ 	}
+ 
+ 	prompt(p){
+-		const title = p.get_one("title"), open = this.raw_open.has(p.id);
++		const title = p.get_one("title"), refined = p.get_one("text"), open = this.raw_open.has(p.id);
+ 		div.c("chat-v3-head", () => {
+ 			if (title) h3.c("chat-v3-title", title);
++			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw_text));   // no AI title yet: its first words, muted
+ 		});
+ 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
+-		 * only for the whisper finalization"). A sentence in the file is final, so it is solid: the cleaned text, else the words heard. */
+-		const body = div.c("chat-v3-text md");
+-		md_into(body.el, p.text || p.raw_text);
++		 * only for the whisper finalization"). A sentence in the file is final, so it is solid.
++		 * The card shows the AI's cleaned text when there is one; until then the dictation itself, in paragraphs and a few lines high
++		 * with "show all", never one wall (the owner, 2026-11-01: a 6,760-character Prompt came up as "a huge wall of text"). */
++		if (refined) md_into(div.c("chat-v3-text md").el, refined);
++		else this.dictation(p);
+ 		if (p.raw.length) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
+ 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
+ 		if (open) div.c("chat-v3-raw", () => p.raw.forEach(line => blockquote.c("chat-v3-raw-line", line)));
+@@ -164,6 +167,27 @@ export default class ChatV3 extends JSONL {
+ 		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+ 	}
+ 
++	/** The words as dictated, when no AI text exists yet: one paragraph per sent chunk (a pause), a long chunk cut every 3 sentences,
++	 *  clamped to a few lines with "show all (N words)". */
++	dictation(p){
++		const paras = ChatV3.paragraphs(p.raw.length ? p.raw : [p.cleaned]);
++		const words = paras.join(" ").split(/\s+/).filter(Boolean).length, long = words > 80, all = this.all_open?.has(p.id);
++		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), () => paras.forEach(s => div.c("chat-v3-para", s)));
++		if (long) button.c("chat-v3-toggle", all ? "show less" : `show all (${words} words)`).attr("type", "button").click(() => {
++			(this.all_open ??= new Set())[all ? "delete" : "add"](p.id); this.els.get(p.id)?.empty(() => this.prompt(p));
++		});
++		return box;
++	}
++	static paragraphs(chunks){
++		const out = [];
++		for (const chunk of chunks){
++			const sentences = String(chunk ?? "").split(/(?<=[.!?…])\s+/).filter(s => s.trim());
++			for (let i = 0; i < sentences.length; i += 3) out.push(sentences.slice(i, i + 3).join(" "));
++		}
++		return out;
++	}
++	static first_words(text, n = 8){ const w = String(text ?? "").split(/\s+/).filter(Boolean); return w.slice(0, n).join(" ") + (w.length > n ? "…" : ""); }
++
+ 	// A Question is a few words; its answer is one or two short sentences.
+ 	question(q){
+ 		const phase = q.phase, wrap = div.c("chat-v3-ask").attr("data-phase", phase).attr("id", q.id).attr("data-id", q.id);
+diff --git a/public/framework/ext/Chat/v3/ChatV3.test.mjs b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+index 6de7e2f85..94f142254 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.test.mjs
++++ b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+@@ -62,8 +62,8 @@ try {
+ 	check("a written sentence is solid at once (gray is only for the unsent draft)", await page.$(card + " .chat-v3-text.is-moving") === null);
+ 	// what Sessions.assign_prompt writes for a line that continues the Prompt: the raw words, and the paragraph growing with them
+ 	appendFileSync(served + live, JSON.stringify({ [id]: { raw: "and more words" } }) + "\n" + JSON.stringify({ [id]: { paragraphs: { append: { id: "a", text: " And more words." } } } }) + "\n");
+-	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("And more words"), card, { timeout: 8000 }).catch(() => {});
+-	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("And more words"), await page.textContent(card));
++	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("and more words"), card, { timeout: 8000 }).catch(() => {});
++	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("and more words"), await page.textContent(card));
+ 	appendFileSync(served + live, JSON.stringify({ [id]: { title: "Arrived live", replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
+ 	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("Seen, live."), card, { timeout: 8000 });
+ 	check("its reply lands inside it", true);
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index 044527af9..09d42abd8 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -8,6 +8,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws Chat v2's [fixt
+ 
+ - `ChatV3.js`: `class ChatV3 extends JSONL`. Every line of the session file that is a task delta (`tasks`, `session`, `start`, `stop`, `decide`, `task`, or a line keyed by an id already in the list) is replayed into a real `Session` (`core/Session`) with `replay_line`, the same replay the item tool uses. Everything else is skipped. The Prompts are drawn as they are: the `raw` chunks, the `paragraphs`, the `replies`.
+ - **A card per Prompt**, in time order, newest last: its title, then the cleaned text (the smart seat's `text`, else the paragraphs code writes as the owner speaks, else the raw words). Its replies (🧠, markdown) and the Questions and Tasks that name it (`from`, or nested under it) sit inside the card. "show raw" opens the raw chunks, which are append-only and never edited.
++- **The card body** (2026-11-01): the AI's cleaned `text` when it exists; until then the dictation itself (the owner still needs the raw words), one paragraph per sent chunk, a long chunk cut every three sentences, clamped to a few lines with "show all (N words)", under a muted title of its first words. A 6,760-character Prompt had come up as one wall of text.
+ - **Every reply** (`chat_line()`, 2026-11-01): most smart-seat replies are `{chat}` lines, not Prompt replies. An owner `{chat}` line carries `prompt`; a reply carries `re` = that owner line's `at`, so the reply joins that Prompt's card (a reply with no known `re` joins the newest Prompt). A `{chat}` reply with the same text as one of the Prompt's own replies is drawn once.
+ - **The reply being written:** V3 follows the session's live wire (`stream()` in `ext/Session/Session.js`, the one V1 reads) and draws the partial reply at the end of the newest card until its settled line arrives.
+ - **Gray only for unsent words** (the owner, 2026-10-26: "light gray to black reserved only for the whisper finalization"): a sentence in the file is final, so it is solid at once. The words still being spoken show as a faint dashed draft at the end (the composer's mic fires a `chat-live` window event, one line in `ux/Dictate/Widget.js`).

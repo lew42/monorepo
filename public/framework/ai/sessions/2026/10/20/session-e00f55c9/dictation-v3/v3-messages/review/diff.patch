@@ -1,0 +1,755 @@
+diff --git a/public/framework/core/Session/Chat/doc/views-on-messages.md b/public/framework/core/Session/Chat/doc/views-on-messages.md
+index 7108d4503..4fc282e3d 100644
+--- a/public/framework/core/Session/Chat/doc/views-on-messages.md
++++ b/public/framework/core/Session/Chat/doc/views-on-messages.md
+@@ -28,7 +28,7 @@ The owner's wake rules ([turn-taking.md](/framework/ux/Dictate/doc/turn-taking.m
+ 
+ ## The steps, one merge each
+ 
+-1. **V3 on messages.** V3 draws `session.messages` (Prompt with its sentences, Replies under it), tasks beside. Smallest view, nothing else reads it.
++1. **V3 on messages — done, merged (`mastermind-v3-messages`, 2026-11-01).** `ext/Chat/v3/ChatV3.js` draws `session.messages` (Prompt with its sentences, Replies found by `re.to` under it), tasks/questions beside through the Prompt message's `prompt` link. Paragraphs are pause-based (`placement.js`, `PARAGRAPH_GAP_MS`), not "one per sent chunk". Proof: `placement.test.mjs` (18 node checks on a real-session fixture) + `ChatV3.test.mjs` (16 Playwright checks, incl. live append). Readme: [ext/Chat/v3/readme.md](/framework/ext/Chat/v3/readme.md).
+ 2. **V2 on messages.** Same swap in V2; drop the `{chat}` lookup in `ChatV2Model`; keep the marks on the task.
+ 3. **One home for the marks.** Move `sent.fast`, `sent.smart` and `working` onto the Prompt message (a new field, written by `Sessions.mark_sent` through `ChatWriter`), and make 🧠 "answered" in both views. Then V2's per-Prompt ✓ can become per-sentence.
+ 4. **One view.** If dictation-v3 agrees (below), V2 and V3 become one class over the same model with two skins; otherwise two skins on one shared model class.
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index 739d68e33..4ab3acd3b 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -75,6 +75,6 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ 
+ ## Next
+ 
+-- ⬜ Chat V3 reads this list instead of re-reading `{chat}` lines (the views belong to `mastermind-dictation-v3`; this list is the contract).
++- ✅ Chat V3 reads this list instead of re-reading `{chat}` lines ([ext/Chat/v3](/framework/ext/Chat/v3/readme.md), 2026-11-01; the views belong to `mastermind-dictation-v3`, this list is the contract). Chat V2 next ([views-on-messages.md](doc/views-on-messages.md) step 2).
+ - ⬜ Question, Card and Ref as messages, when a writer needs them.
+ - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").
+diff --git a/public/framework/core/Test/results.jsonl b/public/framework/core/Test/results.jsonl
+index ba91bbcfe..935fc7160 100644
+--- a/public/framework/core/Test/results.jsonl
++++ b/public/framework/core/Test/results.jsonl
+@@ -3161,3 +3161,40 @@
+ {"file":"Servex/ext/remote/RemoteMCP.test.mjs","ok":true,"ms":12150,"at":"2026-10-25T02:51:35.667Z","trigger":"manual"}
+ {"file":"public/framework/core/Task/TasksPage.test.mjs","ok":true,"ms":5768,"at":"2026-10-25T02:51:39.236Z","trigger":"manual"}
+ {"file":"Servex/whisper-detach.test.mjs","ok":true,"ms":20616,"at":"2026-10-25T02:51:46.871Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":143,"at":"2026-11-02T04:01:05.356Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/v3/placement.test.mjs","ok":true,"ms":90,"at":"2026-11-02T04:01:05.363Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.basic.test.mjs","ok":true,"ms":85,"at":"2026-11-02T04:01:08.545Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.steps.test.mjs","ok":true,"ms":86,"at":"2026-11-02T04:01:08.551Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.test.mjs","ok":true,"ms":139,"at":"2026-11-02T04:01:08.608Z","trigger":"manual"}
++{"file":"public/framework/core/Item/RecordWriter.test.mjs","ok":true,"ms":77,"at":"2026-11-02T04:01:08.628Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Store.test.mjs","ok":true,"ms":86,"at":"2026-11-02T04:01:08.714Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Ref.test.mjs","ok":true,"ms":178,"at":"2026-11-02T04:01:08.786Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Outbox.test.mjs","ok":true,"ms":249,"at":"2026-11-02T04:01:08.795Z","trigger":"manual"}
++{"file":"public/framework/core/Item/call.test.mjs","ok":true,"ms":84,"at":"2026-11-02T04:01:08.870Z","trigger":"manual"}
++{"file":"public/framework/core/Item/act.test.mjs","ok":true,"ms":164,"at":"2026-11-02T04:01:08.879Z","trigger":"manual"}
++{"file":"public/framework/core/Item/hooks.test.mjs","ok":true,"ms":75,"at":"2026-11-02T04:01:08.945Z","trigger":"manual"}
++{"file":"public/framework/core/Item/item-core.test.mjs","ok":true,"ms":175,"at":"2026-11-02T04:01:09.055Z","trigger":"manual"}
++{"file":"public/framework/core/Item/delta-flow.test.mjs","ok":true,"ms":325,"at":"2026-11-02T04:01:09.120Z","trigger":"manual"}
++{"file":"public/framework/core/Item/line-format.test.mjs","ok":true,"ms":204,"at":"2026-11-02T04:01:09.150Z","trigger":"manual"}
++{"file":"public/framework/core/Item/replay-vs-open.test.mjs","ok":true,"ms":77,"at":"2026-11-02T04:01:09.227Z","trigger":"manual"}
++{"file":"public/framework/core/Item/line-readers.test.mjs","ok":true,"ms":257,"at":"2026-11-02T04:01:09.312Z","trigger":"manual"}
++{"file":"public/framework/core/Item/replay.test.mjs","ok":true,"ms":268,"at":"2026-11-02T04:01:09.495Z","trigger":"manual"}
++{"file":"public/framework/core/Item/snapshot.test.mjs","ok":true,"ms":200,"at":"2026-11-02T04:01:09.512Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.steps.test.mjs","ok":true,"ms":77,"at":"2026-11-02T04:01:09.590Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Dated.test.mjs","ok":true,"ms":1374,"at":"2026-11-02T04:01:09.676Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.test.mjs","ok":true,"ms":89,"at":"2026-11-02T04:01:09.680Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":102,"at":"2026-11-02T04:01:09.779Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":103,"at":"2026-11-02T04:01:09.784Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/chunks.test.mjs","ok":true,"ms":64,"at":"2026-11-02T04:01:09.848Z","trigger":"manual"}
++{"file":"public/framework/core/Session/session-task.test.mjs","ok":true,"ms":168,"at":"2026-11-02T04:01:09.947Z","trigger":"manual"}
++{"file":"public/framework/core/Item/persistence.test.mjs","ok":true,"ms":1182,"at":"2026-11-02T04:01:10.302Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/sentence-send.test.mjs","ok":true,"ms":8166,"at":"2026-11-02T04:01:18.468Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/strip.test.mjs","ok":true,"ms":71,"at":"2026-11-02T04:01:18.540Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/person-icon.test.mjs","ok":true,"ms":8727,"at":"2026-11-02T04:01:18.674Z","trigger":"manual"}
++{"file":"public/framework/core/Item/transport.test.mjs","ok":true,"ms":11914,"at":"2026-11-02T04:01:21.410Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/v2/resurface.test.mjs","ok":true,"ms":71,"at":"2026-11-02T04:01:21.481Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/v2/live-guess.test.mjs","ok":true,"ms":9023,"at":"2026-11-02T04:01:27.698Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/v3/placement.test.mjs","ok":true,"ms":103,"at":"2026-11-02T04:01:27.801Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/v2/ChatV2.test.mjs","ok":true,"ms":13483,"at":"2026-11-02T04:01:32.023Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/v3/ChatV3.test.mjs","ok":true,"ms":10983,"at":"2026-11-02T04:01:32.465Z","trigger":"manual"}
++{"file":"public/framework/ext/Chat/ink-dim.test.mjs","ok":true,"ms":23757,"at":"2026-11-02T04:01:33.605Z","trigger":"manual"}
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index 8c90a9e3f..fd2da3df5 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -40,7 +40,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - [`list/`](./list/readme.md): the simplest live view of a session's real chat list, `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)): one bubble per message, in the list's order, drawn from the list's lines alone; demo at `/framework/ext/Chat/list/`.
+ - [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown as V2 in the version dropdown of the ✦ sheet and the drawer, and a chip on the session page's Chat tab, live demo at `/framework/ext/Chat/v2/`.
+ - **Links in a chat bubble** (`md.js` `site_path()`): a link to this site, under any of its hosts, becomes a site path with no new tab, so `core/Router` opens it in place and dictation keeps running; the gateway key is dropped; other sites open in a new tab.
+-- [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from the session's `tasks` list, with every reply inside it (the old-style `{chat}` replies too, read-only), the reply being written, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`.
++- [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)), with the Replies that answer it (found by `re.to`) inside it, the reply being written, pause-based paragraphs, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`. The one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; step 2 makes v2 its subclass).
+ - `roles.js`: Sender avatars and badges.
+ 
+ ## Doc topics
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index 2fe0e310f..3e08c169c 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -1,70 +1,96 @@
+-// ChatV3.js — a session's chat as a plain VIEW over its `tasks` list (rough draft). The session.jsonl is streamed and every task line
+-// is replayed into a real Session (core/Session), the same replay the item tool uses; Prompts are drawn as they are (raw chunks,
+-// paragraphs, replies) and are never reshaped. Doc: readme.md
++// ChatV3.js — a session's chat as a VIEW over `session.messages` (core/Session/Chat/readme.md; views-on-messages.md, step 1): one card
++// per Prompt, in the list's order, with the Replies that answer it (found by `re.to`, a sentence id of that Prompt) drawn inside it.
++// Tasks and Questions still sit beside their Prompt, found through the Prompt message's `prompt` link to its Prompt TASK (session.tasks).
++// It never writes and never reshapes a message. This is the one chat view; step 2 (views-on-messages.md) makes ChatV2 its subclass.
+ import View, { div, span, a, button, h3, h4, small, blockquote, icon } from "/framework/core/View/View.js";
+ import JSONL from "/framework/ext/JSONL/JSONL.js";
+ import Session from "/framework/core/Session/Session.js";
+-import Prompt from "/framework/core/Task/Prompt.js";
++import Message from "/framework/core/Session/Chat/Message.js";
++import Prompt from "/framework/core/Session/Chat/Prompt.js";
++import Reply from "/framework/core/Session/Chat/Reply.js";
++import Sentence from "/framework/core/Session/Chat/Sentence.js";
++import List from "/framework/core/List/List.js";
+ import Question from "/framework/core/Task/Question.js";
+ import TaskView from "/framework/core/Task/TaskView.js";
+ import LineKey from "/framework/core/Item/LineKey.js";
+ import { md_into } from "../md.js";
+ import * as Wire from "/framework/ext/Session/Session.js";
++import { owning_prompt, paragraphs } from "./placement.js";
+ View.stylesheet(import.meta, "ChatV3.css");
+ 
+ export default class ChatV3 extends JSONL {
+ 	static SHOW = 40;          // roots drawn at first; "show earlier" adds this many more
+-	static META = new Set(["by", "ts", "at", "origin", "as", "moved_from"]);
+ 	static ASK_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
+ 
+ 	session = new Session();
+ 	els = new Map();           // root id -> the View that draws it
+-	said = new Map();          // an owner {chat} line's `at` -> its Prompt id (every owner line carries `prompt`)
+-	chat = new Map();          // prompt id -> the assistant replies written as old-style {chat} lines, in order ({at, text})
++	dirty = new Set();         // roots (Prompt or plain Message) to refill after this batch
++	listening = false;
+ 	partial = null;            // the reply being written right now, from the session's live wire: {role, text}
+ 	raw_open = new Set();      // prompt ids whose raw words are open
+ 	limit = this.constructor.SHOW;
+ 
+ 	// { url: the session.jsonl url, $box: the View to draw into }
+ 	read(entries){
+-		const first = !this.drawn, hit = new Set();
++		const first = !this.drawn;
++		if (!this.listening){
++			this.listening = true;
++			this.session.on("delta", (line, from) => { const card = this.card_for(this.added_member(line, from)); if (card) this.dirty.add(card); });
++		}
+ 		for (const raw of entries){
+ 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
+-			if (line.chat) { const id = this.chat_line(line.chat); if (id && !first) hit.add(id); continue; }
+-			if (!this.wanted(line)) continue;
++			if (line?.chat || line?.place) continue;   // V1-only; the real update is the separate messages/sentences mirror line
+ 			this.session.replay_line(line);
+-			if (!first) { const id = this.card_of(line); if (id) hit.add(id); }
+ 		}
+-		if (first) this.draw(); else this.update(hit);
++		if (first) this.draw(); else this.update();
++		this.dirty.clear();
+ 		return this;
+ 	}
+-	reset(){ this.session = new Session(); this.els.clear(); this.said.clear(); this.chat.clear(); this.drawn = false; return super.reset(); }
++	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.drawn = false; return super.reset(); }
+ 	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); this.wire(true); return this; }
+ 	unsubscribe(){ this.stopped = true; this.listen(false); this.wire(false); return super.unsubscribe(); }
+ 
+-	/* EVERY REPLY, read-only (dictation-v3, 2026-11-01): most smart-seat replies are written as old-style {chat} lines, not into
+-	 * the Prompt. An owner line carries `prompt`; a reply carries `re` = the owner line's `at`. So a reply finds its Prompt by
+-	 * code; one whose `re` names no owner line goes to the newest Prompt. Returns the Prompt id it landed on. */
+-	chat_line(c){
+-		if (c.from?.kind === "owner") { if (c.prompt) this.said.set(c.at, c.prompt); return null; }
+-		if (c.from?.kind !== "assistant" || !String(c.text ?? "").trim()) return null;
+-		const id = this.said.get(c.re) ?? [...this.roots()].reverse().find(r => r instanceof Prompt)?.id;
+-		if (!id) return null;
+-		const list = this.chat.get(id) ?? [];
+-		if (!list.some(r => r.at === c.at)) list.push({ at: c.at, text: c.text, who: c.from?.id });
+-		this.chat.set(id, list);
+-		if (this.partial) { this.partial = null; this.$partial?.el.remove(); }   // the settled reply replaces the one being written
+-		return id;
+-	}
+-	// The replies of one Prompt: its own `replies` list, then the {chat} ones it does not already hold (same text).
+-	replies_of(p){
+-		const own = p.replies.map(r => ({ text: r.get_one("text") ?? "" }));
+-		const seen = new Set(own.map(r => r.text.trim()));
+-		return [...own, ...(this.chat.get(p.id) ?? []).filter(r => !seen.has(String(r.text).trim()))];
+-	}
++	// Every card-level root, in list order: a Prompt or a plain Message (a note). A Reply is never a root; it draws inside the Prompt it answers.
++	card_roots(){ return this.session.messages.messages.filter(m => !(m instanceof Reply)); }
++	// The session's own task list (session.tasks), the Prompt/Question/Task tree V2/V3 draw beside the messages.
++	task_roots(){ return [...(this.session._tasks ?? [])]; }
++
++	// The Prompt a Reply answers (placement.js, DOM-free, node-testable): the one whose `sentences` holds `re.to`, else the newest Prompt before it.
++	owning_prompt(reply){ return owning_prompt(this.session.messages.messages, reply); }
++	// A list's own "delta" (an add) bubbles with `from` = the LIST itself (List.announce, List.js:270), never the member added
++	// (List extends Item, so `get_one` is no help here): resolve to that member so `card_for` sees the thing that actually changed.
++	added_member(line, from){
++		if (!(from instanceof List)) return from;
++		const added = line?.add;
++		if (added == null) return null;
++		const one = Array.isArray(added) ? added.at(-1) : added;
++		const id = one && typeof one === "object" ? one.id : one;
++		return id != null ? this.session.find(id) : null;
++	}
++	// The card a changed node belongs to, for a live redraw: a Reply's Prompt, a Sentence's Prompt, a root as itself, or (a Task/Question
++	// nested under a Prompt's task) the message Prompt whose `prompt` link names that task's top-level ancestor.
++	card_for(node){
++		if (!node) return null;
++		if (node instanceof Reply) return this.owning_prompt(node);
++		const roots = this.card_roots();
++		if (roots.includes(node)) return node;
++		if (node instanceof Sentence) return roots.find(p => p instanceof Prompt && p.sentences.includes(node.id)) ?? null;
++		const tasks = this.task_roots();
++		let n = node;
++		while (n && !tasks.includes(n)) n = n.parent;
++		if (!n) return null;
++		const from = n.get_one?.("from") ?? n.id;
++		return roots.find(p => p instanceof Prompt && p.prompt === from) ?? null;
++	}
++	// The Prompt TASK (session.tasks) a message Prompt's words were also filed into, the link to its nested Tasks/Questions.
++	task_for(p){ return p.prompt ? this.session.find(p.prompt) : null; }
++	nested_tasks(task){ return task ? this.task_roots().filter(r => r.get_one?.("from") === task.id) : []; }
++
++	// The Replies that answer one Prompt, in the chat list's own order.
++	replies_of(p){ return this.session.messages.messages.filter(m => m instanceof Reply && this.owning_prompt(m) === p); }
+ 
+ 	/* THE REPLY BEING WRITTEN: the session's live wire (ext/Session stream(), the one V1 reads) sends {kind:"stream", role, text}, the whole
+-	 * reply so far, and text "" when it ends. Drawn at the end of the newest Prompt card until the settled {chat} line arrives. */
++	 * reply so far, and text "" when it ends. Drawn at the end of the newest Prompt card until the settled Reply message arrives. */
+ 	session_id(){ return decodeURIComponent(String(this.url ?? "").split("?")[0].split("/").filter(Boolean).at(-2) ?? ""); }
+ 	wire(on){
+ 		this.stop_wire?.(); this.stop_wire = null;
+@@ -74,7 +100,7 @@ export default class ChatV3 extends JSONL {
+ 	stream(role, text){
+ 		if (!text) { this.partial = null; this.$partial?.el.remove(); return; }
+ 		this.partial = { role, text };
+-		const p = [...this.roots()].reverse().find(r => r instanceof Prompt), card = p && this.els.get(p.id);
++		const p = this.card_roots().filter(r => r instanceof Prompt).at(-1), card = p && this.els.get(p.id);
+ 		if (!card) return;
+ 		if (!this.$partial?.el.isConnected) { this.$partial = div.c("chat-v3-reply chat-v3-partial"); card.el.append(this.$partial.el); }
+ 		this.$partial.el.replaceChildren();
+@@ -83,34 +109,10 @@ export default class ChatV3 extends JSONL {
+ 		this.$partial.el.append(b, t);
+ 	}
+ 
+-	// Only the lines that are task deltas: V3 reads the tasks list and nothing else (no {chat}, {place}, {sent}… lines).
+-	wanted(line){
+-		if (!line || typeof line !== "object") return false;
+-		if (line.tasks || line.session || line.start || line.stop || line.decide || typeof line.task === "string") return true;
+-		const key = Object.keys(line).find(k => !this.constructor.META.has(k));
+-		return !!key && !!this.session.find(key);
+-	}
+-	roots(){ return [...(this.session._tasks ?? [])]; }
+-	// The root a live line touched (a new root: the last one).
+-	root_of(line){
+-		if (line.tasks) return this.roots().at(-1);
+-		const key = Object.keys(line).find(k => !this.constructor.META.has(k)), node = key && this.session.find(key);
+-		return node ? this.roots().find(r => r === node || r.find?.(key)) : null;
+-	}
+-	// The card that redraws for a line: a root Question or Task that names its Prompt (`from`) lives inside that Prompt's card.
+-	card_of(line){
+-		const r = this.root_of(line);
+-		if (!r) return null;
+-		const from = r.get_one?.("from");
+-		return from && this.session.find(from) ? from : r.id;
+-	}
+-	nested(p){ return this.roots().filter(r => r.get_one?.("from") === p.id); }
+-	standalone(r){ const from = r.get_one?.("from"); return !(from && this.session.find(from) instanceof Prompt); }
+-
+ 	draw(){
+ 		this.drawn = true; this.els.clear();
+ 		this.$box?.empty(() => {
+-			const list = this.roots().filter(r => this.standalone(r));
++			const list = this.card_roots();
+ 			if (!list.length) { div.c("chat-v3-empty", "Nothing said in this session yet."); return; }
+ 			this.$earlier = button.c("chat-v3-earlier", "").attr("type", "button").click(() => { this.limit += this.constructor.SHOW; this.draw(); });
+ 			list.slice(-this.limit).forEach(r => this.card(r));
+@@ -122,11 +124,11 @@ export default class ChatV3 extends JSONL {
+ 		el?.scrollIntoView({ block: "center" });
+ 	}
+ 
+-	update(ids){
+-		for (const id of ids) {
+-			const node = this.session.find(id), view = this.els.get(id);
++	update(){
++		for (const node of this.dirty){
++			const view = this.els.get(node.id);
+ 			if (view) { view.empty(() => this.fill(node)); }
+-			else if (node && this.standalone(node)) {
++			else if (this.card_roots().includes(node)){
+ 				this.$box?.el.querySelector(":scope > .chat-v3-empty")?.remove();
+ 				this.$box?.append(() => this.card(node));
+ 				this.draft_at_end();
+@@ -140,17 +142,20 @@ export default class ChatV3 extends JSONL {
+ 		return view;
+ 	}
+ 
+-	fill(node){
+-		if (node instanceof Prompt) return this.prompt(node);
+-		if (node instanceof Question) return this.question(node);
+-		TaskView.row(node);
++	fill(node){ return node instanceof Prompt ? this.prompt(node) : this.note(node); }
++
++	// A plain Message (a note, e.g. Servex saying an assistant could not be reached): its own small card, no replies, no nesting.
++	note(m){
++		div.c("chat-v3-head", () => h3.c("chat-v3-title is-untitled", ChatV3.first_words(m.text)));
++		md_into(div.c("chat-v3-text md").el, m.text);
+ 	}
+ 
+ 	prompt(p){
+-		const title = p.get_one("title"), refined = p.get_one("text"), open = this.raw_open.has(p.id);
++		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
+ 		div.c("chat-v3-head", () => {
+ 			if (title) h3.c("chat-v3-title", title);
+-			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw_text));   // no AI title yet: its first words, muted
++			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.said));   // no AI title yet: its first words, muted
++			this.marks(p);
+ 		});
+ 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
+ 		 * only for the whisper finalization"). A sentence in the file is final, so it is solid.
+@@ -158,19 +163,26 @@ export default class ChatV3 extends JSONL {
+ 		 * with "show all", never one wall (the owner, 2026-11-01: a 6,760-character Prompt came up as "a huge wall of text"). */
+ 		if (refined) md_into(div.c("chat-v3-text md").el, refined);
+ 		else this.dictation(p);
+-		if (p.raw.length) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
++		const has_clean = Object.keys(p.clean).length > 0;
++		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
+ 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
+-		if (open) div.c("chat-v3-raw", () => p.raw.forEach(line => blockquote.c("chat-v3-raw-line", line)));
+-		for (const r of this.replies_of(p)) div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
+-		if (this.partial && p === [...this.roots()].reverse().find(r => r instanceof Prompt)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
+-		const kids = [...(p._tasks ?? []), ...this.nested(p)];
++		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
++		for (const r of this.replies_of(p)) this.reply(r);
++		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
++		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+ 		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+ 	}
+ 
+-	/** The words as dictated, when no AI text exists yet: one paragraph per sent chunk (a pause), a long chunk cut every 3 sentences,
+-	 *  clamped to a few lines with "show all (N words)". */
++	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
++	reply(r){ div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }); }
++
++	// The ✓/🧠 marks slot beside a Prompt's title: nothing yet (they live on the Prompt TASK until views-on-messages.md step 3); V2 overrides this.
++	marks(p){ return null; }
++
++	/** The words as dictated, when no AI text exists yet: one paragraph per run of sentences with no long pause between them, clamped to
++	 *  a few lines with "show all (N words)". Replaces the old "one paragraph per sent chunk, cut every 3 sentences" (views-on-messages.md). */
+ 	dictation(p){
+-		const paras = ChatV3.paragraphs(p.raw.length ? p.raw : [p.cleaned]);
++		const paras = this.constructor.paragraphs(p.sentence_items, p.clean);
+ 		const words = paras.join(" ").split(/\s+/).filter(Boolean).length, long = words > 80, all = this.all_open?.has(p.id);
+ 		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), () => paras.forEach(s => div.c("chat-v3-para", s)));
+ 		if (long) button.c("chat-v3-toggle", all ? "show less" : `show all (${words} words)`).attr("type", "button").click(() => {
+@@ -178,14 +190,8 @@ export default class ChatV3 extends JSONL {
+ 		});
+ 		return box;
+ 	}
+-	static paragraphs(chunks){
+-		const out = [];
+-		for (const chunk of chunks){
+-			const sentences = String(chunk ?? "").split(/(?<=[.!?…])\s+/).filter(s => s.trim());
+-			for (let i = 0; i < sentences.length; i += 3) out.push(sentences.slice(i, i + 3).join(" "));
+-		}
+-		return out;
+-	}
++	// Delegates to placement.js (DOM-free, node-testable): a new paragraph where the gap to the previous sentence's `at` is a long pause.
++	static paragraphs(sentence_items, clean = {}){ return paragraphs(sentence_items, clean); }
+ 	static first_words(text, n = 8){ const w = String(text ?? "").split(/\s+/).filter(Boolean); return w.slice(0, n).join(" ") + (w.length > n ? "…" : ""); }
+ 
+ 	// A Question is a few words; its answer is one or two short sentences.
+diff --git a/public/framework/ext/Chat/v3/ChatV3.test.mjs b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+index b8a761b8d..218dcacd3 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.test.mjs
++++ b/public/framework/ext/Chat/v3/ChatV3.test.mjs
+@@ -1,109 +1,80 @@
+-// node ChatV3.test.mjs [base-url] [shots-dir] — headless: Chat v3 draws a session's tasks list (the v2 fixture, then a copy of a real voice log),
+-// written words solid at once (gray is only the unsent draft), every reply including old-style {chat} lines, live append, and that the log is never changed. Needs the global playwright and the dev server.
++// node ChatV3.test.mjs [base-url] [shots-dir] — headless: Chat v3 draws a session's real chat list (session.messages, views-on-messages.md
++// step 1): prompts in list order, cleaned text solid, replies found by `re.to` drawn inside their prompt, a pause-based paragraph break,
++// live append. Needs the global playwright and the dev server. fixture/messages-session.jsonl is a copy of a range from a real voice
++// session (public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl); the original is never touched.
+ import { browser as get_browser } from "../../../../../Server/Browser.mjs";
+-import { copyFileSync, appendFileSync, rmSync, mkdirSync, readFileSync, existsSync } from "node:fs";
+-import { execFileSync } from "node:child_process";
++import { copyFileSync, appendFileSync, rmSync, mkdirSync, readFileSync } from "node:fs";
+ import { fileURLToPath } from "node:url";
+ 
+ const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
+-const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
+-const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
+-const served = process.argv[2] || process.env.SITE_URL || !main_tree ? here + "../v2/fixture/" : `${main_tree}/${rel}`;   // the tree the site at `base` serves (live-*.jsonl there is gitignored)
+-const fixture = here + "../v2/fixture/session.jsonl", live = `live-v3-${process.pid}.jsonl`, marked = `live-v3-marked-${process.pid}.jsonl`, real = `live-v3-real-${process.pid}.jsonl`;
+-const real_log = [process.env.REAL_LOG, `${main_tree}/public/framework/ai/sessions/2026/10/25/v-9dvbbrn/session.jsonl`].find(f => f && existsSync(f));
++const here = fileURLToPath(new URL(".", import.meta.url));
++const fixture = here + "fixture/messages-session.jsonl", live = `live-v3-${process.pid}.jsonl`;
+ let pass = 0, fail = 0;
+ const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
+ 
+-copyFileSync(fixture, served + live);
+-if (real_log) copyFileSync(real_log, served + real);
+-const before = readFileSync(served + live, "utf8");
++copyFileSync(fixture, here + "fixture/" + live);
++const before = readFileSync(here + "fixture/" + live, "utf8");
+ const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });
+ const errors = []; page.on("pageerror", e => errors.push(String(e)));
+ const tap = sel => page.$eval(sel, e => e.click());
+ const ready = () => page.waitForSelector(".chat-v3-prompt", { timeout: 15000 });
+-const src = f => `/framework/ext/Chat/v2/fixture/${f}`;
+-const first = ".chat-v3-prompt[data-id='p-1761382800000']";
++const src = `/framework/ext/Chat/v3/fixture/${live}`;
++const first = ".chat-v3-prompt[data-id='m-1793586471880']";
+ 
+ try {
+-	// 1. the fixture: prompts in file order, cleaned text solid, replies and questions inside the prompt
+-	await page.goto(`${base}/framework/ext/Chat/v3/`); await ready();
++	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src}`); await ready();
++
++	// 1. prompts in the chat list's own order, not sorted by task id
+ 	const ids = await page.$$eval(".chat-v3 > .chat-v3-card", els => els.map(e => e.dataset.id));
+-	check("three prompts, in file order", JSON.stringify(ids) === JSON.stringify(["p-1761382800000", "p-1761382900000", "p-1761382950000"]), ids);
+-	check("title shown", (await page.textContent(first + " .chat-v3-title")).includes("refined prompt first"));
++	check("six prompts, in the chat list's own order", JSON.stringify(ids) === JSON.stringify([
++		"m-1793586471880", "m-1793586544363", "m-1793586591861", "m-1793586626953", "m-1793586755261", "m-1793586760769",
++	]), ids);
++	check("with no AI title yet, the first words are the muted title", (await page.textContent(first + " .chat-v3-title.is-untitled")).startsWith("Can you hear me?"));
+ 	check("settled text is solid (not gray)", await page.$(first + " .chat-v3-text.is-moving") === null);
+-	check("cleaned text shown, not the raw whisper", (await page.textContent(first + " .chat-v3-text")).includes("The chat should show the cleaned-up version"));
+-	check("a reply sits inside its prompt", (await page.textContent(first)).includes("I made two cards from this"));
+-	check("a question with an answer is inside its prompt, answered", await page.getAttribute(first + " [data-id='q-1761382835000']", "data-phase") === "answered");
++
++	// 2. a Reply is found by re.to, not by a {chat} line, and lands inside its own Prompt
++	check("both replies to the first prompt land inside it", (await page.$$(first + " .chat-v3-reply")).length === 2);
++	check("a reply's markdown renders (the ## heading in the second reply)", !!(await page.$(first + " .chat-v3-reply-text.md")));
++	const second_card_replies = await page.$$eval(".chat-v3-prompt[data-id='m-1793586544363'] .chat-v3-reply", els => els.length);
++	check("a reply never lands under the wrong prompt (second prompt has exactly its own one reply)", second_card_replies === 1, second_card_replies);
++
++	// 3. a Question task, nested beside its Prompt through the `prompt` link, not drawn as its own root card
++	check("a Question nested under its prompt (not a root card)", await page.getAttribute(first + " [data-id='q-1793586471874']", "data-phase") === "open");
++	check("the chat list has exactly 6 root cards (Questions are not roots)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 6);
++
++	// 4. a pause makes a paragraph (the fixture grew the first Prompt with a same-breath sentence, then one after a long pause)
++	const paras = await page.$$eval(first + " .chat-v3-para", els => els.map(e => e.textContent));
++	check("no pause: two sentences share one paragraph", paras.length === 2 && paras[0].includes("Can you hear me?") && paras[0].includes("second thought"), paras);
++	check("a long pause starts a new paragraph", paras[1] === "A third thought, after a long pause.", paras);
++
++	// 5. "show raw" (the first prompt has a `clean` override on its first sentence)
+ 	check("raw hidden by default", await page.$(first + " .chat-v3-raw") === null);
+ 	await tap(first + " .chat-v3-toggle");
+-	check("show raw reveals every raw chunk", (await page.$$(first + " .chat-v3-raw-line")).length === 2);
+-	check("no unexplained link icon; the card keeps its id, so #<id> still opens it", !(await page.$(first + " .chat-v3-link")) && (await page.getAttribute(first, "id")) === "p-1761382800000");
++	check("show raw reveals every sentence's own words (3: the original + two synthetic)", (await page.$$(first + " .chat-v3-raw-line")).length === 3);
++
+ 	if (shots) {
+ 		mkdirSync(shots, { recursive: true });
+ 		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });
+-		await page.setViewportSize({ width: 1920, height: 1500 }); await page.screenshot({ path: shots + "/chat-v3-1920.png" });
+-		await page.setViewportSize({ width: 400, height: 2400 }); await page.screenshot({ path: shots + "/chat-v3-400.png" });
++		await page.setViewportSize({ width: 1200, height: 1500 }); await page.screenshot({ path: shots + "/chat-v3-1200.png" });
++		await page.setViewportSize({ width: 400, height: 860 }); await page.screenshot({ path: shots + "/chat-v3-400.png" });
+ 		await page.setViewportSize({ width: 1920, height: 1000 });
+ 	}
+ 
+-	// 1b. the marked spelling (D13, Store.marked_lines on): {"#id": {...}} is the prompt <id>, read like the bare line
+-	copyFileSync(fixture, served + marked);
+-	appendFileSync(served + marked, JSON.stringify({ "#p-1761382800000": { title: "Marked line" } }) + "\n");
+-	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(marked)}`); await ready();
+-	check("a marked line ({\"#id\": …}) updates the card like a bare one", (await page.textContent(first + " .chat-v3-title")) === "Marked line", await page.textContent(first + " .chat-v3-title"));
+-
+-	// 2. live: a Prompt appended after load is solid at once (it is final); a new word is appended to the same card; an old-style {chat} reply lands in it
+-	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(live)}`); await ready();
++	// 6. live: a Prompt with a Reply appended after load shows without a reload, the reply found by re.to
++	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src}`); await ready();
+ 	await page.evaluate(() => { window.__no_reload = true; });
+-	const id = "p-1761383000000", card = `.chat-v3-prompt[data-id='${id}']`;
+-	appendFileSync(served + live, JSON.stringify({ tasks: { add: { type: "Prompt", id, raw: ["this one arrived"], paragraphs: [{ id: "a", text: "This one arrived." }] } } }) + "\n");
++	const sid = "s-live-1", mid = "m-live-1", card = `.chat-v3-prompt[data-id='${mid}']`;
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: sid, at: "2026-11-01T20:40:00.000-06:00", text: "A live question.", via: "voice" } }, messages: { add: { type: "Prompt", id: mid, by: "owner", at: "2026-11-01T20:40:00.000-06:00", sentences: [sid] } } }) + "\n");
+ 	await page.waitForSelector(card, { timeout: 8000 });
+ 	check("a live prompt appears without a reload", await page.evaluate(() => window.__no_reload === true));
+-	check("a written sentence is solid at once (gray is only for the unsent draft)", await page.$(card + " .chat-v3-text.is-moving") === null);
+-	// what Sessions.assign_prompt writes for a line that continues the Prompt: the raw words, and the paragraph growing with them
+-	appendFileSync(served + live, JSON.stringify({ [id]: { raw: "and more words" } }) + "\n" + JSON.stringify({ [id]: { paragraphs: { append: { id: "a", text: " And more words." } } } }) + "\n");
+-	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("and more words"), card, { timeout: 8000 }).catch(() => {});
+-	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("and more words"), await page.textContent(card));
+-	appendFileSync(served + live, JSON.stringify({ [id]: { title: "Arrived live", replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
+-	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("Seen, live."), card, { timeout: 8000 });
+-	check("its reply lands inside it", true);
+-	check("its title shows as soon as it is written", (await page.textContent(card + " .chat-v3-title")) === "Arrived live");
+-	const owner_at = "2026-10-25T10:00:00.000-05:00";
+-	appendFileSync(served + live, JSON.stringify({ chat: { at: owner_at, from: { kind: "owner" }, text: "this one arrived", prompt: id } }) + "\n");
+-	appendFileSync(served + live, JSON.stringify({ chat: { at: "2026-10-25T10:00:05.000-05:00", from: { kind: "assistant", id: "smart" }, re: owner_at, text: "An **old-style** reply." } }) + "\n");
+-	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("old-style reply"), card, { timeout: 8000 }).catch(() => {});
+-	check("an old-style {chat} reply lands in the Prompt its re names, markdown drawn", !!(await page.$(card + " .chat-v3-reply strong")), await page.textContent(card));
+-	appendFileSync(served + live, JSON.stringify({ chat: { at: "2026-10-25T10:00:06.000-05:00", from: { kind: "assistant", id: "smart" }, re: owner_at, text: "Seen, live." } }) + "\n");
+-	await page.waitForTimeout(1500);
+-	check("a {chat} reply with the same text as a Prompt reply is drawn once", (await page.$$eval(card + " .chat-v3-reply", els => els.filter(e => e.textContent.includes("Seen, live.")).length)) === 1);
++	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-2", type: "Reply", by: "smart", at: "2026-11-01T20:40:02.000-06:00", text: "A live reply, found by re.to.", re: { to: sid } } } }) + "\n");
++	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("found by re.to"), card, { timeout: 8000 });
++	check("its reply lands inside it, found by re.to (no {chat} line involved)", true);
+ 
+-	// 2b. a long dictation with no AI text yet: paragraphs, clamped, "show all", a muted first-words title (the owner's "wall of text", 2026-11-01)
+-	const lid = "p-1761383100000", lcard = `.chat-v3-prompt[data-id='${lid}']`;
+-	appendFileSync(served + live, JSON.stringify({ tasks: { add: { type: "Prompt", id: lid, raw: ["Sentence number 1 is said here. Sentence number 2 is said here. Sentence number 3 is said here. Sentence number 4 is said here. Sentence number 5 is said here. Sentence number 6 is said here. Sentence number 7 is said here. Sentence number 8 is said here. Sentence number 9 is said here. Sentence number 10 is said here. Sentence number 11 is said here. Sentence number 12 is said here. Sentence number 13 is said here. Sentence number 14 is said here. Sentence number 15 is said here. Sentence number 16 is said here. Sentence number 17 is said here. Sentence number 18 is said here. Sentence number 19 is said here. Sentence number 20 is said here. Sentence number 21 is said here. Sentence number 22 is said here. Sentence number 23 is said here. Sentence number 24 is said here. Sentence number 25 is said here. Sentence number 26 is said here. Sentence number 27 is said here. Sentence number 28 is said here. Sentence number 29 is said here. Sentence number 30 is said here. Sentence number 31 is said here. Sentence number 32 is said here. Sentence number 33 is said here. Sentence number 34 is said here. Sentence number 35 is said here. Sentence number 36 is said here. Sentence number 37 is said here. Sentence number 38 is said here. Sentence number 39 is said here. Sentence number 40 is said here."] } } }) + "\n");
+-	await page.waitForSelector(lcard, { timeout: 8000 });
+-	check("a long dictation is clamped, not a wall", !!(await page.$(lcard + " .chat-v3-dictation.is-clamped")));
+-	check("it is cut into paragraphs (3 sentences each)", (await page.$$(lcard + " .chat-v3-para")).length === 14, (await page.$$(lcard + " .chat-v3-para")).length);
+-	check("with no AI title, its first words are the muted title", (await page.textContent(lcard + " .chat-v3-title.is-untitled")).startsWith("Sentence number 1 is said here."));
+-	await page.$eval(lcard + " .chat-v3-dictation + .chat-v3-toggle", e => e.click());
+-	await page.waitForTimeout(300);
+-	check("'show all' opens the whole dictation", !(await page.$(lcard + " .chat-v3-dictation.is-clamped")));
+-
+-	// 3. a copy of a real voice log: the other families of lines are ignored, the tasks are drawn
+-	if (real_log) {
+-		await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(real)}`); await ready();
+-		const prompts = (await page.$$(".chat-v3-prompt")).length;
+-		check("real log: prompts drawn (windowed)", prompts > 0 && prompts <= 40, prompts);
+-		check("real log: no card text is a raw {chat}/{place} line", !(await page.textContent(".chat-v3")).includes('"place"'));
+-		const replies = (await page.$$(".chat-v3-reply")).length;
+-		check("real log: the drawn cards show replies (old-style {chat} ones included)", replies >= prompts / 2, { replies, prompts });
+-		const earlier = await page.$eval(".chat-v3-earlier", e => ({ hidden: e.hidden, text: e.textContent }));
+-		check("real log: older cards sit behind 'show earlier'", earlier.hidden === false || prompts < 40, earlier);
+-		if (shots) { await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" }); await page.setViewportSize({ width: 400, height: 1600 }); await page.screenshot({ path: shots + "/chat-v3-real-400.png" }); }
+-	}
+-	check("the log file was only ever appended to", readFileSync(served + live, "utf8").startsWith(before));
++	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
+ 	check("no page errors", errors.length === 0, errors);
+ } finally {
+-	rmSync(served + live, { force: true }); rmSync(served + marked, { force: true }); rmSync(served + real, { force: true });
++	rmSync(here + "fixture/" + live, { force: true });
+ 	await page.close();
+ }
+ console.log(`${pass} passed, ${fail} failed`);
+diff --git a/public/framework/ext/Chat/v3/fixture/files.jsonl b/public/framework/ext/Chat/v3/fixture/files.jsonl
+new file mode 100644
+index 000000000..e4c5fded4
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/fixture/files.jsonl
+@@ -0,0 +1,20 @@
++{"file":"messages-session.jsonl"}
++{"file":"live-v3-44248.jsonl"}
++{"file":"live-v3-44248.jsonl","gone":true}
++{"file":"live-v3-48272.jsonl"}
++{"file":"live-v3-48272.jsonl","gone":true}
++{"file":"live-v3-19960.jsonl"}
++{"file":"shots/"}
++{"file":"live-v3-19960.jsonl","gone":true}
++{"file":"live-debug.jsonl"}
++{"file":"live-debug.jsonl","gone":true}
++{"file":"live-debug2.jsonl"}
++{"file":"live-debug2.jsonl","gone":true}
++{"file":"live-debug3.jsonl"}
++{"file":"live-debug3.jsonl","gone":true}
++{"file":"live-debug4.jsonl"}
++{"file":"live-debug4.jsonl","gone":true}
++{"file":"live-v3-10056.jsonl"}
++{"file":"live-v3-10056.jsonl","gone":true}
++{"file":"live-v3-16252.jsonl"}
++{"file":"live-v3-16252.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v3/fixture/messages-session.jsonl b/public/framework/ext/Chat/v3/fixture/messages-session.jsonl
+new file mode 100644
+index 000000000..e717e1f17
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/fixture/messages-session.jsonl
+@@ -0,0 +1,36 @@
++{"session":{"id":"v-fixture","kind":"voice","at":"2026-11-01T20:27:51.000-06:00"}}
++{"sentences":{"add":{"id":"s-1793586471880","at":"2026-11-01T20:27:51.878-06:00","text":"Can you hear me?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586471880","by":"owner","at":"2026-11-01T20:27:51.878-06:00","sentences":["s-1793586471880"],"prompt":"p-1793586471873"}},"by":"servex","ts":"2026-11-02T02:27:51.880Z"}
++{"messages":{"m-1793586471880":{"clean":{"s-1793586471880":"Can you hear me?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:27:57.272Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586471873","raw":["Can you hear me?"]}},"by":"fast","ts":"2026-11-02T02:27:51.880Z"}
++{"p-1793586471873":{"tasks":{"add":{"id":"q-1793586471874","type":"Question","text":"Can you hear me?","from":"p-1793586471873"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:27:57.601Z"}
++{"messages":{"add":{"id":"m-1793586491661","type":"Reply","by":"smart","at":"2026-11-01T20:28:11.659-06:00","text":"Your words are arriving. Do you hear anything from me now?","re":{"to":"s-1793586471880"}}},"by":"servex","ts":"2026-11-02T02:28:11.661Z"}
++{"messages":{"add":{"id":"m-1793586506610","type":"Reply","by":"smart","at":"2026-11-01T20:28:26.608-06:00","text":"## Why there's no voice\n\nYour phone's browser is using an old saved copy of the voice code.","re":{"to":"s-1793586471880"}}},"by":"servex","ts":"2026-11-02T02:28:26.610Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586544360","raw":["Is there not an easier way to do a hard refresh on mobile?"]}},"by":"fast","ts":"2026-11-02T02:29:04.360Z"}
++{"sentences":{"add":{"id":"s-1793586544363","at":"2026-11-01T20:29:04.362-06:00","text":"Is there not an easier way to do a hard refresh on mobile?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586544363","by":"owner","at":"2026-11-01T20:29:04.362-06:00","sentences":["s-1793586544363"],"prompt":"p-1793586544360"}},"by":"servex","ts":"2026-11-02T02:29:04.363Z"}
++{"messages":{"m-1793586544363":{"clean":{"s-1793586544363":"Is there not an easier way to do a hard refresh on mobile?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:07.602Z"}
++{"p-1793586544360":{"tasks":{"add":{"id":"q-1793586544361","type":"Question","text":"Is there not an easier way to do a hard refresh on mobile?","from":"p-1793586544360"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:07.984Z"}
++{"messages":{"add":{"id":"m-1793586550433","type":"Reply","by":"smart","at":"2026-11-01T20:29:10.431-06:00","text":"Not really. Chrome on Android has no hard-refresh button.","re":{"to":"s-1793586544363"}}},"by":"servex","ts":"2026-11-02T02:29:10.433Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586591858","raw":["So the automatic fix, is that like a cache buster script?"]}},"by":"fast","ts":"2026-11-02T02:29:51.858Z"}
++{"sentences":{"add":{"id":"s-1793586591861","at":"2026-11-01T20:29:51.860-06:00","text":"So the automatic fix, is that like a cache buster script that's going to add a query string to the scripts on import ? I mean, how does that even work?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586591861","by":"owner","at":"2026-11-01T20:29:51.860-06:00","sentences":["s-1793586591861"],"prompt":"p-1793586591858"}},"by":"servex","ts":"2026-11-02T02:29:51.861Z"}
++{"messages":{"m-1793586591861":{"clean":{"s-1793586591861":"So the automatic fix, is that like a cache buster script that's going to add a query string to the scripts on import? How does that even work?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:54.740Z"}
++{"p-1793586591858":{"tasks":{"add":{"id":"q-1793586591859","type":"Question","text":"How does the cache buster work?","from":"p-1793586591858"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:29:55.336Z"}
++{"messages":{"add":{"id":"m-1793586598049","type":"Reply","by":"smart","at":"2026-11-01T20:29:58.047-06:00","text":"I asked `vscode-mastermind` to explain which method it's using, in plain English.","re":{"to":"s-1793586591861"}}},"by":"servex","ts":"2026-11-02T02:29:58.049Z"}
++{"messages":{"add":{"id":"m-1793586610256","type":"Reply","by":"smart","at":"2026-11-01T20:30:10.255-06:00","text":"The plan avoids query strings, renamed files and reload scripts.","re":{"to":"s-1793586591861"}}},"by":"servex","ts":"2026-11-02T02:30:10.256Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586626950","raw":["So I just used the three dots and the refresh button."]}},"by":"fast","ts":"2026-11-02T02:30:26.950Z"}
++{"sentences":{"add":{"id":"s-1793586626953","at":"2026-11-01T20:30:26.951-06:00","text":"So I just used the three dots and the refresh button. Can you check whether it's the new code yet?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586626953","by":"owner","at":"2026-11-01T20:30:26.951-06:00","sentences":["s-1793586626953"],"prompt":"p-1793586626950"}},"by":"servex","ts":"2026-11-02T02:30:26.953Z"}
++{"messages":{"m-1793586626953":{"clean":{"s-1793586626953":"So I just used the three dots and the refresh button. Can you check whether it's the new code yet?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:30:29.486Z"}
++{"p-1793586626950":{"tasks":{"add":{"id":"q-1793586626951","type":"Question","text":"Can you check whether it's the new code yet?","from":"p-1793586626950"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:30:29.949Z"}
++{"messages":{"add":{"id":"m-1793586638453","type":"Reply","by":"smart","at":"2026-11-01T20:30:38.452-06:00","text":"I asked `vscode-mastermind` to check your phone's log.","re":{"to":"s-1793586626953"}}},"by":"servex","ts":"2026-11-02T02:30:38.453Z"}
++{"messages":{"add":{"id":"m-1793586642350","type":"Reply","by":"smart","at":"2026-11-01T20:30:42.347-06:00","text":"No, it's still the old code. The delete step is needed.","re":{"to":"s-1793586626953"}}},"by":"servex","ts":"2026-11-02T02:30:42.350Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586755252","raw":["All right, can you hear me?"]}},"by":"fast","ts":"2026-11-02T02:32:35.252Z"}
++{"sentences":{"add":{"id":"s-1793586755261","at":"2026-11-01T20:32:35.256-06:00","text":"All right, can you hear me? All right. I did it. I deleted all the cache. Try to refresh now.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586755261","by":"owner","at":"2026-11-01T20:32:35.256-06:00","sentences":["s-1793586755261"],"prompt":"p-1793586755252"}},"by":"servex","ts":"2026-11-02T02:32:35.261Z"}
++{"messages":{"add":{"id":"m-1793586760380","type":"Reply","by":"smart","at":"2026-11-01T20:32:40.378-06:00","text":"I'll tell you as soon as `vscode-mastermind` reports what your phone loaded.","re":{"to":"s-1793586755261"}}},"by":"servex","ts":"2026-11-02T02:32:40.380Z"}
++{"tasks":{"add":{"type":"Prompt","id":"p-1793586760764","raw":["Should I refresh now, I said?"]}},"by":"fast","ts":"2026-11-02T02:32:40.764Z"}
++{"sentences":{"add":{"id":"s-1793586760769","at":"2026-11-01T20:32:40.766-06:00","text":"Should I refresh now, I said?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793586760769","by":"owner","at":"2026-11-01T20:32:40.766-06:00","sentences":["s-1793586760769"],"prompt":"p-1793586760764"}},"by":"servex","ts":"2026-11-02T02:32:40.769Z"}
++{"messages":{"m-1793586755261":{"clean":{"s-1793586755261":"All right, can you hear me? All right. I did it. I deleted all the cache. Try to refresh now."}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:41.332Z"}
++{"p-1793586755252":{"tasks":{"add":{"id":"q-1793586755253","type":"Question","text":"Can you hear me?","from":"p-1793586755252"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:41.591Z"}
++{"messages":{"add":{"id":"m-1793586762462","type":"Reply","by":"smart","at":"2026-11-01T20:32:42.460-06:00","text":"Yes, refresh now. Reload the page, then tap once anywhere.","re":{"to":"s-1793586760769"}}},"by":"servex","ts":"2026-11-02T02:32:42.462Z"}
++{"messages":{"m-1793586760769":{"clean":{"s-1793586760769":"Should I refresh now, I said?"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:43.501Z"}
++{"p-1793586760764":{"tasks":{"add":{"id":"q-1793586760765","type":"Question","text":"Should I refresh now?","from":"p-1793586760764"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:43.962Z"}
++{"sentences":{"add":{"id":"s-test-2","at":"2026-11-01T20:27:53.878-06:00","text":"A second thought, no pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-2"}}},"by":"test-fixture","ts":"2026-11-02T02:27:53.880Z"}
++{"sentences":{"add":{"id":"s-test-3","at":"2026-11-01T20:28:01.878-06:00","text":"A third thought, after a long pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-3"}}},"by":"test-fixture","ts":"2026-11-02T02:28:01.880Z"}
+diff --git a/public/framework/ext/Chat/v3/page.js b/public/framework/ext/Chat/v3/page.js
+index 5aac781d3..f27930c27 100644
+--- a/public/framework/ext/Chat/v3/page.js
++++ b/public/framework/ext/Chat/v3/page.js
+@@ -4,12 +4,12 @@ import ChatV3 from "./ChatV3.js";
+ export default new Page({
+ 	meta: import.meta,
+ 	title: "Chat v3",
+-	description: "A rough draft of a session's chat as a plain view over its tasks list: prompts in time order, the assistant's replies and questions inside them.",
++	description: "A session's chat drawn from session.messages: prompts in list order, the replies that answer them (found by re.to) and the tasks/questions beside them.",
+ 	icon: "forum",
+ 
+ 	content(){
+-		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("../v2/fixture/session.jsonl", import.meta.url).href;
+-		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v3, drawn from Chat v2's fixture file. Pass ?src=<url of any session.jsonl> to draw a real one.");
++		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/messages-session.jsonl", import.meta.url).href;
++		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v3, drawn from a real voice session's fixture (session.messages). Pass ?src=<url of any session.jsonl> to draw a real one.");
+ 		const $box = div.c("chat-v3");
+ 		new ChatV3({ url, $box }).live();
+ 	},
+diff --git a/public/framework/ext/Chat/v3/placement.js b/public/framework/ext/Chat/v3/placement.js
+new file mode 100644
+index 000000000..695146888
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/placement.js
+@@ -0,0 +1,29 @@
++// placement.js — the two pieces of ChatV3 that are plain data logic, no View, no DOM (chunks.js's pattern): which Prompt a Reply
++// answers, and where a Prompt's words break into paragraphs. ChatV3.js imports these; placement.test.mjs runs them in plain node.
++import Prompt from "../../../core/Session/Chat/Prompt.js";
++
++export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)
++
++/** The Prompt a Reply answers: the one whose `sentences` holds `re.to`, else the newest Prompt before it in `list` (session.messages.messages). */
++export function owning_prompt(list, reply){
++	const to = reply.re?.to ?? null, prompts = list.filter(m => m instanceof Prompt);
++	if (to) { const hit = prompts.find(p => p.sentences.includes(to)); if (hit) return hit; }
++	const i = list.indexOf(reply);
++	for (let j = i - 1; j >= 0; j--) if (list[j] instanceof Prompt) return list[j];
++	return prompts.at(-1) ?? null;
++}
++
++/** One paragraph per run of sentences with no long pause between them: a gap to the previous sentence's `at` of `gap_ms` or more starts
++ *  a new paragraph. `clean` prefers the fast seat's cleaned text per sentence id (Prompt.clean), else the sentence's own raw words. */
++export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
++	const out = [];
++	let cur = [], prev_at = null;
++	for (const s of sentence_items) {
++		const gap = prev_at && s.at ? Date.parse(s.at) - Date.parse(prev_at) : 0;
++		if (cur.length && gap >= gap_ms) { out.push(cur.join(" ")); cur = []; }
++		cur.push(clean[s.id] ?? s.text);
++		if (s.at) prev_at = s.at;
++	}
++	if (cur.length) out.push(cur.join(" "));
++	return out;
++}
+diff --git a/public/framework/ext/Chat/v3/placement.test.mjs b/public/framework/ext/Chat/v3/placement.test.mjs
+new file mode 100644
+index 000000000..a807998ea
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/placement.test.mjs
+@@ -0,0 +1,50 @@
++// node ChatV3.test.mjs — plain node, no browser: ChatV3's two pieces of data logic (placement.js) against a real voice session
++// (a range copied from public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl into fixture/messages-session.jsonl, the
++// original untouched), replayed through the real Session: every Reply lands under the Prompt holding its `re.to`, in list order;
++// a pause between two sentences starts a new paragraph.
++import assert from "node:assert/strict";
++import { readFileSync } from "node:fs";
++import { fileURLToPath } from "node:url";
++import Session from "../../../core/Session/Session.js";
++import Prompt from "../../../core/Session/Chat/Prompt.js";
++import Reply from "../../../core/Session/Chat/Reply.js";
++import { owning_prompt, paragraphs } from "./placement.js";
++
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++
++const fixture = fileURLToPath(new URL("./fixture/messages-session.jsonl", import.meta.url));
++const before = readFileSync(fixture, "utf8");
++const lines = before.split("\n").filter(Boolean).map(l => JSON.parse(l));
++
++const session = Session.replay(lines);
++const list = session.messages.messages;
++
++// 1. every Reply lands under the Prompt holding its re.to
++const prompts = list.filter(m => m instanceof Prompt), replies = list.filter(m => m instanceof Reply);
++check("the fixture has 6 prompts and 9 replies", prompts.length === 6 && replies.length === 9, { prompts: prompts.length, replies: replies.length });
++for (const r of replies) {
++	const owner = owning_prompt(list, r);
++	check(`reply ${r.id} lands under the prompt holding its re.to (${r.re?.to})`, !!owner && owner.sentences.includes(r.re.to), { re: r.re, owner: owner?.id });
++}
++const first = prompts[0], second = prompts[1];
++check("two replies to the same prompt both land under it", replies.filter(r => owning_prompt(list, r) === first).length === 2);
++check("a reply never lands under the wrong prompt", owning_prompt(list, replies[0]) !== second);
++
++// 2. order is list order: replies_of (filter preserving list order) matches each prompt's own replies in file order
++const replies_of = p => list.filter(m => m instanceof Reply && owning_prompt(list, m) === p);
++const first_replies = replies_of(first);
++check("a prompt's replies come back in the list's own order", first_replies[0].at < first_replies[1].at, first_replies.map(r => r.at));
++check("list order holds across the whole chat (each root's index increases)", list.every((m, i) => i === 0 || list.indexOf(m) > list.indexOf(list[i - 1])));
++
++// 3. a pause makes a paragraph: the first prompt was grown by the fixture's two synthetic sentences (s-test-2, no pause; s-test-3, a long pause)
++const paras = paragraphs(first.sentence_items, first.clean);
++check("no pause: the original sentence and the quick follow-up share one paragraph", paras[0].includes("Can you hear me?") && paras[0].includes("A second thought"), paras);
++check("a long pause starts a new paragraph", paras.length === 2 && paras[1] === "A third thought, after a long pause.", paras);
++check("a prompt with one sentence and no pause is a single paragraph", paragraphs(second.sentence_items, second.clean).length === 1);
++
++// 4. the fixture file was only ever read, never changed by this test
++check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
++
++console.log(`${pass} passed, ${fail} failed`);
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index 539e11514..10f646636 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -1,20 +1,22 @@
+ # Chat v3: a session's chat as a card per Prompt, with every reply inside it
+ 
+-Chat v3 draws a session's `tasks` list, plus the replies written as old-style `{chat}` lines. It never writes and never reshapes a Prompt. It ignores the `{place}`, `{summary}` and `{refined}` lines Chat v1 uses. Pick it as **V3** in the chat version dropdown; V1 stays the default.
++Chat v3 draws `session.messages` (`core/Session/Chat/readme.md`): one card per Prompt, in the chat list's own order, with the Replies that answer it (found by `re.to`, a sentence id of that Prompt) drawn inside. It never writes and never reshapes a message. It is the one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; step 2 makes Chat v2 its subclass). Pick it as **V3** in the chat version dropdown; V1 stays the default.
+ 
+-Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws Chat v2's [fixture](../v2/fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live.
++Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (a copy of a real voice session, `session.messages`-shaped); `?src=<url of any session.jsonl>` draws that session, live.
+ 
+ ## How it works
+ 
+-- `ChatV3.js`: `class ChatV3 extends JSONL`. Every line of the session file that is a task delta (`tasks`, `session`, `start`, `stop`, `decide`, `task`, or a line keyed by an id already in the list) is replayed into a real `Session` (`core/Session`) with `replay_line`, the same replay the item tool uses. Everything else is skipped. The Prompts are drawn as they are: the `raw` chunks, the `paragraphs`, the `replies`.
+-- **A card per Prompt**, in time order, newest last: its title (or, until the AI writes one, its first words, muted), then the body described below. Its replies (🧠, markdown) and the Questions and Tasks that name it (`from`, or nested under it) sit inside the card. "show raw" opens the raw chunks, which are append-only and never edited.
+-- **The card body** (2026-11-01): the AI's cleaned `text` when it exists; until then the dictation itself (the owner still needs the raw words), one paragraph per sent chunk, a long chunk cut every three sentences, clamped to a few lines with "show all (N words)", under a muted title of its first words. A 6,760-character Prompt had come up as one wall of text.
+-- **Every reply** (`chat_line()`, 2026-11-01): most smart-seat replies are `{chat}` lines, not Prompt replies. An owner `{chat}` line carries `prompt`; a reply carries `re` = that owner line's `at`, so the reply joins that Prompt's card (a reply with no known `re` joins the newest Prompt). A `{chat}` reply with the same text as one of the Prompt's own replies is drawn once.
+-- **The reply being written:** V3 follows the session's live wire (`stream()` in `ext/Session/Session.js`, the one V1 reads) and draws the partial reply at the end of the newest card until its settled line arrives.
+-- **Gray only for unsent words** (the owner, 2026-10-26: "light gray to black reserved only for the whisper finalization"): a sentence in the file is final, so it is solid at once. The words still being spoken show as a faint dashed draft at the end (the composer's mic fires a `chat-live` window event, one line in `ux/Dictate/Widget.js`).
+-- **Windowed:** the newest 40 cards, with "show earlier (N)" (a 392-card real log stays quick).
+-- **In place:** a live line redraws only the card it touched. The scroll lock is the drawer's own (`ext/drawer/ChatView.js`).
+-- **Per-task link:** there is no route per task yet; each card carries its id, so `#<id>` on the chat's url scrolls to it. The link icon is gone (the owner, 2026-11-01: it was not clear where it went).
++- `ChatV3.js`: `class ChatV3 extends JSONL`. Every line is replayed into a real `Session` (`core/Session`) with `replay_line`, the same replay the item tool uses, except V1's own `{chat}`/`{place}` lines (skipped: the real update is the separate `messages`/`sentences` mirror line `ChatWriter` already writes beside them).
++- **A card per Prompt**, in the chat list's own order: its title (or, until the AI writes one, its first words, muted), then the body described below. Its Replies (🧠, markdown, found by `re.to`) and the Tasks/Questions that name its Prompt TASK (through the message Prompt's `prompt` link) sit inside the card. A plain `Message` (a note with no more structure) is its own small card. "show raw" opens the sentences' own raw words, when a `clean` override exists.
++- **The card body:** the AI's cleaned `text` when it exists; until then the dictation itself, in paragraphs (see below), clamped to a few lines with "show all (N words)", under a muted title of its first words. A 6,760-character Prompt had come up as one wall of text.
++- **Paragraphs** ([placement.js](placement.js), `ChatV3.paragraphs`/`PARAGRAPH_GAP_MS`): a new paragraph starts where the gap between two sentences' `at` is a long pause (4000ms default) — not the old "one paragraph per sent chunk, cut every 3 sentences". Pure logic, no DOM, node-testable ([placement.test.mjs](placement.test.mjs)).
++- **Every reply** ([placement.js](placement.js), `owning_prompt`): a Reply's Prompt is the one whose `sentences` holds its `re.to`; a reply with no match joins the newest Prompt before it in the list.
++- **The reply being written:** V3 follows the session's live wire (`stream()` in `ext/Session/Session.js`, the one V1 reads) and draws the partial reply at the end of the newest card until its settled Reply message arrives.
++- **Gray only for unsent words** (the owner, 2026-10-26): a sentence in the file is final, so it is solid at once; the words still being spoken show as a faint draft at the end (`chat-live` window event).
++- **Windowed:** the newest 40 cards, with "show earlier (N)".
++- **Live, in place:** a list `add` bubbles with `from` = the list itself (`List extends Item` now, so `get_one` can't tell them apart — `ChatV3.added_member()` resolves the actual member from the line's own `add` payload); a changed Prompt/Reply/Task redraws only the card it touched (`card_for()`).
++- **Per-card link:** each card carries its id, so `#<id>` on the chat's url scrolls to it.
++- **Small, overridable methods** (step 2 will subclass this): `prompt()`, `reply()`, `marks()` (a no-op hook for V2's ✓/🧠 marks, which live on the Prompt TASK until [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 3).
+ 
+ ## Where it shows
+ 
+@@ -22,13 +24,14 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws Chat v2's [fixt
+ 
+ ## Open decisions
+ 
+-- **Per-sentence Prompts vs append:** v3 renders today's shape (new words are appended to the newest Prompt). A Prompt per sentence is not built.
++- **Marks (✓/🧠):** not drawn yet (`marks()` is a no-op); they live on the Prompt TASK until step 3 moves them onto the message.
+ - **Grouping/summary cards** as an overlay that references Prompts by id: not built.
+ - **Per-task route:** the `#id` permalink stands in for one.
+-- **Id scheme** for Prompts is whatever `p-<ms>` already is.
++- **Id scheme** for Prompts is whatever `m-<ms>` already is.
+ 
+ ## Test
+ 
+-`ChatV3.test.mjs` (headless Playwright, 23 checks: fixture order, titles, written words solid, nesting, show raw, live append, old-style `{chat}` replies placed and deduped, replies on a copy of a real log, windowing, the log only appended to): `node ChatV3.test.mjs [base-url] [shots-dir]`. It writes `live-v3-*.jsonl` copies beside the v2 fixture (gitignored) and deletes them.
++- `placement.test.mjs` (plain node, 18 checks, no browser: `owning_prompt`/`paragraphs` against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read): `node placement.test.mjs`.
++- `ChatV3.test.mjs` (headless Playwright, 16 checks: card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
+ 
+ `failures.jsonl` here is the page-error log the test run wrote while the draft was built (a since-fixed `scrollIntoView` error); it is a record, kept.

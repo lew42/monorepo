@@ -16,3 +16,5 @@
 {"commit":"102a2c9ecc7e","by":"append.mjs","ts":"2026-11-02T03:27:23.550Z"}
 {"commit":"84be8a34aed4","by":"append.mjs","ts":"2026-11-02T03:27:32.343Z"}
 {"log":{"at":"2026-11-01T21:43:15-06:00","heartbeat":"refused","msg":"status check not sent to mastermind-ink-check: a wake costs about $10.47 and it has spent $12.05 of $3.00"}}
+{"stop":{"at":"2026-11-01T22:47:17-06:00","why":"dropped: owner mastermind-ink-check is dormant and the task is untouched"}}
+{"log":{"at":"2026-11-01T22:47:26-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
