@@ -37,7 +37,7 @@ On that old code, `final()` ended with `this.read(text)`, and `read()` is `stop(
 
 ## What the current code still does
 
-Since the "queue, never replace" change (`dictation-v3`, 2026-11-01), step 4 is `queue(text)` instead of `read(text)`: nothing is cut off, but the whole finished reply is queued behind the sentences already queued, so the first sentences are read twice. Reproduced headlessly on current `Recite.js` (`playback-stutter.test.mjs`, case "stream, end, longer final"): after a stream of three sentences and a longer final, the chunks are
+Since the "queue, never replace" change (`dictation-v3`, 2026-11-01), step 4 is `queue(text)` instead of `read(text)`: nothing is cut off, but the whole finished reply is queued behind the sentences already queued, so the first sentences are read twice. Reproduced headlessly on current `Recite.js` (`playback-stutter.test.mjs`, case "longer settled line", run against the main tree before the fix): after a stream of three sentences and a longer final, the chunks are
 
 ```
 ["My answer was right.", "We use Kokoro only, nothing else is used here.", "The second thing is simple",
@@ -55,4 +55,4 @@ The first three are read twice.
 
 ## The fix
 
-See `requirements.md` for the asks ticked. In short: `final()` now compares the finished text with what the stream already queued, sentence by sentence, and queues only the part that was not read.
+Proof in [requirements.md](requirements.md). In short: `final()` now compares the finished text with what the stream already queued, sentence by sentence, and queues only the part that was not read.
