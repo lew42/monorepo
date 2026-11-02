@@ -2,7 +2,7 @@
 // Node: `node public/framework/core/Item/batch.test.mjs`.
 //  1. Store.merge folds the data lines (set / unset) that name the same item into one; a verb line, or a line on the item's
 //     ancestor or descendant, closes the fold, so the order a replay sees never changes.
-//  2. A real page edit (a card's title and text, then the page's title) saves 2 lines, not 3; Task.wait() saves 1, not 7.
+//  2. A real page edit (a card's title and text, then the page's title) saves 2 lines, not 3; Task.wait() saves 1, not 8.
 //     Each file replays to the same state as the live object.
 //  3. item.batch(fn) holds the store until fn ends, also across an await: one line per item touched.
 //  4. Every "change" event ends with {source}: "local" for code, "replay" while lines are replayed, "remote" for a line read live.
@@ -60,7 +60,7 @@ test("a real page edit saves one line per item, and replays the same", async t =
 	t.eq(back.get("title"), "Notes, edited", "replayed page title");
 });
 
-test("Task.wait() called directly saves one line, not seven", async t => {
+test("Task.wait() called directly saves one line, not eight", async t => {
 	const task = Task.replay([{ id: "t1" }, { start: {} }]);
 	const { sent, queued } = wired(task);
 	task.wait({ on: "owner", what: "the merge" });
@@ -81,6 +81,15 @@ test("batch(fn) holds the store until fn ends, also across an await", async t =>
 	a.batch(() => a.set({ z: 1 }));
 	await tick();
 	t.eq(sent.length, 2, "a sync batch flushes on the next tick");
+	// The page is hidden (or closed) while a batch waits: what it holds is sent at once, not kept in memory only.
+	let go; const gate = new Promise(r => go = r);
+	const done = a.batch(async () => { a.set({ w: 1 }); await gate; a.set({ w: 2 }); });
+	await tick();
+	Store.send_held();
+	await tick();
+	t.eq(J(sent.at(-1)), J({ set: { w: 1 } }), "held lines are sent when the page hides");
+	go(); await done; await tick();
+	t.eq(J(sent.at(-1)), J({ set: { w: 2 } }), "and the batch's later lines at its end");
 });
 
 test("every change event says where the change came from", t => {

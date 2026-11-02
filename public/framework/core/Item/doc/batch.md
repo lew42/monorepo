@@ -25,13 +25,15 @@ await card.batch(async () => {
 });                               // one line: {"set":{"title":"Renamed","picture":"…"}}
 ```
 
-A batch that throws still releases the store. No store (node, a detached item): `fn` just runs.
+A batch that throws still releases the store. No store (node, a detached item): `fn` just runs. Held lines live only in memory until they reach the Outbox (which keeps them through a reload), so when the page is hidden or closed (`pagehide`, `visibilitychange`) everything a batch holds is sent at once (`Store.send_held`); the batch goes on, and its later lines are sent at its end.
 
 ## `source` on every change (spec T1)
 
 Every `change` event now ends with `{source}`: `"local"` (code in this tab), `"replay"` (a log being loaded) or `"remote"` (a line another writer saved, read live after the store's first load). `Item.source` answers the same at any moment. A view can use it to skip an animation on load; a side effect can use it to run only for a local change.
 
-**A reaction to a line read live saves nothing.** The store's `"read"` event (a `Ref` re-settling, a view recounting) now runs inside the read, so what its listeners change is not saved. Before, every open tab wrote the same reaction once each (spec T1: two tabs, two identical Ref re-path lines). The writer of the line owns its consequences, and a replay makes them again.
+**A reaction to a line read live saves nothing.** The store's `"read"` event (a `Ref` re-settling, a view recounting) now runs inside the read, so what its listeners change is not saved, **by any store**: the mute is global (`Store.replay_depth`), so a future listener that writes to another file is dropped too, without a warning. Today's listeners only redraw or re-settle. Before, every open tab wrote the same reaction once each (spec T1: two tabs, two identical Ref re-path lines). The writer of the line owns its consequences, and a replay makes them again.
+
+**Caveat:** the fold keeps a key where it was first set. A `set` key, then a dotted sub-key of it, then the key again would replay in the wrong order; `set()` never writes a dotted key inside `set` today.
 
 ## Alternatives not taken
 

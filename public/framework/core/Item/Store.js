@@ -62,6 +62,8 @@ export class Store {
 	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
 	   off until they are updated. */
 	static marked_lines = false;
+	static holders = new Set();   // the stores a batch is holding right now (Store.send_held)
+
 	// What is applying a change right now, for Item.source: "replay" (a load) or "remote" (a line read live); null = local code.
 	static reading = null;
 
@@ -359,11 +361,30 @@ export class Store {
 
 	/* BATCH (spec T2, doc/batch.md): while held, lines queue and nothing is sent; the last release() flushes them on the next
 	   microtask, folded (Store.merge). Item.batch(fn) holds its store for as long as fn runs, an async fn until it settles. */
-	hold(){ this.holding = (this.holding ?? 0) + 1; return this; }
+	hold(){ this.holding = (this.holding ?? 0) + 1; Store.holders.add(this); Store.listen_for_hide(); return this; }
 	release(){
 		this.holding = Math.max(0, (this.holding ?? 1) - 1);
-		if (!this.holding && this._queue?.length && !this._flushing){ this._flushing = true; queueMicrotask(() => this.flush()); }
+		if (this.holding) return this;
+		Store.holders.delete(this);
+		if (this._queue?.length && !this._flushing){ this._flushing = true; queueMicrotask(() => this.flush()); }
 		return this;
+	}
+
+	/* Held lines live only in memory until they reach the Outbox (which keeps them through a reload). So when the page is hidden
+	   or closed, everything a batch is holding is sent now (the batch goes on; its later lines are sent at its end). */
+	static send_held(){
+		for (const store of [...Store.holders]){
+			if (!store._queue?.length) continue;
+			const was = store.holding;
+			store.holding = 0;
+			try { store.flush(); } finally { store.holding = was; }   // flush takes the queue before its first await
+		}
+	}
+	static listen_for_hide(){
+		if (Store.listening || typeof document === "undefined") return;
+		Store.listening = true;
+		addEventListener("pagehide", () => Store.send_held());
+		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") Store.send_held(); });
 	}
 
 	async flush(){

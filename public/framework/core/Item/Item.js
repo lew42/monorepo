@@ -744,11 +744,11 @@ export class Item extends Events(Object) {
 	// The time of the line being replayed (null outside a replay). One clock for every Item: `Task.clock` reads and
 	// writes this same value.
 	static get clock(){ return Item._clock; }
+	static set clock(at){ Item._clock = at; }
 
 	// Where the change being made right now comes from (spec T1): "local" (code in this tab), "replay" (a log being loaded) or
 	// "remote" (a line another writer saved, read live). The last argument of every "change" event, {source}.
 	static get source(){ return Store.replay_depth > 0 ? Store.reading ?? "replay" : "local"; }
-	static set clock(at){ Item._clock = at; }
 
 	// A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set()
 	// opens the next). For a replay_line that reads its top-level keys itself (Task, Session) before any set() runs.
