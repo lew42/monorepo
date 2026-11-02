@@ -200,3 +200,4 @@
 {"log":{"at":"2026-11-02T03:40:17-06:00","heartbeat":"answered","msg":"Still idle: chat-model is landed, nothing is running and no wake-ups are set. I'll pick up the V1 switch prep only if vscode-mastermind hands it to me."}}
 {"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/cost-test-fix/","by":"SessionRecord --links","ts":"2026-11-02T10:06:36.816Z"}
 {"messages":{"add":{"type":"Ref","url":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/cost-test-fix/","by":"servex","at":"2026-11-02T10:06:36.816Z"}},"by":"servex","ts":"2026-11-02T10:06:36.816Z"}
+{"stop":{"at":"2026-11-02T05:07:40-06:00","why":"dropped: owner mastermind-chat-model is dormant and the task is untouched"}}

@@ -202,3 +202,5 @@
 {"action":{"at":"2026-11-02T04:23:12-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/handover.md"]},"by":"ledger","ts":"2026-11-02T10:23:12.953Z"}
 {"action":{"at":"2026-11-02T04:23:20-06:00","did":"edit","files":["public/framework/ux/Dictate/readme.md"]},"by":"ledger","ts":"2026-11-02T10:23:20.874Z"}
 {"log":{"at":"2026-11-02T04:23:27-06:00","msg":"Wrapped up for the night on vscode-mastermind's word: handover at dictation-v3/handover.md, linked from ux/Dictate/readme.md. Nothing in flight, no wakes set, going idle."}}
+{"log":{"at":"2026-11-02T04:25:11-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T10:25:11.744Z"}
+{"log":{"at":"2026-11-02T04:57:40-06:00","msg":"dropped: dictate-red-tests: owner mastermind-dictate-red-tests is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/","reason":"owner-stopped"}}
