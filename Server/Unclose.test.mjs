@@ -10,7 +10,8 @@ const stop = { stop: { at: later, why: "abandoned: no agent since 2026-10-20; cl
 
 // 1. worked: a commit, or three own lines, besides stop/unclosed lines
 ok(StaleClose.worked([...head, { commit: "abc" }]), "a commit line is work");
-ok(StaleClose.worked([...head, log(1)]), "assign + start + a log line is work (three lines)");
+ok(!StaleClose.worked([...head, log(1), log(2)]), "the opening and start lines are not work: two log lines are not enough");
+ok(StaleClose.worked([...head, log(1), log(2), log(3)]), "three log lines are work");
 ok(!StaleClose.worked([head[0], stop]), "one line and a stop is not work");
 ok(!StaleClose.worked([...head, stop]) , "two lines and a stop is not work");
 
@@ -37,11 +38,11 @@ ok(AIIndex.BUCKETS.includes("unclosed"), "unclosed is a bucket");
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "unclose-")), S = path.join(TMP, "public/framework/ai/sessions/2026/10/20/s");
 const mk = (name, lines) => { const d = path.join(S, name); fs.mkdirSync(d, { recursive: true }); fs.writeFileSync(path.join(d, "task.jsonl"), lines.map(l => JSON.stringify(l)).join("\n") + "\n"); return path.join(d, "task.jsonl"); };
 try {
-	const a = mk("worked", [...head, log(1), log(2), stop]);
+	const a = mk("worked", [...head, log(1), log(2), log(3), stop]);
 	mk("empty", [head[0], stop]);
 	mk("done", [...head, log(1), log(2), stop, { complete: { at: later, outcome: "ok", evidence: ["x"] } }]);
 	mk("again", [...head, log(1), log(2), stop, { unclosed: { at: later, why: "x", by: "u" } }]);
-	mk("plain-stop", [...head, log(1), log(2), { stop: { at: later, why: "owner dropped it" } }]);
+	mk("plain-stop", [...head, log(1), log(2), log(3), { stop: { at: later, why: "owner dropped it" } }]);
 	const before = fs.readFileSync(a, "utf8"), written = [];
 	const u = new Unclose({ root: TMP, manifest: path.join(TMP, "manifest.jsonl"), append: (target, obj) => { written.push([target, obj]); fs.appendFileSync(target, JSON.stringify(obj) + "\n"); } });
 	const plan = u.scan();

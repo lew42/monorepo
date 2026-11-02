@@ -30,6 +30,10 @@ assert.equal(revived.close_loop(), null);
 assert.equal(calls.sent.length, 1);
 assert.equal(state(dir), "running");   // a wake does not close anything itself
 
+// 2b. a mastermind that committed but logged no outcome is woken, not completed (it commits at every step and may be waiting on a review)
+dir = mk(done); calls.sent.length = 0;
+assert.equal(agent(dir, { id: "mastermind-x", role: "mastermind" }).close_loop(), "wake"); assert.equal(calls.sent.length, 1); assert.equal(state(dir), "running");
+
 // 3. stopped (not woken): a finished task completes, an unfinished one gets one log line and stays open for StaleClose to read `unclosed`
 dir = mk(done); assert.equal(agent(dir).close_loop(true), "complete"); assert.equal(state(dir), "complete");
 dir = mk(logs); calls.sent.length = 0;

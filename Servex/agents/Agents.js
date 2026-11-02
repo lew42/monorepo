@@ -2370,7 +2370,7 @@ Agents.Agent = class Agent {
 		const kids = [...(this.host?.live?.values() ?? [])].filter(a => a.parent === this.id && (a.state === "working" || a.state === "starting")).length;
 		const text = this.words ?? this.last_text ?? "";
 		const lines = CloseLoop.lines(file);
-		const what = CloseLoop.decide({ lines, ok: !this.last_error && this.turns > 0, text, nagged, kids });
+		const what = CloseLoop.decide({ lines, ok: !this.last_error && this.turns > 0, text, nagged, kids, role: this.role });
 		const by = "servex-close-loop";
 		if (what === "complete"){
 			const line = CloseLoop.complete_line(text, by, lines); line.complete.at = stamp();

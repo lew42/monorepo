@@ -20,9 +20,9 @@ Test: `node Server/stale-close.test.mjs` (in a temp root, never the real store).
 
 ## Unclosed: abandoned is for tasks with no work
 
-`StaleClose` never calls real work "abandoned". A stale task with a commit line, or 3+ log lines besides stop/unclosed (`StaleClose.worked`), gets `{"unclosed":{at,why,by}}` instead of the abandoned `stop`; `Task.replay` stops it and flags it, and `AIIndex` buckets it as `unclosed`. A later `complete` or `start` supersedes the flag. `unclosed` is not a seventh state (it would touch the CAN tables and every caller of `state`).
+`StaleClose` never calls real work "abandoned". A stale task with a commit line, or 3+ log lines besides its opening, start, stop and unclosed lines (`StaleClose.worked`), gets `{"unclosed":{at,why,by}}` instead of the abandoned `stop`; `Task.replay` stops it and flags it, and `AIIndex` buckets it as `unclosed`. A later `complete` or `start` supersedes the flag. `unclosed` is not a seventh state (it would touch the CAN tables and every caller of `state`).
 
-`node Server/Unclose.mjs --plan|--apply` re-closes history: tasks an earlier run stopped as abandoned that did real work get one `unclosed` line each (append-only, idempotent), and every file touched is a row in `ai/unclose-manifest.jsonl`. On 2026-11-02 it was applied in the main tree after the merge, because the merge worktree does not hold the live logs.
+`node Server/Unclose.mjs --plan|--apply` re-closes history: tasks an earlier run stopped as abandoned that did real work get one `unclosed` line each (append-only, idempotent), and every file touched is a row in `ai/unclose-manifest.jsonl`. Run it in the main tree after the merge, not in a worktree: the live logs are there, and the result is ordinary uncommitted records to commit by path (its first run, 2026-11-02, is in the manifest and the task-close-loop outcome).
 
 ## Runs daily
 

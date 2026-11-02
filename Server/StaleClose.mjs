@@ -22,7 +22,7 @@ export default class StaleClose {
 	static BY = "StaleClose";
 	static MANIFEST = path.join(TaskDirs.AI, "stale-closes.jsonl");
 	static APPEND = path.join(TaskDirs.REPO, ".claude", "hooks", "append.mjs");
-	static WORKED = 3;                // a log with this many lines besides stop/unclosed (or any commit line) did real work
+	static WORKED = 3;                // a log with this many lines besides its opening line and its start/stop/unclosed lines (or any commit line) did real work
 	static AGES = [["1-7 days", 1, 7], ["older", 7, Infinity]];
 
 	constructor({ now = Date.now(), hours = StaleClose.HOURS, state = null } = {}){ this.now = now; this.hours = hours; this.state = state; this.plan = []; this.skipped = {}; }
@@ -64,7 +64,7 @@ export default class StaleClose {
 	}
 
 	/** True when the log shows real work: a commit line, or WORKED lines that are not the closing line itself. */
-	static worked(lines){ const own = lines.filter(l => !l.stop && !l.unclosed); return own.some(l => l.commit) || own.length >= StaleClose.WORKED; }
+	static worked(lines){ const own = lines.slice(1).filter(l => !l.stop && !l.unclosed && !l.start); return own.some(l => l.commit) || own.length >= StaleClose.WORKED; }
 
 	/** The line that closes one planned task: `unclosed` for worked tasks, `stop` (abandoned) for the rest. */
 	static closing_line(r, now, day_text){

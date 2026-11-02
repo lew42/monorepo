@@ -72,11 +72,11 @@ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 
 An agent's turn ends (`result()`), or it is stopped (`stop()`), and its task may still be open. [`Servex/CloseLoop.js`](../CloseLoop.js) decides, and `Agent.close_loop()` in `Agents.js` applies it, once per agent:
 
-- **Clear finish → the harness completes the task.** The turn ended without an error, the log holds a commit, an outcome or a landing line, and the agent said something: a `complete` line is written with the agent's last words (up to 1500 characters) as the outcome, the log's last commits as evidence, and a caveat saying the harness wrote it. A store event `task-closed` records it.
+- **Clear finish → the harness completes the task.** The turn ended without an error, the log holds an outcome or a landing line (a minion's commit line counts too; a mastermind's does not, since it commits at every step), and the agent said something: a `complete` line is written with the agent's last words (up to 1500 characters) as the outcome, the log's last commits as evidence, and a caveat saying the harness wrote it. A store event `task-closed` records it.
 - **Otherwise → one wake.** "Your task is still open: complete it with an outcome, or say why it stays open." It is sent once; `close_nagged` is kept in the registry row (`Registry.js`), so a revived agent is never woken again. A stop with the task open writes one log line instead of waking (nobody is there to answer).
 - **Nothing happens** when the task is already complete, stopped, waiting or paused, the agent's last words start with `BLOCKED`, the turn ended in an error, children are still working, or the agent is one-shot or a standing role.
 - **A task nobody completes** is later closed by `StaleClose` (`Server/doc/stale-close.md`): abandoned with no real work reads `abandoned`; with real work (a commit, or 3+ log lines) it reads `unclosed` ([core/Task, replay](/framework/core/Task/readme.md)). `Server/Unclose.mjs` re-closed history that way.
-- **Caveat:** an agent that commits, then ends a turn while waiting for something other than its children or an owner `wait`, is completed at that turn end. It should log a `wait` first.
+- **Caveat:** a minion that commits, then ends a turn while waiting for something other than its children or an owner `wait`, is completed at that turn end. It should log a `wait` first.
 
 Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex). Needs a Servex restart to take effect.
 

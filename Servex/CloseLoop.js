@@ -20,18 +20,20 @@ export default class CloseLoop {
 		return out;
 	}
 
-	/** True when the log shows finished work: a commit line, an outcome, or a landing line. */
-	static finished(lines){
-		return lines.some(l => l.commit || l.assign?.outcome || l.assign?.landed_at || l.complete?.outcome);
+	/** True when the log shows finished work: an outcome or a landing line, or (a worker, not a mastermind, which commits at every step and
+	 *  may end a turn waiting on a review) a commit line. */
+	static finished(lines, role = ""){
+		const commits = !/^(task-mastermind|mastermind|sub-mastermind)/.test(role ?? "");
+		return lines.some(l => (commits && l.commit) || l.assign?.outcome || l.assign?.landed_at || l.complete?.outcome);
 	}
 
 	/** `facts`: { lines, ok (the turn ended without an error), text (the last words), nagged, kids (children still working) } */
-	static decide({ lines, ok, text, nagged, kids = 0 }){
+	static decide({ lines, ok, text, nagged, kids = 0, role = "" }){
 		if (nagged) return null;
 		let state; try { state = Task.replay(lines).state; } catch { return null; }
 		if (state === "complete" || state === "stopped" || state === "waiting" || state === "paused") return null;
 		if (/^BLOCKED/i.test(text ?? "") || kids > 0) return null;
-		if (ok && this.finished(lines) && text) return "complete";
+		if (ok && this.finished(lines, role) && text) return "complete";
 		return ok ? "wake" : null;
 	}
 
