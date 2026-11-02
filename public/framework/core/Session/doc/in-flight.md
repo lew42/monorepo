@@ -32,3 +32,7 @@ Not a new task card: the rows are plain links and bars over the same `Session` r
 - **The row is not `core/Task/TaskView.js`**: that is a full task card with its own state and actions; this row is one title, one bar and one line, so reusing it would have meant hiding most of it.
 - The `/framework/ai/` block asks the same `inflight` query as `ai/now/AINow.js` (`state`, `last_activity`, `url` per row). It draws nothing if the query fails.
 - **Which five** are shown: running tasks that have a current line or some progress first, then by most recent activity.
+
+## Real-page fix (2026-11-02)
+
+On a real session the block said "Nothing is in flight." for up to ~15 s: the session file had not arrived, and each `{task}` reference reads its own file afterwards. It now says "Reading the session…" / "Reading N tasks…" until they have. Also, a spawned agent's folder (no `start` verb) read `idle` in the browser but `running` in node; `Task.open_ref` now calls `replay_end` after attaching, so both agree. Test over a copy of real lines: `InFlight.real.test.mjs` (fixtures in `fixtures/`). Shot: `in-flight-real-400.png`.

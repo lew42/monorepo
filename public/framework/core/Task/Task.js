@@ -510,6 +510,7 @@ export class Task extends Item {
 		if (!store.count){ kid.set({ state: "missing" }); return; }
 		kid.put("state", "idle");   // the file's own verb lines take it from here
 		store.attach(kid);
+		kid.replay_end?.();   // a spawned agent's record has no start verb: node's from_ref replays it whole (running), so the browser infers it too
 	}
 
 	// The tasks sorted by recency x weight, biggest first. Weight = priority.score (1 if missing) x (1 + children);

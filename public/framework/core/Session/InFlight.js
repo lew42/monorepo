@@ -12,6 +12,9 @@ export default class InFlight {
 		return step ? `${step.get_one("title") ?? step.id}${step.get_one("now") ? ": " + step.get_one("now") : ""}` : (t.get_one("now") ?? "");
 	}
 
+	/** How many of a session's top-level tasks are still being read from their own files (a reference not yet opened). */
+	static loading(session){ return [...(session._tasks ?? [])].filter(t => t.state === "loading").length; }
+
 	/** {inflight, more, waiting, next, done} from a session's top-level tasks. Prompts and dropped tasks are not work. */
 	static pick(session, { max = this.MAX, next = this.NEXT } = {}){
 		const all = [...(session._tasks ?? [])].filter(t => t.state !== "stopped" && t.constructor.name !== "Prompt");
