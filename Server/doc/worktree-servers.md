@@ -14,6 +14,8 @@ Every worktree gets its own dev server (`worktree-up.mjs`). Left alone they pile
 
 **Idle exit.** `worktree-up.mjs` and `worktree-restart.mjs` start the server with `IDLE_EXIT_MIN=30` (change it with `WORKTREE_IDLE_MIN=<min>` in the launching shell; `0` turns it off). `Server/Server.js` `idle_exit()` watches HTTP requests; after that many quiet minutes the child tells `server.js` (the supervisor) over IPC, which shuts everything down. A plain exit would be respawned by the supervisor, so the message is needed. Open the page again and nothing is there: run `node Server/worktree-restart.mjs <name>`. Files are never touched.
 
+**Registered with the proxy.** `merge.mjs` tests a worktree at `<name>.localhost`, which reaches it only after a `POST /api/projects` to Servex. `worktree-up.mjs` makes that call as its last step, so a run that crashes after the server boots leaves the worktree unreachable and the merge gate fails. Run `node Server/worktree-restart.mjs <name>`: it makes the same call (2026-11-02, v2-marks).
+
 ## The tool
 
 ```
