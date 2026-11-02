@@ -79,6 +79,25 @@ await type("after reload");
 check("4 reload: sentence goes to the saved session", last(said) === saved && (await active()).session === saved, `said=${last(said)} saved=${saved}`);
 check("4 reload: read-aloud follows it", followed() === saved, `follows=${followed()}`);
 
+// 5. voice-session-mixup: "the last session" is the newest voice session by when it last spoke, never the oldest-started or a non-voice row
+const picked = await p.evaluate(async () => {
+	const { latest_voice } = await import("/framework/ux/Dictate/chat.js");
+	const h = n => new Date(Date.now() - n * 3600000).toISOString();
+	return latest_voice([{ session: "v-old", at: h(22), last_at: h(22) }, { session: "v-long", at: h(30), last_at: h(0.1) }, { session: "agent-x", at: h(1), last_at: h(0) }, { session: "v-mid", at: h(3), last_at: h(2) }])?.session;
+});
+check("5 latest_voice: newest last_at among v- sessions (started long ago is fine, a non-voice row is skipped)", picked === "v-long", `picked=${picked}`);
+
+// 6. switching twice with no pause: each sentence goes to the session selected at that moment
+await p.evaluate(() => window.__chat.resume("v-A"));
+await type("to A");
+check("6 switch A: sentence goes to A", last(said) === "v-A", `said=${last(said)}`);
+await p.evaluate(() => window.__chat.resume("v-B"));
+await type("to B straight after the switch");
+check("6 switch B: sentence goes to B, no pause needed", last(said) === "v-B" && (await active()).session === "v-B", `said=${last(said)}`);
+await p.evaluate(() => window.__chat.resume("v-A"));
+await type("back to A");
+check("6 switch back: sentence goes to A", last(said) === "v-A" && followed() === "v-A", `said=${last(said)} follows=${followed()}`);
+
 check("no page errors", errs.length === 0, errs.slice(0, 3).join(" | "));
 console.log(results.every(Boolean) ? "ALL PASS" : `FAILURES: ${results.filter(x => !x).length}`);
 await Browser.close();

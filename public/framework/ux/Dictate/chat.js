@@ -15,7 +15,9 @@ const SESSION_KEY = "lew42-voice-session";
  *  line within this long, instead of starting a new one. Only a real idle gap, or the New session button, starts a fresh session.
  *  Doc: ux/Dictate/readme.md ("One session across tabs"). */
 export const JOIN_IDLE_MS = 30 * 60 * 1000;
-const RESUME_OFFER_MS = 60 * 60 * 1000;
+/** The voice session (`v-…`) that spoke most recently, by last_at: ensure() joins it and maybe_offer() offers it, so both name the same one. */
+export const latest_voice = rows => (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
+	.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
 
 // THE one copy (review fix #9): reused, not duplicated in rail.js/sessions.js
 function ago(at){
@@ -81,8 +83,7 @@ function create_controller({ persist }){
 			// Another tab, a link opened in a new tab, the Recite page: join the voice session in use rather than start a second one.
 			const epoch = ctl.epoch;
 			ctl.starting = Session.recent_project({ limit: 5 }).then(rows => {
-				const latest = (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
-					.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
+				const latest = latest_voice(rows);
 				if (!latest || Date.now() - Date.parse(latest.last_at ?? latest.at ?? 0) > JOIN_IDLE_MS) return null;
 				return Session.resume(latest.session);
 			}).catch(() => null).then(made => {
@@ -239,6 +240,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
 	function draw(line){
+		if (line?.chat?.session && watching && watching !== "unset" && line.chat.session !== watching) return;   // a line stamped for another session never draws here (a late event from the session just left)
 		try { draw_line(line); } catch (e){ DictateHealth.fail("page", e, "drawing a session line"); }
 	}
 	// Tasks and Questions under a Prompt arrive as edits ({tasks:{add}}, {"<prompt>":{tasks:{add}}}, {"<prompt>":{"<task>":{complete}}}): ChatV2Model folds them, one row each.
@@ -291,10 +293,13 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 
 	function maybe_offer(){
 		if (!keep || owner.ctl.fresh) return;   // New session was pressed: do not offer the old one back
-		Session.recent(target.path, { limit: 1 }).then(([row]) => {
+		// Same source and clock as ensure(): the newest voice session of the whole project by last_at (when it last spoke), not this page's list, not its start.
+		// Newer than JOIN_IDLE_MS, ensure() joins it silently, so it is not offered.
+		Session.recent_project({ limit: 5 }).then(rows => {
+			const row = latest_voice(rows);
 			if (!row || owner.ctl.session) return;
-			const at = row.at ?? row.last_at;
-			if (Date.now() - Date.parse(at ?? 0) < RESUME_OFFER_MS) return;
+			const at = row.last_at ?? row.at;
+			if (Date.now() - Date.parse(at ?? 0) < JOIN_IDLE_MS) return;
 			resume_label = `${row.title ?? "The last conversation"} · ${ago(at)}`;
 			resume_session = row.session;
 			panel.say({ type: "ask", heading: "Pick up where you left off?", choices: [resume_label], at: new Date().toISOString() });

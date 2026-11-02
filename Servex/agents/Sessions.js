@@ -875,7 +875,10 @@ export default class Sessions {
 		/* Resume is per card when a card was given (same one-hour rule as a page): `recent()` on
 		 * the card's own home only ever finds sessions of that card, since every one of them was
 		 * homed there too. */
-		const [last] = this.recent({ page: home, project, limit: 1 });
+		/* No card: "the last session" is the project's newest voice session on any page, the same one the browser's join and offer name
+		 * (ux/Dictate/chat.js `latest_voice`), not only the newest one that passed through this page's folder (voice-session-mixup). */
+		const [last] = card != null && card !== "" ? this.recent({ page: home, project, limit: 1 })
+			: this.recent_project({ project, limit: 20 }).filter(r => /^v-/.test(r.session));
 		/* `fresh: true` (voice-fixes review item 1, the "New session" button): always start over,
 		 * even when a session on this page spoke within `resume_ms`. */
 		if (!fresh && last && Date.now() - Date.parse(last.last_at) < this.resume_ms) return this.resume({ session: last.session });

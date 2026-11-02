@@ -204,13 +204,25 @@ check("a para marker's re is the FIRST owner line of a held voice thought, not t
 check("recent_project() lists every session of one project, newest first, across folders", () => {
 	const s = make();
 	const a = s.create({ path: "/a/", host: "siteA.localhost" });
-	const b = s.create({ path: "/b/", host: "siteA.localhost" });
+	const b = s.create({ path: "/b/", host: "siteA.localhost", fresh: true });   // fresh: a new voice session on another page would otherwise resume a (project-wide)
 	s.create({ path: "/a/", host: "siteB.localhost" });   // a different project: must not show up
 	s.map[b.session].last_at = new Date(Date.now() + 1000).toISOString();   // b spoke more recently
 	// `project_of()` lowercases the host, so this asks the same way a real caller would: by
 	// HOST, not by guessing the exact casing `project_of()` settles on.
 	const rows = s.recent_project({ host: "siteA.localhost" });
 	assert.deepEqual(rows.map(r => r.session), [b.session, a.session]);
+});
+
+// ── voice-session-mixup: "the last session" is the project's newest voice session, whichever page it touched ──
+check("create() without a card resumes the project's newest voice session even when it never touched this page", () => {
+	const s = make();
+	const a = s.create({ path: "/a/", host: "mixup.localhost" });
+	s.map[a.session].last_at = new Date(Date.now() - 20 * 3600000).toISOString();   // older, and the only one that touched /a/
+	const b = s.create({ path: "/b/", host: "mixup.localhost", fresh: true });       // newer, on another page
+	assert.notEqual(b.session, a.session);
+	const again = s.create({ path: "/a/", host: "mixup.localhost" });
+	assert.equal(again.session, b.session, "joins the newest one, not the page's older one");
+	assert.equal(again.resumed, true);
 });
 
 // ── retitle (owner, 2026-10-25, revised after review): the folder never moves, only the title ──
