@@ -1735,3 +1735,6 @@
 {"log":{"at":"2026-11-01T21:30:41.015-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-u48msei\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
 {"log":{"at":"2026-11-01T21:30:42.262-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-u48msei\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
 {"log":{"at":"2026-11-01T21:30:43.614-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-u48msei\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"backing":{"at":"2026-11-02T13:05:40.692-06:00","fast":"9b77a8ab-6506-4654-948b-cbc281ac4050","smart":"62b51a64-9791-49b4-9749-4f34bf73224f","how":{"fast":"resume"}}}
+{"log":{"at":"2026-11-02T13:05:40.701-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"session\":\"v-u48msei\",\"why\":\"this page's session (session changed)\"}"}}
+{"log":{"at":"2026-11-02T13:05:55.782-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true,\"session\":null,\"why\":\"New session pressed: none until the first sentence (session changed)\"}"}}
