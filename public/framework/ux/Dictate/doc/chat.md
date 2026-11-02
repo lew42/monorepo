@@ -277,3 +277,16 @@ bubble instead of opening a new one each time, and made `Widget.Composer` the sa
 - [`ext/Session`](/framework/ext/Session/) — the voice session `chat.js` wires every mount to
 - [`doc/widget.md`](/framework/ux/Dictate/doc/widget/) — the `Widget` this file draws
 - [Surfaces](/framework/ux/Dictate/surfaces/) — all five mounts, live, side by side
+
+## The active session
+
+There is one active session per tab: `chat.active()` in `chat.js` returns `{session, fresh}`. The send (`ensure` posts `say` to `ctl.session`), the view (`attach` watches `ctl.session`) and the Sheet's read-aloud (`Sheet.follow`) all read it.
+
+| Moment | Sentence goes to | View shows | Read-aloud follows |
+|---|---|---|---|
+| First open, no session | `ensure` joins the latest `v-` session within 30 min, else starts one | the same, after `broadcast` | no session: the same latest-recent rule; then `chat.current()` |
+| Switch session | `resume_to` sets `ctl.session` | the picked one | `on_change` runs `follow`, which takes `chat.current()` |
+| New session | none until the first sentence (`fresh`), which starts a new one | empty | **was the old session (bug); now none** (`chat.active().fresh` stops the fallback in `Sheet.follow`) |
+| Reload | the id saved in `sessionStorage` | the same | `chat.current()`, read from the same storage |
+
+A tab with no session is deliberate only after New session. A `keep: false` mount (the Dictate page demo) has its own private session and never touches this. Proof: `test/active-session.mjs` (Servex mocked).

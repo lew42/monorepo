@@ -45,7 +45,7 @@ export default class Sheet extends View {
 	 * hook (ux/Dictate/chat.js) reading the same reply does no harm.
 	 * It starts when this file is imported, not when a Sheet renders, and it traces every branch ("sheet: …" lines in the Whisper
 	 * bucket and the session file), so a phone that stays silent shows the step it stopped at. READ_ALOUD_V says which code ran. */
-	static READ_ALOUD_V = "2026-11-01d";   // bump on every change here: a phone's trace that lacks it runs older code
+	static READ_ALOUD_V = "2026-11-01e";   // bump on every change here: a phone's trace that lacks it runs older code
 	static RECENT_MS = 3000;               // how long the search for a recent voice session may take; then the fallbacks below
 	static read_aloud(from){
 		if (this.reading) return;
@@ -78,6 +78,7 @@ export default class Sheet extends View {
 		const follow = async why => {
 			const own = chat.current?.() ?? null;
 			if (own) return listen(own, `this page's session (${why})`);
+			if (chat.active?.().fresh) return listen(null, `New session pressed: none until the first sentence (${why})`);   // never fall back to the old session
 			recite.trace("sheet: looking for a recent voice session", { why });
 			let rows = [], timer;
 			try {
@@ -86,6 +87,7 @@ export default class Sheet extends View {
 			} catch (e){ rows = null; recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
 			clearTimeout(timer);
 			if (chat.current?.()) return listen(chat.current(), `this page's session (${why}, found while searching)`);
+				if (chat.active?.().fresh) return listen(null, `New session pressed during the search (${why})`);
 			if (!rows){   // the search failed or hung (the phone through the tunnel): a ?session= in the url, else the session this browser last followed
 				const last = Wire.last_session();   // written by every say, session pick and follow on this browser
 				const url = new URLSearchParams(location.search).get("session");
