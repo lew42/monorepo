@@ -193,7 +193,12 @@ export default class RefineSystem {
 			const one = new PromptRun();   // scores this chunk alone (`PromptRun.load`), then compose() renumbers it into the transcript
 			one.load(out);
 			Object.assign(chunk, { clean: one.clean, refined: one.refined, subject: one.subject, runs: one.runs, stages: one.stages, ms: one.ms, status: "done" });
-			for (const s of chunk.clean) s.placed = await this.placement.add(s, this.paragraphs);   // the placement step: one decision per sentence, in order
+			// Only the FIRST sentence of this chunk had a real pause before it (the quiet between this
+			// send and the last one); sentences within one chunk arrived together, so they carry none
+			// (views-fix item 3, 2026-11-01: Placement.place()'s own gap_ms rule).
+			const chunk_gap_ms = this.last_chunk_done_at != null ? chunk.at - this.last_chunk_done_at : null;
+			for (const [i, s] of chunk.clean.entries()) s.placed = await this.placement.add(s, this.paragraphs, i === 0 ? chunk_gap_ms : null);
+			this.last_chunk_done_at = performance.now();
 			const total_ms = Math.round(performance.now() - t_start);
 			this.prompt.timings = { ...this.prompt.timings, total_ms };
 			this.history.push({ at: new Date().toISOString(), words: text.split(/\s+/).length, total_ms, cost_usd: +one.runs.reduce((a, r) => a + r.cost_usd, 0).toFixed(4), runs: one.runs.length });
