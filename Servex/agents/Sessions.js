@@ -69,22 +69,22 @@ export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
 /* WHO SITS IN THE FAST SEAT (voice-assistant-plan, 2026-10-17; ux/Dictate/doc/voice-assistant.md): `voice` = the
- * voice-assistant role, woken per sentence to write one {place} line (the default 2026-10-17 to 2026-11-01); `fast` = the old
- * session-fast chatter; `off` = NO fast seat (the default since 2026-11-01: its {place} lines were read only by Chat V1, it cost
- * the most of any role, and its one other output, a Question per "?" sentence, is now written by `say()` in code; evidence:
- * ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/findings.md §2). Read once at boot, first match wins:
+ * voice-assistant role, woken per sentence to write one {place} line (THE DEFAULT: the owner, 2026-11-01, "the fast assistant
+ * might be doing half of the work... turning it off isn't going to fix anything... put them to work"); `fast` = the old
+ * session-fast chatter; `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
+ * code, which it never does while a seat is on, so the two never both file one). Read once at boot, first match wins:
  *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast or voice. This is the
  *      switch that survives a restart, because sustain.mjs relaunches Servex through WMI and pins only SERVEX_HOME and
  *      SERVEX_API_PORT, so an env var never reaches the new process (same pattern as session-backend.txt below).
  *   2. the env var SERVEX_SESSION_ASSISTANT (a hand-started Servex or a private test one).
- *   3. `off`.
- * To bring the voice assistant back: write `voice` into the file and restart Servex (never during a voice call). */
+ *   3. `voice`.
+ * To switch: write the word into the file and restart Servex (never during a voice call). */
 export const ASSISTANTS = ["fast", "voice", "off"];
 const pick_assistant = v => { const w = String(v ?? "").trim().toLowerCase(); return ASSISTANTS.includes(w) ? w : null; };
 export function session_assistant(home = HOME){
 	let file = null;
 	try { file = pick_assistant(fs.readFileSync(path.join(home, "session-assistant.txt"), "utf8")); } catch {}   // no file yet, or an unreadable one: fall through
-	return file ?? pick_assistant(process.env.SERVEX_SESSION_ASSISTANT) ?? "off";
+	return file ?? pick_assistant(process.env.SERVEX_SESSION_ASSISTANT) ?? "voice";
 }
 
 /* IS A LINE WORTH A MODEL CALL? (review finding 5, 2026-10-03): a real voice session writes
@@ -465,7 +465,7 @@ export default class Sessions {
 
 	/* THE VOICE SEAT: is this session's `fast` agent the voice assistant? */
 	voice_seat(){ return this.assistant === "voice"; }
-	/** No fast seat at all (`session-assistant.txt` = off, the default): `wake`, `send` and `mark_sent` skip the "fast" role. */
+	/** No fast seat at all (`session-assistant.txt` = off; the default is voice): `wake`, `send` and `mark_sent` skip the "fast" role. */
 	fast_off(){ return this.assistant === "off"; }
 
 	/* Every owner sentence of the session so far, oldest first, as `{at, text, selection?}` (a refined line is the
