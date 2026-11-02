@@ -668,12 +668,14 @@ export class ComposerMic extends Dictate {
 		const mine = this.early_sent?.get(epoch);
 		if (!mine?.length) return text;
 		this.early_sent.delete(epoch);
-		const sents = String(text).match(this.cut_re()) ?? [];
-		const norm = s => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-		if (norm(sents.slice(0, mine.length).join(" ")) !== norm(mine.join(" ")))
-			DictateHealth.event("sentence", "wait", `the final heard the early sentences differently; kept what was sent: “${mine.join(" ").slice(0, 80)}” (final: “${String(text).slice(0, 80)}”)`, { early: mine, final: text });
-		const all = [...String(text).matchAll(this.cut_re())], last = all[mine.length - 1];
-		return last ? String(text).slice(last.index + last[0].length).trim() : "";
+		const t = String(text), tokens = s => [...s.matchAll(/[\p{L}\p{N}]+/gu)];
+		const early = tokens(mine.join(" ")), heard = tokens(t);
+		// Cut by words, not by sentences: the final may punctuate differently ("down." early, "down and then it slept." final).
+		if (early.some((w, i) => heard[i]?.[0].toLowerCase() !== w[0]))
+			DictateHealth.event("sentence", "wait", `the final heard the early sentences differently; kept what was sent: “${mine.join(" ").slice(0, 80)}” (final: “${t.slice(0, 80)}”)`, { early: mine, final: text });
+		if (heard.length <= early.length) return "";
+		const last = heard[early.length - 1];
+		return t.slice(last.index + last[0].length).replace(/^[.?!…"”’)\]\s]+/u, "").trim();
 	}
 
 	// Messages leave in order; `posting` keeps a live reload waiting. Items are `{text, raw}` or a string.

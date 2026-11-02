@@ -4,6 +4,7 @@
 //    and the final (same three sentences) adds no duplicate.
 // B: a final that holds three sentences and was never guessed leaves as three lines, in order.
 // C: the final hears an early sentence differently: still no second copy (the early wording stays, the difference is logged).
+// E: the final has no full stop where the guess had one: the new words still go out.  F: a shorter final adds nothing.
 // D: early_sentences off: nothing leaves before the final.
 const [base = "http://monorepo.localhost"] = process.argv.slice(2);
 const { default: Browser } = await import(new URL("../../../../../Server/Browser.mjs", import.meta.url).href);
@@ -45,6 +46,8 @@ const out = await page.evaluate(async () => {
 		b: await scenario([], "Open the window now. The dog barked loudly. Tomorrow we ship it."),
 		c: await scenario(["The cat sat down. And"], "The cat sat down! And then it slept."),
 		d: await scenario(G, F, { early: false }),
+		e: await scenario(["The cat sat down. And"], "The cat sat down and then it slept."),
+		f: await scenario(["The cat sat down. Then it slept. And"], "The cat sat down."),
 	};
 });
 console.log(JSON.stringify(out));
@@ -54,6 +57,8 @@ check(A.marks[0] === 0 && A.marks[1] === 1 && A.marks[2] === 1 && A.marks[3] ===
 check(JSON.stringify(out.b.sent) === JSON.stringify(["Open the window now.", "The dog barked loudly.", "Tomorrow we ship it."]), "B: a final of three sentences leaves as three lines: " + JSON.stringify(out.b.sent));
 check(out.c.sent.length === 2 && out.c.sent[0] === "The cat sat down." && /then it slept/.test(out.c.sent[1]), "C: no second copy of the early sentence: " + JSON.stringify(out.c.sent));
 check(out.d.sent.length === 3, "D: early off, the final still sends all three: " + JSON.stringify(out.d.sent));
+check(out.e.sent.length === 2 && out.e.sent[0] === "The cat sat down." && /^and then it slept/i.test(out.e.sent[1]), "E: the final punctuates differently: no words lost: " + JSON.stringify(out.e.sent));
+check(out.f.sent.length === 2, "F: a final shorter than what already left adds nothing: " + JSON.stringify(out.f.sent));
 check(!errors.length, "no page errors: " + errors.join(" | "));
 await browser.close();
 console.log(failed ? `${failed} FAILED` : "all passed");
