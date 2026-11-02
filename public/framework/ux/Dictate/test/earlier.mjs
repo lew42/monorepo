@@ -37,7 +37,7 @@ if (!first.button) fail.push("no 'show earlier' button on a long session");
 if (first.pieces > 60) fail.push(`first draw showed ${first.pieces} chat pieces, expected about 50`);
 let last = first, clicks = 0;
 while (last.button && clicks < 10){
-	await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread"); t.scrollTop = 0; });
+	await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread"); t.dispatchEvent(new WheelEvent("wheel", { deltaY: -100 })); t.scrollTop = 0; });   // a wheel first: only a reader gesture unlocks the bottom pin (ext/Chat/Chat.js sticky_scroll), a bare scrollTop is pinned back
 	await page.waitForTimeout(100);
 	const anchor = await page.evaluate(() => { const t = document.querySelector(".drawer-rail-sheet.on .ux-dictate-widget-thread"); const n = t.querySelector("[data-re]"); return { re: n.dataset.re, y: n.getBoundingClientRect().top - t.getBoundingClientRect().top }; });
 	await page.click(".drawer-rail-sheet.on .chatbox-earlier");

@@ -11,7 +11,7 @@ export const SCRIPTS = [
 	{"file":"public/framework/ux/Dictate/test/deltas.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/dictation-bar.mjs","args":["{site}"],"status":"red","why":"flaky under load: passed in 19 s once, failed in later runs"},
 	{"file":"public/framework/ux/Dictate/test/docs-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
-	{"file":"public/framework/ux/Dictate/test/earlier.mjs","args":["{site}"],"status":"red","why":"after show-earlier, the reader moved (144 -> -1115)"},
+	{"file":"public/framework/ux/Dictate/test/earlier.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/errors.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/flicker.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/freeze.mjs","args":["{site}"],"status":"pass","ms":180000},
