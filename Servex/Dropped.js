@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import SessionRecord from "../Server/SessionRecord.mjs";
 import Task from "../public/framework/core/Task/Task.js";
+import Process from "../public/framework/core/Task/Process.js";
 
 /* THE RED FLAG FOR DROPPED WORK (the owner, 2026-10-25, "100% completion"). Doc: core/Task/doc/completion.md.
  * Plain node over the task logs and the agent registry, no AI. Every `tick` it finds each OPEN task whose owner agent is not working and
@@ -113,6 +114,15 @@ export default class Dropped {
 		return { code: "owner-stopped", why: `owner ${id} is ${row.state}` };
 	}
 
+	/* A process step's own session folder (<process>/<step id>/) whose step the process already records as complete: its agent
+	 * being stopped is the normal end of a step, not dropped work. */
+	step_complete(e){
+		const parent = SessionRecord.log_file(path.dirname(e.dir)); if (!parent) return false;
+		let lines; try { lines = fs.readFileSync(parent, "utf8").split("\n").filter(l => l.trim()).map(l => JSON.parse(l)); } catch { return false; }
+		if (lines[0]?.class !== "Process") return false;
+		try { return Process.replay(lines).steps.find(s => s.id === path.basename(e.dir))?.state === "complete"; } catch { return false; }
+	}
+
 	scan(registry, now = this.clock()){
 		const rows = [], red = [], unproven = [];
 		let checked = 0, queued = 0;
@@ -126,6 +136,7 @@ export default class Dropped {
 			checked++;
 			const v = this.judge(e, registry, now);
 			if (!v) continue;
+			if (this.step_complete(e)) continue;
 			if (v.queued){ queued++; continue; }
 			const d = e.rec.task.data;
 			rows.push({ url: this.url_of(e.dir), title: d.title ?? path.basename(e.dir), state, code: v.code, why: v.why, owner: this.owner_of(d, registry).id,

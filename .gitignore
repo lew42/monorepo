@@ -121,6 +121,8 @@ public/framework/ai/openrouter-usage.json
 public/framework/ai/servex-queue.json
 # the dropped-work snapshot Servex/Dropped.js rewrites every task-loop tick (2026-10-25); the "Dropped" lines it writes into task logs are the record
 public/framework/ai/queue/dropped.json
+# ProcessRunner's list of running processes (rebuilt by one wide scan if missing)
+public/framework/ai/queue/processes.json
 # the Haiku "marked done, not done" verdicts Server/DoneCheck.mjs writes (2026-10-25); flagged asks also get a line in the log that holds the task
 public/framework/ai/queue/done-check.json
 

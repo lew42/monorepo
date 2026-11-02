@@ -22,6 +22,27 @@ export default class ProcessRunner {
 		this.pending = new Map();    // "<file>#<agent>" -> the after-turn wake already queued
 		this.grace = new Set();      // "<file>#<step>": sent to an agent mid-turn, so the turn that ends next is not this step's
 		this.pulse_after_ms ??= 1500;
+		this.index_file ??= path.join(this.public, "framework", "ai", "queue", "processes.json");   // every unfinished process, wherever its folder is dated (gitignored)
+		this.indexed = new Set(); this.index_loaded = false; this.need_seed = false;
+	}
+
+	// The index of unfinished processes: a tick or a restart finds a process in a folder of any date, not only a recent one.
+	load_index(){
+		if (this.index_loaded) return;
+		this.index_loaded = true;
+		try { for (const r of JSON.parse(fs.readFileSync(this.index_file, "utf8"))) this.indexed.add(path.resolve(this.root, r)); }
+		catch { this.need_seed = true; }   // no index yet: tick() builds it once from a wide scan
+	}
+	save_index(){
+		try { fs.mkdirSync(path.dirname(this.index_file), { recursive: true }); fs.writeFileSync(this.index_file, JSON.stringify([...this.indexed].map(f => this.rel(f)).sort())); } catch {}
+	}
+	// A process stays in the index until it is complete, or stopped with nothing left to halt.
+	track(file, p){
+		this.load_index();
+		const open = p.state !== "complete" && !(p.state === "stopped" && !p.next());
+		if (open === this.indexed.has(file)) return;
+		if (open) this.indexed.add(file); else this.indexed.delete(file);
+		this.save_index();
 	}
 
 	// The same file, read fresh: null when it is not a process.
@@ -56,6 +77,7 @@ export default class ProcessRunner {
 			const p = this.read(file);
 			if (!p) return;
 			this.files.add(file);
+			this.track(file, p);
 			this.remember(p, file);
 			const a = p.next();
 			if (!a) return;
@@ -77,6 +99,7 @@ export default class ProcessRunner {
 				const out = await move_home(file, a.move).catch(e => ({ why: e.message || String(e) }));
 				if (out.why){ await this.write(file, { set: { home_refused: out.why } }); continue; }
 				this.files.delete(file); this.files.add(out.file);
+				if (this.indexed.delete(file)) this.save_index();
 				for (const [k, v] of this.by_agent) if (v === file) this.by_agent.set(k, out.file);
 				this.tell(p.creator, `Process ${out.from} moved home to ${out.to} (its plan is approved).`);
 				this.step(out.file);
@@ -163,6 +186,8 @@ export default class ProcessRunner {
 				await this.write(file, { measure: { step: ph.id, agent: id, usd: Number(usd.toFixed(4)), shared: sp.run !== "fresh" } });
 			}
 			if (ph.state !== "running") continue;
+			// The agent may have completed the step since the read above: look again right before writing, and leave a complete step alone.
+			if (this.read(file)?.steps.find(x => x.id === ph.id)?.state !== "running") continue;
 			holds = true;
 			if (busy) continue;
 			if (this.grace.delete(`${path.resolve(file)}#${ph.id}`)) continue;   // that turn began before this step was sent
@@ -180,10 +205,19 @@ export default class ProcessRunner {
 		if (chained) await this.run(file); else await this.step(file);   // inside the chain, step() would wait on itself
 	}
 
-	// The retry and the resume: every process in today's and yesterday's sessions, plus any seen since boot.
+	// The retry and the resume: every unfinished process in the index (any date), the recent ones, and any seen since boot.
+	// With no index yet (first boot after this change), one wide scan builds it.
 	async tick(){
-		const found = this.servex?.task_loop?.find_task_files?.() ?? [];
-		for (const file of new Set([...found.filter(f => this.is_process(f)), ...this.files])) await this.step(file);
+		this.load_index();
+		const tl = this.servex?.task_loop;
+		if (this.need_seed){
+			this.need_seed = false;
+			for (const f of tl?.find_task_files?.(60) ?? []) if (this.is_process(f)) this.indexed.add(path.resolve(f));
+			this.save_index();
+		}
+		for (const f of [...this.indexed]) if (!fs.existsSync(f)){ this.indexed.delete(f); this.save_index(); }
+		const found = tl?.find_task_files?.() ?? [];
+		for (const file of new Set([...this.indexed, ...found.filter(f => this.is_process(f)), ...this.files])) if (fs.existsSync(file)) await this.step(file);
 	}
 
 	tell(to, text){ if (!to || to === "owner") return; try { this.servex?.agents?.send(to, text, { from: "process-runner" }); } catch {} }

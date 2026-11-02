@@ -183,9 +183,9 @@ export default class TaskLoop {
     /* ── finding tasks ────────────────────────────────────────────────── */
 
     /* The sessions store (ai/sessions/YYYY/MM/DD/..., Server/TaskDirs.mjs) PLUS the old ai/YYYY-MM-DD/ walk, de-duplicated. */
-    find_task_files(){
+    find_task_files(days = 2){
         const today = new Date(), out = [];
-        try { for (const t of TaskDirs.list(2)) out.push((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))); } catch {}
+        try { for (const t of TaskDirs.list(days)) out.push((SessionRecord.log_file(t.dir) ?? path.join(t.dir, "task.jsonl"))); } catch {}
         for (const d of [today, new Date(today.getTime() - 86400000)])
             this.walk(path.join(this.root, "public", "framework", "ai", this.date_id(d)), out);
         return [...new Set(out.map(f => path.resolve(f)))];
