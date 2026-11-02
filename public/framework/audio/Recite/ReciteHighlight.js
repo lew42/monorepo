@@ -14,7 +14,7 @@ export default class ReciteHighlight {
 
 	/** Where replies are drawn: the V1 bubbles, Chat V2 / V3, or anything marked `data-recite-root`. Newest last; searched from the end. */
 	static ROOTS = ".ux-dictate-widget-thread, .chat-v3, .drawer-rail-sheet-v2, [data-recite-root]";
-	static SKIP = ".audio-recite-wrap, textarea, input, script, style";   // never the bar's own copy, never a form field
+	static SKIP = ".audio-recite-wrap, .audio-recite-bubble-ctl, textarea, input, script, style";   // never the bar's own copy, never a form field
 	static WORD = /[\p{L}\p{N}][\p{L}\p{N}'’]*/gu;
 
 	constructor({ recite }){
@@ -108,7 +108,8 @@ export default class ReciteHighlight {
 		if (!words.length || typeof document === "undefined") return null;
 		const want = words.map(w => w.toLowerCase());
 		const roots = [...document.querySelectorAll(ReciteHighlight.ROOTS)].filter(el => el.offsetParent !== null || el.getClientRects().length);
-		for (const root of (roots.length ? roots : [document.body]).reverse()){
+		const focus = this.recite.focus_el?.isConnected ? [this.recite.focus_el] : [];   // a replayed bubble is searched first, so an older reply with the same opening words is not lit instead
+		for (const root of [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
 			const found = this.scan(root);
 			for (let i = found.length - 1; i >= 0; i--){
 				if (found[i].word !== want[0]) continue;

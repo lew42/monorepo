@@ -9,6 +9,7 @@ import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable
 import { clock } from "../../ext/Session/Session.js";
 import { composer } from "../../ext/Chat/Composer.js";
 import TaskView from "../../core/Task/TaskView.js";
+import ReciteBubble from "../../audio/Recite/ReciteBubble.js";
 
 View.stylesheet(import.meta, "Widget.css");
 
@@ -293,7 +294,7 @@ Widget.Thread = class WidgetThread extends View {
 		// and a line with new text for a known `at` (a `fix`) updates its piece in place, never a second copy
 		const known = this.lines.get(at);
 		if (known){
-			if (known.said !== chat.text && known.bubble){ patch_piece(known.bubble, known.ref.id, { text: chat.text }); known.said = chat.text; this.refresh(); this.anchor(); }
+			if (known.said !== chat.text && known.bubble){ patch_piece(known.bubble, known.ref.id, { text: chat.text }); known.said = chat.text; this.replay_ctl(known.bubble); this.refresh(); this.anchor(); }
 			return;
 		}
 
@@ -308,12 +309,19 @@ Widget.Thread = class WidgetThread extends View {
 		// the new piece is found by its id: a late line is put in time order, so it is not always the last child
 		const text_node = bubble.querySelector(`:scope > [data-re="${CSS.escape(String(at))}"]`) ?? bubble.lastElementChild;
 		const ref = { id: at };
+		if (assistant) this.replay_ctl(bubble);
 		this.lines.set(at, { bubble, text: text_node, ref, said: chat.text, spoken: !assistant && (chat.via === "voice" || chat.via === "whisper") });   // `said`: the raw words, kept when a placement improves the text
 		this.apply_sent(at);
 		entry.history ? this.refresh_after_batch() : this.refresh();   // a replay of 200 lines walks the lines once, not 200 times
 		this.anchor();
 		// stored on the piece so it survives a later merge (see doc/widget-notes.md#thread-marks); new lines only: each mark is a paid model call
 		if (!assistant && this.widget.marks && !entry.history) this.mark(chat.text, bubble, ref);
+	}
+
+	/** The play/back control under a reply bubble (the same Recite.Bubble Chat V2 and V3 mount); re-mounted after a piece lands so it stays last. */
+	replay_ctl(bubble){
+		if (!bubble?.classList.contains("chatbox-reply")) return;
+		ReciteBubble.mount(bubble, { text: () => [...bubble.querySelectorAll(":scope > .chatbox-text")].map(n => n.textContent).join("\n") });
 	}
 
 	/** Session lines are older than the newest `Widget.HISTORY` chat lines wait here, behind a "show earlier (N)" button; returns

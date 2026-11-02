@@ -4,6 +4,7 @@
 // args: "{site}" the checkout's SITE_URL, "{shots}" a temp folder, "{repo}" this checkout, "{wav}" the fake-mic clip.
 // ms: its own time limit (default 120000).
 export const SCRIPTS = [
+	{"file":"public/framework/audio/Recite/ReciteBubble.test.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/active-session.mjs","args":["{site}","{repo}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/chat-gray.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/chat-sent.mjs","args":["{site}","{shots}"],"status":"pass"},

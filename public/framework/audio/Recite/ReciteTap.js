@@ -5,8 +5,9 @@ import ReciteHighlight from "./ReciteHighlight.js";
  * class ReciteTap — `Recite.Tap`: tapping a chat bubble plays or pauses whatever Recite is reading right now, the
  * same gesture as the bar's own Play button, so the owner doesn't need to find the bar to pause mid-reply. A tap on
  * a link, a mention chip or a button inside the bubble is left alone — it does its own thing, never toggling
- * playback. This toggles the one thing Recite is doing now; replaying a DIFFERENT, already-finished bubble from its
- * own place is "resumable bubbles" (readme.md's Open list), not built here.
+ * playback. A tap on a reply bubble that carries a `Recite.Bubble` control plays or pauses THAT bubble
+ * (`recite.tap_bubble`): the one being read pauses or carries on, any other is read again from the word it last
+ * stopped at, else from its start. A tap elsewhere in the chat toggles whatever Recite is doing now.
  *
  *   new Recite.Tap({ recite });   // Recite makes one for itself: recite.tap
  */
@@ -23,13 +24,21 @@ export default class ReciteTap {
 		this.constructor.track(this);
 	}
 
-	click(e){
-		if (e.target.closest(ReciteTap.IGNORE)) return;
-		if (e.target.closest(ReciteHighlight.SKIP)) return;   // the bar's own copy (ReciteHighlight.SKIP), not this class's IGNORE list above
-		const root = e.target.closest(ReciteHighlight.ROOTS);
-		if (!root) return;   // only inside a chat bubble
+	/** The chat root a tap at `e` lands in, or null when it is not a tap on bubble text: a link, chip, button or form field has its own job, the bar's copy is skipped, and a drag that left a selection INSIDE THIS root is a select, not a tap (a selection elsewhere on the page must not block every bubble; review finding, read-aloud-b 2026-11-02). */
+	static root_of(e){
+		if (e.target.closest(ReciteTap.IGNORE)) return null;
+		if (e.target.closest(ReciteHighlight.SKIP)) return null;   // the bar's own copy (ReciteHighlight.SKIP), not this class's IGNORE list above
+		const root = e.target.closest(ReciteHighlight.ROOTS);   // only inside a chat bubble
+		if (!root) return null;
 		const sel = globalThis.getSelection?.();
-		if (sel && sel.toString() && root.contains(sel.anchorNode)) return;   // a drag to select text INSIDE THIS bubble still fires `click` on mouseup — never a tap; a selection left over elsewhere on the page must not block every bubble (review finding, read-aloud-b 2026-11-02)
+		if (sel && sel.toString() && root.contains(sel.anchorNode)) return null;
+		return root;
+	}
+
+	click(e){
+		if (e.recite_handled || !ReciteTap.root_of(e)) return;
+		const B = this.recite.constructor.Bubble, bubble = e.target.closest(B.HOST);
+		if (bubble){ this.recite.tap_bubble(B.text_of(bubble), bubble); return; }
 		if (!this.recite.chunks.length) return;   // nothing to play or pause
 		this.recite.toggle();
 	}
