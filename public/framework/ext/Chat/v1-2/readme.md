@@ -32,3 +32,5 @@ Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/se
 
 - **"Dim when sent" is read as "dim while words wait":** the ✓ is dim exactly while some ended sentence has not been received and lit when all are. Alternative: dim for a fixed time after each send, which would flash even when the assistant is instant. Revisit if the owner wants the other look.
 - **Wrap V1, don't copy it** (law 6): V1.2 feeds V1's own `chat()` synthetic entries, so a V1 fix lands here too. Alternative: a subclass of V1's internals, which has none (it is a function bag).
+- **The Reply keeps V1's round assistant avatar (a brain icon):** it is V1's own role avatar, not the old 🧠 send mark the brief removed. Alternative: hide the avatar in V1.2, which would need a V1.2-only rule in `Chat.css` (not touched here).
+- **Waiting and live words sit after the ✓ in order, but in their own V1 bubbles:** V1 draws the live draft as its own bubble (`.chatbox-draft`). Alternative: draw them inside the owner's bubble, which the layout work may do later.

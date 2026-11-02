@@ -9,7 +9,7 @@ View.stylesheet(import.meta, "ChatView.css");
 
 /**
  * The chat version dropdown (V1 / V1.2 / V2 / V3) and the Chat V1.2, v2 or v3 box it switches on, shared by the phone ✦ sheet (Sheet.js) and the
- * desktop drawer's AI tab (tabs/ai.js). V2 or V3 swaps the chat's bubbles for ext/Chat/v2's or v3's drawing of the same
+ * desktop drawer's AI tab (tabs/ai.js). V1.2, V2 or V3 swaps the chat's bubbles for ext/Chat/v1-2's, v2's or v3's drawing of the same
  * session file; the composer and mic footer stay. One choice, kept on this device in localStorage, rules both.
  *   slot  -> () => the element the chat mounted in (gets .drawer-rail-sheet-v2-on while v2 shows)
  *   mount -> () => the chat.js mount (its file() is the session record)
@@ -56,7 +56,7 @@ export default class ChatView {
 		this.sync();
 	}
 
-	// Draws (or drops) the Chat v2 box inside the chat's card, above the composer; called on a toggle and whenever the session changes.
+	// Draws (or drops) the Chat V1.2 / v2 / v3 box inside the chat's card, above the composer; called on a toggle and whenever the session changes.
 	sync(){
 		const slot = this.slot(), mount = this.mount();
 		slot?.classList.toggle("drawer-rail-sheet-v2-on", !!(this.on && mount));
@@ -76,7 +76,7 @@ export default class ChatView {
 			this.pin_watch.observe(this.$box.el, { childList: true, subtree: true, characterData: true });
 		}
 		if (file) this.chat_v2 = new ({ "v1-2": ChatV1Dot2, v3: ChatV3 }[this.mode] ?? ChatV2)({ url: file, $box: this.$box }).live();
-		else this.$box.empty(() => div.c("chat-v2-empty", `Say something: Chat ${this.mode} draws this conversation once it has started.`));
+		else this.$box.empty(() => div.c("chat-v2-empty", `Say something: Chat ${this.mode === "v1-2" ? "V1.2" : this.mode} draws this conversation once it has started.`));
 	}
 
 	// The chat gave its box back: stop the stream and forget the box (the slot is emptied by the caller).
