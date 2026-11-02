@@ -38,6 +38,10 @@ owner's clock drifting, it is two definitions of "done" wearing the same icon. L
 in `views-fix/task.jsonl` (not fixed here: aligning V1 to v2's stricter check needs a way to tell,
 from a live piece alone, whether an answer landed after `sent.smart` — not a one-line change).
 
+**Decided meaning for the unified data: 🧠 = smart *answered*** (v2's rule). On `session.messages` it is
+computable from the list alone (a Reply whose `re.to` is one of the Prompt's sentences); "received" stays
+a gray state. See [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md).
+
 The ✓'s own V1-vs-v2 difference (per piece vs per Prompt) is not a bug: v2 genuinely has no
 per-chunk signal yet, which is the known, already-documented gap above, not a drawing mistake.
 
