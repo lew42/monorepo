@@ -17,6 +17,8 @@ recite.bar;                          // the one-line control; while state is `he
 
 **Echo settings:** `recite.echo_guard_ms` (default 1500) is how long after playback stops the echo guard below still applies; `recite.barge.echo_threshold_mult` (default 1.6) raises the barge-in loudness floor during that guard, so the voice itself and a cough right after it don't hold a reply or fire the fast trigger; `recite.barge.near_silent` (default 0.045) is the own-mic peak level below which a Whisper final is treated as hallucinated, not real speech.
 
+**The thinking cue:** `recite.thinking_cue` (default `true`) plays a short, subtle generated tone once the owner's line lands and a reply has not started yet, again `recite.cue_repeat_ms` (default 2000 ms) later if it still has not — then it stays quiet. Set `thinking_cue = false` to turn it off.
+
 In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
 
 ## Architecture
@@ -38,15 +40,14 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 ## Open, by the agreed build order
 
-Resume + queueing + turn-taking (piece (a)) and echo suppression have landed. Still to come, in this order:
+Resume + queueing + turn-taking (piece (a)), echo suppression, and the thinking cue have landed. Still to come, in this order:
 
-1. **No flood + prioritise** (if not folded into a small change already): one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
-2. **A thinking cue**, its own small merge right after echo: once the owner stops speaking and a reply is pending, a short subtle cue (a generated tone or a tiny audio file, never Kokoro speech) — once, then once more at ~2 s if still pending, then quiet. A setting turns it off (`thinking_cue: true`).
-3. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
-4. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
-5. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
-6. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
-7. **(c) Karaoke follow** — without phrase-level streaming.
+1. **No flood + prioritise:** one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
+2. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
+3. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
+4. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
+5. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
+6. **(c) Karaoke follow** — without phrase-level streaming.
 
 Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in [ux/Dictate/doc/turn-taking.md](/framework/ux/Dictate/doc/turn-taking.md), "Voice dynamics".
 
