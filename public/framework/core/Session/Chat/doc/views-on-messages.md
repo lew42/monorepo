@@ -37,6 +37,15 @@ The owner's wake rules ([turn-taking.md](/framework/ux/Dictate/doc/turn-taking.m
 
 Each step: a worktree, a test, review, merge by the mastermind that owns the view.
 
-## Open questions
+## Open questions, answered (mastermind-dictation-v3, 2026-11-01 21:50)
 
-Asked of `mastermind-dictation-v3` (it owns the views), not yet answered when this was written: (1) which marks V2 and V3 read that have no field on Prompt or Reply yet; (2) one view or two skins on one model (step 4); (3) its preferred merge order. Its answer amends the steps above.
+**(1) What V2 and V3 read that has no field on Prompt or Reply yet.**
+- **No field, needs one (step 3):** `sent.fast` / `sent.smart` (V2's ✓ and 🧠, `ChatV2.js:206-224`, Prompt-level only) and `working` with its `at` (V2's bottom 🧠 dots, `ChatV2.js:82`, stale after `STALE_MS`). Until step 3, read them through the Prompt message's `prompt` link to its task.
+- **Stays client-side, no field:** the live draft (both views listen to the window event `chat-live`, `ChatV2.js:38`, `ChatV3.js:205`), V2's open raw toggles (`raw_open`), and V3's reply being written (`partial`, from the live wire's `{kind:"stream"}`, `ChatV3.js:66`). A streaming reply in the file would be one line per word; the wire is the right home.
+- **Already covered by messages:** V3's `{chat}` reply lookup (`chat_line`, `ChatV3.js:48`: a reply's `re` is the owner line's `at`) becomes `Reply.re.to` (a sentence id); V2's anchored replies (`M.anchor`) are the same thing. The title (`Prompt.title`), the refined text (`Prompt.text`) and the fast seat's cleaned words (`Prompt.clean`) exist.
+- **Paragraph breaks** (owner item 7, being built by `mastermind-ink-check`): V3 makes one paragraph per sent chunk (`ChatV3.paragraphs`, `ChatV3.js:170`). On messages a chunk is no longer visible, so a paragraph starts where the gap between two sentences' `at` is long (a pause). `Sentence.at` exists, so no new field. The step-1 builder carries this rule over.
+- **The read-aloud played flag** (owner item 20) is kept by `audio/Recite` per message id; no chat field.
+
+**(2) One view or two skins: one class, and V2 is a subclass of it.** Step 1 rebuilds `ext/Chat/v3/ChatV3.js` on messages, and that class is the one view. Step 2 makes `ChatV2` a subclass of `ChatV3` that adds only V2's extras (the ✓/🧠 marks, the raw toggle, replies beside their sentence) and its own CSS, and deletes `ChatV2Model.js`. So step 4 folds into step 2. The alternative is one class with a `skin` option; it wins if the subclass ends up overriding most methods.
+
+**(3) Merge order:** 1 (V3 on messages) → 2 (V2 as its subclass, marks read through the `prompt` link) → 3 (marks on the message; Servex code, live only after a Servex restart with no voice call on, so the views keep the link as a fallback) → 5 (V1) → 6 (comma feed). Step 1 starts after `mastermind-ink-check`'s paragraph-break merge (it edits `ChatV3.js` in `worktree/views-fix`), or takes that work over by agreement, so two agents never edit `ChatV3.js` at once.
