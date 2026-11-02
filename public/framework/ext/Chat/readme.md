@@ -40,7 +40,7 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 - [`list/`](./list/readme.md): the simplest live view of a session's real chat list, `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)): one bubble per message, in the list's order, drawn from the list's lines alone; demo at `/framework/ext/Chat/list/`.
 - [`v2/`](./v2/readme.md): Chat v2, a session's chat drawn from its `tasks` list (prompts at the root, replies and cards nested under them), written by Servex as the owner speaks; shown as V2 in the version dropdown of the ✦ sheet and the drawer, and a chip on the session page's Chat tab, live demo at `/framework/ext/Chat/v2/`.
 - **Links in a chat bubble** (`md.js` `site_path()`): a link to this site, under any of its hosts, becomes a site path with no new tab, so `core/Router` opens it in place and dictation keeps running; the gateway key is dropped; other sites open in a new tab.
-- [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from the session's `tasks` list, with every reply inside it (the old-style `{chat}` replies too, read-only), the reply being written, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`.
+- [`v3/`](./v3/readme.md): Chat v3: a card per Prompt from `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)), with the Replies that answer it (found by `re.to`) inside it, the reply being written, pause-based paragraphs, and the unsent words in gray; V3 in the version dropdown; demo at `/framework/ext/Chat/v3/`. The one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; step 2 makes v2 its subclass).
 - `roles.js`: Sender avatars and badges.
 
 ## Doc topics
