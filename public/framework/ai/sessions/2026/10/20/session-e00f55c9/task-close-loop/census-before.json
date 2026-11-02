@@ -1,0 +1,594 @@
+{
+ "generated": "2026-11-02T20:41:00.642Z",
+ "days": 14,
+ "total_task_files": 2112,
+ "window": {
+  "tasks": 414,
+  "by": {
+   "tab": 394,
+   "mastermind": 13,
+   "minion": 5,
+   "voice": 2
+  },
+  "state": {
+   "stalled": 301,
+   "stopped": 54,
+   "landed": 25,
+   "abandoned": 29,
+   "open": 5
+  },
+  "untouched": 370,
+  "empty": 40,
+  "dup_groups": 5,
+  "dup_tasks": 49
+ },
+ "allTime": {
+  "state": {
+   "stalled": 692,
+   "stopped": 134,
+   "landed": 822,
+   "abandoned": 459,
+   "open": 5
+  },
+  "module_tasks": 927,
+  "session_tasks": 1185
+ },
+ "byRole": {
+  "tab": {
+   "n": 1293,
+   "landed": 382,
+   "stalled": 683,
+   "abandoned": 106,
+   "unclosed": 0,
+   "stopped": 117,
+   "open": 5,
+   "doneWork_notLanded": 3,
+   "module": 923
+  },
+  "minion": {
+   "n": 380,
+   "landed": 116,
+   "stalled": 0,
+   "abandoned": 253,
+   "unclosed": 0,
+   "stopped": 11,
+   "open": 0,
+   "doneWork_notLanded": 5,
+   "module": 0
+  },
+  "mastermind": {
+   "n": 344,
+   "landed": 263,
+   "stalled": 5,
+   "abandoned": 72,
+   "unclosed": 0,
+   "stopped": 4,
+   "open": 0,
+   "doneWork_notLanded": 1,
+   "module": 2
+  },
+  "other-agent": {
+   "n": 85,
+   "landed": 54,
+   "stalled": 3,
+   "abandoned": 28,
+   "unclosed": 0,
+   "stopped": 0,
+   "open": 0,
+   "doneWork_notLanded": 1,
+   "module": 2
+  },
+  "servex": {
+   "n": 6,
+   "landed": 4,
+   "stalled": 1,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 1,
+   "open": 0,
+   "doneWork_notLanded": 0,
+   "module": 0
+  },
+  "voice": {
+   "n": 4,
+   "landed": 3,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 1,
+   "open": 0,
+   "doneWork_notLanded": 0,
+   "module": 0
+  }
+ },
+ "perDay": {
+  "2026-10-20": {
+   "created": 13,
+   "by": {
+    "mastermind": 9,
+    "minion": 3,
+    "tab": 1
+   },
+   "landed": 12,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 1,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-21": {
+   "created": 1,
+   "by": {
+    "tab": 1
+   },
+   "landed": 0,
+   "open": 0,
+   "stalled": 1,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-22": {
+   "created": 1,
+   "by": {
+    "tab": 1
+   },
+   "landed": 0,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 1,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-23": {
+   "created": 286,
+   "by": {
+    "tab": 285,
+    "mastermind": 1
+   },
+   "landed": 3,
+   "open": 0,
+   "stalled": 246,
+   "abandoned": 1,
+   "unclosed": 0,
+   "stopped": 36
+  },
+  "2026-10-24": {
+   "created": 18,
+   "by": {
+    "tab": 17,
+    "mastermind": 1
+   },
+   "landed": 3,
+   "open": 0,
+   "stalled": 10,
+   "abandoned": 5,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-25": {
+   "created": 67,
+   "by": {
+    "tab": 64,
+    "minion": 2,
+    "mastermind": 1
+   },
+   "landed": 3,
+   "open": 0,
+   "stalled": 38,
+   "abandoned": 9,
+   "unclosed": 0,
+   "stopped": 17
+  },
+  "2026-10-26": {
+   "created": 6,
+   "by": {
+    "tab": 6
+   },
+   "landed": 0,
+   "open": 0,
+   "stalled": 6,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-27": {
+   "created": 0,
+   "by": {},
+   "landed": 0,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-28": {
+   "created": 0,
+   "by": {},
+   "landed": 0,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-29": {
+   "created": 0,
+   "by": {},
+   "landed": 0,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-30": {
+   "created": 0,
+   "by": {},
+   "landed": 0,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-10-31": {
+   "created": 2,
+   "by": {
+    "voice": 1,
+    "tab": 1
+   },
+   "landed": 2,
+   "open": 0,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 0
+  },
+  "2026-11-01": {
+   "created": 4,
+   "by": {
+    "tab": 3,
+    "voice": 1
+   },
+   "landed": 1,
+   "open": 2,
+   "stalled": 0,
+   "abandoned": 0,
+   "unclosed": 0,
+   "stopped": 1
+  },
+  "2026-11-02": {
+   "created": 16,
+   "by": {
+    "tab": 15,
+    "mastermind": 1
+   },
+   "landed": 1,
+   "open": 3,
+   "stalled": 0,
+   "abandoned": 12,
+   "unclosed": 0,
+   "stopped": 0
+  }
+ },
+ "sessions": [
+  {
+   "session": "ai/sessions/2026/10/20/session-e00f55c9",
+   "tasks": 47,
+   "landed": 14,
+   "pct": 30
+  },
+  {
+   "session": "ai/sessions/2026/10/25/v-9dvbbrn",
+   "tasks": 4,
+   "landed": 0,
+   "pct": 0
+  },
+  {
+   "session": "ai/sessions/2026/10/19/cloud-voice-live-page",
+   "tasks": 3,
+   "landed": 3,
+   "pct": 100
+  },
+  {
+   "session": "ai/sessions/2026/10/19/spawned",
+   "tasks": 3,
+   "landed": 1,
+   "pct": 33
+  },
+  {
+   "session": "ai/sessions/2026/10/19/cloud-voice-agent",
+   "tasks": 2,
+   "landed": 2,
+   "pct": 100
+  },
+  {
+   "session": "ai/sessions/2026/10/24/session-7c6c8d93",
+   "tasks": 2,
+   "landed": 0,
+   "pct": 0
+  },
+  {
+   "session": "ai/sessions/2026/10/31/session-e3fd9043",
+   "tasks": 2,
+   "landed": 2,
+   "pct": 100
+  }
+ ],
+ "dups": [
+  {
+   "title": "tasks",
+   "n": 41,
+   "paths": [
+    "ai/AIDashboard/tasks",
+    "ai/AISession/tasks",
+    "ai/AITask/tasks",
+    "ai/merge/tasks"
+   ]
+  },
+  {
+   "title": "explore using darken and lighten togethe",
+   "n": 2,
+   "paths": [
+    "ai/tasks/explore-using-darken-and-lighten-togethe",
+    "design/color/tasks/explore-using-darken-and-lighten-togethe"
+   ]
+  },
+  {
+   "title": "explore what can go before and after cer",
+   "n": 2,
+   "paths": [
+    "design/layout/tasks/explore-what-can-go-before-and-after-cer",
+    "styles/layouts/tasks/explore-what-can-go-before-and-after-cer"
+   ]
+  },
+  {
+   "title": "selection tap to select and drill down o",
+   "n": 2,
+   "paths": [
+    "dev/mobile/tasks/selection-tap-to-select-and-drill-down-o",
+    "ext/Ask/tasks/selection-tap-to-select-and-drill-down-o"
+   ]
+  },
+  {
+   "title": "create layouts that use the harmonized s",
+   "n": 2,
+   "paths": [
+    "styles/layouts/sidebar/tasks/create-layouts-that-use-the-harmonized-s",
+    "styles/layouts/tasks/create-layouts-that-use-the-harmonized-s"
+   ]
+  }
+ ],
+ "untouched": [
+  {
+   "path": "ai/AIDashboard/tasks",
+   "by": "tab",
+   "title": "tasks"
+  },
+  {
+   "path": "ai/AISession/tasks/check-how-sessions-are-indexed-and-wheth",
+   "by": "tab",
+   "title": "check-how-sessions-are-indexed-and-wheth"
+  },
+  {
+   "path": "ai/AISession/tasks/check-whether-the-sessions-cost-breakdow",
+   "by": "tab",
+   "title": "check-whether-the-sessions-cost-breakdow"
+  },
+  {
+   "path": "ai/AISession/tasks/consider-making-the-right-sidebar-scroll",
+   "by": "tab",
+   "title": "consider-making-the-right-sidebar-scroll"
+  },
+  {
+   "path": "ai/AISession/tasks/consider-one-name-for-the-sessions-tab-u",
+   "by": "tab",
+   "title": "consider-one-name-for-the-sessions-tab-u"
+  },
+  {
+   "path": "ai/AISession/tasks/fix-the-page-load-error-that-appears-aft",
+   "by": "tab",
+   "title": "fix-the-page-load-error-that-appears-aft"
+  },
+  {
+   "path": "ai/AISession/tasks/investigate-why-the-sessions-page-is-lag",
+   "by": "tab",
+   "title": "investigate-why-the-sessions-page-is-lag"
+  },
+  {
+   "path": "ai/AISession/tasks/remove-the-all-sessions-back-button-on-t",
+   "by": "tab",
+   "title": "remove-the-all-sessions-back-button-on-t"
+  },
+  {
+   "path": "ai/AISession/tasks/remove-the-top-line-that-repeats-the-ses",
+   "by": "tab",
+   "title": "remove-the-top-line-that-repeats-the-ses"
+  },
+  {
+   "path": "ai/AISession/tasks",
+   "by": "tab",
+   "title": "tasks"
+  },
+  {
+   "path": "ai/AITask/tasks/task-pages-grey-checkboxes-full-width-ba",
+   "by": "tab",
+   "title": "task-pages-grey-checkboxes-full-width-ba"
+  },
+  {
+   "path": "ai/AITask/tasks",
+   "by": "tab",
+   "title": "tasks"
+  },
+  {
+   "path": "ai/health/tasks/monitor-a-playwright-agent-on-main-templ",
+   "by": "tab",
+   "title": "monitor-a-playwright-agent-on-main-templ"
+  },
+  {
+   "path": "ai/merge/tasks/fix-the-page-http-monorepo-localhost-fra",
+   "by": "tab",
+   "title": "fix-the-page-http-monorepo-localhost-fra"
+  },
+  {
+   "path": "ai/merge/tasks",
+   "by": "tab",
+   "title": "tasks"
+  }
+ ],
+ "empty": [
+  {
+   "path": "ai/AIDashboard/tasks",
+   "by": "tab",
+   "lines": 2,
+   "title": "tasks"
+  },
+  {
+   "path": "ai/queue/tasks",
+   "by": "tab",
+   "lines": 2,
+   "title": "tasks"
+  },
+  {
+   "path": "ai/rail/tasks",
+   "by": "tab",
+   "lines": 2,
+   "title": "tasks"
+  },
+  {
+   "path": "ai/readmes/tasks",
+   "by": "tab",
+   "lines": 2,
+   "title": "tasks"
+  },
+  {
+   "path": "ai/sessions/2026/10/25/v-9dvbbrn/chat-tab-on-every-session-page-talk-to-a",
+   "by": "tab",
+   "lines": 2,
+   "title": "chat-tab-on-every-session-page-talk-to-a"
+  },
+  {
+   "path": "ai/sessions/2026/10/25/v-9dvbbrn/mobile-sheet-page-cannot-scroll-to-the-b",
+   "by": "tab",
+   "lines": 2,
+   "title": "mobile-sheet-page-cannot-scroll-to-the-b"
+  },
+  {
+   "path": "ai/sessions/2026/10/25/v-9dvbbrn/module-folder-tasks-are-not-found-unless",
+   "by": "tab",
+   "lines": 2,
+   "title": "module-folder-tasks-are-not-found-unless"
+  },
+  {
+   "path": "ai/sessions/2026/10/25/v-9dvbbrn/session-page-overview-clear-the-leftover",
+   "by": "tab",
+   "lines": 2,
+   "title": "session-page-overview-clear-the-leftover"
+  },
+  {
+   "path": "ai/sessions/tasks/add-load-thresholds-a-preview-may-not-ne",
+   "by": "tab",
+   "lines": 2,
+   "title": "add-load-thresholds-a-preview-may-not-ne"
+  },
+  {
+   "path": "ai/sessions/tasks/default-the-sessions-preview-to-a-limite",
+   "by": "tab",
+   "lines": 2,
+   "title": "default-the-sessions-preview-to-a-limite"
+  },
+  {
+   "path": "ai/sessions/tasks/explore-the-consequences-of-an-agent-usi",
+   "by": "tab",
+   "lines": 2,
+   "title": "explore-the-consequences-of-an-agent-usi"
+  },
+  {
+   "path": "ai/sessions/tasks/look-into-how-our-system-works-and-figur",
+   "by": "tab",
+   "lines": 2,
+   "title": "look-into-how-our-system-works-and-figur"
+  },
+  {
+   "path": "ai/sessions/tasks/look-into-the-dynamic-query-system-or-wh",
+   "by": "tab",
+   "lines": 2,
+   "title": "look-into-the-dynamic-query-system-or-wh"
+  },
+  {
+   "path": "ai/sessions/tasks/look-into-what-the-eb0f-session-is",
+   "by": "tab",
+   "lines": 2,
+   "title": "look-into-what-the-eb0f-session-is"
+  },
+  {
+   "path": "ai/sessions/tasks/the-review-page-should-be-an-existing-pa",
+   "by": "tab",
+   "lines": 2,
+   "title": "the-review-page-should-be-an-existing-pa"
+  }
+ ],
+ "stalledSample": [
+  {
+   "path": "ai/AIDashboard/tasks",
+   "by": "tab",
+   "age_h": 255,
+   "title": "tasks"
+  },
+  {
+   "path": "ai/AISession/tasks/check-how-sessions-are-indexed-and-wheth",
+   "by": "tab",
+   "age_h": 224,
+   "title": "check-how-sessions-are-indexed-and-wheth"
+  },
+  {
+   "path": "ai/AISession/tasks/check-whether-the-sessions-cost-breakdow",
+   "by": "tab",
+   "age_h": 223,
+   "title": "check-whether-the-sessions-cost-breakdow"
+  },
+  {
+   "path": "ai/AISession/tasks/consider-one-name-for-the-sessions-tab-u",
+   "by": "tab",
+   "age_h": 224,
+   "title": "consider-one-name-for-the-sessions-tab-u"
+  },
+  {
+   "path": "ai/AISession/tasks/fix-the-page-load-error-that-appears-aft",
+   "by": "tab",
+   "age_h": 224,
+   "title": "fix-the-page-load-error-that-appears-aft"
+  },
+  {
+   "path": "ai/AISession/tasks/investigate-why-the-sessions-page-is-lag",
+   "by": "tab",
+   "age_h": 236,
+   "title": "investigate-why-the-sessions-page-is-lag"
+  },
+  {
+   "path": "ai/AISession/tasks/remove-the-all-sessions-back-button-on-t",
+   "by": "tab",
+   "age_h": 224,
+   "title": "remove-the-all-sessions-back-button-on-t"
+  },
+  {
+   "path": "ai/AISession/tasks/remove-the-top-line-that-repeats-the-ses",
+   "by": "tab",
+   "age_h": 224,
+   "title": "remove-the-top-line-that-repeats-the-ses"
+  },
+  {
+   "path": "ai/AISession/tasks/surface-stored-session-information-that",
+   "by": "tab",
+   "age_h": 222,
+   "title": "surface-stored-session-information-that"
+  },
+  {
+   "path": "ai/AISession/tasks",
+   "by": "tab",
+   "age_h": 168,
+   "title": "tasks"
+  }
+ ]
+}
