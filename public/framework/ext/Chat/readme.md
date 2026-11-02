@@ -29,16 +29,15 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 
 ## The layout: your words on the right, the assistant's plain on the left (2026-11-02)
 
-![the three views at 360 px](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/screens/v3-360.png)
+![Chat v3 at 360 px: a one-word pill, a long wrapped message, plain replies](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/screens/v3-360.png)
 
 Like Claude's chat: **your words are a tinted pill on the right that hugs its text** (one word, like `/compact`, is a small pill; a dictated line widens as the words arrive, then wraps at the cap), **the assistant's words are plain text on the left**, no fill, no border. Both stop at `--bubble-max` (`min(80%, 40rem)`, 80% on a phone). One shared rule set, [`bubbles.css`](./bubbles.css), is loaded by `Chat.js` (V1) and `ChatV3.js` (V2 and V3), drawing `.chatbox-you`/`.chatbox-reply` and `.chat-v3-you`/`.chat-v3-reply` alike; the Dictate widget sets the same token. Change `--bubble-max` on a host to move both sides. A V1 reply is a two-column grid (icon, words) so a wrapped line stays beside the icon and a one-word reply keeps its width. Updates and notes stay small and muted. Walkthrough with shots of V1, V2 and V3 at 360 and 1920: [chat-layout/walkthrough.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md).
 
 ## Files that matter
 
 - `bubbles.css`: the one layout rule set for all three views (above).
-- `v3/bubble-grow.mjs`: browser proof that your bubble widens as words arrive (V1 and V3) and stops at the cap, and that a guess becoming settled keeps the width; listed in `core/Test/browser-scripts.mjs`.
-
 - `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
+- `v3/bubble-grow.mjs`: browser proof that your bubble widens as words arrive (V1 and V3) and stops at the cap, and that a guess becoming settled keeps the width; listed in `core/Test/browser-scripts.mjs`.
 - `chunks.js`: pure text splitters for the two moving cursors — `fast_chunks()` (comma/period/question/!, not yet called from production — the ✓ cursor sits at the end of the piece's own text, which is always the newest fast chunk by definition), `last_finished_sentence_end()` (sentence boundary only, walks the split sentences forward so a repeated final sentence lands on the real last one); `chunks.test.mjs` is the mock test.
 - `cursors.js` / `cursors.css`: the ONE ✓/🧠 element maker and class set, shared by `Chat.js` (V1) and `v2/ChatV2.js`.
 - `Mic.js`: the composer's microphone (speech → sentences → sends). Gear settings `send_on_period`, `send_on_question`, `send_on_comma` (default: the first two on, comma off) pick which marks `cut_re()` cuts a send at — detail in [`doc/mic-notes.md`](./doc/mic-notes.md).
