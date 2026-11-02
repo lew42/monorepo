@@ -18,6 +18,7 @@ import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
 import * as Wire from "/framework/ext/Session/Session.js";
 import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
+View.stylesheet(import.meta, "../bubbles.css");
 
 export default class ChatV3 extends JSONL {
 	static SHOW = 40;          // roots drawn at first; "show earlier" adds this many more
@@ -159,6 +160,17 @@ export default class ChatV3 extends JSONL {
 
 	prompt(p){
 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
+		div.c(this.you_class(p), () => this.you(p, title, refined, open, sentences));
+		for (const r of this.trailing_replies(p)) this.reply(r);
+		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
+		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+	}
+
+	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
+	// and the raw toggle. Everything the assistant says is drawn after it, outside it (Claude-style layout, the owner 2026-11-02).
+	you_class(p){ return "chat-v3-you"; }
+	you(p, title, refined, open, sentences){
 		div.c("chat-v3-head", () => {
 			if (title) h3.c("chat-v3-title", title);
 			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
@@ -174,15 +186,11 @@ export default class ChatV3 extends JSONL {
 		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
-		for (const r of this.trailing_replies(p)) this.reply(r);
-		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
-		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
-		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
 	}
 
 	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
 	reply(r){
-		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
+		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
 	}
 
@@ -247,9 +255,10 @@ export default class ChatV3 extends JSONL {
 		if (!text) { this.$draft?.el.remove(); this.$draft = null; return; }
 		if (!this.$draft?.el.isConnected) this.$draft = div.c("chat-v3-card chat-v3-draft");
 		this.$draft.el.replaceChildren();
+		const you = document.createElement("div"); you.className = "chat-v3-you";
 		const t = document.createElement("div"); t.className = "chat-v3-text is-moving";
 		t.textContent = settled; if (guess) { const g = document.createElement("span"); g.className = "chat-v3-guess"; g.textContent = (settled ? " " : "") + guess; t.append(g); }
-		this.$draft.el.append(t);
+		you.append(t); this.$draft.el.append(you);
 		this.draft_at_end();
 	}
 	draft_at_end(){ if (this.$draft?.el.isConnected || this.$draft) this.$box?.el.append(this.$draft.el); }

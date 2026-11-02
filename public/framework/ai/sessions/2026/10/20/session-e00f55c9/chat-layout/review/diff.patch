@@ -1,0 +1,1276 @@
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review.jsonl
+new file mode 100644
+index 000000000..31b21548f
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review.jsonl
+@@ -0,0 +1,9 @@
++{"phase":{"at":"2026-11-02T14:25:50-06:00","n":1,"kind":"findings","status":"start"}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":1,"kind":"fix","text":"Requirement 2 (\"grow live\", no jump when the final text replaces the guess) has no proof: the walkthrough and screens show only finished messages, and no test or shot shows a pill widening while words arrive."}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":2,"kind":"fix","text":"V2 at 1920 draws the reply \"Hello! What would you like to work on?\" indented about 200px right of every other reply (icon at x=523 vs 321) — layout (alignment), screens/v2-1920.png, band 3. V3 has no such indent."}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":3,"kind":"fix","text":"shots/ is empty and its layout.json is missing (session.jsonl logged widths 400/1200/1920/3440, `bands: []`), so nothing is measured; the review judged the builder's screens/ instead. The walkthrough also says the shots came from 127.0.0.1:62509, not monorepo.lew42.com as asked (req 5)."}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":4,"kind":"fix","text":"`ux/Dictate/readme.md` is stale: `Widget.css` changed and now sets `--bubble-max` for the Dictate bubbles, but the readme never mentions `ext/Chat/bubbles.css` or the shared token."}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":5,"kind":"note","text":"The assistant's text wraps well short of the 80% cap: at 1920 V2/V3 replies wrap at about 400-500px while the owner pill reaches 500px+ (screens/v2-1920.png, V3 \"Compacted...\" wraps at ~800px of 940). The two sides read as different max widths."}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":6,"kind":"note","text":"V2 shows a faded, right-aligned preview (\"I would like the chat to look more...\") directly above the long pill, a second copy of the same words (screens/v2-360.png, v2-1920.png)."}}
++{"finding":{"at":"2026-11-02T14:25:50-06:00","n":7,"kind":"note","text":"No chat-layout/readme.md, and `past-work.md` and `screens/` are not linked from the walkthrough or the session record. A fresh agent can continue from `requirements.md` + `walkthrough.md` + the diff, but not from an index."}}
++{"phase":{"at":"2026-11-02T14:25:50-06:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.6230983999999999,"model":"claude-sonnet-5-5"}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review/diff.patch b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review/diff.patch
+new file mode 100644
+index 000000000..738ffe0e3
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review/diff.patch
+@@ -0,0 +1,543 @@
++diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md
++new file mode 100644
++index 000000000..0c2a5aa48
++--- /dev/null
+++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md
++@@ -0,0 +1,27 @@
+++# Chat layout, the walkthrough (2026-11-02)
+++
+++Your words are a tinted pill on the right that hugs the text; the assistant's words are plain text on the left. Both stop at 80% of the width (a `min(80%, 40rem)` cap on a desktop, so a line stays readable at 1920). One rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/bubbles.css), draws all three views.
+++
+++Shot with the headless browser at 360×740 (phone user agent `Android 10; K`) and 1920, from the worktree's own server. Demo data: [`layout-session.jsonl`](/framework/ext/Chat/v3/fixture/layout-session.jsonl) (a one-word `/compact`, a `Hello`, a long wrapped message, replies with markdown). The Chat V1 page's own demo has `/compact` too.
+++
+++| View | Phone, 360×740 | Desktop, 1920 |
+++|---|---|---|
+++| **V1** (`ext/Chat/`, the ✦ sheet, the drawer) | ![V1 at 360](screens/v1-360.png) | ![V1 at 1920](screens/v1-1920.png) |
+++| **V2** (`ext/Chat/v2/`) | ![V2 at 360](screens/v2-360.png) | ![V2 at 1920](screens/v2-1920.png) |
+++| **V3** (`ext/Chat/v3/`) | ![V3 at 360](screens/v3-360.png) | ![V3 at 1920](screens/v3-1920.png) |
+++
+++## What the numbers say
+++- No horizontal scroll: `scrollWidth` equals `clientWidth` (360 and 1920) in all three.
+++- Hugging: at 360 V3's owner pills are 91 px (`/compact`) and 60 px (`Hello`), against 259 px for the long message, which wraps at the cap; V1's are 106 and 82 against 225; at 1920 `/compact` is 104 px in V3 (the long one 499 px).
+++- Assistant bubbles have no fill (`background: rgba(0,0,0,0)`) in every view.
+++
+++## What was decided
+++- **V1's avatar is its own column.** A floated icon is left out of a bubble's intrinsic width, which squeezed a one-word reply ("Compacted.") to "Compa / cted." and let the second line wrap under the icon. A reply is now a two-column grid, icon then words.
+++- **Your 👤 icon is hidden in V1** (the right side already says who). The assistant's icon stays (fast, smart and a mastermind look different).
+++- **V2:** a sentence row is a small pill of yours; a reply anchored to it sits plain beneath it. A Prompt with refined text is one pill, as in V3. (`ChatV2.test.mjs` asserts `[data-sentence] .chat-v2-beside`, so the reply stays beside its sentence's row, in the DOM.)
+++- **The replay control** ▶/⏸ ↺10 (from the replay-bubbles task) sits under each plain reply at its left edge.
+++- **`--bubble-max`** is the one token for both sides: change it on any host to move both.
+++- **Alternative not taken:** a fixed 80% with no rem cap. On a 1920 page that is a 1500 px line, which reads badly; the cap is one value in `bubbles.css`.
+++
+++## Checks run
+++`ChatV3.test.mjs` (18), `ChatV2.test.mjs` (19), `live-guess.test.mjs` (5), `ReciteBubble.test.mjs` (37), `Recite.test.mjs` (34, with the new same-opening-words test), the Dictate browser tests, then `node core/Test/run-all.mjs --browser`.
++diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
++index cbd85a9b5..6f3c0a00d 100644
++--- a/public/framework/audio/Recite/Recite.js
+++++ b/public/framework/audio/Recite/Recite.js
++@@ -139,7 +139,7 @@ export default class Recite extends Part {
++ 		const first = this.chunks.length;
++ 		if (!continuing) this.reply_id++;
++ 		const id = this.reply_id;
++-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key });
+++		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key, msg: null });
++ 		if (this.chunks.length === first) return this;
++ 		this.retime();
++ 		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
++@@ -339,18 +339,19 @@ export default class Recite extends Part {
++ 		this.done.add(key);
++ 		const before = this.chunks.length;
++ 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
++-			this.live.text = text; this.take(text, true); this.tag_live(text); this.live = null;
+++			this.live.text = text; this.take(text, true); this.tag_live(text, id); this.live = null;
++ 			this.mark_when_done(id, before);
++ 			return;
++ 		}
++ 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
++ 		this.live = null;
++ 		this.queue(text, false, Recite.bubble_key(text));
+++		for (const c of this.chunks.slice(before)) c.msg = id ?? null;
++ 		this.mark_when_done(id, before);
++ 	}
++ 
++ 	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */
++-	tag_live(text){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []) c.key = key; }
+++	tag_live(text, id = null){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []){ c.key = key; if (id) c.msg = id; } }
++ 
++ 	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
++ 	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
++diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
++index 28a04f2ea..40d8ebe42 100644
++--- a/public/framework/audio/Recite/Recite.test.mjs
+++++ b/public/framework/audio/Recite/Recite.test.mjs
++@@ -823,3 +823,28 @@ if (Recite) test("Recite: a tap on the bubble being read pauses it; a tap on ano
++ 	Recite.clear_place(Recite.bubble_key(a)); Recite.clear_place(Recite.bubble_key(b));
++ 	return r;
++ });
+++
+++// A reply is highlighted in ITS bubble, found by the message id it was queued for (final(text, id)), never by matching text alone:
+++// an older bubble that opens with the same words (and is nearer the top, or newer in the DOM) must not be lit instead.
+++if (Recite) test("Recite.Highlight: two bubbles with the same opening words, the one queued for message m-2 is lit, not the other", async t => {
+++	const r = new Recite({ voice: fake_voice });
+++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+++	r.barge.on = false;
+++	const root = document.createElement("div");
+++	root.setAttribute("data-recite-root", "");
+++	const mk = id => { const d = document.createElement("div"); d.className = "chat-v3-reply"; d.setAttribute("data-id", id); d.textContent = "Done, the layout is in place now."; root.append(d); return d; };
+++	const first = mk("m-1"), second = mk("m-2"), third = mk("m-3");   // the same words in all three; m-3 is the NEWEST in the DOM, the one text-only search prefers
+++	document.body.appendChild(root);
+++
+++	r.final("Done, the layout is in place now.", "m-2");
+++	await new Promise(res => setTimeout(res, 20));
+++	t.eq(r.state, "playing", "the reply started");
+++	t.eq(r.chunks[0].msg, "m-2", "its chunks carry the message id they were queued for");
+++	r.highlight.tick();
+++	t.ok(Array.isArray(r.highlight.ranges) && r.highlight.ranges.length > 0, "found");
+++	t.ok(second.contains(r.highlight.ranges[0].startContainer), "the words lit are in the bubble m-2");
+++	t.ok(!third.contains(r.highlight.ranges[0].startContainer) && !first.contains(r.highlight.ranges[0].startContainer), "not in the other two bubbles with the same opening");
+++
+++	root.remove();
+++	return r;
+++});
++diff --git a/public/framework/audio/Recite/ReciteHighlight.js b/public/framework/audio/Recite/ReciteHighlight.js
++index 86f825b5b..98d6a4c69 100644
++--- a/public/framework/audio/Recite/ReciteHighlight.js
+++++ b/public/framework/audio/Recite/ReciteHighlight.js
++@@ -54,7 +54,7 @@ export default class ReciteHighlight {
++ 		const r = this.recite, c = r.chunks[r.at];
++ 		if (!c || !["playing", "paused", "heard", "loading"].includes(r.state)) return null;
++ 		const words = ReciteHighlight.words(c.text);
++-		return { text: c.text, words, word: ReciteHighlight.word_at(words, this.fraction()) };
+++		return { text: c.text, msg: c.msg ?? null, words, word: ReciteHighlight.word_at(words, this.fraction()) };
++ 	}
++ 
++ 	/** On each change, and on every frame while playing, so the word moves smoothly between the audio's own updates. */
++@@ -76,12 +76,12 @@ export default class ReciteHighlight {
++ 	draw(now){
++ 		if (!ReciteHighlight.supported()) return;
++ 		if (!now){ this.clear(); return; }
++-		const key = this.recite.at + "|" + now.text;
+++		const key = this.recite.at + "|" + now.msg + "|" + now.text;
++ 		const stale = this.ranges && !this.ranges[0]?.startContainer.isConnected;
++ 		const due = !this.ranges && performance.now() >= this.retry_at;
++ 		if (key !== this.key || stale || due){
++ 			this.key = key;
++-			this.ranges = this.find(now.words);
+++			this.ranges = this.find(now.words, now.msg);
++ 			if (!this.ranges){
++ 				this.retry_at = performance.now() + ReciteHighlight.RETRY_MS;
++ 				if (this.logged_key !== key){ this.logged_key = key; this.recite.trace("highlight: not found", { spoken: now.text.slice(0, 120) }); }
++@@ -104,12 +104,15 @@ export default class ReciteHighlight {
++ 	 *  contiguous block: raw, not-yet-rendered markdown in the DOM (a link's bracket text followed by its literal
++ 	 *  URL, before the bubble finishes rendering it) interposes extra words the spoken text never had, which broke
++ 	 *  a strict positional match outright (dropout fix, 2026-11-02). */
++-	find(words){
+++	find(words, msg = null){
++ 		if (!words.length || typeof document === "undefined") return null;
++ 		const want = words.map(w => w.toLowerCase());
+++		// A reply queued for a known message (`msg`, an m-<ms> id) is looked for in ITS bubble only, so an older bubble that opens
+++		// with the same words can never be lit for it. A bubble not drawn yet (or a surface that carries no id) falls back to the text search.
+++		const own = msg ? ReciteHighlight.bubble_of(msg) : null;
++ 		const roots = [...document.querySelectorAll(ReciteHighlight.ROOTS)].filter(el => el.offsetParent !== null || el.getClientRects().length);
++ 		const focus = this.recite.focus_el?.isConnected ? [this.recite.focus_el] : [];   // a replayed bubble is searched first, so an older reply with the same opening words is not lit instead
++-		for (const root of [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
+++		for (const root of own ? [own] : [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
++ 			const found = this.scan(root);
++ 			for (let i = found.length - 1; i >= 0; i--){
++ 				if (found[i].word !== want[0]) continue;
++@@ -125,6 +128,13 @@ export default class ReciteHighlight {
++ 		return null;
++ 	}
++ 
+++	/** The element a message is drawn in: V2/V3 mark a reply `data-id` (the message id), V1 marks each reply piece `data-re` (the line's `at`). */
+++	static bubble_of(id){
+++		if (typeof document === "undefined") return null;
+++		const q = CSS.escape(String(id));
+++		return document.querySelector(`[data-id="${q}"], [data-re="${q}"]`);
+++	}
+++
++ 	/** `want`'s words, in order, starting the search at `found[start]` (already matched to `want[0]`) — skipping any
++ 	 *  DOM words in between that are not part of the sentence (a stray URL, a `(`-wrapped link target). Bounded by
++ 	 *  `want.length` extra skips so this never drifts into matching some unrelated later block of text. */
++diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
++index 0b8103e80..5e2c75782 100644
++--- a/public/framework/audio/Recite/readme.md
+++++ b/public/framework/audio/Recite/readme.md
++@@ -31,7 +31,7 @@ In the chat it is already wired: the phone sheet (✦) shows the bar above the m
++ - **`Voice`** ([../Voice/Voice.js](../Voice/Voice.js)) is one voice, a persona: a recite-server voice id and a speed. `render(text)` returns one sentence as a WAV; `speak(text)` is the browser's own voice. `Voice.PERSONAS` lists seven.
++ - **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads. A sound above the threshold pauses at once; then Whisper checks it. No words means noise, and reading resumes; your words keep it paused. With the chat's mic on, it listens to that mic instead of opening a second one.
++ - **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold. Under it, while reading, the karaoke line: the sentence being read, its current word lit.
++-- **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds.
+++- **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds. **A reply queued for a message (`final(text, id)`) is lit in ITS bubble only** (2026-11-02): its chunks carry `msg`, and `find(words, msg)` looks in the element marked `data-id` (V2/V3 replies) or `data-re` (V1 pieces) with that id, so an older bubble that opens with the same words is never lit for it. A reply streamed before its message exists, or a surface with no such id, falls back to searching by words, newest first (test: `Recite.test.mjs`, "two bubbles with the same opening words").
++ - **`Recite.Tap`** ([ReciteTap.js](ReciteTap.js)) is the tap: one document click listener. A tap inside a reply bubble that carries `Recite.Bubble` plays or pauses that bubble (`tap_bubble`); a tap elsewhere in the chat (the same `ReciteHighlight.ROOTS` selector) toggles whatever is being read. A link, a mention chip, a button or the bar's own copy is skipped.
++ 
++ - **`Recite.Bubble`** ([ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css)) is the one small control under every assistant reply bubble, mounted by each chat view: **▶/⏸** plays or pauses that bubble, **↺10** steps back about 10 s inside it. `Recite.Bubble.mount(bubble_el, { text: () => reply_text })` is the whole API; Chat V3 mounts it in `ChatV3.reply()` (V2 inherits it), Chat V1 in `ux/Dictate/Widget.js` (`replay_ctl`). A tap on the bubble's text does the same as ▶/⏸ (`Recite.Tap`; a link, a mention chip or a button keeps its own tap). The control loads `Recite.js` on the first tap, so a chat page that never taps starts no Recite.
++diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
++index 808238006..da86b87d5 100644
++--- a/public/framework/ext/Chat/Chat.css
+++++ b/public/framework/ext/Chat/Chat.css
++@@ -305,11 +305,9 @@
++ 
++ 	/* Text-message style: your words on the right, everyone else on the left.
++ 	   A role label sits above each message (below). */
++-	/* ONE WIDTH PER SIDE (the owner, 2026-09-25): every bubble, yours and theirs, is
++-	   exactly `--chat-bubble` wide — a share of the chat column, capped in rem — so
++-	   the bubbles line up instead of sizing to their text. Re-declare the token on a
++-	   host to change both sides at once. */
++-	.chatbox-log { display: flex; flex-direction: column; --chat-bubble: min(85%, 34rem); }
+++	/* SIZE AND FILL (the owner, 2026-11-02, "follow Claude's chat UI"): see bubbles.css, the one rule set for all three views.
+++	   Your bubble hugs its text up to `--bubble-max`; the assistant's text is plain. This file keeps only what is V1's own. */
+++	.chatbox-log { display: flex; flex-direction: column; }
++ 
++ 	/* A short conversation sits at the BOTTOM of a tall log, next to the box you type
++ 	   in, the way a chat app reads — never a void between the last line and the box.
++@@ -320,18 +318,6 @@
++ 	.chatbox-reply {
++ 		position: relative;   /* the reaction chips and picker are placed against the bubble */
++ 		display: flow-root;
++-		width: var(--chat-bubble);
++-		padding: 0.3em 0.7em;
++-		border-radius: 0.9em;
++-		overflow-wrap: anywhere;
++-	}
++-	.chatbox-you {
++-		align-self: flex-end;
++-		background: color-mix(in srgb, var(--prime) 22%, transparent);
++-	}
++-	.chatbox-reply {
++-		align-self: flex-start;
++-		background: color-mix(in srgb, currentColor 10%, transparent);
++ 	}
++ 	.chatbox-update {
++ 		font-size: 0.85em;
++@@ -444,7 +430,7 @@
++ 		font-size: 0.85em;
++ 		cursor: pointer;
++ 	}
++-	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --chat-bubble: 100%; }
+++	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --bubble-max: 100%; }
++ 	.chatbox-thread-body[hidden] { display: none; }
++ 	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
++ 	/* "Replying to …" above the box, while a reply is pending. */
++diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
++index 387884073..06b7e858b 100644
++--- a/public/framework/ext/Chat/Chat.js
+++++ b/public/framework/ext/Chat/Chat.js
++@@ -5,6 +5,7 @@ import { last_finished_sentence_end, last_fast_chunk_end } from "./chunks.js";
++ import { cursor_el, smart_cursor_el } from "./cursors.js";
++ 
++ View.stylesheet(import.meta, "Chat.css");
+++View.stylesheet(import.meta, "bubbles.css");
++ View.stylesheet(import.meta, "cursors.css");
++ 
++ // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
++diff --git a/public/framework/ext/Chat/bubbles.css b/public/framework/ext/Chat/bubbles.css
++new file mode 100644
++index 000000000..52173c3ff
++--- /dev/null
+++++ b/public/framework/ext/Chat/bubbles.css
++@@ -0,0 +1,74 @@
+++@layer base, theme, site, util;
+++
+++/* THE CHAT LAYOUT, ONE RULE SET FOR ALL THREE VIEWS (the owner, 2026-11-02: "follow Claude's chat UI"; law 6).
+++   V1 draws `.chatbox-you` / `.chatbox-reply` (Chat.js, Widget.js); V2 and V3 draw `.chat-v3-you` / `.chat-v3-reply` (ChatV3.js).
+++   The point is hierarchy at a glance: YOUR words are a tinted bubble on the right that HUGS its text (one word is a small pill, and a
+++   bubble you are dictating into widens as the words arrive, then wraps at the max); the ASSISTANT's words are plain text on the page,
+++   on the left, no fill and no border. Updates and notes stay small and muted (`.chatbox-update`, `.chat-v3-loose`).
+++   Change `--bubble-max` on any host to move both sides at once. Load this file from every view (Chat.js, ChatV3.js). */
+++@layer site {
+++	.chatbox-log, .chat-v3, .ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
+++
+++	.chatbox-you,
+++	.chat-v3-you {
+++		align-self: flex-end;
+++		box-sizing: border-box;
+++		inline-size: fit-content;
+++		max-inline-size: var(--bubble-max);
+++		min-inline-size: 0;
+++		padding: 0.4em 0.85em;
+++		border-radius: 1.1em;
+++		background: color-mix(in srgb, var(--prime) 22%, transparent);
+++		overflow-wrap: anywhere;
+++	}
+++
+++	.chatbox-reply,
+++	.chat-v3-reply {
+++		align-self: flex-start;
+++		box-sizing: border-box;
+++		inline-size: auto;
+++		max-inline-size: var(--bubble-max);
+++		min-inline-size: 0;
+++		padding-block: 0.3em;
+++		padding-inline: 0;
+++		border: 0;
+++		border-radius: 0;
+++		background: none;
+++		overflow-wrap: anywhere;
+++	}
+++
+++	/* The owner's avatar sits in a pill only as clutter: the side already says who. The assistant's icon stays (fast, smart and a
+++	   mastermind look different, and the tooltip names the agent). */
+++	.chatbox-you > .chatbox-who { display: none; }
+++
+++	/* V1 reply: the avatar is a column of its own, so the words wrap beside it, never under it, and a one-word reply keeps its
+++	   width (a floated icon is left out of the bubble's intrinsic width, which squeezed "Compacted." to "Compa|cted."). */
+++	.chatbox-reply:has(> .chatbox-who) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 0.45em; align-items: start; }
+++	.chatbox-reply:has(> .chatbox-who) > :not(.chatbox-who, .chatbox-reacts, .chatbox-react-btn, .chatbox-react-picker) { grid-column: 2; }
+++	.chatbox-reply:has(> .chatbox-who) > .chatbox-who { grid-column: 1; grid-row: 1 / span 6; float: none; margin: 0.1em 0 0; }
+++
+++	/* The replay control (audio/Recite/ReciteBubble.css) sits under the plain assistant text, at its left edge, like the action row under a reply in Claude. */
+++	.chatbox-reply > .audio-recite-bubble-ctl, .chat-v3-reply > .audio-recite-bubble-ctl { justify-content: flex-start; }
+++
+++	/* A small gap, like Claude's: bubbles are told apart by side and fill, not by borders. */
+++	.chat-v3-card { display: flex; flex-direction: column; gap: 0.5rem; border: 0; padding: 0; }
+++	.chat-v3-card > .chat-v3-you { display: flex; flex-direction: column; gap: 0.3rem; }
+++	.chat-v3-you .chat-v3-head, .chat-v3-yours .chat-v3-head { flex-wrap: wrap; }
+++	.chat-v3-you .chat-v3-title.is-untitled { display: none; }   /* a muted copy of the words' own first words, right above them: noise inside a bubble */
+++
+++	/* V2 dictation: the group holds several small bubbles of yours (each `.chat-v3-you`), all on the right, each Reply under its own. */
+++	.chat-v3-yours { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+++	.chat-v3-yours :is(.chat-v3-dictation, .chat-v3-para) { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; align-self: stretch; }
+++	.chat-v3-you .chat-v3-title { font-size: 0.95rem; flex: none; max-inline-size: 100%; }
+++	.chat-v3-you .chat-v3-toggle { align-self: flex-end; }
+++	.chat-v3-draft > .chat-v3-you { border: 1px dashed color-mix(in srgb, var(--prime) 55%, transparent); }
+++	.chat-v3-reply { border-top: 0; }
+++
+++	/* A note (Servex saying something, not a person): small, muted, on the assistant's side. */
+++	.chat-v3-loose { align-self: flex-start; max-inline-size: var(--bubble-max); font-size: 0.85em; opacity: 0.7; }
+++	.chat-v3-loose .chat-v3-title { display: none; }
+++
+++	@media (max-width: 500px) {
+++		.chatbox-log, .chat-v3, .ux-dictate-widget-bubbles { --bubble-max: 80%; }
+++	}
+++}
++diff --git a/public/framework/ext/Chat/page.js b/public/framework/ext/Chat/page.js
++index 077e5e858..d08c8dbe1 100644
++--- a/public/framework/ext/Chat/page.js
+++++ b/public/framework/ext/Chat/page.js
++@@ -21,6 +21,8 @@ export default new Page({
++ 			line(9, { kind: "assistant", id: "fast" }, "I think so. The smart assistant will look.");
++ 			line(20, { kind: "assistant", id: "smart" }, "It lives in `Composer.js`; I started a task to make it larger on a phone.");
++ 			line(40, { kind: "owner" }, "great, thanks", "voice");
+++			line(70, { kind: "owner" }, "/compact", "text");
+++			line(80, { kind: "assistant", id: "fast" }, "Compacted.");
++ 			entries.push({ chat: { at: at(30), session: "demo", from: { kind: "owner" }, via: "text", text: "why that file?", re: at(20), thread: true } });
++ 			entries.push({ chat: { at: at(34), session: "demo", from: { kind: "assistant", id: "smart" }, via: "text", text: "It draws the box and the Send button.", re: at(30), thread: true } });
++ 			entries.push({ react: { at: at(21), re: at(20), emoji: "👍", from: { kind: "owner" } } });
++@@ -61,7 +63,7 @@ export default new Page({
++ 			const talk = chat({ source: () => entries });
++ 			talk.sync();
++ 			button("Add a live message 2 s later").click(() => { say("prompt", "owner", "Live, " + entries.length + ".", 2); talk.sync(); });
++-		}, "Three owner messages, one reply, and one owner message 30 s later: three bubbles. Every bubble on a side is the same width (`--chat-bubble`).");
+++		}, "Three owner messages, one reply, and one owner message 30 s later: three bubbles. Your bubbles hug their words up to 80% of the width (`--bubble-max`); replies are plain text on the left.");
++ 		p("A curated version: a `refined` line replaces a merged bubble's raw paragraphs with tidy sections. Click a section to open the raw words it came from, right there; click the bubble to open every raw piece in time order. (The line below is made up for this demo.)");
++ 
++ 		demo(() => {
++diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
++index 59cff8b74..9482da1a2 100644
++--- a/public/framework/ext/Chat/readme.md
+++++ b/public/framework/ext/Chat/readme.md
++@@ -27,8 +27,16 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
++ - **Reactions & threads**: Emoji tap-backs and nested inline thread replies · [`doc/reactions.md`](./doc/reactions.md).
++ - **A Question card moves to the end when it is answered** (2026-10-25, round 2 of the review): the card's on-screen position, a plain move with no transition, ordered by WHEN it was answered (`answer.at`), not when it was asked. V1 is already one flat list, so "the end" is simply `ux/Dictate/Widget.js`'s `show_task` dropping the row where it was just built (the end of `$bubbles`) instead of moving it back, when `chat.js`'s `draw_task` says `moved`. v2 is nested (replies/questions/tasks under their Prompt), so an answered Question SURFACES at the ROOT of the whole chat, not just the end of its own prompt's nest — live (`v2/ChatV2.js`'s `surface_answered()`, called from `apply_one()`) and a cold reload (`ChatV2Model`'s `roots()`/`children()`) place it identically, carrying `data-from` as the one hint back to its prompt (no new label system). Both views read the one shared signal, `v2/ChatV2Model.js`'s `newly_answered(model, line)` (a Question with no answer before this line — never a Task, never a repeat edit). One static switch, `ChatV2Model.RESURFACE`, turns all of this off (the old, never-moved behaviour) for every reader at once. **The data never reorders**: a card's true position in time is always `created_at` (when asked) and `answer.at` (when answered) — a log view reading that real order does not exist yet; this is only where the live card sits on screen. Node test (no browser, incl. live-vs-reload parity): `v2/resurface.test.mjs`.
++ 
+++## The layout: your words on the right, the assistant's plain on the left (2026-11-02)
+++
+++![the three views at 360 px](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/screens/v3-360.png)
+++
+++Like Claude's chat: **your words are a tinted pill on the right that hugs its text** (one word, like `/compact`, is a small pill; a dictated line widens as the words arrive, then wraps at the cap), **the assistant's words are plain text on the left**, no fill, no border. Both stop at `--bubble-max` (`min(80%, 40rem)`, 80% on a phone). One shared rule set, [`bubbles.css`](./bubbles.css), is loaded by `Chat.js` (V1) and `ChatV3.js` (V2 and V3), drawing `.chatbox-you`/`.chatbox-reply` and `.chat-v3-you`/`.chat-v3-reply` alike; the Dictate widget sets the same token. Change `--bubble-max` on a host to move both sides. A V1 reply is a two-column grid (icon, words) so a wrapped line stays beside the icon and a one-word reply keeps its width. Updates and notes stay small and muted. Walkthrough with shots of V1, V2 and V3 at 360 and 1920: [chat-layout/walkthrough.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md).
+++
++ ## Files that matter
++ 
+++- `bubbles.css`: the one layout rule set for all three views (above).
+++
++ - `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
++ - `chunks.js`: pure text splitters for the two moving cursors — `fast_chunks()` (comma/period/question/!, not yet called from production — the ✓ cursor sits at the end of the piece's own text, which is always the newest fast chunk by definition), `last_finished_sentence_end()` (sentence boundary only, walks the split sentences forward so a repeated final sentence lands on the real last one); `chunks.test.mjs` is the mock test.
++ - `cursors.js` / `cursors.css`: the ONE ✓/🧠 element maker and class set, shared by `Chat.js` (V1) and `v2/ChatV2.js`.
++diff --git a/public/framework/ext/Chat/v2/ChatV2.css b/public/framework/ext/Chat/v2/ChatV2.css
++index 9d509ca0c..9b596e110 100644
++--- a/public/framework/ext/Chat/v2/ChatV2.css
+++++ b/public/framework/ext/Chat/v2/ChatV2.css
++@@ -6,11 +6,10 @@
++ @layer site {
++ 	.chat-v2-marks { display: inline-flex; gap: .3em; align-items: baseline; flex: none; }
++ 
++-	/* A sentence row (dictation mode only, no refined text yet): the words, and any Reply anchored to it beside them —
++-	   side by side when there is room, stacked on a phone, same breakpoint idea as the old chat-v2-sentence. */
++-	.chat-v2-sentence { display: grid; grid-template-columns: minmax(0, 1fr); gap: .3em 1rem; }
++-	.chat-v2-sentence:has(.chat-v2-beside) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+++	/* A sentence row (dictation mode only, no refined text yet): the words as one small bubble of yours, and any Reply anchored to it
+++	   plain beneath it, on the assistant's side (bubbles.css). A group of rows, never one bubble: `.chat-v3-yours`. */
+++	.chat-v2-sentence { display: flex; flex-direction: column; align-items: flex-end; gap: .3em; }
++ 	.chat-v2-sentence-text { overflow-wrap: anywhere; }
++-	.chat-v2-beside { display: flex; flex-direction: column; gap: .4em; }
++-	.chat-v2-beside .chat-v3-reply { border-top: none; padding-top: 0; }
+++	.chat-v2-beside { align-self: flex-start; max-inline-size: var(--bubble-max, 80%); display: flex; flex-direction: column; gap: .4em; }
+++	.chat-v2-beside .chat-v3-reply { border-top: none; padding-block: 0; }
++ }
++diff --git a/public/framework/ext/Chat/v2/ChatV2.js b/public/framework/ext/Chat/v2/ChatV2.js
++index 2cf9ecb41..f35efd693 100644
++--- a/public/framework/ext/Chat/v2/ChatV2.js
+++++ b/public/framework/ext/Chat/v2/ChatV2.js
++@@ -40,12 +40,16 @@ export default class ChatV2 extends ChatV3 {
++ 		return task ? [...(task._tasks ?? []), ...this.nested_tasks(task)].length > 0 : false;
++ 	}
++ 
+++	// Dictation mode (no refined text): each sentence row is its own small bubble of yours, with its Reply plain beneath it (bubbles.css),
+++	// so the wrapper is a group, not one bubble. With refined text it is the one hugging bubble, as in V3.
+++	you_class(p){ return p.text ? "chat-v3-you" : "chat-v3-yours"; }
+++
++ 	// One paragraph, as sentence rows (not one joined string): a Reply with `re.to` naming this sentence is drawn right
++ 	// beside it, instead of in the trailing list after the whole card (ChatV3.trailing_replies, overridden below).
++ 	paragraph(group, p){
++ 		div.c("chat-v3-para", () => group.forEach(s => {
++ 			div.c("chat-v2-sentence", () => {
++-				div.c("chat-v2-sentence-text", p.clean[s.id] ?? s.text);
+++				div.c("chat-v2-sentence-text chat-v3-you", p.clean[s.id] ?? s.text);
++ 				const here = this.replies_of(p).filter(r => r.re?.to === s.id);
++ 				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r)));
++ 			}).attr("data-sentence", s.id);
++diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
++index 6a0ee4889..430c9aae1 100644
++--- a/public/framework/ext/Chat/v2/readme.md
+++++ b/public/framework/ext/Chat/v2/readme.md
++@@ -8,6 +8,10 @@
++ 
++ Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (V3's own fixture, plus a few `sent` lines on two of its Prompt messages so the marks have data); `?src=<url of any session.jsonl>` draws that session, live. Shot with both the marks and the live draft visible: [shots/chat-v2-marks-and-live-draft.png](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v2-subclass/shots/chat-v2-marks-and-live-draft.png).
++ 
+++## Layout (2026-11-02)
+++
+++Same shared rules as V3 ([`../bubbles.css`](../bubbles.css)). A Prompt with refined text is one hugging pill. In dictation mode (no refined text yet) each sentence row is its own small pill (`.chat-v2-sentence-text.chat-v3-you`) inside a plain `.chat-v3-yours` group, and the Reply anchored to a sentence (`.chat-v2-beside`) sits plain beneath it on the left. The old side-by-side grid is gone.
+++
++ ## Files
++ 
++ `ChatV2.js` (the class, above) · `ChatV2.css` (its own rules) · `report.js` (unchanged by this step: the page's own errors/clicks/context, posted down the real dictation path `POST /api/session/say` — see "Who writes the data") · `ChatV2.test.mjs`, `live-guess.test.mjs`, `resurface.test.mjs` (Test, below).
++diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
++index a35ab08ec..473910fa0 100644
++--- a/public/framework/ext/Chat/v3/ChatV3.js
+++++ b/public/framework/ext/Chat/v3/ChatV3.js
++@@ -18,6 +18,7 @@ import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
++ import * as Wire from "/framework/ext/Session/Session.js";
++ import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
++ View.stylesheet(import.meta, "ChatV3.css");
+++View.stylesheet(import.meta, "../bubbles.css");
++ 
++ export default class ChatV3 extends JSONL {
++ 	static SHOW = 40;          // roots drawn at first; "show earlier" adds this many more
++@@ -159,6 +160,17 @@ export default class ChatV3 extends JSONL {
++ 
++ 	prompt(p){
++ 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
+++		div.c(this.you_class(p), () => this.you(p, title, refined, open, sentences));
+++		for (const r of this.trailing_replies(p)) this.reply(r);
+++		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
+++		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+++		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+++	}
+++
+++	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
+++	// and the raw toggle. Everything the assistant says is drawn after it, outside it (Claude-style layout, the owner 2026-11-02).
+++	you_class(p){ return "chat-v3-you"; }
+++	you(p, title, refined, open, sentences){
++ 		div.c("chat-v3-head", () => {
++ 			if (title) h3.c("chat-v3-title", title);
++ 			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
++@@ -174,15 +186,11 @@ export default class ChatV3 extends JSONL {
++ 		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
++ 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
++ 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
++-		for (const r of this.trailing_replies(p)) this.reply(r);
++-		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
++-		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
++-		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
++ 	}
++ 
++ 	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
++ 	reply(r){
++-		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
+++		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
++ 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
++ 	}
++ 
++@@ -247,9 +255,10 @@ export default class ChatV3 extends JSONL {
++ 		if (!text) { this.$draft?.el.remove(); this.$draft = null; return; }
++ 		if (!this.$draft?.el.isConnected) this.$draft = div.c("chat-v3-card chat-v3-draft");
++ 		this.$draft.el.replaceChildren();
+++		const you = document.createElement("div"); you.className = "chat-v3-you";
++ 		const t = document.createElement("div"); t.className = "chat-v3-text is-moving";
++ 		t.textContent = settled; if (guess) { const g = document.createElement("span"); g.className = "chat-v3-guess"; g.textContent = (settled ? " " : "") + guess; t.append(g); }
++-		this.$draft.el.append(t);
+++		you.append(t); this.$draft.el.append(you);
++ 		this.draft_at_end();
++ 	}
++ 	draft_at_end(){ if (this.$draft?.el.isConnected || this.$draft) this.$box?.el.append(this.$draft.el); }
++diff --git a/public/framework/ext/Chat/v3/fixture/layout-session.jsonl b/public/framework/ext/Chat/v3/fixture/layout-session.jsonl
++new file mode 100644
++index 000000000..6147e2cb3
++--- /dev/null
+++++ b/public/framework/ext/Chat/v3/fixture/layout-session.jsonl
++@@ -0,0 +1,10 @@
+++{"session":{"id":"v-layout-fixture","kind":"voice","at":"2026-11-02T20:00:00.000Z"}}
+++{"sentences":{"add":{"id":"s-1793649601000","at":"2026-11-02T20:00:01.000Z","text":"/compact","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793649601000","by":"owner","at":"2026-11-02T20:00:01.000Z","sentences":["s-1793649601000"],"prompt":"p-1793649601000"}},"by":"servex","ts":"2026-11-02T20:00:01.000Z"}
+++{"messages":{"add":{"id":"m-1793649604000","type":"Reply","by":"smart","at":"2026-11-02T20:00:04.000Z","text":"Compacted. The conversation so far is summarized, and nothing was lost from the files.","re":{"to":"s-1793649601000"}}},"by":"servex","ts":"2026-11-02T20:00:04.000Z"}
+++{"sentences":{"add":{"id":"s-1793649610000","at":"2026-11-02T20:00:10.000Z","text":"Hello","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793649610000","by":"owner","at":"2026-11-02T20:00:10.000Z","sentences":["s-1793649610000"],"prompt":"p-1793649610000"}},"by":"servex","ts":"2026-11-02T20:00:10.000Z"}
+++{"messages":{"add":{"id":"m-1793649612000","type":"Reply","by":"smart","at":"2026-11-02T20:00:12.000Z","text":"Hello! What would you like to work on?","re":{"to":"s-1793649610000"}}},"by":"servex","ts":"2026-11-02T20:00:12.000Z"}
+++{"sentences":{"add":{"id":"s-1793649630000","at":"2026-11-02T20:00:30.000Z","text":"I would like the chat to look more like Claude's chat, where my messages sit on the right in a bubble that hugs the words.","via":"voice"}},"by":"servex","ts":"2026-11-02T20:00:30.000Z"}
+++{"sentences":{"add":{"id":"s-1793649630001","at":"2026-11-02T20:00:32.000Z","text":"When I dictate, the bubble should grow as the words arrive, and wrap once it reaches about eighty percent of the screen.","via":"voice"}},"by":"servex","ts":"2026-11-02T20:00:32.000Z"}
+++{"sentences":{"add":{"id":"s-1793649630002","at":"2026-11-02T20:00:34.000Z","text":"The assistant's text should just be plain text on the page, with no box around it, so I can tell us apart at a glance.","via":"voice"}},"by":"servex","ts":"2026-11-02T20:00:34.000Z"}
+++{"messages":{"add":{"type":"Prompt","id":"m-1793649630000","by":"owner","at":"2026-11-02T20:00:30.000Z","sentences":["s-1793649630000","s-1793649630001","s-1793649630002"],"prompt":"p-1793649630000"}},"by":"servex","ts":"2026-11-02T20:00:39.000Z"}
+++{"messages":{"add":{"id":"m-1793649640000","type":"Reply","by":"smart","at":"2026-11-02T20:00:40.000Z","text":"## Done\n\nYour messages are now **right-aligned bubbles** that hug their text, and mine are plain text on the left.\n\n- one word makes a small pill\n- a long message wraps at about 80% of the width\n- links like [the chat readme](/framework/ext/Chat/readme.md) still work\n\nTell me if the gap between messages should be larger.","re":{"to":"s-1793649630000"}}},"by":"servex","ts":"2026-11-02T20:00:40.000Z"}
++diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
++index 2eb33115b..fd25d0254 100644
++--- a/public/framework/ext/Chat/v3/readme.md
+++++ b/public/framework/ext/Chat/v3/readme.md
++@@ -14,6 +14,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
++ - **Every reply** ([placement.js](placement.js), `owning_prompt`): a Reply's Prompt is the one whose `sentences` holds its `re.to`; a reply with no match joins the newest Prompt before it in the list.
++ - **The reply being written:** V3 follows the session's live wire (`stream()` in `ext/Session/Session.js`, the one V1 reads) and draws the partial reply at the end of the newest card until its settled Reply message arrives.
++ - **Gray only for unsent words** (the owner, 2026-10-26): a sentence in the file is final, so it is solid at once; the words still being spoken show as a faint draft at the end (`chat-live` window event).
+++- **Layout** (2026-11-02): a Prompt's `.chat-v3-you` (title, words, "show raw") is the owner's one hugging pill on the right ([`../bubbles.css`](../bubbles.css), shared with V1 and V2); its replies, the reply being written and the task/question nest sit under it, plain on the left. `ChatV3.you()` draws the pill's insides, `you_class()` picks its class (V2 overrides it). A reply carries `data-id` = its message id, so the read-aloud highlight finds its own bubble ([audio/Recite](/framework/audio/Recite/readme.md)).
++ - **Windowed:** the newest 40 cards, with "show earlier (N)".
++ - **Live, in place:** a list `add` bubbles with `from` = the list itself (`List extends Item` now, so `get_one` can't tell them apart — `ChatV3.added_member()` resolves the actual member from the line's own `add` payload); a changed Prompt/Reply/Task redraws only the card it touched (`card_for()`).
++ - **Per-card link:** each card carries its id, so `#<id>` on the chat's url scrolls to it.
++diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
++index fcc4b1344..ee950d7db 100644
++--- a/public/framework/ext/drawer/rail.css
+++++ b/public/framework/ext/drawer/rail.css
++@@ -359,8 +359,8 @@
++ 	/* COMPACT (the owner, 2026-10-09: "make the mobile dictation widget a little more compact"): the sheet's bubbles sit
++ 	   closer — tighter bubble padding, a thinner gap between bubbles, a smaller head. Only inside the sheet; the
++ 	   desktop drawer and the Chat page keep their own spacing (ext/Chat/Chat.css). */
++-	.drawer-rail-sheet .chatbox-you,
++-	.drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.55em; border-radius: 0.8em; }
+++	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.55em; border-radius: 0.8em; }
+++	.drawer-rail-sheet .chatbox-reply { padding-block: 0.2em; }   /* the assistant's words are plain text (ext/Chat/bubbles.css): no side padding */
++ 	.drawer-rail-sheet .chatbox { margin-block: 0.1em; }
++ 	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
++ 	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
++@@ -416,7 +416,7 @@
++ 	}
++ 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { padding: 0; gap: 0; }
++ 	.drawer-rail-sheet .ux-dictate-mic-indicator:not(.compact), .drawer-rail-sheet .chatbox-compose .ux-dictate-level { display: none; }   /* the listening row: the mic is the meter */
++-	.drawer-rail-sheet .chatbox-you, .drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.5em; }
+++	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.5em; }
++ 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; }
++ }
++ @layer site {
++diff --git a/public/framework/ux/Dictate/Widget.css b/public/framework/ux/Dictate/Widget.css
++index ec046d0c0..b23bf0a23 100644
++--- a/public/framework/ux/Dictate/Widget.css
+++++ b/public/framework/ux/Dictate/Widget.css
++@@ -52,10 +52,10 @@
++ 
++ 	/* The real bubbles come from `ext/Chat/Chat.css` now (`Widget.Thread` draws every
++ 	 * sentence through `Chat.js`'s own `speak()`), so the rules below only ever fire for
++-	 * `ThreadV1`'s own bubbles and the "ask" cards. `--chat-bubble` is `Chat.css`'s own
++-	 * sizing variable (`.chatbox-you { width: var(--chat-bubble) }`), normally set by
+++	 * `ThreadV1`'s own bubbles and the "ask" cards. `--bubble-max` is `ext/Chat/bubbles.css`'s own
+++	 * sizing variable (`.chatbox-you { max-inline-size: var(--bubble-max) }`), normally set by
++ 	 * `.chatbox-log`; this widget's bubbles container isn't one, so it's repeated here. */
++-	.ux-dictate-widget-bubbles { --chat-bubble: min(85%, 34rem); }
+++	.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
++ 
++ 	/* `.card.pad` is the framework's own boxed-content look — keeps a bubble from
++ 	 * stretching the full width of the thread. Used by `Widget.ThreadV1` (`v1: true`) and
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review/report.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review/report.md
+new file mode 100644
+index 000000000..3206a4a2a
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/review/report.md
+@@ -0,0 +1,58 @@
++verdict: fix
++1. [fix] Requirement 2 ("grow live", no jump when the final text replaces the guess) has no proof: the walkthrough and screens show only finished messages, and no test or shot shows a pill widening while words arrive.
++2. [fix] V2 at 1920 draws the reply "Hello! What would you like to work on?" indented about 200px right of every other reply (icon at x=523 vs 321) — layout (alignment), screens/v2-1920.png, band 3. V3 has no such indent.
++3. [fix] shots/ is empty and its layout.json is missing (session.jsonl logged widths 400/1200/1920/3440, `bands: []`), so nothing is measured; the review judged the builder's screens/ instead. The walkthrough also says the shots came from 127.0.0.1:62509, not monorepo.lew42.com as asked (req 5).
++4. [fix] `ux/Dictate/readme.md` is stale: `Widget.css` changed and now sets `--bubble-max` for the Dictate bubbles, but the readme never mentions `ext/Chat/bubbles.css` or the shared token.
++5. [note] The assistant's text wraps well short of the 80% cap: at 1920 V2/V3 replies wrap at about 400-500px while the owner pill reaches 500px+ (screens/v2-1920.png, V3 "Compacted..." wraps at ~800px of 940). The two sides read as different max widths.
++6. [note] V2 shows a faded, right-aligned preview ("I would like the chat to look more...") directly above the long pill, a second copy of the same words (screens/v2-360.png, v2-1920.png).
++7. [note] No chat-layout/readme.md, and `past-work.md` and `screens/` are not linked from the walkthrough or the session record. A fresh agent can continue from `requirements.md` + `walkthrough.md` + the diff, but not from an index.
++
++## Requirements
++- 1 "owner's messages are bubbles, right-aligned, hugging; one word is a small pill" — yes — screens/v3-360.png: `/compact` 91px vs the long message 259px
++- 2 "a bubble grows while the owner dictates; no jump when the final text replaces the guess" — no — no shot or test of growth (finding 1)
++- 3 "the assistant's text has no visible bubble, left-aligned, about 80% at most" — yes — no fill in any view; but see finding 5
++- 4 "hierarchy at a glance" — yes — screens/v3-1920.png, the tinted pill right vs plain text left
++- 5 "bubbles come from the list's ids, a growing Prompt updates its own bubble" — yes — diff: `data-id` on replies, V3 `card_for()` unchanged
++- 6 Do 1 "one shared rule set" — yes — one `ext/Chat/bubbles.css`, loaded by Chat.js and ChatV3.js
++- 7 Do 3 "phone first, 360x740, no horizontal scroll, 1920 too" — yes — screens/v1-360.png, v3-360.png; walkthrough scrollWidth = clientWidth
++- 8 Do 4 "keep marks, read-aloud highlight, links, tap to pause, dim guess, order" — yes — ✓ and 👍 marks in v1-360.png, link in v3-1920.png; Recite tests added. Browser run not re-run here.
++- 9 Do 5 "shots of V1, V2, V3 at 360 and 1920 through monorepo.lew42.com with the phone UA" — no — six shots exist, but from 127.0.0.1 (finding 3)
++- 10 Do 6 "document in ext/Chat/readme.md with a picture" — yes — readme.md line 30, picture v3-360.png
++- 11 Class with live instances page — n/a, no new class
++Widths given: 0 (shots/ empty).
++
++## Page structure
++- the Chat pages keep their title and one purpose — yes — screens/v3-1920.png, "Chat v3" at the top
++
++## Navigation
++- techniques used: a left sidebar, a bottom rail at 360, a right drawer at 1920 (unchanged by this diff)
++- unchanged — n/a
++
++## Layout
++- owner and assistant told apart by side and fill — yes — screens/v3-1920.png
++- V2 replies share one left edge — no — screens/v2-1920.png, "Hello!" reply indented (finding 2)
++
++## Sizing
++- one-word pill hugs its text — yes — layout.json not measured; the walkthrough's pixel widths (91 vs 259 at 360) show it
++- the cap applies to both sides — no — finding 5
++
++## Wrapping
++- no word breaks mid-word — yes — V1 "Compacted." keeps one line (screens/v1-360.png, last band)
++- wrapped lines in V2 at 360 are narrow — no — screens/v2-360.png, "Compacted. The conversation so far is..." wraps at about 5 words a line in the upper band; narrower than V3's
++- wraps (layout.json) — not measured
++
++## Spacing and padding
++- pill padding even — yes — screens/v3-360.png
++- gaps between turns clear — yes — screens/v3-1920.png
++
++## Colour and contrast
++- pill tint against the grey page — yes — screens/v3-360.png, dark text on pink, readable
++- the muted guess text — yes — dim by design (finding 6)
++
++## Flow
++- the eye can follow the turns — yes — screens/v3-360.png
++- the guess above the pill repeats the pill's text — no — finding 6
++
++## Words
++- the walkthrough and readme text is plain — yes — walkthrough.md, readme.md line 30
++- the readme section is clear for a newcomer — yes — it names the cap, the token and the two-column grid
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/session.jsonl
+index ca110eb14..19eca244b 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/session.jsonl
+@@ -1 +1,5 @@
+ {"assign":{"session_id":"1a82a84e-ef4a-4e07-93dc-14b63d609f8f","agent":"mastermind-chat-layout","role":"mastermind","card":"Chat: Claude-style layout (owner pills right, assistant plain left)","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/requirements.md","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","home":"/framework/ext/Chat/","requested_at":"2026-11-02T13:59:39-06:00","now":"starting"}}
++{"shots":{"at":"2026-11-02T14:24:56-06:00","pages":["/framework/ext/Chat/"],"dir":"shots/","sheet":"shots/127-0-0-1-62509-framework-ext-Chat/sheet.png","sheets":["shots/127-0-0-1-62509-framework-ext-Chat/sheet.png"],"bands":[],"widths":[400,1200,1920,3440]}}
++{"review":{"at":"2026-11-02T14:25:50-06:00","size":"light","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"Requirement 2 (\"grow live\", no jump when the final text replaces the guess) has no proof: the walkthrough and screens show only finished messages, and no test or shot shows a pill widening while words arrive."},{"n":2,"kind":"fix","text":"V2 at 1920 draws the reply \"Hello! What would you like to work on?\" indented about 200px right of every other reply (icon at x=523 vs 321) — layout (alignment), screens/v2-1920.png, band 3. V3 has no such indent."},{"n":3,"kind":"fix","text":"shots/ is empty and its layout.json is missing (session.jsonl logged widths 400/1200/1920/3440, `bands: []`), so nothing is measured; the review judged the builder's screens/ instead. The walkthrough also says the shots came from 127.0.0.1:62509, not monorepo.lew42.com as asked (req 5)."},{"n":4,"kind":"fix","text":"`ux/Dictate/readme.md` is stale: `Widget.css` changed and now sets `--bubble-max` for the Dictate bubbles, but the readme never mentions `ext/Chat/bubbles.css` or the shared token."},{"n":5,"kind":"note","text":"The assistant's text wraps well short of the 80% cap: at 1920 V2/V3 replies wrap at about 400-500px while the owner pill reaches 500px+ (screens/v2-1920.png, V3 \"Compacted...\" wraps at ~800px of 940). The two sides read as different max widths."},{"n":6,"kind":"note","text":"V2 shows a faded, right-aligned preview (\"I would like the chat to look more...\") directly above the long pill, a second copy of the same words (screens/v2-360.png, v2-1920.png)."},{"n":7,"kind":"note","text":"No chat-layout/readme.md, and `past-work.md` and `screens/` are not linked from the walkthrough or the session record. A fresh agent can continue from `requirements.md` + `walkthrough.md` + the diff, but not from an index."}],"branch":"worktree/qf-1","head":"aa2582cbcdc74611b25730c5cd03b56ef2bd8103","model":"claude-sonnet-5-5","cost":0.6230983999999999,"file":"review/report.md","report":"review/report.md","shots":"shots/"}}
++{"log":{"at":"2026-11-02T14:32:40-06:00","msg":"agent-mastermind-chat-layout: answered reviewer-chat-layout (verdict fix). 1 growth proof: ext/Chat/v3/bubble-grow.mjs (14 checks, in browser-scripts.mjs) - V3 41>145>259 at 360, 47>166>499 at 1920, guess->settled keeps width. 2 V2 reply indent: fixed (.chat-v2-sentence align-self:stretch), all three replies now x=318 at 1920. 3 shots/: review.mjs OutPath refuses an output dir inside a worktree (outside the repo root); screens/ taken from the worktree dev server 127.0.0.1:62509 because the branch is not on monorepo.lew42.com until merged (and that host 401s headless); said in walkthrough. 4 ux/Dictate/readme.md: bubble-layout paragraph added. Notes: 5 V2 reply cap was 80% of 80%, now one --bubble-max (499/259 like V3); 6 duplicate muted preview above V2 pill hidden; 7 walkthrough now links requirements, past-work, review, screens."}}
++{"log":{"at":"2026-11-02T14:32:40-06:00","msg":"agent-mastermind-chat-layout: also answered clarity-chat-layout (acknowledged its requirements.md edit, nothing further). Also done for vscode-mastermind: Recite.Highlight finds its bubble by message id (chunk.msg, [data-id]/[data-re]); test in audio/Recite/Recite.test.mjs (two bubbles with the same opening words). run-all --browser: the three Dictate scripts (debug-tab, dictation-bar, freeze) timed out only while a review ran at the same time and pass alone."}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md
+new file mode 100644
+index 000000000..9e52a0095
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md
+@@ -0,0 +1,37 @@
++# Chat layout, the walkthrough (2026-11-02)
++
++Your words are a tinted pill on the right that hugs the text; the assistant's words are plain text on the left. Both stop at 80% of the width (a `min(80%, 40rem)` cap on a desktop, so a line stays readable at 1920). One rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/bubbles.css), draws all three views.
++
++Shot with the headless browser at 360×740 (phone user agent `Android 10; K`) and 1920, from the worktree's own dev server (`127.0.0.1:62509`), because this branch is not on `monorepo.lew42.com` until it merges (and that host answers 401 to a headless browser without the site key). Demo data: [`layout-session.jsonl`](/framework/ext/Chat/v3/fixture/layout-session.jsonl) (a one-word `/compact`, a `Hello`, a long wrapped message, replies with markdown). The Chat V1 page's own demo has `/compact` too.
++
++| View | Phone, 360×740 | Desktop, 1920 |
++|---|---|---|
++| **V1** (`ext/Chat/`, the ✦ sheet, the drawer) | ![V1 at 360](screens/v1-360.png) | ![V1 at 1920](screens/v1-1920.png) |
++| **V2** (`ext/Chat/v2/`) | ![V2 at 360](screens/v2-360.png) | ![V2 at 1920](screens/v2-1920.png) |
++| **V3** (`ext/Chat/v3/`) | ![V3 at 360](screens/v3-360.png) | ![V3 at 1920](screens/v3-1920.png) |
++
++## What the numbers say
++- No horizontal scroll: `scrollWidth` equals `clientWidth` (360 and 1920) in all three.
++- Hugging: at 360 V3's owner pills are 91 px (`/compact`) and 60 px (`Hello`), against 259 px for the long message, which wraps at the cap; V1's are 106 and 82 against 225; at 1920 `/compact` is 104 px in V3 (the long one 499 px).
++- Assistant bubbles have no fill (`background: rgba(0,0,0,0)`) in every view.
++
++## It grows while you dictate
++[`ext/Chat/v3/bubble-grow.mjs`](/framework/ext/Chat/v3/bubble-grow.mjs) fires the same `chat-live` event a mic sends, with more words each step. V3's draft bubble goes 41 → 145 → 259 → 259 px at 360 and 47 → 166 → 499 → 499 px at 1920 (it widens, then stops at the cap and wraps); V1's goes 35 → 129 → 211 → 211 and 40 → 148 → 466 → 640. Moving the same words from guess to settled keeps the width (259 → 259), so there is no jump. It runs in `node core/Test/run-all.mjs --browser` (14 checks).
++
++## Fixed after the review
++- V2's reply no longer starts 200 px to the right of the others at 1920: a sentence row now stretches to the column (`.chat-v2-sentence { align-self: stretch }`), and its reply is capped by the same `--bubble-max` as V3's (499 px at 1920, 259 px at 360).
++- V2 no longer shows the muted first words above a dictated pill (a second copy of the same words): `.chat-v3-yours` hides it, as `.chat-v3-you` does.
++
++## What was decided
++- **V1's avatar is its own column.** A floated icon is left out of a bubble's intrinsic width, which squeezed a one-word reply ("Compacted.") to "Compa / cted." and let the second line wrap under the icon. A reply is now a two-column grid, icon then words.
++- **Your 👤 icon is hidden in V1** (the right side already says who). The assistant's icon stays (fast, smart and a mastermind look different).
++- **V2:** a sentence row is a small pill of yours; a reply anchored to it sits plain beneath it. A Prompt with refined text is one pill, as in V3. (`ChatV2.test.mjs` asserts `[data-sentence] .chat-v2-beside`, so the reply stays beside its sentence's row, in the DOM.)
++- **The replay control** ▶/⏸ ↺10 (from the replay-bubbles task) sits under each plain reply at its left edge.
++- **`--bubble-max`** is the one token for both sides: change it on any host to move both.
++- **Alternative not taken:** a fixed 80% with no rem cap. On a 1920 page that is a 1500 px line, which reads badly; the cap is one value in `bubbles.css`.
++
++## Checks run
++`ChatV3.test.mjs` (18), `ChatV2.test.mjs` (19), `live-guess.test.mjs` (5), `ReciteBubble.test.mjs` (37), `Recite.test.mjs` (34, with the new same-opening-words test), the Dictate browser tests, then `node core/Test/run-all.mjs --browser`.
++
++## Files
++[requirements](requirements.md) · [past-work](past-work.md) · [review](review/report.md) · shots in [screens/](screens/)
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index cbd85a9b5..6f3c0a00d 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -139,7 +139,7 @@ export default class Recite extends Part {
+ 		const first = this.chunks.length;
+ 		if (!continuing) this.reply_id++;
+ 		const id = this.reply_id;
+-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key });
++		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key, msg: null });
+ 		if (this.chunks.length === first) return this;
+ 		this.retime();
+ 		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
+@@ -339,18 +339,19 @@ export default class Recite extends Part {
+ 		this.done.add(key);
+ 		const before = this.chunks.length;
+ 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
+-			this.live.text = text; this.take(text, true); this.tag_live(text); this.live = null;
++			this.live.text = text; this.take(text, true); this.tag_live(text, id); this.live = null;
+ 			this.mark_when_done(id, before);
+ 			return;
+ 		}
+ 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
+ 		this.live = null;
+ 		this.queue(text, false, Recite.bubble_key(text));
++		for (const c of this.chunks.slice(before)) c.msg = id ?? null;
+ 		this.mark_when_done(id, before);
+ 	}
+ 
+ 	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */
+-	tag_live(text){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []) c.key = key; }
++	tag_live(text, id = null){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []){ c.key = key; if (id) c.msg = id; } }
+ 
+ 	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
+ 	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
+diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
+index 28a04f2ea..40d8ebe42 100644
+--- a/public/framework/audio/Recite/Recite.test.mjs
++++ b/public/framework/audio/Recite/Recite.test.mjs
+@@ -823,3 +823,28 @@ if (Recite) test("Recite: a tap on the bubble being read pauses it; a tap on ano
+ 	Recite.clear_place(Recite.bubble_key(a)); Recite.clear_place(Recite.bubble_key(b));
+ 	return r;
+ });
++
++// A reply is highlighted in ITS bubble, found by the message id it was queued for (final(text, id)), never by matching text alone:
++// an older bubble that opens with the same words (and is nearer the top, or newer in the DOM) must not be lit instead.
++if (Recite) test("Recite.Highlight: two bubbles with the same opening words, the one queued for message m-2 is lit, not the other", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++	const root = document.createElement("div");
++	root.setAttribute("data-recite-root", "");
++	const mk = id => { const d = document.createElement("div"); d.className = "chat-v3-reply"; d.setAttribute("data-id", id); d.textContent = "Done, the layout is in place now."; root.append(d); return d; };
++	const first = mk("m-1"), second = mk("m-2"), third = mk("m-3");   // the same words in all three; m-3 is the NEWEST in the DOM, the one text-only search prefers
++	document.body.appendChild(root);
++
++	r.final("Done, the layout is in place now.", "m-2");
++	await new Promise(res => setTimeout(res, 20));
++	t.eq(r.state, "playing", "the reply started");
++	t.eq(r.chunks[0].msg, "m-2", "its chunks carry the message id they were queued for");
++	r.highlight.tick();
++	t.ok(Array.isArray(r.highlight.ranges) && r.highlight.ranges.length > 0, "found");
++	t.ok(second.contains(r.highlight.ranges[0].startContainer), "the words lit are in the bubble m-2");
++	t.ok(!third.contains(r.highlight.ranges[0].startContainer) && !first.contains(r.highlight.ranges[0].startContainer), "not in the other two bubbles with the same opening");
++
++	root.remove();
++	return r;
++});
+diff --git a/public/framework/audio/Recite/ReciteHighlight.js b/public/framework/audio/Recite/ReciteHighlight.js
+index 86f825b5b..98d6a4c69 100644
+--- a/public/framework/audio/Recite/ReciteHighlight.js
++++ b/public/framework/audio/Recite/ReciteHighlight.js
+@@ -54,7 +54,7 @@ export default class ReciteHighlight {
+ 		const r = this.recite, c = r.chunks[r.at];
+ 		if (!c || !["playing", "paused", "heard", "loading"].includes(r.state)) return null;
+ 		const words = ReciteHighlight.words(c.text);
+-		return { text: c.text, words, word: ReciteHighlight.word_at(words, this.fraction()) };
++		return { text: c.text, msg: c.msg ?? null, words, word: ReciteHighlight.word_at(words, this.fraction()) };
+ 	}
+ 
+ 	/** On each change, and on every frame while playing, so the word moves smoothly between the audio's own updates. */
+@@ -76,12 +76,12 @@ export default class ReciteHighlight {
+ 	draw(now){
+ 		if (!ReciteHighlight.supported()) return;
+ 		if (!now){ this.clear(); return; }
+-		const key = this.recite.at + "|" + now.text;
++		const key = this.recite.at + "|" + now.msg + "|" + now.text;
+ 		const stale = this.ranges && !this.ranges[0]?.startContainer.isConnected;
+ 		const due = !this.ranges && performance.now() >= this.retry_at;
+ 		if (key !== this.key || stale || due){
+ 			this.key = key;
+-			this.ranges = this.find(now.words);
++			this.ranges = this.find(now.words, now.msg);
+ 			if (!this.ranges){
+ 				this.retry_at = performance.now() + ReciteHighlight.RETRY_MS;
+ 				if (this.logged_key !== key){ this.logged_key = key; this.recite.trace("highlight: not found", { spoken: now.text.slice(0, 120) }); }
+@@ -104,12 +104,15 @@ export default class ReciteHighlight {
+ 	 *  contiguous block: raw, not-yet-rendered markdown in the DOM (a link's bracket text followed by its literal
+ 	 *  URL, before the bubble finishes rendering it) interposes extra words the spoken text never had, which broke
+ 	 *  a strict positional match outright (dropout fix, 2026-11-02). */
+-	find(words){
++	find(words, msg = null){
+ 		if (!words.length || typeof document === "undefined") return null;
+ 		const want = words.map(w => w.toLowerCase());
++		// A reply queued for a known message (`msg`, an m-<ms> id) is looked for in ITS bubble only, so an older bubble that opens
++		// with the same words can never be lit for it. A bubble not drawn yet (or a surface that carries no id) falls back to the text search.
++		const own = msg ? ReciteHighlight.bubble_of(msg) : null;
+ 		const roots = [...document.querySelectorAll(ReciteHighlight.ROOTS)].filter(el => el.offsetParent !== null || el.getClientRects().length);
+ 		const focus = this.recite.focus_el?.isConnected ? [this.recite.focus_el] : [];   // a replayed bubble is searched first, so an older reply with the same opening words is not lit instead
+-		for (const root of [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
++		for (const root of own ? [own] : [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
+ 			const found = this.scan(root);
+ 			for (let i = found.length - 1; i >= 0; i--){
+ 				if (found[i].word !== want[0]) continue;
+@@ -125,6 +128,13 @@ export default class ReciteHighlight {
+ 		return null;
+ 	}
+ 
++	/** The element a message is drawn in: V2/V3 mark a reply `data-id` (the message id), V1 marks each reply piece `data-re` (the line's `at`). */
++	static bubble_of(id){
++		if (typeof document === "undefined") return null;
++		const q = CSS.escape(String(id));
++		return document.querySelector(`[data-id="${q}"], [data-re="${q}"]`);
++	}
++
+ 	/** `want`'s words, in order, starting the search at `found[start]` (already matched to `want[0]`) — skipping any
+ 	 *  DOM words in between that are not part of the sentence (a stray URL, a `(`-wrapped link target). Bounded by
+ 	 *  `want.length` extra skips so this never drifts into matching some unrelated later block of text. */
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+index 0b8103e80..5e2c75782 100644
+--- a/public/framework/audio/Recite/readme.md
++++ b/public/framework/audio/Recite/readme.md
+@@ -31,7 +31,7 @@ In the chat it is already wired: the phone sheet (✦) shows the bar above the m
+ - **`Voice`** ([../Voice/Voice.js](../Voice/Voice.js)) is one voice, a persona: a recite-server voice id and a speed. `render(text)` returns one sentence as a WAV; `speak(text)` is the browser's own voice. `Voice.PERSONAS` lists seven.
+ - **`Recite.BargeIn`** ([BargeIn.js](BargeIn.js)) listens while Recite reads. A sound above the threshold pauses at once; then Whisper checks it. No words means noise, and reading resumes; your words keep it paused. With the chat's mic on, it listens to that mic instead of opening a second one.
+ - **`Recite.Bar`** ([ReciteBar.js](ReciteBar.js)) is the control line: read new replies (on/off), play/pause, back 10 s, restart, the progress line, the voice, and the ear (barge-in on/off) with its threshold. Under it, while reading, the karaoke line: the sentence being read, its current word lit.
+-- **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds.
++- **`Recite.Highlight`** ([ReciteHighlight.js](ReciteHighlight.js)) is the karaoke playhead in the chat itself: it finds the sentence being read in the bubbles (V1, V2, V3, or anything marked `data-recite-root`) and lights the sentence and the current word with the CSS Highlight API, changing no DOM. Kokoro gives no word timings, so the word is placed by its share of the sentence's seconds. **A reply queued for a message (`final(text, id)`) is lit in ITS bubble only** (2026-11-02): its chunks carry `msg`, and `find(words, msg)` looks in the element marked `data-id` (V2/V3 replies) or `data-re` (V1 pieces) with that id, so an older bubble that opens with the same words is never lit for it. A reply streamed before its message exists, or a surface with no such id, falls back to searching by words, newest first (test: `Recite.test.mjs`, "two bubbles with the same opening words").
+ - **`Recite.Tap`** ([ReciteTap.js](ReciteTap.js)) is the tap: one document click listener. A tap inside a reply bubble that carries `Recite.Bubble` plays or pauses that bubble (`tap_bubble`); a tap elsewhere in the chat (the same `ReciteHighlight.ROOTS` selector) toggles whatever is being read. A link, a mention chip, a button or the bar's own copy is skipped.
+ 
+ - **`Recite.Bubble`** ([ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css)) is the one small control under every assistant reply bubble, mounted by each chat view: **▶/⏸** plays or pauses that bubble, **↺10** steps back about 10 s inside it. `Recite.Bubble.mount(bubble_el, { text: () => reply_text })` is the whole API; Chat V3 mounts it in `ChatV3.reply()` (V2 inherits it), Chat V1 in `ux/Dictate/Widget.js` (`replay_ctl`). A tap on the bubble's text does the same as ▶/⏸ (`Recite.Tap`; a link, a mention chip or a button keeps its own tap). The control loads `Recite.js` on the first tap, so a chat page that never taps starts no Recite.
+diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
+index daaa22223..4012da8a2 100644
+--- a/public/framework/core/Test/browser-scripts.mjs
++++ b/public/framework/core/Test/browser-scripts.mjs
+@@ -5,6 +5,7 @@
+ // ms: its own time limit (default 120000).
+ export const SCRIPTS = [
+ 	{"file":"public/framework/audio/Recite/ReciteBubble.test.mjs","args":["{site}","{shots}"],"status":"pass"},
++	{"file":"public/framework/ext/Chat/v3/bubble-grow.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/active-session.mjs","args":["{site}","{repo}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/chat-gray.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/chat-sent.mjs","args":["{site}","{shots}"],"status":"pass"},
+diff --git a/public/framework/ext/Chat/Chat.css b/public/framework/ext/Chat/Chat.css
+index 808238006..da86b87d5 100644
+--- a/public/framework/ext/Chat/Chat.css
++++ b/public/framework/ext/Chat/Chat.css
+@@ -305,11 +305,9 @@
+ 
+ 	/* Text-message style: your words on the right, everyone else on the left.
+ 	   A role label sits above each message (below). */
+-	/* ONE WIDTH PER SIDE (the owner, 2026-09-25): every bubble, yours and theirs, is
+-	   exactly `--chat-bubble` wide — a share of the chat column, capped in rem — so
+-	   the bubbles line up instead of sizing to their text. Re-declare the token on a
+-	   host to change both sides at once. */
+-	.chatbox-log { display: flex; flex-direction: column; --chat-bubble: min(85%, 34rem); }
++	/* SIZE AND FILL (the owner, 2026-11-02, "follow Claude's chat UI"): see bubbles.css, the one rule set for all three views.
++	   Your bubble hugs its text up to `--bubble-max`; the assistant's text is plain. This file keeps only what is V1's own. */
++	.chatbox-log { display: flex; flex-direction: column; }
+ 
+ 	/* A short conversation sits at the BOTTOM of a tall log, next to the box you type
+ 	   in, the way a chat app reads — never a void between the last line and the box.
+@@ -320,18 +318,6 @@
+ 	.chatbox-reply {
+ 		position: relative;   /* the reaction chips and picker are placed against the bubble */
+ 		display: flow-root;
+-		width: var(--chat-bubble);
+-		padding: 0.3em 0.7em;
+-		border-radius: 0.9em;
+-		overflow-wrap: anywhere;
+-	}
+-	.chatbox-you {
+-		align-self: flex-end;
+-		background: color-mix(in srgb, var(--prime) 22%, transparent);
+-	}
+-	.chatbox-reply {
+-		align-self: flex-start;
+-		background: color-mix(in srgb, currentColor 10%, transparent);
+ 	}
+ 	.chatbox-update {
+ 		font-size: 0.85em;
+@@ -444,7 +430,7 @@
+ 		font-size: 0.85em;
+ 		cursor: pointer;
+ 	}
+-	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --chat-bubble: 100%; }
++	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --bubble-max: 100%; }
+ 	.chatbox-thread-body[hidden] { display: none; }
+ 	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
+ 	/* "Replying to …" above the box, while a reply is pending. */
+diff --git a/public/framework/ext/Chat/Chat.js b/public/framework/ext/Chat/Chat.js
+index 387884073..06b7e858b 100644
+--- a/public/framework/ext/Chat/Chat.js
++++ b/public/framework/ext/Chat/Chat.js
+@@ -5,6 +5,7 @@ import { last_finished_sentence_end, last_fast_chunk_end } from "./chunks.js";
+ import { cursor_el, smart_cursor_el } from "./cursors.js";
+ 
+ View.stylesheet(import.meta, "Chat.css");
++View.stylesheet(import.meta, "bubbles.css");
+ View.stylesheet(import.meta, "cursors.css");
+ 
+ // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log
+diff --git a/public/framework/ext/Chat/bubbles.css b/public/framework/ext/Chat/bubbles.css
+new file mode 100644
+index 000000000..1dd4dfb00
+--- /dev/null
++++ b/public/framework/ext/Chat/bubbles.css
+@@ -0,0 +1,74 @@
++@layer base, theme, site, util;
++
++/* THE CHAT LAYOUT, ONE RULE SET FOR ALL THREE VIEWS (the owner, 2026-11-02: "follow Claude's chat UI"; law 6).
++   V1 draws `.chatbox-you` / `.chatbox-reply` (Chat.js, Widget.js); V2 and V3 draw `.chat-v3-you` / `.chat-v3-reply` (ChatV3.js).
++   The point is hierarchy at a glance: YOUR words are a tinted bubble on the right that HUGS its text (one word is a small pill, and a
++   bubble you are dictating into widens as the words arrive, then wraps at the max); the ASSISTANT's words are plain text on the page,
++   on the left, no fill and no border. Updates and notes stay small and muted (`.chatbox-update`, `.chat-v3-loose`).
++   Change `--bubble-max` on any host to move both sides at once. Load this file from every view (Chat.js, ChatV3.js). */
++@layer site {
++	.chatbox-log, .chat-v3, .ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
++
++	.chatbox-you,
++	.chat-v3-you {
++		align-self: flex-end;
++		box-sizing: border-box;
++		inline-size: fit-content;
++		max-inline-size: var(--bubble-max);
++		min-inline-size: 0;
++		padding: 0.4em 0.85em;
++		border-radius: 1.1em;
++		background: color-mix(in srgb, var(--prime) 22%, transparent);
++		overflow-wrap: anywhere;
++	}
++
++	.chatbox-reply,
++	.chat-v3-reply {
++		align-self: flex-start;
++		box-sizing: border-box;
++		inline-size: auto;
++		max-inline-size: var(--bubble-max);
++		min-inline-size: 0;
++		padding-block: 0.3em;
++		padding-inline: 0;
++		border: 0;
++		border-radius: 0;
++		background: none;
++		overflow-wrap: anywhere;
++	}
++
++	/* The owner's avatar sits in a pill only as clutter: the side already says who. The assistant's icon stays (fast, smart and a
++	   mastermind look different, and the tooltip names the agent). */
++	.chatbox-you > .chatbox-who { display: none; }
++
++	/* V1 reply: the avatar is a column of its own, so the words wrap beside it, never under it, and a one-word reply keeps its
++	   width (a floated icon is left out of the bubble's intrinsic width, which squeezed "Compacted." to "Compa|cted."). */
++	.chatbox-reply:has(> .chatbox-who) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 0.45em; align-items: start; }
++	.chatbox-reply:has(> .chatbox-who) > :not(.chatbox-who, .chatbox-reacts, .chatbox-react-btn, .chatbox-react-picker) { grid-column: 2; }
++	.chatbox-reply:has(> .chatbox-who) > .chatbox-who { grid-column: 1; grid-row: 1 / span 6; float: none; margin: 0.1em 0 0; }
++
++	/* The replay control (audio/Recite/ReciteBubble.css) sits under the plain assistant text, at its left edge, like the action row under a reply in Claude. */
++	.chatbox-reply > .audio-recite-bubble-ctl, .chat-v3-reply > .audio-recite-bubble-ctl { justify-content: flex-start; }
++
++	/* A small gap, like Claude's: bubbles are told apart by side and fill, not by borders. */
++	.chat-v3-card { display: flex; flex-direction: column; gap: 0.5rem; border: 0; padding: 0; }
++	.chat-v3-card > .chat-v3-you { display: flex; flex-direction: column; gap: 0.3rem; }
++	.chat-v3-you .chat-v3-head, .chat-v3-yours .chat-v3-head { flex-wrap: wrap; }
++	.chat-v3-you .chat-v3-title.is-untitled, .chat-v3-yours .chat-v3-title.is-untitled { display: none; }   /* a muted copy of the words' own first words, right above them: noise inside a bubble */
++
++	/* V2 dictation: the group holds several small bubbles of yours (each `.chat-v3-you`), all on the right, each Reply under its own. */
++	.chat-v3-yours { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
++	.chat-v3-yours :is(.chat-v3-dictation, .chat-v3-para) { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; align-self: stretch; }
++	.chat-v3-you .chat-v3-title { font-size: 0.95rem; flex: none; max-inline-size: 100%; }
++	.chat-v3-you .chat-v3-toggle { align-self: flex-end; }
++	.chat-v3-draft > .chat-v3-you { border: 1px dashed color-mix(in srgb, var(--prime) 55%, transparent); }
++	.chat-v3-reply { border-top: 0; }
++
++	/* A note (Servex saying something, not a person): small, muted, on the assistant's side. */
++	.chat-v3-loose { align-self: flex-start; max-inline-size: var(--bubble-max); font-size: 0.85em; opacity: 0.7; }
++	.chat-v3-loose .chat-v3-title { display: none; }
++
++	@media (max-width: 500px) {
++		.chatbox-log, .chat-v3, .ux-dictate-widget-bubbles { --bubble-max: 80%; }
++	}
++}
+diff --git a/public/framework/ext/Chat/page.js b/public/framework/ext/Chat/page.js
+index 077e5e858..d08c8dbe1 100644
+--- a/public/framework/ext/Chat/page.js
++++ b/public/framework/ext/Chat/page.js
+@@ -21,6 +21,8 @@ export default new Page({
+ 			line(9, { kind: "assistant", id: "fast" }, "I think so. The smart assistant will look.");
+ 			line(20, { kind: "assistant", id: "smart" }, "It lives in `Composer.js`; I started a task to make it larger on a phone.");
+ 			line(40, { kind: "owner" }, "great, thanks", "voice");
++			line(70, { kind: "owner" }, "/compact", "text");
++			line(80, { kind: "assistant", id: "fast" }, "Compacted.");
+ 			entries.push({ chat: { at: at(30), session: "demo", from: { kind: "owner" }, via: "text", text: "why that file?", re: at(20), thread: true } });
+ 			entries.push({ chat: { at: at(34), session: "demo", from: { kind: "assistant", id: "smart" }, via: "text", text: "It draws the box and the Send button.", re: at(30), thread: true } });
+ 			entries.push({ react: { at: at(21), re: at(20), emoji: "👍", from: { kind: "owner" } } });
+@@ -61,7 +63,7 @@ export default new Page({
+ 			const talk = chat({ source: () => entries });
+ 			talk.sync();
+ 			button("Add a live message 2 s later").click(() => { say("prompt", "owner", "Live, " + entries.length + ".", 2); talk.sync(); });
+-		}, "Three owner messages, one reply, and one owner message 30 s later: three bubbles. Every bubble on a side is the same width (`--chat-bubble`).");
++		}, "Three owner messages, one reply, and one owner message 30 s later: three bubbles. Your bubbles hug their words up to 80% of the width (`--bubble-max`); replies are plain text on the left.");
+ 		p("A curated version: a `refined` line replaces a merged bubble's raw paragraphs with tidy sections. Click a section to open the raw words it came from, right there; click the bubble to open every raw piece in time order. (The line below is made up for this demo.)");
+ 
+ 		demo(() => {
+diff --git a/public/framework/ext/Chat/readme.md b/public/framework/ext/Chat/readme.md
+index 59cff8b74..36f5a6076 100644
+--- a/public/framework/ext/Chat/readme.md
++++ b/public/framework/ext/Chat/readme.md
+@@ -27,8 +27,17 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
+ - **Reactions & threads**: Emoji tap-backs and nested inline thread replies · [`doc/reactions.md`](./doc/reactions.md).
+ - **A Question card moves to the end when it is answered** (2026-10-25, round 2 of the review): the card's on-screen position, a plain move with no transition, ordered by WHEN it was answered (`answer.at`), not when it was asked. V1 is already one flat list, so "the end" is simply `ux/Dictate/Widget.js`'s `show_task` dropping the row where it was just built (the end of `$bubbles`) instead of moving it back, when `chat.js`'s `draw_task` says `moved`. v2 is nested (replies/questions/tasks under their Prompt), so an answered Question SURFACES at the ROOT of the whole chat, not just the end of its own prompt's nest — live (`v2/ChatV2.js`'s `surface_answered()`, called from `apply_one()`) and a cold reload (`ChatV2Model`'s `roots()`/`children()`) place it identically, carrying `data-from` as the one hint back to its prompt (no new label system). Both views read the one shared signal, `v2/ChatV2Model.js`'s `newly_answered(model, line)` (a Question with no answer before this line — never a Task, never a repeat edit). One static switch, `ChatV2Model.RESURFACE`, turns all of this off (the old, never-moved behaviour) for every reader at once. **The data never reorders**: a card's true position in time is always `created_at` (when asked) and `answer.at` (when answered) — a log view reading that real order does not exist yet; this is only where the live card sits on screen. Node test (no browser, incl. live-vs-reload parity): `v2/resurface.test.mjs`.
+ 
++## The layout: your words on the right, the assistant's plain on the left (2026-11-02)
++
++![the three views at 360 px](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/screens/v3-360.png)
++
++Like Claude's chat: **your words are a tinted pill on the right that hugs its text** (one word, like `/compact`, is a small pill; a dictated line widens as the words arrive, then wraps at the cap), **the assistant's words are plain text on the left**, no fill, no border. Both stop at `--bubble-max` (`min(80%, 40rem)`, 80% on a phone). One shared rule set, [`bubbles.css`](./bubbles.css), is loaded by `Chat.js` (V1) and `ChatV3.js` (V2 and V3), drawing `.chatbox-you`/`.chatbox-reply` and `.chat-v3-you`/`.chat-v3-reply` alike; the Dictate widget sets the same token. Change `--bubble-max` on a host to move both sides. A V1 reply is a two-column grid (icon, words) so a wrapped line stays beside the icon and a one-word reply keeps its width. Updates and notes stay small and muted. Walkthrough with shots of V1, V2 and V3 at 360 and 1920: [chat-layout/walkthrough.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-layout/walkthrough.md).
++
+ ## Files that matter
+ 
++- `bubbles.css`: the one layout rule set for all three views (above).
++- `v3/bubble-grow.mjs`: browser proof that your bubble widens as words arrive (V1 and V3) and stops at the cap, and that a guess becoming settled keeps the width; listed in `core/Test/browser-scripts.mjs`.
++
+ - `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
+ - `chunks.js`: pure text splitters for the two moving cursors — `fast_chunks()` (comma/period/question/!, not yet called from production — the ✓ cursor sits at the end of the piece's own text, which is always the newest fast chunk by definition), `last_finished_sentence_end()` (sentence boundary only, walks the split sentences forward so a repeated final sentence lands on the real last one); `chunks.test.mjs` is the mock test.
+ - `cursors.js` / `cursors.css`: the ONE ✓/🧠 element maker and class set, shared by `Chat.js` (V1) and `v2/ChatV2.js`.
+diff --git a/public/framework/ext/Chat/v2/ChatV2.css b/public/framework/ext/Chat/v2/ChatV2.css
+index 9d509ca0c..385122581 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.css
++++ b/public/framework/ext/Chat/v2/ChatV2.css
+@@ -6,11 +6,10 @@
+ @layer site {
+ 	.chat-v2-marks { display: inline-flex; gap: .3em; align-items: baseline; flex: none; }
+ 
+-	/* A sentence row (dictation mode only, no refined text yet): the words, and any Reply anchored to it beside them —
+-	   side by side when there is room, stacked on a phone, same breakpoint idea as the old chat-v2-sentence. */
+-	.chat-v2-sentence { display: grid; grid-template-columns: minmax(0, 1fr); gap: .3em 1rem; }
+-	.chat-v2-sentence:has(.chat-v2-beside) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
++	/* A sentence row (dictation mode only, no refined text yet): the words as one small bubble of yours, and any Reply anchored to it
++	   plain beneath it, on the assistant's side (bubbles.css). A group of rows, never one bubble: `.chat-v3-yours`. */
++	.chat-v2-sentence { display: flex; flex-direction: column; align-items: flex-end; align-self: stretch; gap: .3em; }
+ 	.chat-v2-sentence-text { overflow-wrap: anywhere; }
+-	.chat-v2-beside { display: flex; flex-direction: column; gap: .4em; }
+-	.chat-v2-beside .chat-v3-reply { border-top: none; padding-top: 0; }
++	.chat-v2-beside { align-self: stretch; max-inline-size: 100%; display: flex; flex-direction: column; gap: .4em; }
++	.chat-v2-beside .chat-v3-reply { border-top: none; padding-block: 0; }
+ }
+diff --git a/public/framework/ext/Chat/v2/ChatV2.js b/public/framework/ext/Chat/v2/ChatV2.js
+index 2cf9ecb41..f35efd693 100644
+--- a/public/framework/ext/Chat/v2/ChatV2.js
++++ b/public/framework/ext/Chat/v2/ChatV2.js
+@@ -40,12 +40,16 @@ export default class ChatV2 extends ChatV3 {
+ 		return task ? [...(task._tasks ?? []), ...this.nested_tasks(task)].length > 0 : false;
+ 	}
+ 
++	// Dictation mode (no refined text): each sentence row is its own small bubble of yours, with its Reply plain beneath it (bubbles.css),
++	// so the wrapper is a group, not one bubble. With refined text it is the one hugging bubble, as in V3.
++	you_class(p){ return p.text ? "chat-v3-you" : "chat-v3-yours"; }
++
+ 	// One paragraph, as sentence rows (not one joined string): a Reply with `re.to` naming this sentence is drawn right
+ 	// beside it, instead of in the trailing list after the whole card (ChatV3.trailing_replies, overridden below).
+ 	paragraph(group, p){
+ 		div.c("chat-v3-para", () => group.forEach(s => {
+ 			div.c("chat-v2-sentence", () => {
+-				div.c("chat-v2-sentence-text", p.clean[s.id] ?? s.text);
++				div.c("chat-v2-sentence-text chat-v3-you", p.clean[s.id] ?? s.text);
+ 				const here = this.replies_of(p).filter(r => r.re?.to === s.id);
+ 				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r)));
+ 			}).attr("data-sentence", s.id);
+diff --git a/public/framework/ext/Chat/v2/readme.md b/public/framework/ext/Chat/v2/readme.md
+index 6a0ee4889..430c9aae1 100644
+--- a/public/framework/ext/Chat/v2/readme.md
++++ b/public/framework/ext/Chat/v2/readme.md
+@@ -8,6 +8,10 @@
+ 
+ Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (V3's own fixture, plus a few `sent` lines on two of its Prompt messages so the marks have data); `?src=<url of any session.jsonl>` draws that session, live. Shot with both the marks and the live draft visible: [shots/chat-v2-marks-and-live-draft.png](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v2-subclass/shots/chat-v2-marks-and-live-draft.png).
+ 
++## Layout (2026-11-02)
++
++Same shared rules as V3 ([`../bubbles.css`](../bubbles.css)). A Prompt with refined text is one hugging pill. In dictation mode (no refined text yet) each sentence row is its own small pill (`.chat-v2-sentence-text.chat-v3-you`) inside a plain `.chat-v3-yours` group, and the Reply anchored to a sentence (`.chat-v2-beside`) sits plain beneath it on the left. The old side-by-side grid is gone.
++
+ ## Files
+ 
+ `ChatV2.js` (the class, above) · `ChatV2.css` (its own rules) · `report.js` (unchanged by this step: the page's own errors/clicks/context, posted down the real dictation path `POST /api/session/say` — see "Who writes the data") · `ChatV2.test.mjs`, `live-guess.test.mjs`, `resurface.test.mjs` (Test, below).
+diff --git a/public/framework/ext/Chat/v3/ChatV3.js b/public/framework/ext/Chat/v3/ChatV3.js
+index a35ab08ec..473910fa0 100644
+--- a/public/framework/ext/Chat/v3/ChatV3.js
++++ b/public/framework/ext/Chat/v3/ChatV3.js
+@@ -18,6 +18,7 @@ import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
+ import * as Wire from "/framework/ext/Session/Session.js";
+ import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
+ View.stylesheet(import.meta, "ChatV3.css");
++View.stylesheet(import.meta, "../bubbles.css");
+ 
+ export default class ChatV3 extends JSONL {
+ 	static SHOW = 40;          // roots drawn at first; "show earlier" adds this many more
+@@ -159,6 +160,17 @@ export default class ChatV3 extends JSONL {
+ 
+ 	prompt(p){
+ 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
++		div.c(this.you_class(p), () => this.you(p, title, refined, open, sentences));
++		for (const r of this.trailing_replies(p)) this.reply(r);
++		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
++		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
++		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
++	}
++
++	// The owner's side of a card: ONE right-aligned bubble that hugs its words (bubbles.css), holding the title, the text (or the dictation)
++	// and the raw toggle. Everything the assistant says is drawn after it, outside it (Claude-style layout, the owner 2026-11-02).
++	you_class(p){ return "chat-v3-you"; }
++	you(p, title, refined, open, sentences){
+ 		div.c("chat-v3-head", () => {
+ 			if (title) h3.c("chat-v3-title", title);
+ 			else if (!this.redundant_title(p)) h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
+@@ -174,15 +186,11 @@ export default class ChatV3 extends JSONL {
+ 		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
+ 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
+ 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
+-		for (const r of this.trailing_replies(p)) this.reply(r);
+-		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
+-		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
+-		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
+ 	}
+ 
+ 	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
+ 	reply(r){
+-		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
++		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
+ 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
+ 	}
+ 
+@@ -247,9 +255,10 @@ export default class ChatV3 extends JSONL {
+ 		if (!text) { this.$draft?.el.remove(); this.$draft = null; return; }
+ 		if (!this.$draft?.el.isConnected) this.$draft = div.c("chat-v3-card chat-v3-draft");
+ 		this.$draft.el.replaceChildren();
++		const you = document.createElement("div"); you.className = "chat-v3-you";
+ 		const t = document.createElement("div"); t.className = "chat-v3-text is-moving";
+ 		t.textContent = settled; if (guess) { const g = document.createElement("span"); g.className = "chat-v3-guess"; g.textContent = (settled ? " " : "") + guess; t.append(g); }
+-		this.$draft.el.append(t);
++		you.append(t); this.$draft.el.append(you);
+ 		this.draft_at_end();
+ 	}
+ 	draft_at_end(){ if (this.$draft?.el.isConnected || this.$draft) this.$box?.el.append(this.$draft.el); }
+diff --git a/public/framework/ext/Chat/v3/bubble-grow.mjs b/public/framework/ext/Chat/v3/bubble-grow.mjs
+new file mode 100644
+index 000000000..095a7fd5b
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/bubble-grow.mjs
+@@ -0,0 +1,56 @@
++// node bubble-grow.mjs <site-url> — headless: the owner's bubble GROWS while words arrive, then wraps at the cap (ext/Chat/bubbles.css).
++// V3 (and V2, which inherits the draft): fires the same "chat-live" window event a mic composer sends, with more words each time.
++// V1: types into the live `.chatbox-you` bubble's text. Checks at 360 (the cap is 80%) and 1920 (the cap is 40rem).
++// "No jump when the guess becomes settled": the same words, moved from `guess` to `settled`, keep the width.
++import path from "node:path";
++import { fileURLToPath, pathToFileURL } from "node:url";
++const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
++const { default: Browser } = await import(pathToFileURL(path.join(repo, "Server/Browser.mjs")).href);
++const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost";
++let pass = 0, fail = 0;
++const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
++const STEPS = ["Hi", "Hi there, can you", "Hi there, can you make the chat look more like Claude's chat", "Hi there, can you make the chat look more like Claude's chat on my phone, where my messages are small bubbles on the right and yours are plain text"];
++const UA = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Mobile Safari/537.36";
++
++const browser = await Browser.browser();
++try {
++	for (const [name, w, h, mobile] of [["360", 360, 740, true], ["1920", 1920, 1000, false]]) {
++		const ctx = await browser.newContext({ viewport: { width: w, height: h }, ...(mobile ? { userAgent: UA, isMobile: true } : {}) });
++		const page = await ctx.newPage();
++		const errors = []; page.on("pageerror", e => errors.push(String(e)));
++
++		await page.goto(`${base}/framework/ext/Chat/v3/`, { waitUntil: "networkidle" });
++		await page.waitForSelector(".chat-v3-you", { timeout: 15000 });
++		const widths = [];
++		for (const text of STEPS) {
++			await page.evaluate(t => window.dispatchEvent(new CustomEvent("chat-live", { detail: { text: t, settled: "", guess: t, sent: false } })), text);
++			await page.waitForSelector(".chat-v3-draft .chat-v3-you", { timeout: 3000 });
++			widths.push(await page.evaluate(() => document.querySelector(".chat-v3-draft .chat-v3-you").getBoundingClientRect().width));
++		}
++		const frame = await page.evaluate(() => document.querySelector(".chat-v3-draft").parentElement.getBoundingClientRect().width);
++		check(`${name} V3: the draft bubble widens as words arrive (${widths.map(Math.round).join(" → ")})`, widths.every((x, i) => i === 0 || x > widths[i - 1] - 0.5) && widths[1] > widths[0] + 20, widths);
++		check(`${name} V3: a one-word draft is a small pill`, widths[0] < frame * 0.3, [widths[0], frame]);
++		check(`${name} V3: the last draft stops at the cap (80% or 40rem) and wraps`, widths.at(-1) <= Math.max(frame * 0.8, 0) + 1 && widths.at(-1) <= 640 + 1, [widths.at(-1), frame]);
++
++		const last = STEPS.at(-1);
++		await page.evaluate(t => window.dispatchEvent(new CustomEvent("chat-live", { detail: { text: t, settled: t, guess: "", sent: false } })), last);
++		const settled = await page.evaluate(() => document.querySelector(".chat-v3-draft .chat-v3-you").getBoundingClientRect().width);
++		check(`${name} V3: guess becoming settled keeps the width (${Math.round(widths.at(-1))} → ${Math.round(settled)})`, Math.abs(settled - widths.at(-1)) < 2, [widths.at(-1), settled]);
++		check(`${name} V3: no horizontal scroll`, await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), null);
++
++		await page.goto(`${base}/framework/ext/Chat/`, { waitUntil: "networkidle" });
++		await page.waitForSelector(".chatbox-you", { timeout: 15000 });
++		const v1 = await page.evaluate(async steps => {
++			const you = [...document.querySelectorAll(".chatbox-you")].pop(), t = you.querySelector(".chatbox-text"), out = [];
++			for (const s of steps) { t.textContent = s; out.push(you.getBoundingClientRect().width); }
++			return { out, frame: you.parentElement.getBoundingClientRect().width };
++		}, STEPS);
++		check(`${name} V1: the bubble widens as words arrive (${v1.out.map(Math.round).join(" → ")}) and stops at the cap`, v1.out.every((x, i) => i === 0 || x >= v1.out[i - 1] - 0.5) && v1.out[1] > v1.out[0] + 20 && v1.out.at(-1) <= v1.frame * 0.8 + 1, v1);
++		check(`${name}: no page errors`, errors.length === 0, errors);
++		await ctx.close();
++	}
++} finally {
++	await Browser.close();
++}
++console.log(`\n${pass} passed, ${fail} failed`);
++process.exit(fail ? 1 : 0);
+diff --git a/public/framework/ext/Chat/v3/fixture/layout-session.jsonl b/public/framework/ext/Chat/v3/fixture/layout-session.jsonl
+new file mode 100644
+index 000000000..6147e2cb3
+--- /dev/null
++++ b/public/framework/ext/Chat/v3/fixture/layout-session.jsonl
+@@ -0,0 +1,10 @@
++{"session":{"id":"v-layout-fixture","kind":"voice","at":"2026-11-02T20:00:00.000Z"}}
++{"sentences":{"add":{"id":"s-1793649601000","at":"2026-11-02T20:00:01.000Z","text":"/compact","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793649601000","by":"owner","at":"2026-11-02T20:00:01.000Z","sentences":["s-1793649601000"],"prompt":"p-1793649601000"}},"by":"servex","ts":"2026-11-02T20:00:01.000Z"}
++{"messages":{"add":{"id":"m-1793649604000","type":"Reply","by":"smart","at":"2026-11-02T20:00:04.000Z","text":"Compacted. The conversation so far is summarized, and nothing was lost from the files.","re":{"to":"s-1793649601000"}}},"by":"servex","ts":"2026-11-02T20:00:04.000Z"}
++{"sentences":{"add":{"id":"s-1793649610000","at":"2026-11-02T20:00:10.000Z","text":"Hello","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793649610000","by":"owner","at":"2026-11-02T20:00:10.000Z","sentences":["s-1793649610000"],"prompt":"p-1793649610000"}},"by":"servex","ts":"2026-11-02T20:00:10.000Z"}
++{"messages":{"add":{"id":"m-1793649612000","type":"Reply","by":"smart","at":"2026-11-02T20:00:12.000Z","text":"Hello! What would you like to work on?","re":{"to":"s-1793649610000"}}},"by":"servex","ts":"2026-11-02T20:00:12.000Z"}
++{"sentences":{"add":{"id":"s-1793649630000","at":"2026-11-02T20:00:30.000Z","text":"I would like the chat to look more like Claude's chat, where my messages sit on the right in a bubble that hugs the words.","via":"voice"}},"by":"servex","ts":"2026-11-02T20:00:30.000Z"}
++{"sentences":{"add":{"id":"s-1793649630001","at":"2026-11-02T20:00:32.000Z","text":"When I dictate, the bubble should grow as the words arrive, and wrap once it reaches about eighty percent of the screen.","via":"voice"}},"by":"servex","ts":"2026-11-02T20:00:32.000Z"}
++{"sentences":{"add":{"id":"s-1793649630002","at":"2026-11-02T20:00:34.000Z","text":"The assistant's text should just be plain text on the page, with no box around it, so I can tell us apart at a glance.","via":"voice"}},"by":"servex","ts":"2026-11-02T20:00:34.000Z"}
++{"messages":{"add":{"type":"Prompt","id":"m-1793649630000","by":"owner","at":"2026-11-02T20:00:30.000Z","sentences":["s-1793649630000","s-1793649630001","s-1793649630002"],"prompt":"p-1793649630000"}},"by":"servex","ts":"2026-11-02T20:00:39.000Z"}
++{"messages":{"add":{"id":"m-1793649640000","type":"Reply","by":"smart","at":"2026-11-02T20:00:40.000Z","text":"## Done\n\nYour messages are now **right-aligned bubbles** that hug their text, and mine are plain text on the left.\n\n- one word makes a small pill\n- a long message wraps at about 80% of the width\n- links like [the chat readme](/framework/ext/Chat/readme.md) still work\n\nTell me if the gap between messages should be larger.","re":{"to":"s-1793649630000"}}},"by":"servex","ts":"2026-11-02T20:00:40.000Z"}
+diff --git a/public/framework/ext/Chat/v3/readme.md b/public/framework/ext/Chat/v3/readme.md
+index 2eb33115b..fd25d0254 100644
+--- a/public/framework/ext/Chat/v3/readme.md
++++ b/public/framework/ext/Chat/v3/readme.md
+@@ -14,6 +14,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
+ - **Every reply** ([placement.js](placement.js), `owning_prompt`): a Reply's Prompt is the one whose `sentences` holds its `re.to`; a reply with no match joins the newest Prompt before it in the list.
+ - **The reply being written:** V3 follows the session's live wire (`stream()` in `ext/Session/Session.js`, the one V1 reads) and draws the partial reply at the end of the newest card until its settled Reply message arrives.
+ - **Gray only for unsent words** (the owner, 2026-10-26): a sentence in the file is final, so it is solid at once; the words still being spoken show as a faint draft at the end (`chat-live` window event).
++- **Layout** (2026-11-02): a Prompt's `.chat-v3-you` (title, words, "show raw") is the owner's one hugging pill on the right ([`../bubbles.css`](../bubbles.css), shared with V1 and V2); its replies, the reply being written and the task/question nest sit under it, plain on the left. `ChatV3.you()` draws the pill's insides, `you_class()` picks its class (V2 overrides it). A reply carries `data-id` = its message id, so the read-aloud highlight finds its own bubble ([audio/Recite](/framework/audio/Recite/readme.md)).
+ - **Windowed:** the newest 40 cards, with "show earlier (N)".
+ - **Live, in place:** a list `add` bubbles with `from` = the list itself (`List extends Item` now, so `get_one` can't tell them apart — `ChatV3.added_member()` resolves the actual member from the line's own `add` payload); a changed Prompt/Reply/Task redraws only the card it touched (`card_for()`).
+ - **Per-card link:** each card carries its id, so `#<id>` on the chat's url scrolls to it.
+diff --git a/public/framework/ext/drawer/rail.css b/public/framework/ext/drawer/rail.css
+index fcc4b1344..ee950d7db 100644
+--- a/public/framework/ext/drawer/rail.css
++++ b/public/framework/ext/drawer/rail.css
+@@ -359,8 +359,8 @@
+ 	/* COMPACT (the owner, 2026-10-09: "make the mobile dictation widget a little more compact"): the sheet's bubbles sit
+ 	   closer — tighter bubble padding, a thinner gap between bubbles, a smaller head. Only inside the sheet; the
+ 	   desktop drawer and the Chat page keep their own spacing (ext/Chat/Chat.css). */
+-	.drawer-rail-sheet .chatbox-you,
+-	.drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.55em; border-radius: 0.8em; }
++	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.55em; border-radius: 0.8em; }
++	.drawer-rail-sheet .chatbox-reply { padding-block: 0.2em; }   /* the assistant's words are plain text (ext/Chat/bubbles.css): no side padding */
+ 	.drawer-rail-sheet .chatbox { margin-block: 0.1em; }
+ 	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
+ 	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
+@@ -416,7 +416,7 @@
+ 	}
+ 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { padding: 0; gap: 0; }
+ 	.drawer-rail-sheet .ux-dictate-mic-indicator:not(.compact), .drawer-rail-sheet .chatbox-compose .ux-dictate-level { display: none; }   /* the listening row: the mic is the meter */
+-	.drawer-rail-sheet .chatbox-you, .drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.5em; }
++	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.5em; }
+ 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; }
+ }
+ @layer site {
+diff --git a/public/framework/ux/Dictate/Widget.css b/public/framework/ux/Dictate/Widget.css
+index ec046d0c0..b23bf0a23 100644
+--- a/public/framework/ux/Dictate/Widget.css
++++ b/public/framework/ux/Dictate/Widget.css
+@@ -52,10 +52,10 @@
+ 
+ 	/* The real bubbles come from `ext/Chat/Chat.css` now (`Widget.Thread` draws every
+ 	 * sentence through `Chat.js`'s own `speak()`), so the rules below only ever fire for
+-	 * `ThreadV1`'s own bubbles and the "ask" cards. `--chat-bubble` is `Chat.css`'s own
+-	 * sizing variable (`.chatbox-you { width: var(--chat-bubble) }`), normally set by
++	 * `ThreadV1`'s own bubbles and the "ask" cards. `--bubble-max` is `ext/Chat/bubbles.css`'s own
++	 * sizing variable (`.chatbox-you { max-inline-size: var(--bubble-max) }`), normally set by
+ 	 * `.chatbox-log`; this widget's bubbles container isn't one, so it's repeated here. */
+-	.ux-dictate-widget-bubbles { --chat-bubble: min(85%, 34rem); }
++	.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
+ 
+ 	/* `.card.pad` is the framework's own boxed-content look — keeps a bubble from
+ 	 * stretching the full width of the thread. Used by `Widget.ThreadV1` (`v1: true`) and
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 2463930b8..2494ec900 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -123,3 +123,5 @@ ever appeared — no error, no clue why.
+ **The owner's direction, 2026-10-20: dictation on the website first** (one assistant, hands-free; a global named voice session with a session manager; the widget cleanup asks that never landed; the font flicker): [doc/owner-2026-10-20-dictation-first.md](doc/owner-2026-10-20-dictation-first.md).
+ 
+ - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — sentences are written instantly by code; the fast seat is paused as a placer (leaning), the chat is one stored list.
++
++**Bubble layout (2026-11-02):** the Dictate bubbles use the one shared rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/readme.md#the-layout-your-words-on-the-right-the-assistants-plain-on-the-left-2026-11-02): your words are a hugging pill on the right, the assistant's plain text on the left. `Widget.css` only sets the width token for them (`.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem) }`, 80% on a phone); change the look in `bubbles.css`, not here.

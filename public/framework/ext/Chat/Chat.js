@@ -5,6 +5,7 @@ import { last_finished_sentence_end, last_fast_chunk_end } from "./chunks.js";
 import { cursor_el, smart_cursor_el } from "./cursors.js";
 
 View.stylesheet(import.meta, "Chat.css");
+View.stylesheet(import.meta, "bubbles.css");
 View.stylesheet(import.meta, "cursors.css");
 
 // A chat log: scrolling message bubbles, yours right, others left. See doc/notes.md#chat-log

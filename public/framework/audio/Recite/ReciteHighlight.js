@@ -54,7 +54,7 @@ export default class ReciteHighlight {
 		const r = this.recite, c = r.chunks[r.at];
 		if (!c || !["playing", "paused", "heard", "loading"].includes(r.state)) return null;
 		const words = ReciteHighlight.words(c.text);
-		return { text: c.text, words, word: ReciteHighlight.word_at(words, this.fraction()) };
+		return { text: c.text, msg: c.msg ?? null, words, word: ReciteHighlight.word_at(words, this.fraction()) };
 	}
 
 	/** On each change, and on every frame while playing, so the word moves smoothly between the audio's own updates. */
@@ -76,12 +76,12 @@ export default class ReciteHighlight {
 	draw(now){
 		if (!ReciteHighlight.supported()) return;
 		if (!now){ this.clear(); return; }
-		const key = this.recite.at + "|" + now.text;
+		const key = this.recite.at + "|" + now.msg + "|" + now.text;
 		const stale = this.ranges && !this.ranges[0]?.startContainer.isConnected;
 		const due = !this.ranges && performance.now() >= this.retry_at;
 		if (key !== this.key || stale || due){
 			this.key = key;
-			this.ranges = this.find(now.words);
+			this.ranges = this.find(now.words, now.msg);
 			if (!this.ranges){
 				this.retry_at = performance.now() + ReciteHighlight.RETRY_MS;
 				if (this.logged_key !== key){ this.logged_key = key; this.recite.trace("highlight: not found", { spoken: now.text.slice(0, 120) }); }
@@ -104,12 +104,15 @@ export default class ReciteHighlight {
 	 *  contiguous block: raw, not-yet-rendered markdown in the DOM (a link's bracket text followed by its literal
 	 *  URL, before the bubble finishes rendering it) interposes extra words the spoken text never had, which broke
 	 *  a strict positional match outright (dropout fix, 2026-11-02). */
-	find(words){
+	find(words, msg = null){
 		if (!words.length || typeof document === "undefined") return null;
 		const want = words.map(w => w.toLowerCase());
+		// A reply queued for a known message (`msg`, an m-<ms> id) is looked for in ITS bubble only, so an older bubble that opens
+		// with the same words can never be lit for it. A bubble not drawn yet (or a surface that carries no id) falls back to the text search.
+		const own = msg ? ReciteHighlight.bubble_of(msg) : null;
 		const roots = [...document.querySelectorAll(ReciteHighlight.ROOTS)].filter(el => el.offsetParent !== null || el.getClientRects().length);
 		const focus = this.recite.focus_el?.isConnected ? [this.recite.focus_el] : [];   // a replayed bubble is searched first, so an older reply with the same opening words is not lit instead
-		for (const root of [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
+		for (const root of own ? [own] : [...focus, ...(roots.length ? roots : [document.body]).reverse()]){
 			const found = this.scan(root);
 			for (let i = found.length - 1; i >= 0; i--){
 				if (found[i].word !== want[0]) continue;
@@ -123,6 +126,13 @@ export default class ReciteHighlight {
 			}
 		}
 		return null;
+	}
+
+	/** The element a message is drawn in: V2/V3 mark a reply `data-id` (the message id), V1 marks each reply piece `data-re` (the line's `at`). */
+	static bubble_of(id){
+		if (typeof document === "undefined") return null;
+		const q = CSS.escape(String(id));
+		return document.querySelector(`[data-id="${q}"], [data-re="${q}"]`);
 	}
 
 	/** `want`'s words, in order, starting the search at `found[start]` (already matched to `want[0]`) — skipping any
