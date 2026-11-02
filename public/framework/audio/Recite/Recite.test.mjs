@@ -455,3 +455,113 @@ if (Recite) test("Recite.Highlight: which word is playing", t => {
 	t.ok(H.word_at(words, 0.5) > 1 && H.word_at(words, 0.5) < 5, "halfway: a middle word");
 	t.eq(H.word_at([], 0.5), -1, "no words: none");
 });
+
+// Dropout fix (2026-11-02): raw, not-yet-rendered markdown (a link's bracket text followed by its literal URL)
+// used to interpose extra DOM words the spoken sentence never had, breaking a strict positional match outright.
+// Matching as a subsequence skips those words instead of giving up on the whole sentence.
+if (Recite) test("Recite.Highlight: raw, not-yet-rendered markdown in the DOM still matches (the literal URL's words are skipped)", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	root.textContent = "Check the [sunny](http://example.com/weather) forecast and **bold** text now.";
+	document.body.appendChild(root);
+
+	r.queue("Check the sunny forecast and bold text now.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	r.highlight.tick();
+	t.ok(Array.isArray(r.highlight.ranges) && r.highlight.ranges.length === 8, "the bracket text and the literal URL's own words don't break the match");
+
+	root.remove();
+	return r;
+});
+
+// A sentence genuinely not on the page yet (nothing streamed into the bubble) is retried every RETRY_MS rather
+// than staying dark for the rest of the sentence, and traces "highlight: not found" once per distinct miss, not
+// once per retry.
+if (Recite) test("Recite.Highlight: a sentence not yet on the page is traced once, then found once it appears", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const traced = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "highlight: not found") traced.push(fields); real_trace(kind, fields); };
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	document.body.appendChild(root);   // empty: nothing streamed into the bubble yet
+
+	r.queue("Check the sunny forecast and bold text now.");
+	await new Promise(res => setTimeout(res, 20));
+
+	r.highlight.tick();
+	t.eq(r.highlight.ranges, null, "nothing on the page yet to match");
+	t.eq(traced.length, 1, "the miss is logged once");
+
+	r.highlight.tick();
+	t.eq(traced.length, 1, "a retry before RETRY_MS passes does not log again");
+
+	root.textContent = "Check the sunny forecast and bold text now.";   // the bubble just streamed this sentence in
+	r.highlight.retry_at = 0;   // a test does not wait out the real retry window
+	r.highlight.tick();
+	t.ok(Array.isArray(r.highlight.ranges) && r.highlight.ranges.length === 8, "found once it appeared — no need to wait for the next sentence");
+	t.eq(traced.length, 1, "still just the one trace — a successful retry does not log again");
+
+	root.remove();
+	return r;
+});
+
+// A live re-render that swaps in a brand new DOM node (the normal "bubble redrew while streaming" case) must
+// reconnect without ever tracing a miss — the stale-node check already retried on every tick before this fix, and
+// still does after it.
+if (Recite) test("Recite.Highlight: a bubble re-rendered mid-sentence reconnects with no dropout", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const traced = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "highlight: not found") traced.push(fields); real_trace(kind, fields); };
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	root.textContent = "A link and a mention both read as their own plain text.";
+	document.body.appendChild(root);
+
+	r.queue("A link and a mention both read as their own plain text.");
+	await new Promise(res => setTimeout(res, 20));
+	r.highlight.tick();
+	t.ok(Array.isArray(r.highlight.ranges), "found on the first render");
+	const first_node = r.highlight.ranges[0].startContainer;
+
+	root.replaceChildren(document.createTextNode("A link and a mention both read as their own plain text."));   // same text, a brand new node
+	r.highlight.tick();
+	t.ok(r.highlight.ranges[0].startContainer !== first_node, "reconnected to the new node");
+	t.eq(traced.length, 0, "no dropout traced — the re-render was caught on the very next tick");
+
+	root.remove();
+	return r;
+});
+
+if (Recite) test("Recite.Highlight: a mention chip's own icon word does not break the match", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	// The real shape ext/Mention/Mention.js builds for "@mike" (mention_html()): an icon span (its ligature name,
+	// "person", is still real text under the walker) then the shown-name span — the chip's own noise word sits
+	// right where "mike" should be, between two real sentence words (review finding 4, 2026-11-02).
+	root.innerHTML = 'Check with <a class="item inline mention is-agent"><span class="material-icons icon item-icon">person</span><span class="item-name">Mike</span></a> about the plan before lunch.';
+	document.body.appendChild(root);
+
+	r.queue("Check with Mike about the plan before lunch.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+	r.highlight.tick();
+	t.ok(Array.isArray(r.highlight.ranges) && r.highlight.ranges.length === 8, "the chip's icon word is skipped, the chip's name word still counted");
+
+	root.remove();
+	return r;
+});

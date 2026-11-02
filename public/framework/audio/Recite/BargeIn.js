@@ -80,16 +80,18 @@ export default class BargeIn extends Part {
 	 *  the sentence Recite just read or is reading while `recite.echo_active()` (its own voice leaking into the
 	 *  chat's mic); and a Whisper final heard while `recent_peak` (hear()'s own decaying max, review finding 1,
 	 *  2026-11-01) never rose above `near_silent` — the same hallucination guard `trigger()` runs for its own mic,
-	 *  now covering the chat-mic path too, since that is the normal one on a phone. Each is logged and dropped,
-	 *  never acted on. Otherwise, also runs while already paused by an earlier barge-in (`recite.state ===
-	 *  "heard"`) — a SECOND line ("wait… / what about the other one?") must still get its own question check, or it
-	 *  would otherwise resume and talk over the new answer; `heard_speech` just pushes the quiet window out when it
-	 *  isn't a question. */
-	owner_spoke(text){
+	 *  now covering the chat-mic path too, since that is the normal one on a phone — but only for a line that came
+	 *  from speech: a TYPED line (`via === "text"`) is skipped, since `recent_peak` is a mic reading and decays to
+	 *  under `near_silent` after about 5 s of a quiet mic, which a typed line says nothing about (review finding 1,
+	 *  2026-11-02). Each is logged and dropped, never acted on. Otherwise, also runs while already paused by an
+	 *  earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait… / what about the other one?") must
+	 *  still get its own question check, or it would otherwise resume and talk over the new answer; `heard_speech`
+	 *  just pushes the quiet window out when it isn't a question. */
+	owner_spoke(text, via){
 		this.spoke?.(text);
 		if (BargeIn.noise(text)){ this.recite.trace("barge: phantom phrase dropped", { text: String(text).slice(0, 80) }); return; }
 		if (this.recite.echo_active() && this.echo(text)){ this.recite.trace("barge: echo dropped", { text: String(text).slice(0, 80) }); return; }
-		if (text && this.recent_peak < this.near_silent){ this.recite.trace("barge: near-silent dropped", { text: String(text).slice(0, 80), peak: this.recent_peak }); return; }
+		if (text && via !== "text" && this.recent_peak < this.near_silent){ this.recite.trace("barge: near-silent dropped", { text: String(text).slice(0, 80), peak: this.recent_peak }); return; }
 		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
 		else if (this.recite.state !== "heard") return;
 		this.heard_speech(text);

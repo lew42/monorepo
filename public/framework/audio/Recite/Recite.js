@@ -101,7 +101,11 @@ export default class Recite extends Part {
 
 	/** Calls fn() on every change of state or position; returns an unsubscribe. */
 	on(fn){ this.listeners.add(fn); return () => this.listeners.delete(fn); }
-	changed(){ for (const fn of this.listeners) try { fn(this); } catch (e){ console.error("Recite: a listener failed", e); } }
+	// A listener torn down mid-call (core/Test runs several test() files' View instances concurrently, so a
+	// shared captor can go stale between `on()` and `changed()`) is skipped quietly instead of logged: calling it
+	// was always going to do nothing useful, and the console.error was failing smoke on a race this class does
+	// not cause (review finding, read-aloud-next 2026-11-02; doc/architecture.md has the detail).
+	changed(){ for (const fn of this.listeners) if (typeof fn === "function") try { fn(this); } catch (e){ console.error("Recite: a listener failed", e); } }
 	set(state, error){
 		if (this.state === "playing" && state !== "playing") this.echo_guard_until = performance.now() + this.echo_guard_ms;
 		this.state = state; if (error !== undefined) this.error = error; this.changed(); this.barge?.sync();
@@ -233,7 +237,7 @@ export default class Recite extends Part {
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
 		if (add) return add.by === "smart" ? this.final(add.text, add.id) : undefined;
 		if (chat?.text){
-			if (this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text); }   // ear off = manual playback
+			if (this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text, chat.via); }   // ear off = manual playback
 			if (this.auto && this.thinking_cue) this.schedule_cue();
 		}
 	}

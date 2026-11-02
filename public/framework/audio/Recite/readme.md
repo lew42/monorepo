@@ -40,18 +40,18 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 ## Open, by the agreed build order
 
-Resume + queueing + turn-taking (piece (a)), echo suppression, and the thinking cue have landed. Still to come, in this order:
+Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue, and the highlight dropout fix (+ lit words) have landed. Still to come, in this order:
 
 1. **No flood + prioritise:** one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
-2. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
-3. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
-4. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
-5. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
-6. **(c) Karaoke follow** — without phrase-level streaming.
+2. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
+3. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
+4. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
+5. **(c) Karaoke follow** — without phrase-level streaming.
+6. **Gate Dictate's send path on the echo/phantom guards** — proposed to `mastermind-ink-check` ([doc/architecture.md](doc/architecture.md), the echo decision's open item), not scheduled yet.
 
-Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in [ux/Dictate/doc/turn-taking.md](/framework/ux/Dictate/doc/turn-taking.md), "Voice dynamics".
+Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in `ux/Dictate/doc/turn-taking.md`, "Voice dynamics" (no page there to link; the file is in the repo).
 
-The owner's own order and why: [requirements.md, "Order now"](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/requirements.md).
+The owner's own order and why: `ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/requirements.md`, "Order now" (a task folder, not a routed page — no live link).
 
 ## Watch out
 
