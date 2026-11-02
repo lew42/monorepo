@@ -25,6 +25,7 @@ import SessionTasks from "/framework/core/Session/SessionTasks.js";
 import SessionWork from "./SessionWork.js";
 import SessionTasksGrid from "./SessionTasksGrid.js";
 import SessionStats from "./SessionStats.js";
+import InFlightView from "/framework/core/Session/InFlightView.js";
 import AICost from "/framework/ai/AITask/AICost.js";
 import Day from "/framework/core/Session/Day.js";
 import SessionOverview from "./SessionOverview.js";
@@ -259,7 +260,9 @@ export default class AISessionDetail extends Page {
 			history.replaceState(history.state, "", location.pathname + (q.size ? "?" + q : "") + location.hash);
 		};
 		const row_p = AISessionDetail.load_row(url, id);   // this session's sessions.json row: the stats bar says "this tab" from its source
-		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });   // Figma band E: stats first, sticky, on every tab
+		new SessionStats({ ready, row: row_p, open_cost: () => show("cost") });
+		const $inflight = div.c("flow");   // the simplest dashboard, on every tab: what is in flight, waiting and next (core/Session/InFlight.js)
+		this.record_if_there().then(file => { if (file) $inflight.append(new InFlightView({ url: file })); });   // Figma band E: stats first, sticky, on every tab
 		div.c("sessions-tabs flex gap-50", () => {   // one line: Overview · Timeline · Chat · Tasks · More ▾ (the rest, in a SessionPopover)
 			MAIN.forEach(([k, label]) => buttons[k] = button.c("sessions-chip", label).on("click", () => show(k)));
 			$more = button.c("sessions-chip sov-more", "More ▾").attr("type", "button");
