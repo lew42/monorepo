@@ -112,9 +112,8 @@ export default class ChatV3 extends JSONL {
 		if (!card) return;
 		if (!this.$partial?.el.isConnected) { this.$partial = div.c("chat-v3-reply chat-v3-partial"); card.el.append(this.$partial.el); }
 		this.$partial.el.replaceChildren();
-		const b = document.createElement("span"); b.className = "chat-v3-brain"; b.textContent = "🧠";
 		const t = document.createElement("div"); t.className = "chat-v3-reply-text md"; md_into(t, text);
-		this.$partial.el.append(b, t);
+		this.$partial.el.append(t);
 	}
 
 	draw(){
@@ -188,9 +187,9 @@ export default class ChatV3 extends JSONL {
 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
 	}
 
-	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
+	// One assistant Reply: plain markdown text on the left, no avatar. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
 	reply(r){
-		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
+		const box = div.c("chat-v3-reply", () => { md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
 	}
 

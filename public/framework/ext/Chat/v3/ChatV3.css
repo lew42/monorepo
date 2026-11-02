@@ -31,7 +31,6 @@
 	.chat-v3-raw-line { margin: 0; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; color: color-mix(in srgb, currentColor 65%, transparent); }
 
 	.chat-v3-reply { display: flex; gap: .5rem; align-items: baseline; padding-top: .35rem; border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
-	.chat-v3-brain { flex: none; }
 	.chat-v3-reply-text { min-width: 0; overflow-wrap: anywhere; }
 	.chat-v3-reply-text > * { margin-block: 0; }
 	.chat-v3-reply-text :is(h1, h2, h3, h4) { font-size: 1.05em; margin-block: .5em .2em; line-height: 1.3; }   /* a heading in a reply is a label, not a page title */
