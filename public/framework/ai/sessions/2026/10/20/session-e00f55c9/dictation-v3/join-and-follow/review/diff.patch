@@ -1,0 +1,163 @@
+diff --git a/public/framework/ext/Chat/md.js b/public/framework/ext/Chat/md.js
+index 8a9bad49b..7d9bc73c6 100644
+--- a/public/framework/ext/Chat/md.js
++++ b/public/framework/ext/Chat/md.js
+@@ -7,6 +7,19 @@ import { mentions } from "/framework/ext/Mention/Mention.js";
+    a stranger typed. So: parse, then rebuild only what is on the allow list;
+    any other element (script, img, iframe…) is replaced by its own text, every
+    attribute goes except a safe link's `href`. */
++/* The site's own hosts (the owner, 2026-11-01: a link from a chat bubble to a site page opens in the SAME tab and keeps dictation
++   running). An agent often writes a full https link to the public host; it becomes "/path" here, and core/Router opens it in place. */
++const SITE_HOSTS = new Set(["monorepo.lew42.com", "monorepo.localhost", "localhost", "127.0.0.1"]);
++export function site_path(href){
++	if (!/^https?:/i.test(href)) return href.startsWith("/") ? href : null;   // already a path (or #, mailto: which stay as they are)
++	try {
++		const u = new URL(href);
++		if (u.origin !== location.origin && !SITE_HOSTS.has(u.hostname)) return null;
++		u.searchParams.delete("site_key");   // never carry the gateway key along
++		return u.pathname + u.search + u.hash;
++	} catch { return null; }
++}
++
+ const OK = new Set("A STRONG B EM I CODE PRE UL OL LI P BR DEL BLOCKQUOTE H1 H2 H3 H4 H5 H6 HR".split(" "));
+ 
+ function clean(node){
+@@ -16,8 +29,9 @@ function clean(node){
+ 		const href = kid.tagName === "A" ? kid.getAttribute("href") : null;
+ 		for (const at of [...kid.attributes]) kid.removeAttribute(at.name);
+ 		if (href && /^(https?:|mailto:|\/|#)/i.test(href.trim())){
+-			kid.setAttribute("href", href.trim());
+-			if (/^https?:/i.test(href.trim())){ kid.setAttribute("target", "_blank"); kid.setAttribute("rel", "noopener noreferrer"); }
++			const own = site_path(href.trim());   // a link to this site, under any of its hosts: a path, opened in this tab by core/Router, so dictation keeps running
++			kid.setAttribute("href", own ?? href.trim());
++			if (!own && /^https?:/i.test(href.trim())){ kid.setAttribute("target", "_blank"); kid.setAttribute("rel", "noopener noreferrer"); }
+ 		}
+ 		clean(kid);
+ 	}
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index ba5f73aba..eba6cb55e 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -27,6 +27,7 @@ export default class Sheet extends View {
+ 
+ 	// ⚠ see doc/rail-notes.md#c5-render
+ 	render(){
++		try { this.read_aloud(); } catch (e){ console.error("Sheet: read-aloud did not start", e); try { Recite.shared.trace("sheet: read-aloud failed", { error: String(e?.message ?? e) }); } catch {} }   // first, so nothing below can keep it from starting
+ 		this.ac(this.compact === false ? "drawer-rail-full" : "drawer-rail-compact");
+ 		this.home_button();
+ 		this.ai_button();
+@@ -36,7 +37,6 @@ export default class Sheet extends View {
+ 		this.watch_nav();
+ 		this.restore();
+ 		this.keep_on_reload();
+-		this.read_aloud();
+ 	}
+ 
+ 	/* READ-ALOUD ON EVERY PAGE (dictation-v3, 2026-11-01): the owner's phone never constructed Recite, whichever chat view drew the
+@@ -49,17 +49,32 @@ export default class Sheet extends View {
+ 		const first = chat.current?.() ?? null;
+ 		if (first) report.init(first);   // before Recite starts, so its "loaded" line has a session to go to
+ 		const recite = Recite.shared;
+-		let followed = null, stop = null;
+-		const follow = () => {
+-			const session = chat.current?.() ?? null;
++		let followed, stop = null;   // undefined, not null: the first answer, even "no session", is logged
++		const listen = (session, why) => {
+ 			if (session === followed) return;
+ 			followed = session; stop?.(); stop = null;
+ 			if (session) report.init(session);
+-			recite.trace("sheet follows", { session });
++			recite.trace("sheet follows", { session, why });
+ 			if (session) stop = Wire.stream(session, ev => recite.from_wire(ev));
+ 		};
+-		chat.on_change?.(follow);
+-		follow();
++		// No session on this page (a fresh tab, the Recite demo): follow the voice session used most recently, if it was active in the
++		// last 2 hours, so a reply is still read (the owner, 2026-11-01). The page's own session, once it has one, takes over.
++		const follow = async () => {
++			const own = chat.current?.() ?? null;
++			if (own) return listen(own, "this page's session");
++			let rows = [];
++			try { rows = await Wire.recent_project({ limit: 5 }); } catch (e){ recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
++			if (chat.current?.()) return listen(chat.current(), "this page's session");
++			const recent = rows.filter(r => /^v-/.test(r.session ?? "") && Date.now() - Date.parse(r.last_at ?? r.at ?? 0) < 2 * 3600e3)
++				.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
++			listen(recent?.session ?? null, recent ? "the most recent voice session" : "no voice session in the last 2 hours");
++		};
++		this.follow_session = () => follow().catch(e => recite.trace("sheet: follow failed", { error: String(e?.message ?? e) }));
++		chat.on_change?.(this.follow_session);   // every session change: Switch session, New session, a session started by the first sentence
++		this.follow_session();
++		// A session can be attached in ways that broadcast nothing to this module (another mount's controller, a resume in flight):
++		// a 5 s look at the page's session catches them all. It reads one variable; the follow itself only runs on a change.
++		setInterval(() => { const now = chat.current?.() ?? null; if (now && now !== followed) this.follow_session(); }, 5000);
+ 	}
+ 
+ 	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
+@@ -447,7 +462,11 @@ export class SheetPanel extends View {
+ 			placeholder: this.card_ref ? "talk into this card" : "say something",
+ 		});
+ 		this.panel = this.mount.panel;
++		this.follow_session?.();   // the chat just mounted: it may have attached a session
+ 		DictationBar.mount(this.panel);   // the sheet's mic footer (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
++		const bar = Recite.shared.bar.el;   // the read-aloud bar: DictationBar puts it above the mic; if it found no composer, it goes at the panel's foot
++		if (!bar.isConnected) this.$slot.el.append(bar);
++		requestAnimationFrame(() => { const r = bar.getBoundingClientRect(); Recite.shared.trace("sheet: bar", { placed: bar.isConnected, height: Math.round(r.height), top: Math.round(r.top), screen: innerHeight }); });
+ 		const heard = this.panel.on_text;
+ 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
+ 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index 5b8dd7e33..31e71e553 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -11,6 +11,10 @@ import * as report from "/framework/ext/Chat/v2/report.js";
+ 
+ // One chat box, every surface: doc/chat-notes.md
+ const SESSION_KEY = "lew42-voice-session";
++/** JOIN, DON'T START (the owner, 2026-11-01): a page or tab with no session of its own joins the latest voice session if that had a
++ *  line within this long, instead of starting a new one. Only a real idle gap, or the New session button, starts a fresh session.
++ *  Doc: ux/Dictate/readme.md ("One session across tabs"). */
++export const JOIN_IDLE_MS = 30 * 60 * 1000;
+ const RESUME_OFFER_MS = 60 * 60 * 1000;
+ 
+ // THE one copy (review fix #9): reused, not duplicated in rail.js/sessions.js
+@@ -71,6 +75,22 @@ function create_controller({ persist }){
+ 	async function ensure(target){
+ 		sync_from_storage();
+ 		if (ctl.session) return;
++		if (!ctl.starting && !ctl.fresh){
++			// Another tab, a link opened in a new tab, the Recite page: join the voice session in use rather than start a second one.
++			ctl.starting = Session.recent_project({ limit: 5 }).then(rows => {
++				const latest = (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
++					.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
++				if (!latest || Date.now() - Date.parse(latest.last_at ?? latest.at ?? 0) > JOIN_IDLE_MS) return null;
++				return Session.resume(latest.session);
++			}).catch(() => null).then(made => {
++				if (!made || ctl.session) return;
++				ctl.session = made.session; ctl.file = made.file;
++				if (persist) write_saved({ session: made.session, file: made.file });
++				broadcast();
++			}).finally(() => { ctl.starting = null; });
++			await ctl.starting;
++			if (ctl.session) return;
++		}
+ 		if (!ctl.starting){
+ 			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
+ 			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index cb943d0ae..c8f7851cf 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -81,6 +81,13 @@ ever appeared — no error, no clue why.
+ 
+ - Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): usage, design and mechanics in full.
+ 
++## One session across tabs, and settings per device
++
++- **Join, don't start.** A page or tab with no session of its own joins the latest voice session if that had a line in the last **30 minutes** (`JOIN_IDLE_MS` in [chat.js](chat.js)). Only a longer idle gap, or the New session button, starts a fresh one. So a link opened in a new tab, or the Recite page, joins the conversation in use.
++- **Read-aloud follows the session on every page:** the ✦ Sheet starts [Recite](/framework/audio/Recite/) and follows the page's session, or, with none, the voice session used in the last 2 hours ([ext/drawer/Sheet.js](../../ext/drawer/Sheet.js) `read_aloud()`).
++- **The mic does not restart by itself after a reload.** The browser grants the mic without a tap once allowed, but it keeps a new `AudioContext` suspended until the page gets a tap (Chrome's autoplay rule), and the mic's capture and level meter run on one. So the first tap after a reload starts it.
++- **⬜ Settings are per device today.** The gear's settings (send delay, wake, voice, speed) live in this browser's `localStorage`, so a phone and a desktop differ. The owner wants one set that applies everywhere (2026-11-01): a settings record in Servex, read at load, with the browser's copy as a cache.
++
+ ## Also here (readme audit, 2026-10-13)
+ - [playground](./playground/) — The dictation playground — a full-bleed, live diagram of a dictation session
+ - [surfaces](./surfaces/) — every voice and chat surface on one page

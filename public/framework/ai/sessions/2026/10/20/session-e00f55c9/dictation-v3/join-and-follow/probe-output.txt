@@ -1,0 +1,5 @@
+Headless, worktree server, Android viewport, 2026-11-02 00:2x UTC:
+links [["/framework/ai/#x",null],["/framework/",null],["https://example.com/","_blank"],["/web/",null]]   (site links: same tab, key dropped; external: new tab)
+bar in sheet [836,29]   (placed and visible at the foot of the open sheet)
+Whisper log (worktree): "sheet: bar" placed:true; "loaded"; "unlocked by a tap"
+Not provable headless: joining v-u48msei (the worktree host lists no sessions for this project) and the real phone; read the session file's "recite: sheet follows" line after the owner's next reload.
