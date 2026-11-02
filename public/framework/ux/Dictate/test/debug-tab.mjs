@@ -138,7 +138,7 @@ const wait_for = async (page, fn, ms) => { const t = Date.now(); while (Date.now
 	await page.waitForTimeout(1500);
 	await page.click(".drawer-ai-page-view[href$='/ai/debug/']");
 	await page.waitForSelector(".drawer-ai-page-body .dictate-debug", { timeout: 15000 });
-	await page.waitForTimeout(1200);
+	await wait_for(page, async () => (await layers(page)).includes("llm=ok"), 15000);   // the stub answer rides the 1.5 s file poll, so the light turns after the view opens (the phone case waits the same way)
 	const live = await layers(page);
 	console.log("  1920:", new URL(page.url()).pathname, live.join(" "));
 	check(live.length === 8 && live.every(l => l.endsWith("=ok")), "the Debug view shows the eight lights at 1920, all green: " + live.join(" "));
