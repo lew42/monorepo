@@ -11,7 +11,7 @@
 - `reset`/`epoch` and the gap check (recovery after a file is rewritten);
 - merging keystrokes while typing.
 
-The design: [design/phase-1.md](/framework/research/2026/10/29/persistence-sync/design/phase-1.md). The owner's open calls are in `ai/sessions/2026/10/31/session-e3fd9043/item-mvp/plan.md`; read them, and don't decide the ones marked as the owner's.
+The design: [design/phase-1.md](/framework/research/2026/10/29/persistence-sync/design/phase-1.md). The owner's open calls are in [item-mvp/plan.md](/framework/ai/sessions/2026/10/31/session-e3fd9043/item-mvp/plan.md); read them, and don't decide the ones marked as the owner's.
 
 ## Do (worktree; one merge per item; a failing test first for each)
 1. **`unset`:** remove a key, replayed exactly. Test it with snapshot plus tail.

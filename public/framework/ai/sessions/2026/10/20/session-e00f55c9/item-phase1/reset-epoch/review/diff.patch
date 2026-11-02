@@ -1,0 +1,472 @@
+diff --git a/Server/plugins/SocketServer/Tail.js b/Server/plugins/SocketServer/Tail.js
+index c60c436dc..bfc2936aa 100644
+--- a/Server/plugins/SocketServer/Tail.js
++++ b/Server/plugins/SocketServer/Tail.js
+@@ -2,10 +2,12 @@ import fs from "fs";
+ import path from "path";
+ 
+ const PUBLIC = path.resolve("public");
+-/* abs file -> Map<socket, offset | null>: ONE OFFSET PER SOCKET. A single offset per file, shared by every socket, lost
+- * lines: socket A subscribed, a line was appended, socket B subscribed from 0 before the watcher fired and moved the
+- * shared offset to the end, so the change event found nothing new and A never got the line (seat e, race.mjs;
+- * Tail.test.mjs). `null`: a reset went out to that socket, and it streams again only after it subscribes again. */
++/* abs file -> Map<socket, {offset, proof} | null>: ONE OFFSET PER SOCKET. A single offset per file, shared by every
++ * socket, lost lines: socket A subscribed, a line was appended, socket B subscribed from 0 before the watcher fired
++ * and moved the shared offset to the end, so the change event found nothing new and A never got the line (seat e,
++ * race.mjs; Tail.test.mjs). `null`: a reset went out to that socket, and it streams again only after it subscribes
++ * again. `proof` (R4, doc/reset.md): the bytes just before `offset`, so a later `changed()` can tell a REWRITE
++ * (the file at that same offset no longer holds what this socket already saw) from an ordinary append. */
+ const subs = new Map();
+ 
+ /* ⚠ Browser input reaches fs.read here: a subscribed path must resolve under
+@@ -77,6 +79,44 @@ function read(file, from){
+  * past its own offset (ext/JSONL/live.js); before, it applied the whole batch again. */
+ const send = (socket, file, chunk, from) => socket.rpc("jsonl", url_path(file), chunk.lines, chunk.offset, from, chunk.ends);
+ 
++/* R4 (doc/reset.md), the gap check: `at` always lands just past a `\n` when nothing has rewritten the file —
++ * `read()`'s own offsets only ever stop there. A byte read here that is anything else means the file no longer has
++ * the same lines up to `at` that it did when this cursor was trusted (a shorter replacement, a longer one, a
++ * rename-over): proof enough on its own, with no stored history needed. `at === 0` is always a boundary (nothing
++ * has been read yet). Node only (dev server). */
++function at_boundary(file, at){
++    if (at <= 0) return true;
++    const byte = Buffer.alloc(1);
++    const fd = fs.openSync(file, "r");
++    try { fs.readSync(fd, byte, 0, 1, at - 1); } finally { fs.closeSync(fd); }
++    return byte[0] === 10;
++}
++
++/* The up-to-256 bytes just before `at`, read fresh from disk — never kept as a growing history, just the one
++ * window a cursor needs to prove the file hasn't changed under it. `at <= 0`: nothing to prove yet. */
++function proof_at(file, at, want = 256){
++    if (at <= 0) return Buffer.alloc(0);
++    const take = Math.min(want, at);
++    const buf = Buffer.alloc(take);
++    const fd = fs.openSync(file, "r");
++    try { fs.readSync(fd, buf, 0, take, at - take); } finally { fs.closeSync(fd); }
++    return buf;
++}
++
++/* True when the file no longer matches what a reader at `from` (with `proof`, its last known window, or `null` the
++ * first time a cursor is trusted — a fresh subscribe has nothing to compare against yet) already saw: the gap
++ * check, then — only when a proof is on hand — the window itself, which catches a same-length replacement the gap
++ * check alone would miss (an early line's text changed, line COUNT and every boundary after it unchanged — exactly
++ * what `Runtime.safe_write` rewriting a url inside an already-read line looks like, doc/reset.md "What is not
++ * caught"). A file now shorter than `from` is left to the existing `read()` → null → reset path, unchanged. */
++function rewritten(file, from, proof){
++    let size;
++    try { size = fs.statSync(file).size; } catch { return false; }
++    if (size < from) return false;
++    if (!at_boundary(file, from)) return true;
++    return !!proof && !proof_at(file, from).equals(proof);
++}
++
+ /* Streams appended `.jsonl` lines to the sockets that asked for them, so a log
+  * grows in the browser without a reload. Dev server only; see
+  * public/framework/dev/Socket/doc/wire.md. */
+@@ -91,13 +131,14 @@ export default class Tail {
+         const sockets = subs.get(abs);
+         if (!sockets?.size) return;
+ 
+-        const chunks = new Map();   // offset -> chunk: sockets at the same offset share one read
+-        for (const [socket, from] of sockets){
+-            if (from === null) continue;   // a reset already went out to this socket
+-            if (!chunks.has(from)) chunks.set(from, read(abs, from));
++        const chunks = new Map();   // offset -> chunk | "reset": sockets at the same offset share one read (and one rewrite check)
++        for (const [socket, entry] of sockets){
++            if (entry === null) continue;   // a reset already went out to this socket
++            const { offset: from, proof } = entry;
++            if (!chunks.has(from)) chunks.set(from, rewritten(abs, from, proof) ? "reset" : read(abs, from));
+             const chunk = chunks.get(from);
+-            if (!chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
+-            sockets.set(socket, chunk.offset);
++            if (chunk === "reset" || !chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
++            sockets.set(socket, { offset: chunk.offset, proof: proof_at(abs, chunk.offset) });
+             if (chunk.lines.length) send(socket, abs, chunk, from);
+         }
+     }
+@@ -122,10 +163,14 @@ export default class Tail {
+          * and streams when it appears. Answering `jsonl_reset` here ping-pongs with
+          * a client that re-subscribes on reset. */
+         const start = Number(from) || 0;
+-        const chunk = fs.existsSync(file) ? read(file, start) : { lines: [], ends: [], offset: 0 };
++        const exists = fs.existsSync(file);
++        // A resuming cursor (a reconnect handing back its old offset) gets the one check it can afford with no
++        // history on hand yet — the gap check (R4): the file may have been rewritten while this socket was away.
++        if (exists && start > 0 && !at_boundary(file, start)){ sockets.set(this.socket, null); return this.socket.rpc("jsonl_reset", url_path(file)); }
++        const chunk = exists ? read(file, start) : { lines: [], ends: [], offset: 0 };
+         if (!chunk){ sockets.set(this.socket, null); return this.socket.rpc("jsonl_reset", url_path(file)); }
+ 
+-        sockets.set(this.socket, chunk.offset);
++        sockets.set(this.socket, { offset: chunk.offset, proof: proof_at(file, chunk.offset) });
+         send(this.socket, file, chunk, start);
+     }
+ 
+diff --git a/Server/plugins/SocketServer/Tail.rewrite.test.mjs b/Server/plugins/SocketServer/Tail.rewrite.test.mjs
+new file mode 100644
+index 000000000..2d253de2d
+--- /dev/null
++++ b/Server/plugins/SocketServer/Tail.rewrite.test.mjs
+@@ -0,0 +1,101 @@
++// Tail: a reader whose cursor points into a REWRITTEN log is told to reset, never sent a torn fragment or lines
++// it already has (research/.../lessons/sync-protocol.md, R4). Four ways a log changes under a reader:
++//   A. shorter — the file is simply cut back below the reader's offset
++//   B. same size — an early line's text changes in place (Runtime.safe_write fixing a url), nothing appended
++//   C. longer (compaction) — clear() truncates to empty, then a bigger edit lands before the watcher fires
++//   D. longer (migration) — Server/page-files-migrate.mjs's own shape: another folder's lines prepended
++//   + a rename-over (fs.renameSync replacing the file, what Runtime.safe_write itself does under the hood)
++// Run from anywhere: `node Server/plugins/SocketServer/Tail.rewrite.test.mjs`
++import fs from "node:fs";
++import path from "node:path";
++import { register } from "node:module";
++import { fileURLToPath } from "node:url";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
++process.chdir(ROOT);   // Tail.js resolves "public" from the cwd
++register("../../../Servex/agents/site-hooks.mjs", import.meta.url);
++globalThis.location = new URL("http://localhost/");
++
++const { default: Test } = await import("../../../public/framework/core/Test/Test.js");
++const { default: Tail } = await import("./Tail.js");
++const { default: Runtime } = await import("./Runtime.js");
++
++const t = new Test("Server/SocketServer Tail: a rewritten log resets its reader, never a torn or repeated line");
++const REL = "framework/core/Item/.tail-rewrite-test-" + process.pid;
++const DIR = path.join(ROOT, "public", REL);
++
++// A server-side socket that records what Tail sends it, same shape as Tail.test.mjs.
++const make_socket = url_path => {
++	const handlers = {}, got = [];
++	return { got, handlers, on: (name, fn) => { handlers[name] = fn; }, rpc: (method, ...args) => got.push({ method, args }), sub(from = 0){ handlers["rpc:subscribe"]([url_path, from]); } };
++};
++const resets = s => s.got.filter(f => f.method === "jsonl_reset").length;
++const frames = s => s.got.filter(f => f.method === "jsonl").length;
++const last_lines = s => { const f = s.got.filter(f => f.method === "jsonl").at(-1); return f ? f.args[1].map(l => JSON.parse(l)) : null; };
++
++fs.mkdirSync(DIR, { recursive: true });
++try {
++	// A. shorter: the reader's cursor ends up past the end of the (now cut back) file.
++	{
++		const FILE = path.join(DIR, "a.jsonl"), URL_PATH = "/" + REL + "/a.jsonl";
++		fs.writeFileSync(FILE, `{"n":1}\n{"n":2}\n{"n":3}\n`);
++		const s = make_socket(URL_PATH); Tail.setup(s); s.sub(0);
++		t.eq(resets(s), 0, "A: the first subscribe just reads the 3 lines");
++
++		fs.writeFileSync(FILE, `{"n":1}\n`);   // cut back below the reader's offset
++		Tail.changed(FILE);
++		t.eq(resets(s), 1, "A (shorter): the reader is reset, not left pointing past the end of the file");
++	}
++
++	// B. same size: an early (already-read) line's text changes in place — the gap check alone cannot see this
++	// (every line boundary after it is untouched), so this is the one case only the byte-window proof catches.
++	{
++		const FILE = path.join(DIR, "b.jsonl"), URL_PATH = "/" + REL + "/b.jsonl";
++		fs.writeFileSync(FILE, `{"url":"/old/path"}\n{"n":2}\n`);
++		const s = make_socket(URL_PATH); Tail.setup(s); s.sub(0);
++		t.eq(last_lines(s).length, 2, "B: the first subscribe reads both lines");
++
++		// Runtime.safe_write's own shape: a tmp file, then a rename over the original — "/old/path" -> "/new/path"
++		// is the same length, so the file's total size, and every line boundary, is unchanged.
++		Runtime.safe_write(FILE, `{"url":"/new/path"}\n{"n":2}\n{"n":3}\n`);
++		Tail.changed(FILE);
++		t.eq(resets(s), 1, "B (same size, rename-over): a same-length rewrite of an already-read line is still caught");
++		s.sub(0);
++		t.eq(last_lines(s), [{ url: "/new/path" }, { n: 2 }, { n: 3 }], "B: the resubscribe reads the corrected lines once each, nothing twice");
++	}
++
++	// C. longer, compaction racing an edit (R4 case A): clear() truncates to empty, then a bigger line lands
++	// before the watcher runs — never a torn fragment of whatever was read in between.
++	{
++		const FILE = path.join(DIR, "c.jsonl"), URL_PATH = "/" + REL + "/c.jsonl";
++		fs.writeFileSync(FILE, `{"n":1}\n{"n":2}\n{"n":3}\n`);
++		const s = make_socket(URL_PATH); Tail.setup(s); s.sub(0);
++
++		const before = frames(s);
++		fs.writeFileSync(FILE, "");
++		fs.appendFileSync(FILE, `{"n":99,"longer":"a line nothing like what used to be at this same byte range"}\n`);
++		Tail.changed(FILE);
++		t.eq(resets(s), 1, "C (longer, compaction): the reader is reset, never handed a torn fragment");
++		t.eq(frames(s), before, "C: the reset carries no lines of its own (no new jsonl frame until the resubscribe)");
++		s.sub(0);
++		t.eq(last_lines(s), [{ n: 99, longer: "a line nothing like what used to be at this same byte range" }], "C: the resubscribe reads exactly the new content, once");
++	}
++
++	// D. longer, a migration merges another folder's lines in front (R4 case B, page-files-migrate.mjs's own
++	// shape: "old lines + newer" — here, the OTHER folder's line is the one that lands in front).
++	{
++		const FILE = path.join(DIR, "d.jsonl"), URL_PATH = "/" + REL + "/d.jsonl";
++		fs.writeFileSync(FILE, `{"o":1}\n`);
++		const s = make_socket(URL_PATH); Tail.setup(s); s.sub(0);
++		const already_read = fs.readFileSync(FILE, "utf8");
++
++		fs.writeFileSync(FILE, `{"moved":"from another folder"}\n` + already_read + `{"o":2}\n{"o":3}\n`);
++		Tail.changed(FILE);
++		t.eq(resets(s), 1, "D (longer, migration): a folder merge that inserts lines in FRONT resets the reader, not a torn fragment of what moved in front of it");
++		s.sub(0);
++		t.eq(last_lines(s), [{ moved: "from another folder" }, { o: 1 }, { o: 2 }, { o: 3 }], "D: the resubscribe reads every line once, in file order");
++	}
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++t.done();
++process.exit(process.exitCode ?? 0);
+diff --git a/public/framework/core/Item/Store.js b/public/framework/core/Item/Store.js
+index 01cb54e30..214f656c8 100644
+--- a/public/framework/core/Item/Store.js
++++ b/public/framework/core/Item/Store.js
+@@ -193,16 +193,26 @@ export class Store {
+ 	// Echo skip: an entry that is — character for character — a line THIS store sent
+ 	// and has not yet seen come back is dropped instead of replayed a second time;
+ 	// that is how a writer that also tails its own file ignores its own echo.
++	//
++	// RESET RECOVERY (doc/reset.md): `reset()` below set `this.skip`, a one-shot copy of every line this store has
++	// ever applied (`this.applied`, by cheap hash — never the lines themselves). The server answers a reset with
++	// the WHOLE file in one frame (Tail.js's own `subscribe()`), so this one call either is or isn't a recovery
++	// read; `recovering` is latched before the loop so the flag survives `consume()` spending `this.skip` down to
++	// nothing partway through. A line `consume()` does not recognise — because it is genuinely new, or because a
++	// rewrite changed its text (its hash no longer matches what was applied before) — is replayed as normal.
+ 	read(entries){
+-		const replayed = [];
++		const replayed = [], recovering = !!this.skip;
+ 		for (const entry of entries){
+-			if (this.skip_echo(entry)){ this.count++; continue; }
++			if (this.frozen || this.consume(entry)){ this.count++; continue; }
++
++			if (this.skip_echo(entry)){ this.remember(entry); this.count++; continue; }
+ 
+ 			if (this.host){
+ 				this.replaying = true;
+ 				Store.replay_depth++;
+ 				try { this.host.replay_line(entry); } finally { Store.replay_depth--; this.replaying = false; }
+ 				replayed.push(entry);
++				this.remember(entry);
+ 			} else {
+ 				this.entries.push(entry);
+ 			}
+@@ -211,9 +221,44 @@ export class Store {
+ 		// One "read" event on the host per batch it replayed: a replay may change it without a "delta" (Task.replay_line puts
+ 		// its fields), so a view or a Ref that must redraw on a live line listens for this (core/Item/Ref.js).
+ 		if (replayed.length) this.host.emit?.("read", replayed);
++		// The recovery read is always exactly one call (the server's reset answer is the whole file, one frame):
++		// done, whether or not every line in `skip` turned up again (a compaction can drop lines for good).
++		if (recovering){ this.skip = null; this.host?.emit?.("reset"); }
+ 		return this;
+ 	}
+ 
++	// A cheap fingerprint of a line's exact text — never the text itself kept around (`this.applied` must stay
++	// small even for a 7 MB log): a 32-bit FNV-1a hash of `JSON.stringify(entry)`. Parsing the same bytes always
++	// gives back the same key order, so the SAME line hashes the same every time; a rewrite that changes a line's
++	// text (a url Runtime.safe_write corrected) hashes differently, so reset recovery below treats it as new.
++	static hash_line(entry){
++		const text = JSON.stringify(entry);
++		let h = 0x811c9dc5;
++		for (let i = 0; i < text.length; i++){ h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193); }
++		return h >>> 0;
++	}
++
++	// Every line this store has actually applied (replayed, or skipped as its own echo — which already happened
++	// once, optimistically, when it was sent): a hash -> how many times seen. Grows for the store's whole life;
++	// never the lines themselves, only their hashes (doc/reset.md "What this costs").
++	remember(entry){
++		const applied = this.applied ??= new Map();
++		const h = Store.hash_line(entry);
++		applied.set(h, (applied.get(h) ?? 0) + 1);
++	}
++
++	// True (and spends one) when `entry` is a line reset recovery already has credit for in `this.skip` — so the
++	// fresh read from byte 0 a `jsonl_reset` forces does not replay it a second time. Only live between `reset()`
++	// and the one read() call that follows it.
++	consume(entry){
++		if (!this.skip?.size) return false;
++		const h = Store.hash_line(entry);
++		const left = this.skip.get(h);
++		if (!left) return false;
++		left > 1 ? this.skip.set(h, left - 1) : this.skip.delete(h);
++		return true;
++	}
++
+ 	skip_echo(entry){
+ 		const { by, ts, ...bare } = entry;   // the item tool stamps `by`/`ts` on the way to disk, so an echo is compared without them
+ 		const str = JSON.stringify(bare);
+@@ -342,7 +387,31 @@ export class Store {
+ 	// redraws the folder listing and the tab strip; `reset()` forgets what was read
+ 	// so a REWRITTEN (not appended) file replays clean from line 1.
+ 	changed(){}
+-	reset(){ this.count = 0; return this; }
++
++	/* `live.js`'s `jsonl_reset` handler calls this, then re-subscribes from byte 0: the server (Tail.js, R4) has
++	   told this reader its cursor no longer matches the file. Two cases (doc/reset.md):
++	     - the ordinary host: `this.skip` becomes a spendable copy of `this.applied` (every line ever applied, by
++	       hash), so the read() that follows applies only what `skip` has no credit for (a genuinely new line, or
++	       one whose text changed) — never replaying the rest a second time.
++	     - a host built from a snapshot (`this.snapshot`): `applied` only covers lines seen AFTER the snapshot, so
++	       `skip` could not tell "already in the snapshot" from "genuinely new" and a naive replay would duplicate
++	       everything the snapshot already folded in. Decided: keep the live state as it is and warn, rather than
++	       risk silently doubling it — `this.frozen` makes the next read() a no-op (above), until a full page
++	       reload rebuilds this store from scratch. The alternative (rebuild a fresh instance by a full replay from
++	       line 1, then `host.restore()` its shape onto the live object) is written down, not built: doc/reset.md. */
++	reset(){
++		this.count = 0;
++		if (this.snapshot){
++			if (!Store.warned_snapshot_reset){
++				Store.warned_snapshot_reset = true;
++				console.warn(`Item.Store: ${this.url} started from a snapshot and its log was rewritten — it cannot tell which lines the snapshot already holds, so it stops applying live lines until the page reloads.`);
++			}
++			this.frozen = true;
++			return this;
++		}
++		this.skip = new Map(this.applied);
++		return this;
++	}
+ }
+ 
+ /* A cross-list move's `from`: the list the member left, as a DOTTED path from the host,
+diff --git a/public/framework/core/Item/doc/reset.md b/public/framework/core/Item/doc/reset.md
+new file mode 100644
+index 000000000..8139746f2
+--- /dev/null
++++ b/public/framework/core/Item/doc/reset.md
+@@ -0,0 +1,42 @@
++# Reset: recovering when the log was rewritten under a reader (R4)
++
++**The problem.** A reader's cursor is a byte offset into a `.jsonl` file. `Server/SessionConsolidate.mjs` rewrites a url inside an already-read line and appends more; `Server/page-files-migrate.mjs` merges another folder's lines in front of a live file's own; `Runtime.safe_write` (write tmp, fsync, rename) replaces the whole file atomically for both. Before this, `Server/plugins/SocketServer/Tail.js` only noticed a rewrite that made the file **shorter** than a reader's offset. A same-size or longer rewrite looked exactly like an ordinary append, so the reader was sent bytes from the middle of the OLD content: a torn line, lines it already had, or neither of the lines it was missing. Research: `research/2026/10/29/persistence-sync/lessons/sync-protocol.md`, R4.
++
++Two independent fixes, one on each side of the wire:
++
++## 1. The server proves a cursor before trusting it (`Tail.js`)
++
++Every socket's offset now carries **proof**: the up-to-256 bytes of the file just before that offset, read fresh each time (never kept as a growing history — `Tail.js`'s `proof_at()`). Before answering a `change` event (or a resubscribe with a non-zero offset), `rewritten(file, from, proof)` runs two checks:
++
++1. **The gap check.** The byte right before `from` must still be `\n` — every offset `read()` hands out lands just past one, so anything else (the file shorter, longer with different content, a rename-over with a different shape) proves the file no longer has the same lines up to `from`.
++2. **The window.** Only when the gap check passes: are the 256 bytes just before `from` still exactly what this socket saw last time? This is the one check that catches a **same-length replacement** — `Runtime.safe_write` correcting a url inside an already-read line, where the line count and every boundary after it are untouched, so the gap check alone sees nothing wrong.
++
++Either check failing sends `jsonl_reset` instead of a frame of lines. `subscribe()` with a resumed offset (a reconnect handing back its old cursor) only has the gap check available — there is no stored proof yet for a cursor nobody has read through this process before.
++
++**What this does not catch.** The window is only the 256 bytes right before the cursor. A same-length rewrite of an EARLY line, more than 256 bytes before a reader's current position, leaves no trace there and is missed until that reader's own cursor passes through the changed bytes (it won't, since the length is the same) — in practice, until the next full reconnect re-reads from an earlier offset, or forever if the reader never goes back. Catching every such case would mean a proof covering the WHOLE file (or a sidecar `epoch` line a rewriter bumps — the "better" alternative sync-protocol.md R4 names, not built: it needs every rewriter, not just `Runtime.safe_write`, to remember to bump it, where the 256-byte window needs nothing from any caller). Accepted for now: this is strictly rarer than the already-rare case this entire fix targets (two writers, or a rewrite, racing one `change` event), and it still exceeds today's behaviour, which caught no same-length rewrite anywhere in the file.
++
++Test: `Server/plugins/SocketServer/Tail.rewrite.test.mjs` — shorter, same-size (the one that needs the window, not just the gap check), longer two ways (a compaction racing an edit; a migration merging another folder's lines in front), and a rename-over.
++
++## 2. The reader applies only what it has not already applied (`Store.js`)
++
++`live.js`'s `jsonl_reset` handler (unchanged) sets the reader's offset back to 0 and resubscribes — the server then answers with the **whole current file in one frame**, the same as any fresh subscribe. Before this, `Store.reset()` only cleared `count`, so that full replay ran every line again on top of a host that already had most of them: a Task's verb ran twice, a counter double-counted.
++
++- **`this.applied`** (a `Map<hash, count>`) is a running multiset of every line this store has actually applied — replayed, or skipped as its own echo (which already happened once, optimistically, at write time). It is keyed by `Store.hash_line(entry)`, a 32-bit FNV-1a hash of `JSON.stringify(entry)` — never the lines' own text, so a long-lived store's memory for this stays small (a few bytes per line) even for a multi-megabyte log.
++- **`reset()`** takes a spendable copy, `this.skip = new Map(this.applied)`.
++- **`read()`** checks `this.skip` first, per entry (`consume()`): a match spends one credit and the line is **not** replayed — it is already in the host. A line `skip` has no credit left for — because it is genuinely new, or because a rewrite changed its text (its hash no longer matches anything `applied` ever held) — runs as normal. Because the server always answers a reset with the whole file in one call, the recovery is always exactly one `read()` call: `skip` is cleared at the end of that call regardless of whether every credit was spent (a compaction can drop a line for good — nothing left to match it against, and there is nothing left to apply for it either). The host then gets one `"reset"` event, so a view can redraw.
++- **Why a multiset, not a set.** Two textually identical lines (two bare `{"increment()":{}}` calls) hash the same; a set would only remember "seen", so the second (real) occurrence would be skipped as if it were a duplicate of the first. The count lets `consume()` tell "the Nth time we saw this exact line" apart from "the N+1th" — in file order, matching how the lines actually arrived. Test: `reset.test.mjs`'s three identical `increment()` lines (two already applied before the rewrite, a third genuinely new).
++
++**Why re-applying a text-changed line is safe for what `SessionConsolidate` rewrites.** It only ever rewrites a url string inside a `{"set":{...}}`-shaped line or inside a `task`/`file` line that names its target by id. Both are **idempotent on replay**: a `set` just assigns the (now-corrected) value again, and a line that resolves "the item with this id" finds the same item whether its url field says the old folder or the new one. **What would not be safe:** a verb with no stable target to re-resolve against — an open-ended `move` (if its rewrite ever changed which list it names) or a text append (running it again would append twice) — but nothing in this codebase rewrites a `move` or an append line's content today; if one ever does, it needs its own idempotent replay, the same way `set` and the item-tool's id-based lines already have it.
++
++**A store opened from a snapshot (`Store.use_snapshot`).** `this.applied` only ever records lines this store itself read — which, for a snapshot-started store, is just the lines *after* the snapshot's cutoff. It has no record of what the snapshot folded in, so `skip` cannot tell "already in the snapshot" from "genuinely new", and a naive recovery read would duplicate everything the snapshot already holds onto the live host. Two ways to handle it:
++
++- **Built: keep the live state and warn (`this.frozen`).** `reset()` checks `this.snapshot`; if set, it warns once and sets `this.frozen`, and `read()` becomes a no-op for that store from then on (every entry is skipped, `count` still advances). The live object stops updating until the page reloads and the store is rebuilt from scratch — safe, if stale for however long the tab stays open.
++- **Not built: rebuild by full replay, then `restore()`.** Build a brand-new, empty instance of the host's class, replay **every** line of the rewritten file onto it from scratch (ignoring the snapshot, since there is no way to tell if it is still valid), then call the *existing* live host's `restore(fresh.toJSON(), …)` — the same method a snapshot itself uses to seed a host — so the live object's identity (and every reference to it) survives while its contents are replaced wholesale. Not built: it costs a full replay (the exact cost snapshots exist to avoid) every time a snapshot-started store sees a rewrite, and needs checking that `restore()` onto an already-populated host behaves the same as onto a fresh one (today it is only ever called on a fresh instance: `Item.from_snapshot`, `Item.open`). Worth building if a snapshot-started store seeing a live rewrite turns out to be common; today it is rarer still than the rewrite case itself.
++
++**What this costs.** `this.applied` grows for the life of the store — one Map entry (a number key, a number value) per line ever applied, never freed. For a store that stays open for a very long session with a very large log, this is the one unbounded structure the fix adds; not addressed here, since it is strictly smaller than the log itself and no store observed in testing approaches a size where it matters.
++
++Test: `public/framework/core/Item/reset.test.mjs` — opens a real `Item` (with a `List` and a non-idempotent `as_call` verb) from lines, applies a live line, rewrites the file the `SessionConsolidate` way (an early line's text corrected in place, same length, more lines appended), resets, and checks the result against a fresh replay of the new file: the rewritten field's new value lands, the `List` add is not duplicated, and every verb ran exactly once — the lines already applied are skipped, only the genuinely new one runs.
++
++## What was not built
++
++**`epoch`** (brief step 3): a sidecar or counter a rewriter bumps, which `Tail.js` could check instead of (or alongside) the byte-window proof. Skipped: the gap check plus the 256-byte window already catches every case this task's tests ask for (shorter, same-size, both "longer" shapes, and a rename-over), and an `epoch` would need every future rewriter to remember to bump it, where the window needs nothing from any caller. Worth building if a rewrite more than 256 bytes before a reader's cursor, at exactly the old length, turns out to happen in practice (see "What this does not catch" above).
+diff --git a/public/framework/core/Item/readme.md b/public/framework/core/Item/readme.md
+index 831d847f1..fe587be9c 100644
+--- a/public/framework/core/Item/readme.md
++++ b/public/framework/core/Item/readme.md
+@@ -164,3 +164,4 @@ A testing system is a need, not now (2026-10-20). Tests today are plain node fil
+ - [doc/one-stream.md](./doc/one-stream.md) — one stream for the UI, node and agents: a file's appends advance its live instance, and subscribers hear item changes (a design, not built).
+ - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — adopt-or-ref ownership, first delta at adopt time, snapshots as compaction (decided or leaning; snapshots are built, see above; also what works today and the gap).
+ - [doc/transport.md](./doc/transport.md) — how a line travels: out, ack, in, catch-up. Every `.jsonl` line goes over the dev socket, numbered and kept until acked (a write the disk refused for now is kept and sent again), also in `localStorage` across a reload (`Store.open()` loads the outbox so a reloaded page sends it), with a ping that finds a dead socket (`Outbox.js`, `store.pending`); a record file's lines go to Servex `/api/item` first, so its hooks run, and use the socket as the fallback (`Item.Store.channel`). Tests: `transport.test.mjs`, `Outbox.test.mjs`, `transport.browser.mjs`.
++- [doc/reset.md](./doc/reset.md) — R4: a reader whose log was rewritten under it (`Runtime.safe_write`, `SessionConsolidate`, a migration merging another folder's lines in) gets `jsonl_reset`, never a torn or repeated line (`Tail.js`'s gap check plus a 256-byte window), and the Store that follows it applies only what it has not already applied (a cheap hash multiset), never a verb twice. What a snapshot-started store does instead (freeze and warn), and what was not built (`epoch`). Tests: `Server/plugins/SocketServer/Tail.rewrite.test.mjs`, `reset.test.mjs`.
+diff --git a/public/framework/core/Item/reset.test.mjs b/public/framework/core/Item/reset.test.mjs
+new file mode 100644
+index 000000000..78ed71ed5
+--- /dev/null
++++ b/public/framework/core/Item/reset.test.mjs
+@@ -0,0 +1,87 @@
++// Item.Store reset recovery (R4, doc/reset.md): `live.js`'s `jsonl_reset` handler re-reads the WHOLE file from
++// byte 0. The store must apply exactly what it has not already applied — no verb twice — and end up identical to
++// a fresh replay of the new file. Plain node: `node public/framework/core/Item/reset.test.mjs`
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import Test from "../Test/Test.js";
++import Item from "./Item.js";
++import List from "../List/List.js";
++import Store from "./Store.js";
++
++const t = new Test("core/Item/Store: reset recovery after a rewritten log");
++const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "reset-test-"));
++const FILE = path.join(DIR, "x.jsonl");
++
++// A tiny real Item subclass: a field (will be rewritten in place), a List (an "add" is idempotent on id, so it is
++// not the interesting case), and a non-idempotent verb (D14, as_call) — replaying "increment()" twice shows up at
++// once as a wrong final count, exactly what double-applying a verb looks like in the wild.
++class Counter extends Item {
++	static fields = ["note", "n"];
++	get things(){ return this._things ??= new List({ owner: this, name: "things" }); }
++	increment(){ return this.as_call("increment", [], () => { this.calls = (this.calls ?? 0) + 1; this.set({ n: (this.n ?? 0) + 1 }); }); }
++}
++Item.register(Counter);
++
++const parse = text => text.split("\n").filter(Boolean).map(l => JSON.parse(l));
++const line = obj => JSON.stringify(obj) + "\n";
++
++// A brand new host and store, fed the CURRENT file in one read — the independent "truth" the recovered host is
++// checked against.
++function fresh_replay(){
++	const host = new Counter({ id: "root" });
++	const store = new Store({ url: "/x.jsonl" });
++	store.attach(host);
++	store.read(parse(fs.readFileSync(FILE, "utf8")));
++	return host;
++}
++
++try {
++	// Opened from 3 lines: a field, a List add, one verb.
++	fs.writeFileSync(FILE,
++		line({ set: { note: "/old/path" } }) +
++		line({ things: { add: { id: "a1", title: "A" } } }) +
++		line({ "increment()": {} })
++	);
++
++	const host = new Counter({ id: "root" });
++	const store = new Store({ url: "/x.jsonl" });
++	store.attach(host);
++	store.read(parse(fs.readFileSync(FILE, "utf8")));
++	t.eq([host.note, host.n, host.calls, [...host.things].map(x => x.id)], ["/old/path", 1, 1, ["a1"]], "opened from 3 lines");
++
++	// A live line arrives over the socket (an ordinary append, not a reset): one more increment.
++	fs.appendFileSync(FILE, line({ "increment()": {} }));
++	store.read(parse(fs.readFileSync(FILE, "utf8")).slice(-1));
++	t.eq([host.n, host.calls], [2, 2], "a live append is applied once, on top");
++
++	// The SessionConsolidate-style rewrite: the early line's text corrected in place (same length — "/old/path"
++	// and "/new/path" are both 9 characters), the List add line unchanged, two more verb lines appended.
++	fs.writeFileSync(FILE,
++		line({ set: { note: "/new/path" } }) +
++		line({ things: { add: { id: "a1", title: "A" } } }) +
++		line({ "increment()": {} }) +
++		line({ "increment()": {} }) +
++		line({ "increment()": {} })
++	);
++
++	let resets = 0;
++	host.on("reset", () => resets++);
++	store.reset();
++	store.read(parse(fs.readFileSync(FILE, "utf8")));
++
++	t.eq(resets, 1, "reset() plus the recovery read that follows fire exactly one \"reset\" event on the host");
++	t.eq(host.note, "/new/path", "the rewritten line's new text is applied — its hash changed, so it reads as new");
++	t.eq([...host.things].map(x => x.id), ["a1"], "the add, re-seen, is not duplicated (idempotent on id, as it already was)");
++	// 2 increments were already applied (one at open, one as a live line) before the rewrite; the rewritten file
++	// carries 3 "increment()" lines, so the first 2 (already credited) are skipped and only the 3rd (genuinely
++	// new) runs — every verb exactly once, none twice.
++	t.eq(host.calls, 3, "every verb ran exactly once: the 2 increments already applied are skipped, the 3rd (genuinely new) runs");
++	t.eq(host.n, 3, "n agrees with calls — nothing was double-applied");
++
++	const replayed = fresh_replay();
++	t.eq([replayed.note, replayed.n, replayed.calls, [...replayed.things].map(x => x.id)], [host.note, host.n, host.calls, [...host.things].map(x => x.id)],
++		"the recovered host is identical to a fresh replay of the rewritten file");
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++
++t.done();
