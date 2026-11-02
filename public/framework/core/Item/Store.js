@@ -193,16 +193,26 @@ export class Store {
 	// Echo skip: an entry that is — character for character — a line THIS store sent
 	// and has not yet seen come back is dropped instead of replayed a second time;
 	// that is how a writer that also tails its own file ignores its own echo.
+	//
+	// RESET RECOVERY (doc/reset.md): `reset()` below set `this.skip`, a one-shot copy of every line this store has
+	// ever applied (`this.applied`, by cheap hash — never the lines themselves). The server answers a reset with
+	// the WHOLE file in one frame (Tail.js's own `subscribe()`), so this one call either is or isn't a recovery
+	// read; `recovering` is latched before the loop so the flag survives `consume()` spending `this.skip` down to
+	// nothing partway through. A line `consume()` does not recognise — because it is genuinely new, or because a
+	// rewrite changed its text (its hash no longer matches what was applied before) — is replayed as normal.
 	read(entries){
-		const replayed = [];
+		const replayed = [], recovering = !!this.skip;
 		for (const entry of entries){
-			if (this.skip_echo(entry)){ this.count++; continue; }
+			if (this.frozen || this.consume(entry)){ this.count++; continue; }
+
+			if (this.skip_echo(entry)){ this.remember(entry); this.count++; continue; }
 
 			if (this.host){
 				this.replaying = true;
 				Store.replay_depth++;
 				try { this.host.replay_line(entry); } finally { Store.replay_depth--; this.replaying = false; }
 				replayed.push(entry);
+				this.remember(entry);
 			} else {
 				this.entries.push(entry);
 			}
@@ -211,7 +221,42 @@ export class Store {
 		// One "read" event on the host per batch it replayed: a replay may change it without a "delta" (Task.replay_line puts
 		// its fields), so a view or a Ref that must redraw on a live line listens for this (core/Item/Ref.js).
 		if (replayed.length) this.host.emit?.("read", replayed);
+		// The recovery read is always exactly one call (the server's reset answer is the whole file, one frame):
+		// done, whether or not every line in `skip` turned up again (a compaction can drop lines for good).
+		if (recovering){ this.skip = null; this.host?.emit?.("reset"); }
 		return this;
+	}
+
+	// A cheap fingerprint of a line's exact text — never the text itself kept around (`this.applied` must stay
+	// small even for a 7 MB log): a 32-bit FNV-1a hash of `JSON.stringify(entry)`. Parsing the same bytes always
+	// gives back the same key order, so the SAME line hashes the same every time; a rewrite that changes a line's
+	// text (a url Runtime.safe_write corrected) hashes differently, so reset recovery below treats it as new.
+	static hash_line(entry){
+		const text = JSON.stringify(entry);
+		let h = 0x811c9dc5;
+		for (let i = 0; i < text.length; i++){ h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+		return h >>> 0;
+	}
+
+	// Every line this store has actually applied (replayed, or skipped as its own echo — which already happened
+	// once, optimistically, when it was sent): a hash -> how many times seen. Grows for the store's whole life;
+	// never the lines themselves, only their hashes (doc/reset.md "What this costs").
+	remember(entry){
+		const applied = this.applied ??= new Map();
+		const h = Store.hash_line(entry);
+		applied.set(h, (applied.get(h) ?? 0) + 1);
+	}
+
+	// True (and spends one) when `entry` is a line reset recovery already has credit for in `this.skip` — so the
+	// fresh read from byte 0 a `jsonl_reset` forces does not replay it a second time. Only live between `reset()`
+	// and the one read() call that follows it.
+	consume(entry){
+		if (!this.skip?.size) return false;
+		const h = Store.hash_line(entry);
+		const left = this.skip.get(h);
+		if (!left) return false;
+		left > 1 ? this.skip.set(h, left - 1) : this.skip.delete(h);
+		return true;
 	}
 
 	skip_echo(entry){
@@ -342,7 +387,31 @@ export class Store {
 	// redraws the folder listing and the tab strip; `reset()` forgets what was read
 	// so a REWRITTEN (not appended) file replays clean from line 1.
 	changed(){}
-	reset(){ this.count = 0; return this; }
+
+	/* `live.js`'s `jsonl_reset` handler calls this, then re-subscribes from byte 0: the server (Tail.js, R4) has
+	   told this reader its cursor no longer matches the file. Two cases (doc/reset.md):
+	     - the ordinary host: `this.skip` becomes a spendable copy of `this.applied` (every line ever applied, by
+	       hash), so the read() that follows applies only what `skip` has no credit for (a genuinely new line, or
+	       one whose text changed) — never replaying the rest a second time.
+	     - a host built from a snapshot (`this.snapshot`): `applied` only covers lines seen AFTER the snapshot, so
+	       `skip` could not tell "already in the snapshot" from "genuinely new" and a naive replay would duplicate
+	       everything the snapshot already folded in. Decided: keep the live state as it is and warn, rather than
+	       risk silently doubling it — `this.frozen` makes the next read() a no-op (above), until a full page
+	       reload rebuilds this store from scratch. The alternative (rebuild a fresh instance by a full replay from
+	       line 1, then `host.restore()` its shape onto the live object) is written down, not built: doc/reset.md. */
+	reset(){
+		this.count = 0;
+		if (this.snapshot){
+			if (!Store.warned_snapshot_reset){
+				Store.warned_snapshot_reset = true;
+				console.warn(`Item.Store: ${this.url} started from a snapshot and its log was rewritten — it cannot tell which lines the snapshot already holds, so it stops applying live lines until the page reloads.`);
+			}
+			this.frozen = true;
+			return this;
+		}
+		this.skip = new Map(this.applied);
+		return this;
+	}
 }
 
 /* A cross-list move's `from`: the list the member left, as a DOTTED path from the host,
