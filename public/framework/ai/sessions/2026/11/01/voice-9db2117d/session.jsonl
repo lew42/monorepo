@@ -7,3 +7,8 @@
 {"log":{"at":"2026-11-01T18:17:44-06:00","msg":"task-loop status ask 1: asked mastermind-voice-9db2117d","ask":1}}
 {"wait":{"at":"2026-11-01T18:17:55-06:00","on":"owner","what":"the next voice question (latency probe 1 answered)"}}
 {"log":{"at":"2026-11-01T18:28:11-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T00:28:11.240Z"}
+{"follow_up":{"n":1,"to":"mastermind-voice-9db2117d","at":"2026-11-01T20:22:12-06:00"}}
+{"log":{"at":"2026-11-01T20:22:15-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T02:22:15.336Z"}
+{"log":{"at":"2026-11-01T20:22:15-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T02:22:15.338Z"}
+{"log":{"at":"2026-11-01T20:22:15-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T02:22:15.649Z"}
+{"log":{"at":"2026-11-01T20:23:12-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T02:23:12.635Z"}
