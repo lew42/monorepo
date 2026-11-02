@@ -25,6 +25,7 @@
 // instead (`Array.isArray(node.items) && typeof node.find === "function"`), and
 // creates one through `Item.makeList`, a hook THIS file fills in below.
 import Item from "../Item/Item.js";
+import Ref from "../Item/Ref.js";
 
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
 
@@ -304,6 +305,20 @@ export class List extends Item {
 			...(json ? JSON.parse(JSON.stringify(child_lists)) : (made?.data ?? {})),
 		});
 		return made;
+	}
+
+	/* F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent"): `dest.ref(x)` LINKS an item some
+	   list already owns — a Ref, same file → {path}, another file → {url, path} — instead of re-parenting it the way
+	   `add(x)` still does (D13, 2026-11-02: switching `add()`'s own default is a later, separate merge, only once a census
+	   shows no caller relies on the move; see plan.md's decision 2). The real move stays one explicit call,
+	   `item.move_to(dest)` (Item.js), which leaves a `moved_to` forward behind for any Ref to follow. */
+	ref(x){
+		// A Ref needs an address: an unattached item has none, and another file's item needs that file's url.
+		if (!x?.parent) throw new Error("List.ref: the item must already belong to a list (an unattached item has no address)");
+		const dest_root = (this.owner ?? this).root(), src_root = x.root();
+		if (src_root !== dest_root && !src_root.store?.url) throw new Error("List.ref: the item lives in another tree with no store url, so a Ref could not find it");
+		const path = Item.Store.address(x, src_root);
+		return this.add(src_root === dest_root ? { type: "Ref", path } : { type: "Ref", url: src_root.store?.url, path });
 	}
 
 	// Quiet removal — the counterpart to insert()/replace(). `remove()` below is this

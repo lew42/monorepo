@@ -11,7 +11,7 @@ only when nothing needs an id, nothing saves, and nothing watches.
 class List extends Events(Object) {   // ✅ core/List/List.js — Events built in
   items: [any]                        // the array
   owner                               // the Item that holds it; a member's parent
-  add(x, {after}), remove(id), move(id, {after, before, from}), order([ids]), find(id)
+  add(x, {after}), ref(x), remove(id), move(id, {after, before, from}), order([ids]), find(id)
   insert(x, {after}), replace(old, x), release(id)   // the QUIET primitives — loading is not a change
   append(x), insert_before(x, ref), forEach(fn), map(fn), at(i), length
   set(delta)                          // routes a nested {"add": {...}} etc. — Item.set_one()'s recursion target
@@ -49,6 +49,7 @@ list.toJSON()       //  a bare array
 - **Old way (deprecated 2026-10-28):** `List#each(fn)` and `List#children` are the pre-rename aliases; use `forEach(fn)` and `items`. The mark is in `List.js`; `node Server/Deprecated.mjs` counts what still calls them.
 - A member is named in a line by its id, bare or as `#id`; `list.member(id)` is `find(id)` (an Item's `member` searches its lists), and `{"add()": …}` calls the verb by the D13 spelling: [core/Item/doc/line-format.md](../Item/doc/line-format.md).
 - **`add` writes an envelope** (fix 5, `/framework/research/2026/10/29/persistence-sync/design/fixes.md`): an Item member's own fields ride under `data`, and its child lists ride as their own top-level keys (`made.toJSON()`'s own shape) — never spread flat into the add payload, where a data field named `after` or `type` would collide with the list's own metadata and a child list would be lost silently.
+- **`list.ref(item)` links an item ANOTHER list already owns** (F7, built 2026-11-01, reworded 2026-11-02, chat-model step 2): makes a Ref to it — same file `{path}`, another file `{url, path}` — and `add()`s that. **`add()`'s own default is unchanged** (still a silent re-parent, exactly as on `michael/dev`): switching it is a separate, later, owner-approved merge, pending the census in [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md) decision 2 finding no caller relies on the move. A caller that means to MOVE an owned item must call `item.move_to(dest)`, never `add()` or `ref()`: [`../Item/doc/ref.md`](../Item/doc/ref.md#made-by-listref-and-chatresurface).
 - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
 - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
 
@@ -58,4 +59,4 @@ list.toJSON()       //  a bare array
 - [Overview](/framework/core/List/) · [`doc/adoption.md`](./doc/adoption.md) (why `owner` exists) · [`doc/decisions.md`](./doc/decisions.md) (the Array dissent, what was cut, who calls it)
 - [Live list](/framework/core/Item/live/) — a List, live, on a real page, saved to a real file.
 - Files that matter: `List.js` (the class — the array plus Events plus the four verbs), `List.examples.js` (the examples that are also the tests), `page.js` (live demo), `../Item/` (the default caller), `../Page/` (`pages`/`content`, named for what they hold).
-- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — `add` adopts an unowned item, writes a ref for an owned one; the chat is one stored list (decided or leaning; not built).
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — `add` adopts an unowned item; the explicit `ref()` writes a ref for an owned one (built 2026-11-01, chat-model step 2); the chat is one stored list (decided or leaning; not built).

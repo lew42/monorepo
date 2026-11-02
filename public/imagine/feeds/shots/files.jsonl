@@ -25,3 +25,6 @@
 {"file":"data.jpg"}
 {"file":"live.jpg"}
 {"file":"video.jpg"}
+{"file":"data.jpg","gone":true}
+{"file":"live.jpg","gone":true}
+{"file":"video.jpg","gone":true}

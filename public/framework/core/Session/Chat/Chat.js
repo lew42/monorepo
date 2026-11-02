@@ -6,12 +6,27 @@ import List from "../../List/List.js";
 import Message from "./Message.js";
 import "./Prompt.js";   // fills Message.TYPES.Prompt
 import "./Reply.js";    // fills Message.TYPES.Reply
+import "../../Item/Ref.js";   // registers "Ref" in Item.types, so a {type:"Ref"} message hydrates as the real core Ref (F7's doc)
 
 export class Chat extends List {
 	/** The messages, in order (the owner's word). */
 	get messages(){ return [...this.items]; }
 	/** The newest message, or undefined. */
 	get last(){ return this.items.at(-1); }
+
+	/* Resurface (the owner, 2026-11-01): a message read again belongs at the BOTTOM too, but the original must stay exactly
+	   where it was said — the log is never rewritten. So this adds a Ref to it at the bottom (`list.ref(x)`, List.js — never
+	   a move) and marks the original `resurfaced: <ref id>` so a view can dim it, or draw an arrow from the old line to the
+	   new one. Two lines (the Ref's `add`, the original's `set`), but ONE write: both calls are synchronous, with no
+	   `await` between them, so Store.append (core/Item/Store.js) queues both into the same microtask flush — the same one
+	   network write a crash could only fail wholly, never half (core/Item/doc/ref.md, "Made automatically"). */
+	resurface(message){
+		const msg = message instanceof Message ? message : this.find(message);
+		if (!msg) throw new Error("Chat.resurface: no such message");
+		const ref = this.ref(msg);
+		msg.set({ resurfaced: ref.id });
+		return ref;
+	}
 }
 // A plain member is built by Message.hydrate: its type through Message.TYPES ("Prompt" is ./Prompt.js here), an untyped one a Message.
 // On `of`, so replay (List.make) and a snapshot load (Item.hydrate's lists) build the same classes.

@@ -101,6 +101,47 @@ try {
 		t.eq(add_line?.notes?.[0]?.data?.text, "before", "add: a child-list member's data is a snapshot too — a same-tick set() on IT does not rewrite the add line either");
 	}
 
+	// F7 evidence (persistence-sync/design/fixes.md, "Adding an item that already has a parent") — plan.md decision 2,
+	// reworded 2026-11-02: `add()`'s own default is UNCHANGED (still re-parents, as michael/dev), so no existing caller
+	// breaks; `list.ref(x)` is the new, explicit way to LINK an item some other list already owns, same file -> {path},
+	// another file -> {url, path}. `item.move_to(dest)` stays the only real move.
+	{
+		const { default: RefClass } = await import("../Item/Ref.js");
+		const two = Item.hydrate({ id: "two-lists", kids: [{ id: "k1", title: "K1" }, { id: "k2", title: "K2" }], box: [] });
+		const k1 = two.kids.find("k1"), k2 = two.kids.find("k2");
+
+		t.eq(two.box.add(k1), k1, "add()'s own default is unchanged (F7 evidence, plan.md decision 2): adding an already-owned item still hands back the item itself, never a Ref");
+
+		const ref = two.box.ref(k2);   // a second, untouched item, so this case never crosses the add() case above
+		t.ok(ref instanceof RefClass, "ref(): links an item owned by ANOTHER list with a Ref, instead of moving it");
+		t.eq(ref.path, "kids.k2", "ref(): the Ref's path is the item's own dotted address");
+		t.eq(two.kids.find("k2"), k2, "ref(): the item itself never left its first list");
+		t.eq(two.box.length, 2, "ref(): the add() item and the Ref both landed in the second list");
+
+		const throws = fn => { try { fn(); return false; } catch { return true; } };
+		t.ok(throws(() => two.box.ref(new Item({ id: "loose" }))), "ref(): an unattached item throws (it has no address to point at)");
+		const other = Item.hydrate({ id: "no-store", kids: [{ id: "k9" }] });
+		t.ok(throws(() => two.box.ref(other.kids.find("k9"))), "ref(): an item in another tree with no store url throws");
+
+		const DIR3 = fs.mkdtempSync(path.join(os.tmpdir(), "list-test-f7-"));
+		try {
+			const rootA = Item.hydrate({ id: "a-root", kids: [{ id: "shared", title: "Shared" }] });
+			const storeA = new Store({ url: "/a/a.jsonl" });
+			storeA.append = line => fs.appendFileSync(path.join(DIR3, "a.jsonl"), JSON.stringify(line) + "\n");
+			storeA.attach(rootA);
+			const rootB = Item.hydrate({ id: "b-root", box: [] });
+			const storeB = new Store({ url: "/b/b.jsonl" });
+			storeB.append = line => fs.appendFileSync(path.join(DIR3, "b.jsonl"), JSON.stringify(line) + "\n");
+			storeB.attach(rootB);
+
+			const shared = rootA.kids.find("shared");
+			const fref = rootB.box.ref(shared);
+			t.ok(fref instanceof RefClass, "ref(): across files also makes a Ref");
+			t.eq([fref.url, fref.path], ["/a/a.jsonl", "kids.shared"], "ref(): the Ref names the other file's url and the item's path there");
+			t.eq(rootA.kids.find("shared"), shared, "ref(): and the item stayed in its own file");
+		} finally { fs.rmSync(DIR3, { recursive: true, force: true }); }
+	}
+
 	// render(): nothing until the browser wires List.View; then that view, given the list, open one level (build B's default view)
 	const { default: ListClass } = await import("./List.js");
 	t.eq(pair.kids.render(), undefined, "render() with no List.View draws nothing (node, or before the view is wired)");

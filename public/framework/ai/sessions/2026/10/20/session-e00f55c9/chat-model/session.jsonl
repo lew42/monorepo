@@ -57,3 +57,6 @@
 {"review":{"at":"2026-11-01T23:24:15-06:00","answer":{"n":6,"reply":"noted: the one-flush claim rests on Store.append's microtask batching; a write-count test is a candidate for step 3's replay test."}}}
 {"review":{"at":"2026-11-01T23:24:15-06:00","answer":{"n":7,"reply":"noted."}}}
 {"commit":"9cd0b781606e","by":"append.mjs","ts":"2026-11-02T05:24:16.031Z"}
+{"commit":"0b48d2fae5e2","by":"append.mjs","ts":"2026-11-02T05:24:23.388Z"}
+{"commit":"19e472ab1b39","by":"append.mjs","ts":"2026-11-02T05:24:23.855Z"}
+{"action":{"at":"2026-11-01T22:59:01-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s2/.lines-tmp.json"]},"by":"ledger","ts":"2026-11-02T04:59:01.253Z"}
