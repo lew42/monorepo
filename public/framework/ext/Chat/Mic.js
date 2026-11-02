@@ -410,7 +410,7 @@ export class ComposerMic extends Dictate {
 			SETTINGS.assistant = select.value || null;
 			save_settings();
 			live.textContent = "Saving…";
-			try { await this.push_wake(true); } catch (e){ console.warn("[dictate] assistant seat:", e); }
+			try { await this.push_wake(true, true); } catch (e){ console.warn("[dictate] assistant seat:", e); }
 			show();
 		});
 		panel.append(name, select, live);
@@ -443,12 +443,12 @@ export class ComposerMic extends Dictate {
 	}
 
 	// POST the saved batch knobs to the current voice session (null = back to Servex's default). `wake_session` is set by the widget.
-	async push_wake(force){
+	async push_wake(force, assistant_only){
 		const session = this.wake_session?.();
 		if (!session || !force && SETTINGS.wake_gap_s == null && SETTINGS.wake_every == null && SETTINGS.assistant === undefined) return;
 		const { servex_url } = await import("/framework/dev/servex_url.js");
 		const res = await fetch(servex_url("/api/session/settings"), { method: "POST", signal: AbortSignal.timeout(10000), headers: { "content-type": "application/json" },
-			body: JSON.stringify({ session, gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every, ...(SETTINGS.assistant === undefined ? {} : { assistant: SETTINGS.assistant }) }) });
+			body: JSON.stringify({ session, ...(assistant_only ? {} : { gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every }), ...(SETTINGS.assistant === undefined ? {} : { assistant: SETTINGS.assistant }) }) });
 		const out = await res.json().catch(() => ({ ok: false, error: "HTTP " + res.status }));
 		if (!out.ok) throw new Error("Servex refused session/settings: " + (out.error ?? res.status));
 		this.refresh_assistant?.();
