@@ -79,7 +79,9 @@ export default class Recite extends Part {
 	 *  silent on a real phone says why: reply heard, skipped and why, speak asked, play() refused. (dictation-v3, 2026-11-01) */
 	trace(kind, fields = {}){
 		if (typeof document === "undefined") return;
-		import("../Whisper/WhisperLog.js").then(m => m.default.event("recite", kind, { state: this.state, auto: this.auto, server: this.server, ...fields })).catch(() => {});
+		const line = { state: this.state, auto: this.auto, server: this.server, unlocked: !!this.unlocked, ...fields };
+		import("../Whisper/WhisperLog.js").then(m => m.default.event("recite", kind, line)).catch(e => console.error("Recite trace: the Whisper log failed", e));
+		try { Recite.on_trace?.(kind, line); } catch (e){ console.error("Recite trace: on_trace failed", e); }   // a second channel the page wires (ux/Dictate/chat.js: the session file)
 	}
 
 	/** Calls fn() on every change of state or position; returns an unsubscribe. */

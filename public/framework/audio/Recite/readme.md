@@ -42,7 +42,9 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 ## Why it was silent
 
-Every read-aloud step writes one `recite` line to [the Whisper log](/framework/audio/Whisper/log/) (`trace()`): reply heard, not read because 🗣 is off, speak asked / spoke / failed, play refused, unlocked by a tap. Open the log to see where a silent phone stopped.
+Every read-aloud step writes one `recite` line to [the Whisper log](/framework/audio/Whisper/log/) (`trace()`): reply heard, not read because 🗣 is off, speak asked / spoke / failed, play refused, unlocked by a tap. Open the log to see where a silent phone stopped. The same steps also land in the voice session's own file as `log` lines (`Recite.on_trace`, wired by the ✦ Sheet to `ext/Chat/v2/report.js` `diag()`).
+
+**Who starts it:** the ✦ Sheet (`ext/drawer/Sheet.js` `read_aloud()`), on every page: it makes `Recite.shared` and follows the current voice session's live wire, so replies are read whichever chat view (V1, V2, V3) is showing.
 
 ## Files
 
