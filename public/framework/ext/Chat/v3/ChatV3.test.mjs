@@ -71,6 +71,15 @@ try {
 	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("found by re.to"), card, { timeout: 8000 });
 	check("its reply lands inside it, found by re.to (no {chat} line involved)", true);
 
+	// 7. a chit-chat Prompt's muted title (same text as its own one-line body) is dropped; a real topic card keeps its title
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: "s-live-2", at: "2026-11-01T20:40:05.000-06:00", text: "Hey.", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-live-chitchat", by: "owner", at: "2026-11-01T20:40:05.000-06:00", sentences: ["s-live-2"] } } }) + "\n");
+	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-chitchat']", { timeout: 8000 });
+	check("a chit-chat prompt's title (same words as its own body, no refined version) is hidden", await page.$(".chat-v3-prompt[data-id='m-live-chitchat'] .chat-v3-title") === null);
+
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: "s-live-3", at: "2026-11-01T20:40:10.000-06:00", text: "Build the thing.", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-live-topic", by: "owner", at: "2026-11-01T20:40:10.000-06:00", sentences: ["s-live-3"], text: "A refined answer about building the thing, with more detail than the one-line dictation." } } }) + "\n");
+	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-topic']", { timeout: 8000 });
+	check("a real topic card (refined text) keeps its title even when short", await page.$(".chat-v3-prompt[data-id='m-live-topic'] .chat-v3-title") !== null);
+
 	check("the fixture copy was only ever appended to", readFileSync(here + "fixture/" + live, "utf8").startsWith(before));
 	check("no page errors", errors.length === 0, errors);
 } finally {

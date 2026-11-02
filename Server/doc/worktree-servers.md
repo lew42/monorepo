@@ -28,7 +28,7 @@ node Server/worktree-servers.mjs --stop-stale --older-than 24   also stop open w
 The list shows each server's worktree, pid (the wrapper, the process whose death stops the whole tree), age in hours, MB for the wrapper and everything under it, and a state. A `*` marks a stale one:
 
 - `gone`: the worktree folder is not a git worktree any more.
-- `merged into michael/dev`: its branch is an ancestor of `michael/dev`.
+- `merged into michael/dev`: its branch has commits of its own, all on `michael/dev`, and its worktree's git metadata (HEAD, index, reflog) has not changed for 30 minutes. A fresh branch with no commits looks merged (it is an ancestor) but is never stale (`Worktrees.merged_stale`, test: `node Server/Worktrees.test.mjs`).
 - `task landed`: the task that owns the worktree has landed.
 - `pool slot, returned`: a `qf-N` slot nobody holds (`.worktree-pool.json`).
 - `open (older than N h)`: only with `--older-than`.

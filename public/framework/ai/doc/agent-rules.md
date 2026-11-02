@@ -18,6 +18,11 @@
 
 **Stream, don't poll** (the owner, 2026-10-08): anything that happens in real time (a transcription, a session doing work, cost, logs) is architected as a stream (JSONL append + the `live()` tail) with updates in about 100 ms, never a timed refresh that shows stale data. When you find yourself writing `setInterval` + `fetch`, look for the stream first.
 
+**Fix the cause, so there's less work later** (the owner, 2026-11-02): "We want to fix problems so that we have less work to do in the future. That should always be a strategy."
+- When something breaks, cleaning it up is only half the job. Also find why it happened, and change the system so it can't happen again: a lifecycle that stops what it started, a gate that blocks the mistake, a test that catches it.
+- A one-off cleanup with no cause found is a finding, not a fix: write the cause down, or open the task that will find it.
+- Examples from 2026-11-01/02: leaked worktree dev servers (fixed with an idle self-stop, not just a kill); stray staged files blocking `merge.mjs` (the merge is fixed to commit only its own paths, not unstaged by hand each time); a phone running stale code (cache-busting by design, not one manual clear).
+
 ## Open a task for each piece of work (the owner, 2026-10-24)
 
 A task is a bucket: every token a session spends between its `start` and `complete` is counted against it, and tokens with no task open show as untracked. **Every agent opens a task for each piece of real work and closes it; a tab files each owner ask as a task on its own session.** Work that fits the task you are on needs no new one; unrelated work opens a sibling or child first. A spawned agent is handed its task; an agent given a prompt with no task opens one as its first act. After a hand-off only the agent that holds a task writes to it until it hands it back, and the hand-back starts the review. The full rule, the table of who may write what and the proposed enforcement hook: [task-buckets.md](task-buckets.md). How a task is added and where it shows: [core/Task/readme.md](/framework/core/Task/readme.md) and [core/Session/readme.md](/framework/core/Session/readme.md). The monitor: [/framework/ai/tracking/](/framework/ai/tracking/).

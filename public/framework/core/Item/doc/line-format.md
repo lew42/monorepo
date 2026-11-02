@@ -24,7 +24,21 @@ One switch, **`Item.Store.marked_lines`** (`Store.js`), is `false` today:
 | a change inside a list item (`Store.hops`) | `{"tasks": {"c3": {"set": {…}}}}` | `{"tasks": {"#c3": {"set": {…}}}}` |
 | `Item.as_call` ([call.md](./call.md)) | `{"sort_by()": "title"}` | the same: it is new, so it was never bare |
 | a plain field change (`set_one`) | `{"set": {"title": "x"}}` | the same (the `set` wrapper stays: see below) |
+| `Item.unset("k")`, or `set({k: undefined})` | `{"unset": ["k"]}` | `{"unset()": ["k"]}` |
 | a list verb (`List.announce`) | `{"add": {…}}`, `remove`, `move`, `order`, `clear` | the same (not changed) |
+
+## Clearing a field: `unset`
+
+`item.unset("color")` (several keys, or an array, are fine) deletes the keys from `data` and saves one line, `{"unset":["color"]}`; a replay calls `unset` again. `set({color: undefined})` does the same, because JSON has no `undefined`: before 2026-11-02 it saved `{"set":{}}` and the old value came back on reload (spec T5). A key that is not in `data` is skipped, and if none was there no line is written. Readers: `Item.set_one` (it is a method), `Task.replay_line` (a top-level `unset`, so a session or task record), the item tool (a method, so its key check passes). It deletes from `data` directly, not through the `get_one`/`put` seams, so a class that keeps a key elsewhere (a Panel mirror's shared keys, a `Ref`'s change count for `path`/`url`) is not told; such a class overrides `unset`. `Template` (core/Page/Template) already has its own `unset(name)`, which wins: a Template's cleared value is not saved this way (Templates are not stored in a log today). A `set_<key>` hook is **not** run by `unset`; a hook that stores `undefined` itself is saved as an unset. Alternative not taken: run the hook with `undefined` (its own save would add a second, empty line). Test: `unset.test.mjs`.
+
+## A line that names something that is not there
+
+A `name()` with no such method, or a `#id` with no such member, is refused (above). A **bare** key cannot be refused: a plain key is data, and old logs are full of them. So since 2026-11-02 a read line (a replay, or a live line from another tab) is **reported, never refused** (spec T6) when it puts an object under a key nothing knows, outside a method call:
+
+- **on a List,** an id that is no member: a stale edit after a move or a remove (`{"todo":{"c1":{"set":{…}}}}` after `c1` moved to `done`);
+- **on a list member,** a key that is no method, field, child, data key or `data_keys` entry: a newer writer's verb read by an older checkout (`{"todo":{"c2":{"archive":{…}}}}`).
+
+It is still stored as data, exactly as before, so every record replays the same (`ReplayCompare`: 4046 of 4046 identical). It is counted in `Item.unknown_keys` (`"<Class>.<key>"` -> lines) and, in node only, warned once per key (in a browser it would be noise on every page that reads an old log, and the merge smoke counts warnings). Not reported: a string or number value, anything stored while a line's method call runs (`Item.calling`; that includes an explicit `{"set":{…}}`), a key already in data, a static `fields` name, a class's `static data_keys` (Task lists its line fields). On every record on 2026-11-02 it found 4 real ones: a `stop` sent to a task no longer in its list, a `log` object under a task, and `start`/`complete` sent to a plain Item that has no such methods. Alternative not taken: refuse these keys (T6's "ideal"); it would change what old records replay to. Test: `unknown-key.test.mjs`.
 
 ## Switching it on
 

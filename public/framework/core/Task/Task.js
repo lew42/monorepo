@@ -29,12 +29,14 @@ const CAN = {
 const FIELDS = ["title", "expected", "module", "mode", "now", "description", "waiting_on", "checked_by", "source", "tags", "priority", "path", "parent", "sessions", "home", "template", "agent", "outcome", "brief", "from"];
 
 // Keys replay_line reads itself; any other object-valued key may name a nested subtask.
-const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce"]);
+const LINE_KEYS = new Set(["assign", "tasks", "content", "priority", "verdict", "set", "file", "task", "type", "spawn", "start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject", "now", "tags", "reinforce", "unset"]);
 // DEPRECATED (2026-10-28): use `complete` (the `finish` verb and `Task#finish`). Guide: /framework/core/Task/readme.md. Remove when: the 81 history `finish` lines in 74 logs are migrated; no live code calls `Task#finish`.
 const VERBS = ["start", "pause", "resume", "stop", "complete", "finish", "wait", "approve", "improve", "reject"];
 const VERDICTS = new Set(["approve", "improve", "reject"]);
 
 export class Task extends Item {
+
+	static data_keys = FIELDS;   // a line's plain fields (replay_line reads them): never reported as unknown keys (Item.unknown_key)
 
 	/* Running time is SAVED data, so a reload (or another tab) reads it back (D18): `ran_ms` is the time banked by earlier running
 	   spans, and `ran_since` (an ISO time, or null) is when the span that is open right now began. Both are written by the verbs
@@ -555,6 +557,7 @@ export class Task extends Item {
 		if (line.tasks && typeof line.tasks === "object" && !Array.isArray(line.tasks)) this.tasks.set(line.tasks);
 		for (const k of [...FIELDS, ...(this.constructor.line_fields ?? [])]) if (line[k] !== undefined) this.take(k, line[k]);   // a plain field line, e.g. one the item tool wrote
 		if (line.set && typeof line.set === "object") for (const [k, v] of Object.entries(line.set)) this.take(k, v);   // the browser Store's own change line
+		if (Array.isArray(line.unset)) this.unset(line.unset);   // a cleared field (Item.unset): {"unset":["expected"]}
 		// A subtask given its own folder: {"file":"<child>/task.jsonl"} swaps the nested child for that file's task (same id).
 		if (typeof line.file === "string" && line.file.endsWith("/task.jsonl") && typeof this.data.path === "string"){
 			const kid = Task.from_ref(this.data.path.replace(/\/?$/, "/") + line.file.slice(0, -"task.jsonl".length));

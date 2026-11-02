@@ -22,6 +22,7 @@
 Item = Events(Object)                 // ✅ landed 2026-10-02 — on/off/emit come from the Events mixin
   id, data: {}                        // get(key), put(key, value) — seams over `data`; Page overrides both
   set(a, b)                           // ✅ one delta: a method key calls it, a nested .set() recurses, else data + emits "change"/"delta"
+  unset(...keys)                      // ✅ clears data keys, saved as {"unset":["k"]}; set({k: undefined}) is the same (doc/line-format.md)
   store: Item.Store                   // ✅ a Store attached (core/Item/Store.js) replays (each entry through `host.replay_line`, default `set`; `Item.replay(lines)` is the node twin) / appends / tails one .jsonl file — it writes through FsFile.send, the one file API (ext/filesystem)
   view                                // getter/setter; lazy `new constructor.View({item})`: a class's OWN view, when it has one
   views: []                           // ✅ every live default view drawing me (ux/Content/Object/DefaultView.js; ask 33)
@@ -86,6 +87,8 @@ new RefView({ ref });         // a row: "child › task", redrawn when either ch
 
 - **A key's spelling says what it does (D13):** `name` is data or a step into a child, `name()` calls a method, `#id` picks a list item. Old bare shapes still replay. `Store.marked_lines` (off) switches what `act` and list-item changes write; every reader now reads both spellings ([doc/line-format.md](./doc/line-format.md), helper `LineKey.js`), so it can be switched on. Tests: `line-format.test.mjs`, `line-readers.test.mjs`.
 - **`set_<key>(value)` is a hook (D17):** `set()` calls it for that key, it stores with `this.put`, and a direct call saves too; it runs live, from another tab and on replay: [doc/hooks.md](./doc/hooks.md). Test: `hooks.test.mjs`.
+- **`unset(...keys)` clears a field so a reload agrees (T5):** one line `{"unset":["color"]}`; `set({color: undefined})` is the same; a key never set writes nothing; hooks are not run: [doc/line-format.md](./doc/line-format.md#clearing-a-field-unset). Test: `unset.test.mjs`.
+- **A read line that names something not there is reported, never refused (T6):** a List id that is no member, or an object under a list member that names no method, field or data; still stored as data, counted in `Item.unknown_keys`, warned in node: [doc/line-format.md](./doc/line-format.md#a-line-that-names-something-that-is-not-there). Test: `unknown-key.test.mjs`.
 - **`as_call(name, [args], body)` saves a method as one line (D14),** outermost only, never on replay: [doc/call.md](./doc/call.md). Test: `call.test.mjs`.
 - **While any store replays, no store saves** (`Store.replay_depth`); `set()` refuses a function, DOM node or cycle; a throwing view listener cannot stop a save; a running task's `ran_since` is saved data: [doc/core-fixes.md](./doc/core-fixes.md). Test: `item-core.test.mjs`.
 
@@ -97,6 +100,8 @@ Each test file below opens as a page: one block per test, its checks as green/re
 - [line-readers.test.mjs](/framework/core/Test/view/?file=core/Item/line-readers.test.mjs) — every other reader of a line takes the marked spelling; the main flows with `marked_lines` on
 - [hooks.test.mjs](/framework/core/Test/view/?file=core/Item/hooks.test.mjs) — `set_<key>` hooks (D17)
 - [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
+- [unknown-key.test.mjs](/framework/core/Test/view/?file=core/Item/unknown-key.test.mjs) — a line naming a missing member or an unknown verb is reported, still stored (T6)
+- [unset.test.mjs](/framework/core/Test/view/?file=core/Item/unset.test.mjs) — clearing a field replays, also from a snapshot (T5)
 - [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
 - [bind.test.mjs](/framework/core/Test/view/?file=core/View/bind.test.mjs) — `view.bind(item, key, fn)`: binds now and on change, one draw per frame, unbinds on remove (D7, built; in `core/View`)
 
