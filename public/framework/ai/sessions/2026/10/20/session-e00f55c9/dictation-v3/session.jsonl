@@ -114,3 +114,4 @@
 {"log":{"at":"2026-11-01T21:50:58-06:00","msg":"read-aloud-next: a landing nag fired early; its branch still has 3 commits not on michael/dev, so it wrote no landing line. It is still waiting on review bp1015ksf before the merge."}}
 {"log":{"at":"2026-11-01T21:53:03-06:00","msg":"read-aloud-next: review bp1015ksf verdict fix (drop_heard empties later queued replies too); the child answers it, no merge yet"}}
 {"log":{"at":"2026-11-01T22:02:52-06:00","msg":"v3-messages: ChatV3 on session.messages built (placement.js, DOM-free), 18/18 node + 16/16 Playwright green, 3 commits on worktree/v3-messages; fresh review running, merge after it"}}
+{"log":{"at":"2026-11-01T22:04:00-06:00","msg":"v3-messages: shots taken at 400/1200/1920/3440 (v3-messages/task.jsonl), waiting on review b8liv9b6j; merge after it"}}
