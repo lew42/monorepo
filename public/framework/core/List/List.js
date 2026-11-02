@@ -280,12 +280,19 @@ export class List extends Item {
 		const made = this.insert(x, { after });
 		if (this.length === before) return made;   // already here — idempotent
 
-		const type = made?.wire ? made.wire() : undefined;
+		// THE ENVELOPE (fixes.md 5, T3/T4): a flat `...made.data` here let a data field named `after` or `type` clobber the
+		// list's OWN `after`/`type` keys, and dropped every child list the item already held. `toJSON()` already gives the
+		// document shape `{type, id, data, <listname>: [...]}` that `hydrate()` reads back (it is tolerant of both this and
+		// the old flat shape), so an Item member nests its own data and lists instead of spreading them flat. A non-Item
+		// member (no toJSON, a list whose `of` was overridden to keep plain values) keeps the old flat spread.
+		const json = made?.toJSON ? made.toJSON() : null;
+		const { type, id: _id, data, ...child_lists } = json ?? {};
 		this.announce("add", {
 			id: this.key(made),
 			...(type && type !== "Item" ? { type } : {}),
 			after: this.after_of(made),
-			...(made?.data ?? {}),
+			...(data && Object.keys(data).length ? { data } : {}),
+			...(json ? child_lists : (made?.data ?? {})),
 		});
 		return made;
 	}

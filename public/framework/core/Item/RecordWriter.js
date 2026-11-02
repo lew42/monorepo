@@ -37,6 +37,11 @@ export class RecordWriter {
 		return new Date(t).toISOString();
 	}
 
+	// Fix 2 (design/fixes.md, R1 interim): one id for the life of this load (a browser tab, a node process), so the twin
+	// check below can tell two different posters apart even when `by` is the same ("owner" for every tab) and `ts` collides
+	// in the same millisecond (sync-protocol.md R1: "two tabs, same ms: second edit silently dropped, told successful").
+	static client(){ return this._client ??= (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)).slice(0, 8); }
+
 	/* Posts each line in order. `{lines}`: raw lines, written as given plus `by`/`ts` (hooks, LogLine, page files). `{deltas}`:
 	   item-tool verbs (`{"start":{}}`), validated and stamped by the tool (the browser's task and session files).
 	   Answers `{rest, ts, refused}`: `rest` are the lines (stamped) never taken, to append with `append_once`/`Append`. */
@@ -48,7 +53,7 @@ export class RecordWriter {
 		for (const idx of batches){
 			const { by: _by, ts, ...bare } = list[idx[0]];
 			// A verb's `by` is not sent: the door stamps every verb "owner" (only a tab posts verbs); `by` here keys the caller's own twin check.
-				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, ...(root ? { root } : {}) };
+				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, client: this.client(), ...(root ? { root } : {}) };
 			let res, answer;
 			try {
 				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
@@ -66,10 +71,13 @@ export class RecordWriter {
 
 	/* The lines of `want` not already in `tail` (parsed lines of the file's end). A line is there when a tail line has its `by` and
 	   its `ts`, a millisecond stamp (stamp() or the item tool's), so that pair names one post; `strict` (raw lines, written as given)
-	   also needs the whole line to match. A line with no such `ts` (LogLine stamps a page line to the second) is always written. */
+	   also needs the whole line to match. A line with no such `ts` (LogLine stamps a page line to the second) is always written.
+	   Fix 2 (R1 interim): `by` is "owner" for every tab, so two tabs in the same millisecond used to share one key and the second
+	   was dropped. A line that carries a `client` (this load's own id) is keyed on `client|ts` instead, so two different tabs'
+	   same-ts writes no longer collide; a line with no `client` (a hook, an agent) keeps the old `by|ts` key, unchanged. */
 	static MS = /\.\d{3}Z$/;
 	static fresh(tail, want, { strict = false } = {}){
-		const key = l => strict ? JSON.stringify(l) : `${l.by}|${l.ts}`;
+		const key = l => strict ? JSON.stringify(l) : l.client != null ? `c:${l.client}|${l.ts}` : `${l.by}|${l.ts}`;
 		const seen = new Set(tail.filter(l => this.MS.test(l?.ts ?? "")).map(key));
 		return want.filter(l => !this.MS.test(l?.ts ?? "") || !seen.has(key(l)));
 	}

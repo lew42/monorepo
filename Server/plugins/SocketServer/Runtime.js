@@ -34,13 +34,28 @@ export default class Runtime {
 			// A browser saving a watched file must not reload its own tab mid-edit —
 			// the same mute Ask.js and Start.js already use (found by the CMS slice).
 			this.socket.socket_server?.live_reload?.mute(full_path, this.socket);
-			fs.writeFileSync(full_path, data);
+			Runtime.safe_write(full_path, data);
 			this.socket.send({ index, response: "write successful" });
 		} catch (e) {
 			console.error(e);
 			this.socket.send({ index, response: "write failed" });
 		}
     }
+
+	/* F4 (design/fixes.md: a crash-safe rewrite helper — write tmp, fsync, rename). `fs.writeFileSync` opens with "w", which
+	   TRUNCATES the file before writing a byte: a kill (or a throw) between the truncate and the write left a 0-byte file,
+	   5 of 5 runs in the research probe (Runtime.js L37 as it was). Writing to a sibling tmp name first, syncing it to disk,
+	   then `fs.renameSync` over the real path never touches the real file until the new content is already durable on disk —
+	   `fs.rename` on one volume is atomic (Runtime.js's own `move()` already relies on exactly this), so a crash mid-write now
+	   leaves either the OLD file (the rename never happened) or the NEW one (it did), never a half-written one. A leftover
+	   `.tmp-*` file after a real crash is allowed (F4's own "today" note). */
+	static safe_write(full_path, data){
+		const tmp = `${full_path}.tmp-${process.pid}-${Date.now()}`;
+		const fd = fs.openSync(tmp, "w");
+		try { fs.writeSync(fd, data); fs.fsyncSync(fd); }
+		finally { fs.closeSync(fd); }
+		fs.renameSync(tmp, full_path);
+	}
 
     ls(dir = "./", index) {
         const full_path = path.resolve("./public/", this.to_relative(dir));

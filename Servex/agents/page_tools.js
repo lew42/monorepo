@@ -1128,7 +1128,7 @@ LogLine.writer ??= (file, lines) => record_lines(file, lines);
  * {path, lines} is raw lines for record_lines. `root` (node callers send theirs) must be this checkout's: another checkout's post is
  * answered {stubbed}, so its caller appends to its own file and nothing lands in this tree. */
 export async function serve_item(body = {}, ctx = {}){
-	const { path: url, target, delta, lines, ts, root } = body;
+	const { path: url, target, delta, lines, ts, client, root } = body;
 	if (root && path.resolve(root, "public").toLowerCase() !== PUBLIC.toLowerCase()) return { ok: true, stubbed: true, via: "another checkout" };
 	if (typeof url !== "string") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
 	if (Array.isArray(lines)){
@@ -1138,7 +1138,8 @@ export async function serve_item(body = {}, ctx = {}){
 		return record_lines(at.file, lines);
 	}
 	if (!delta || typeof delta !== "object") return { ok: false, why: "body must be {path, delta} or {path, lines}" };
-	return run_item({ path: url, target, delta }, { caller: "owner", ...ctx, ...(typeof ts === "string" ? { ts } : {}) });
+	// Fix 2 (fixes.md, R1 interim): a tab's own `client` id, when it sent one, rides through to the twin check and the line itself.
+	return run_item({ path: url, target, delta }, { caller: "owner", ...ctx, ...(typeof ts === "string" ? { ts } : {}), ...(typeof client === "string" ? { client } : {}) });
 }
 
 export async function run_item(args = {}, ctx = {}, alias = false){
@@ -1233,7 +1234,13 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 	// ONE WRITER, NO TWIN (RecordWriter.js): a post that brought its own `ts` is written once. If the caller's fallback already
 	// appended it (this answer came too late), the line is in the file's tail under that `by` and `ts`: nothing more is written.
 	const stamp = () => ctx.ts ?? now();
-	if (ctx.ts && await RecordWriter.tail(at.file).then(tail => !RecordWriter.fresh(tail, [{ by: ctx.caller ?? "agent", ts: ctx.ts }]).length))
+	// Fix 2 (data-shapes/design/fixes.md: a per-load client id in the twin key, R1 interim): `by` is "owner" for every tab, so
+	// two tabs posting in the same millisecond used to collide here and the second was told `already` while nothing was
+	// written (sync-protocol.md R1). A tab's own post carries its per-load `client` (RecordWriter.client()); `fresh()` keys
+	// on `client|ts` when one is given, so two different tabs' same-ts writes no longer look like the same op. A caller with
+	// no client (a hook, an agent) keeps the old `by|ts` key, unchanged.
+	const client = typeof ctx.client === "string" ? ctx.client : undefined;
+	if (ctx.ts && await RecordWriter.tail(at.file).then(tail => !RecordWriter.fresh(tail, [{ by: ctx.caller ?? "agent", ts: ctx.ts, ...(client ? { client } : {}) }]).length))
 		return { ok: true, ids: [], line: null, already: true };
 
 	// `pages` and `folder` are the keys the tool handles itself: a folder is made on disk (Subpages.js, give_folder).
@@ -1286,7 +1293,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const h = home.process ? make_process(path.dirname(at.file), a, ctx, home) : make_child(path.dirname(at.file), a, ctx, home);
 				homes.push(h); ids.push(h.id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id: h.id, title: a.title ?? h.id, path: h.path, own_folder: true });
-				put({ task: h.path, by, ts: stamp() });
+				put({ task: h.path, by, ts: stamp(), ...(client ? { client } : {}) });
 				await record_new_folder(path.dirname(home.dir), home.slug);
 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
 				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
@@ -1295,7 +1302,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				const { type: _t, data, ...fields } = a;
 				ids.push(id);
 				if (asker) requests.push({ to: owner_agent, from: asker, id, title: a.title ?? id, path: app_path(path.dirname(at.file)) });
-				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: stamp() });
+				put({ tasks: { add: { type: task_type(a), ...data, ...stamp_ids(fields, ids), id } }, by, ts: stamp(), ...(client ? { client } : {}) });
 				// A class whose list merges a repeated title (Improvements) made no new task: say which one it reinforced.
 				if (Class.merges_same_title && !root()._tasks?.find(id)){
 					ids.splice(ids.indexOf(id), 1);
@@ -1322,9 +1329,9 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		// A fingerprint without costs: the full picture (task_state) reads every agent's spend, twice per write.
 		const print = t => ({ state: t.state, completion: t.completion, data: t.data, kids: every_task(t._tasks).map(k => [k.id, k.state, k.data]) });
 		const was = verb ? steady(print(root())) : null;
-		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!tasky);
+		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp(), ...(client ? { client } : {}) }), !!tasky);
 		// THE REAL CHAT LIST (core/Session/Chat): a {place} with a cleaned text also updates that sentence's text on its Prompt, in place.
-		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { const m = ChatWriter.place(root(), body.place); if (m){ const keep = line; put({ ...m, by, ts: stamp() }); line = keep; } } catch (e) { console.error(`item: a {place} was written but not mirrored into the chat list (${at.file}): ${e.message}`); }
+		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { const m = ChatWriter.place(root(), body.place); if (m){ const keep = line; put({ ...m, by, ts: stamp(), ...(client ? { client } : {}) }); line = keep; } } catch (e) { console.error(`item: a {place} was written but not mirrored into the chat list (${at.file}): ${e.message}`); }
 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.

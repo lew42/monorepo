@@ -121,6 +121,20 @@ try {
 	appender.append(`/${REL}/page.jsonl`, [{ title: "other", by: "owner", ts: RecordWriter.stamp() }], 2);
 	const page = fs.readFileSync(PAGE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
 	t.eq([said, page.map(l => l.title)], [["append successful", "append successful"], ["card", "other"]], "3. Append.js: the line the entry point wrote is not written twice; a new one is");
+
+	// 4. Fix 2 (design/fixes.md, R1 interim): two different TABS, same millisecond. `by` is "owner" for both (serve_item stamps
+	// it), so before this fix the second tab's write was silently dropped and told `already`. A tab's RecordWriter.post stamps
+	// `client` (RecordWriter.client()) on every verb it posts; here we post two different clients at the SAME ts directly.
+	const twin_ts = RecordWriter.stamp();
+	const tabA = await serve_item({ path: URL, delta: { tasks: { add: { title: "tab A" } } }, ts: twin_ts, client: "tabA" });
+	const tabB = await serve_item({ path: URL, delta: { tasks: { add: { title: "tab B" } } }, ts: twin_ts, client: "tabB" });
+	t.eq([tabA.already, tabB.already], [undefined, undefined], "4. neither tab is answered `already` — the same ts, different clients, are not the same op");
+	const twins = lines().filter(l => l.tasks?.add?.title === "tab A" || l.tasks?.add?.title === "tab B").map(l => l.tasks.add.title);
+	t.eq(twins.sort(), ["tab A", "tab B"], "4. both tabs' adds are in the file: the second was not dropped");
+	// A real retry (the SAME client resending, e.g. after a slow answer) must still be recognised and not double-written.
+	const retry = await serve_item({ path: URL, delta: { tasks: { add: { title: "tab A" } } }, ts: twin_ts, client: "tabA" });
+	t.eq(retry.already, true, "4. the same client resending the same ts is still answered `already` — no double write");
+	t.eq(lines().filter(l => l.tasks?.add?.title === "tab A").length, 1, "4. tab A's own retry wrote nothing a second time");
 } finally {
 	server.close();
 	process.chdir(os.tmpdir());

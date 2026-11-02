@@ -48,6 +48,35 @@ try {
 	pair.kids.add([{ id: "x" }, { id: "y" }]);
 	t.eq(ids(pair), ["x", "y"], "add([a, b]) adds two members");
 
+	// Phase 0 fix 5 (T3/T4, fixes.md): add() writes an envelope {id, type, data, <lists>}, not flat data — a data field named
+	// "after" or "type" must not clobber the list's own metadata, and a child list must survive the round trip.
+	{
+		const DIR2 = fs.mkdtempSync(path.join(os.tmpdir(), "list-test-envelope-"));
+		const FILE2 = path.join(DIR2, "list.jsonl");
+		const root2 = Item.hydrate({ id: "root2", kids: [] });
+		const store2 = new Store({ url: "/list2.jsonl" });
+		store2.append = line => fs.appendFileSync(FILE2, JSON.stringify(line) + "\n");
+		store2.attach(root2);
+
+		const kid = Item.hydrate({ id: "k2", data: { after: "lunch", type: "bug", title: "T" }, notes: [{ id: "n1", text: "hi" }] });
+		root2.kids.add(kid);
+
+		const added = JSON.parse(fs.readFileSync(FILE2, "utf8").trim()).kids.add;
+		t.eq(added.after, null, "add: the real position (first) is not clobbered by a data field named 'after'");
+		t.ok(!("notes" in (added.data ?? {})), "add: the envelope's data does not swallow the child list");
+		t.eq(added.notes?.[0]?.id, "n1", "add: the child list is written as its own top-level list, not lost");
+
+		const fresh2 = Item.hydrate({ id: "root2", kids: [] });
+		const reader2 = new Store({ url: "/list2.jsonl" });
+		reader2.read(reader2.parse(fs.readFileSync(FILE2, "utf8")));
+		reader2.attach(fresh2);
+		const k2 = fresh2.kids.find("k2");
+		t.eq(k2.get("after"), "lunch", "replay: data named 'after' survives under the real key");
+		t.eq(k2.get_one("type"), "bug", "replay: data named 'type' survives (no 'unknown type' Item fallback)");
+		t.eq(k2.notes?.find("n1")?.get_one("text"), "hi", "replay: the child list (notes) survives the add");
+		fs.rmSync(DIR2, { recursive: true, force: true });
+	}
+
 	// render(): nothing until the browser wires List.View; then that view, given the list, open one level (build B's default view)
 	const { default: ListClass } = await import("./List.js");
 	t.eq(pair.kids.render(), undefined, "render() with no List.View draws nothing (node, or before the view is wired)");
