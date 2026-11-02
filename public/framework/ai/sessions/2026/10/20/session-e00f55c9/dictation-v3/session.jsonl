@@ -39,3 +39,8 @@
 {"action":{"at":"2026-11-01T18:13:11-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v2-vs-v3.md"]},"by":"ledger","ts":"2026-11-02T00:13:11.886Z"}
 {"action":{"at":"2026-11-01T18:18:41-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/join-and-follow/review.md"]},"by":"ledger","ts":"2026-11-02T00:18:41.025Z"}
 {"log":{"at":"2026-11-01T18:20:12-06:00","msg":"landed: dictation-v3 branch (dropdown, V3 replies, karaoke, fast seat off); Sheet starts Recite on every page; join-and-follow (JOIN_IDLE_MS 30 min, follow on every change, same-tab links). Plans: chat-structure.md, v2-vs-v3.md. Waiting on the owner phone trace."}}
+{"action":{"at":"2026-11-01T18:23:16-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-wall/review.md"]},"by":"ledger","ts":"2026-11-02T00:23:16.837Z"}
+{"log":{"at":"2026-11-01T18:27:46-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T00:27:46.970Z"}
+{"log":{"at":"2026-11-01T18:31:10-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T00:31:10.727Z"}
+{"log":{"at":"2026-11-01T18:33:25-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T00:33:25.726Z"}
+{"action":{"at":"2026-11-01T18:37:26-06:00","did":"edit","files":["public/framework/ext/drawer/Sheet.js"]},"by":"ledger","ts":"2026-11-02T00:37:26.845Z"}

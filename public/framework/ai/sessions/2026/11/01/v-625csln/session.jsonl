@@ -1,0 +1,17 @@
+{"session":{"id":"v-625csln","home":"/framework/audio/Recite/","kind":"voice","at":"2026-11-01T18:10:28.320-06:00","project":"monorepo","host":"10.0.0.135:3104","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-11-01T18:10:28.482-06:00","fast":"c7e44053-b800-47ca-8cfc-11abc32a6982","smart":null,"how":{"fast":"new"}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1793578228487","raw":["Can you hear me?"],"paragraphs":[{"id":"a","text":"Can you hear me?"}]}},"ts":"2026-11-02T00:10:28.487Z","by":"fast"}
+{"chat":{"at":"2026-11-01T18:10:28.489-06:00","session":"v-625csln","path":"/framework/audio/Recite/","from":{"kind":"owner"},"via":"voice","text":"Can you hear me?","prompt":"p-1793578228487","said_at":"2026-11-02T00:10:28.043Z","floor":"done","cues":{"mic_on_at":"2026-11-02T00:10:22.489Z","pauses":[{"start":3503,"end":null,"ms":2136}],"speaking_ms":577}}}
+{"backing":{"at":"2026-11-01T18:10:28.688-06:00","fast":"c7e44053-b800-47ca-8cfc-11abc32a6982","smart":"90f16259-6597-485d-ada9-882253d1c664","how":{"smart":"new"}}}
+{"quiet":{"at":"2026-11-01T18:10:28.867-06:00","ms":2500,"path":"/framework/audio/Recite/"}}
+{"sent":{"to":"fast","at":"2026-11-01T18:10:29.041-06:00","re":["2026-11-01T18:10:28.489-06:00"],"delay_ms":998}}
+{"sent":{"to":"smart","at":"2026-11-01T18:10:29.066-06:00","re":["2026-11-01T18:10:28.489-06:00"],"delay_ms":1023}}
+{"place":{"re":"2026-11-01T18:10:28.489-06:00","to":"same","edit":"improve","text":"Can you hear me?"},"by":"voice-assistant-v-625csln","ts":"2026-11-02T00:10:31.315Z"}
+{"sessions":[{"id":"voice-assistant-v-625csln","task":"/framework/ai/sessions/2026/11/01/v-625csln/"}],"by":"voice-assistant-v-625csln","ts":"2026-11-02T00:10:31.316Z"}
+{"p-1793578228487":{"tasks":{"add":{"id":"q-1793578228487","type":"Question","text":"Can you hear me?","from":"p-1793578228487"}}},"by":"voice-assistant-v-625csln","ts":"2026-11-02T00:10:31.681Z"}
+{"chat":{"at":"2026-11-01T18:10:32.227-06:00","session":"v-625csln","path":"/framework/audio/Recite/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-625csln"},"via":"text","text":"Yes, I can hear you.","re":"2026-11-01T18:10:28.489-06:00"}}
+{"quiet":{"at":"2026-11-01T18:10:32.310-06:00","ms":2500,"path":"/framework/audio/Recite/"}}
+{"log":{"at":"2026-11-01T18:17:44-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-01T18:22:44-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-01T18:27:44-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-01T18:32:44-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
