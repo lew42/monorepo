@@ -28,7 +28,7 @@ The owner's wake rules ([turn-taking.md](/framework/ux/Dictate/doc/turn-taking.m
 
 ## The steps, one merge each
 
-1. **V3 on messages.** V3 draws `session.messages` (Prompt with its sentences, Replies under it), tasks beside. Smallest view, nothing else reads it.
+1. **V3 on messages — done, merged (`mastermind-v3-messages`, 2026-11-01).** `ext/Chat/v3/ChatV3.js` draws `session.messages` (Prompt with its sentences, Replies found by `re.to` under it), tasks/questions beside through the Prompt message's `prompt` link. Paragraphs are pause-based (`placement.js`, `PARAGRAPH_GAP_MS`), not "one per sent chunk". Proof: `placement.test.mjs` (18 node checks on a real-session fixture) + `ChatV3.test.mjs` (16 Playwright checks, incl. live append). Readme: [ext/Chat/v3/readme.md](/framework/ext/Chat/v3/readme.md).
 2. **V2 on messages.** Same swap in V2; drop the `{chat}` lookup in `ChatV2Model`; keep the marks on the task.
 3. **One home for the marks.** Move `sent.fast`, `sent.smart` and `working` onto the Prompt message (a new field, written by `Sessions.mark_sent` through `ChatWriter`), and make 🧠 "answered" in both views. Then V2's per-Prompt ✓ can become per-sentence.
 4. **One view.** If dictation-v3 agrees (below), V2 and V3 become one class over the same model with two skins; otherwise two skins on one shared model class.

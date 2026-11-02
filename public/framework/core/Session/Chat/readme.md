@@ -75,6 +75,6 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 
 ## Next
 
-- ⬜ Chat V3 reads this list instead of re-reading `{chat}` lines (the views belong to `mastermind-dictation-v3`; this list is the contract).
+- ✅ Chat V3 reads this list instead of re-reading `{chat}` lines ([ext/Chat/v3](/framework/ext/Chat/v3/readme.md), 2026-11-01; the views belong to `mastermind-dictation-v3`, this list is the contract). Chat V2 next ([views-on-messages.md](doc/views-on-messages.md) step 2).
 - ⬜ Question, Card and Ref as messages, when a writer needs them.
 - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").
