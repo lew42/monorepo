@@ -1,0 +1,11 @@
+{"session":{"id":"v-2j0i176","home":"/framework/ux/Dictate/","kind":"voice","at":"2026-11-01T23:15:39.330-06:00","project":"monorepo","host":"monorepo.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-11-01T23:15:39.544-06:00","fast":"97301270-aa59-4620-b3c4-ccbb87f79113","smart":null,"how":{"fast":"new"}}}
+{"log":{"at":"2026-11-01T23:18:49.050-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-2j0i176\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-01T23:18:49.293-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-01T23:20:45.751-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-2j0i176\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-01T23:20:49.375-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-2j0i176\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-01T23:20:53.384-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-2j0i176\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-01T23:21:27.806-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-2j0i176\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-01T23:21:29.278-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}
+{"log":{"at":"2026-11-01T23:21:51.446-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-2j0i176\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-01T23:21:51.526-06:00","msg":"recite: unlocked by a tap {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":true}"}}

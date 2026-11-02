@@ -30590,3 +30590,14 @@
 {"file":"_context-alert-test/","gone":true}
 {"file":"_context-alert-test/"}
 {"file":"_context-alert-test/","gone":true}
+{"file":"failures.jsonl"}
+{"file":"index.jsonl"}
+{"file":"openrouter-costs.json"}
+{"file":"openrouter-reconcile.json"}
+{"file":"screenshots/"}
+{"file":"session-index.json"}
+{"file":"session-tree.json"}
+{"file":"sessions.json"}
+{"file":"spend-tree.json"}
+{"file":"transcripts/"}
+{"file":"week.json"}
