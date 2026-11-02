@@ -9,3 +9,4 @@
 {"log":{"at":"2026-11-02T15:01:08-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T21:01:08.112Z"}
 {"log":{"at":"2026-11-02T15:01:14-06:00","heartbeat":"answered","msg":"The work on improve-plan is finished, and I have no other work on it. `plan.md` is edited and the completion has been sent to the item tool twice, once with the minimum fields and once with full evide"}}
 {"log":{"at":"2026-11-02T15:01:14-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T21:01:14.355Z"}
+{"stop":{"at":"2026-11-02T16:05:10-06:00","why":"dropped: owner reviewer-core-plugin-one-plugin-system-for-every is stopped"}}

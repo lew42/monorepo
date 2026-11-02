@@ -36,3 +36,4 @@
 {"sessions":[{"id":"mastermind-dictate-plugins","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/"},{"id":"mastermind-v1-2","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/"}],"by":"mastermind-v1-2","ts":"2026-11-02T20:58:57.393Z"}
 {"log":{"at":"2026-11-02T15:04:02-06:00","heartbeat":"deliberate","msg":"mastermind-dictate-plugins its agent is not running: it was stopped on purpose by unknown at 2026-11-02T14:58:12-06:00; not revived."}}
 {"log":{"at":"2026-11-02T15:40:06-06:00","msg":"dropped: census: owner minion-dictate-census is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/census/","reason":"owner-stopped"}}
+{"log":{"at":"2026-11-02T16:05:10-06:00","msg":"dropped: merge-a: owner minion-voice-chat-a is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/merge-a/","reason":"owner-stopped"}}

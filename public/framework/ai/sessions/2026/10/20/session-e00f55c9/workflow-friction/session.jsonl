@@ -38,3 +38,4 @@
 {"log":{"at":"2026-11-02T15:47:02-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T21:47:02.183Z"}
 {"log":{"at":"2026-11-02T15:47:06-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T21:47:06.964Z"}
 {"log":{"at":"2026-11-02T15:47:49-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T21:47:49.833Z"}
+{"stop":{"at":"2026-11-02T16:51:11-06:00","why":"dropped: owner mastermind-workflow-friction is stopped"}}
