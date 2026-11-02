@@ -1,0 +1,288 @@
+diff --git a/Server/SessionRecord.mjs b/Server/SessionRecord.mjs
+index cf3777d41..2dd96bc79 100644
+--- a/Server/SessionRecord.mjs
++++ b/Server/SessionRecord.mjs
+@@ -9,6 +9,7 @@ import path from "node:path";
+ import crypto from "node:crypto";
+ import { execFileSync } from "node:child_process";
+ import { fileURLToPath } from "node:url";
++import ChatWriter from "../Servex/agents/ChatWriter.js";
+ 
+ const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+ const sha = buf => crypto.createHash("sha256").update(buf).digest("hex");
+@@ -110,8 +111,15 @@ export default class SessionRecord {
+ 		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
+ 		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
+ 		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(this.entry_line(log, url, by, as, entry)) + "\n");
++		// ROOT TASK/CHILD SESSION AS A REF IN THE CHAT (builder.md step 3): when this reference landed on the SESSION's own
++		// session.jsonl (never a task's own task.jsonl below it — "root tasks only"), `url` is also a folder another message
++		// can point at: add a Ref at the bottom of session.messages, right after the line that just referenced it.
++		if (this.is_chat_ref_target(log)) try { fs.appendFileSync(log, JSON.stringify(ChatWriter.ref_line({ url })) + "\n"); } catch {}
+ 		return log;
+ 	}
++	/** Is `log` a session's own session.jsonl (its folder sits directly under a day, per is_session_dir), as opposed to some
++	 *  task folder's task.jsonl beneath it? Only then does a {"task":url} reference also get a chat Ref (add_ref, above). */
++	static is_chat_ref_target(log){ return path.basename(log) === this.NEW && this.is_session_dir(path.dirname(log)); }
+ 	/** The reference line add_ref writes: a plain {"task":url,"as"} line, or a Session entry nested under its cause. */
+ 	static entry_line(log, url, by, as, entry){
+ 		const ts = new Date().toISOString();
+diff --git a/Servex/agents/ChatWriter.js b/Servex/agents/ChatWriter.js
+index 6c0b449a3..1717bc56d 100644
+--- a/Servex/agents/ChatWriter.js
++++ b/Servex/agents/ChatWriter.js
+@@ -84,6 +84,15 @@ export default class ChatWriter {
+ 
+ 	held(key){ return this.sessions.get(key)?.held.length ?? 0; }
+ 
++	/* A Ref added to `session.messages` for a root task or child session (builder.md step 3): an inline subtask (no folder of its
++	 * own) passes `path` ("tasks.<id>", the same file); a task with its own folder, or a spawned child session, passes `url` (its
++	 * folder) and no `path` (the Ref then points at that file's root — Ref.js, "another file"). `by`/`at` are data ON the Ref
++	 * (step 2: a chat Ref carries `by`/`at` the way a resurfaced one does), never only on the outer line. */
++	static ref_line({ path, url } = {}){
++		const at = now_iso();
++		return { messages: { add: { type: "Ref", ...(url !== undefined ? { url } : { path }), by: "servex", at } }, by: "servex", ts: at };
++	}
++
+ 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
+ 	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
+ 	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
+diff --git a/Servex/agents/chat-messages.test.mjs b/Servex/agents/chat-messages.test.mjs
+index 0340f9a7c..82b55cf63 100644
+--- a/Servex/agents/chat-messages.test.mjs
++++ b/Servex/agents/chat-messages.test.mjs
+@@ -144,6 +144,45 @@ try {
+ 		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\"), or one naming no sentence, adds no chat line");
+ 		assert.ok(no_match.ok, "a {place} naming no sentence is still written for V1");
+ 	});
++
++	// ── step 3: a root task, or a spawned child session, becomes a Ref at the bottom of session.messages ──────────────
++	const replay_msgs = () => Session.replay(fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l))).messages.messages;
++	{
++		const before_count = replay_msgs().length;
++		const added = await run_item({ path: URL_, delta: { tasks: { add: "Fix the thing" } } }, { caller: "t" });
++		check("tasks.add on a session's own root is written (as before)", () => assert.ok(added.ok && added.ids?.length === 1, added.why));
++		const msgs = replay_msgs();
++		check("…and also adds a Ref, at the bottom of session.messages, right after it", () => {
++			assert.equal(msgs.length, before_count + 1);
++			const ref = msgs.at(-1);
++			assert.equal(ref.constructor.name, "Ref", "hydrates as the core Ref, not a chat Message subclass");
++			assert.equal(ref.path, `tasks.${added.ids[0]}`, "same file: a dotted path, like F7's list.ref(x)");
++			assert.equal(ref.url, undefined);
++			assert.equal(ref.get_one("by"), "servex");
++			assert.ok(ref.get_one("at"), "carries its own `at`, as data (plan.md decision 1), not Message's by/at getters");
++		});
++	}
++	{
++		const SessionRecord = (await import("../../Server/SessionRecord.mjs")).default;
++		const before_count = replay_msgs().length, before_lines = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).length;
++		const child_url = "/framework/ai/sessions/2026/10/16/.chat-messages-test-child/";   // a folder outside this file: a spawned child session
++		SessionRecord.add_ref(FILE, child_url, "ChildLinks");
++		SessionRecord.add_ref(FILE, child_url, "ChildLinks");   // a retried link_parent/ChildLinks.link call: never a twin reference, never a twin Ref
++		const lines = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean);
++		check("add_ref on a SESSION's own record writes one {task:url} line and one chat Ref, never twice", () => {
++			assert.equal(lines.length, before_lines + 2);
++			assert.equal(lines.filter(l => l.includes(`"task":"${child_url}"`)).length, 1);
++		});
++		const msgs = replay_msgs();
++		check("the child session's Ref resolves by url (another file), carrying by/at as data", () => {
++			assert.equal(msgs.length, before_count + 1);
++			const ref = msgs.at(-1);
++			assert.equal(ref.constructor.name, "Ref");
++			assert.equal(ref.url, child_url);
++			assert.equal(ref.path, undefined);
++			assert.equal(ref.get_one("by"), "servex");
++		});
++	}
+ } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+ 
+ console.log(`chat-messages.test.mjs: ${checks} checks passed`);
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index def1839b7..7d62e2e14 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1299,6 +1299,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 				await record_new_folder(path.dirname(home.dir), home.slug);
+ 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
+ 				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
++				// ROOT TASK AS A REF IN THE CHAT (builder.md step 3): a task added at a session's own root also gets a Ref at the
++				// bottom of session.messages, right after the line that created it — the chat list shows every root task without
++				// duplicating it. Never for a nested task's own subtasks (at.target.length > 0 is some task, not the session).
++				if (kind === "Session" && !at.target.length){ const keep = line; put(ChatWriter.ref_line({ url: h.path })); line = keep; }
+ 			} else {
+ 				// A subtask nests in this file: {"tasks":{"add":{…}}}, no folder.
+ 				const { type: _t, data, ...fields } = a;
+@@ -1310,7 +1314,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 					ids.splice(ids.indexOf(id), 1);
+ 					const into = [...(root()._tasks ?? [])].find(t => Task.same_title(t.get_one("title"), a.title));
+ 					(merged ??= []).push({ title: a.title, into: into?.id ?? null, weight: into?.weight ?? null });
+-				}
++				} else if (kind === "Session" && !at.target.length){ const keep = line; put(ChatWriter.ref_line({ path: `tasks.${id}` })); line = keep; }
+ 			}
+ 		}
+ 		const { tasks: _t, ...more } = body;
+diff --git a/public/framework/ai/files.jsonl b/public/framework/ai/files.jsonl
+index 0e5f0fc7d..a9114c909 100644
+--- a/public/framework/ai/files.jsonl
++++ b/public/framework/ai/files.jsonl
+@@ -1245,3 +1245,9 @@
+ {"file":"2026/"}
+ {"file":"prompt-tasks-test-24464/"}
+ {"file":"prompt-tasks-test-24464/","gone":true}
++{"file":"process-test-42824/"}
++{"file":"process-test-42824/","gone":true}
++{"file":"prompt-tasks-test-48364/"}
++{"file":"prompt-tasks-test-48364/","gone":true}
++{"file":"prompt-tasks-test-44504/"}
++{"file":"prompt-tasks-test-44504/","gone":true}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/builder/page.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/builder/page.jsonl
+index 0b96e5f70..7169e59a5 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/builder/page.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/builder/page.jsonl
+@@ -1 +1,2 @@
+ {"inbox":{"id":"n-sljc4pyd","from":"servex-heartbeat","text":"minion-chat-model-builder its agent is not running: it was stopped on purpose by mastermind-chat-model at 2026-11-01T22:57:03-06:00; not revived.","at":"2026-11-01T23:02:26.596-06:00"}}
++{"file":"session.jsonl"}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl
+index e2ac9e2ab..b6a0fc6e4 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl
+@@ -60,6 +60,7 @@
+ {"commit":"0b48d2fae5e2","by":"append.mjs","ts":"2026-11-02T05:24:23.388Z"}
+ {"commit":"19e472ab1b39","by":"append.mjs","ts":"2026-11-02T05:24:23.855Z"}
+ {"action":{"at":"2026-11-01T22:59:01-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s2/.lines-tmp.json"]},"by":"ledger","ts":"2026-11-02T04:59:01.253Z"}
++{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s2/","by":"SessionRecord --links","ts":"2026-11-02T05:24:58.777Z"}
+ {"commit":"1fef8e7bc5ff","by":"append.mjs","ts":"2026-11-02T05:26:02.928Z"}
+ {"tasks":{"s2":{"complete":{"outcome":"Step 2 landed: list.ref(x) links an item another list owns with a Ref (same file {path}, other file {url, path}); List.add is unchanged; Chat.resurface adds a Ref at the bottom and marks the original resurfaced: <ref id>. The census of add() callers is in plan.md decision 2; flipping add()'s default is task f7-add-default, waiting on the owner.","evidence":["merged to michael/dev and pushed (commits 9221769ba, 9cd0b7816)","TestRunner on michael/dev: List.test.mjs, Chat.test.mjs, chat-messages.test.mjs 3/3 pass; worktree core 42/42","review verdict fix, all 7 findings answered in session.jsonl"],"confidence":"high","caveats":["the one-write claim for resurface is argued, not tested","builder spent $8.47 against a $5 plan"]}}},"by":"mastermind-chat-model","ts":"2026-11-02T05:26:22.016Z"}
+ {"task":"/framework/ai/sessions/2026/11/01/session-9d491f36/minion-minion-chat-model-s3/","type":"Session","spawn":{"role":"minion","model":"claude-sonnet-5","effort":"medium","role_readme":"Servex/agents/roles/minion.md","session_id":"fd0048a3-2529-4219-8620-b2bfd1114a60","agent":"minion-minion-chat-model-s3","at":"2026-11-01T23:26:39-06:00","placed":"top"},"by":"Servex","ts":"2026-11-02T05:26:39.553Z"}
+diff --git a/public/framework/ai/sessions/files.jsonl b/public/framework/ai/sessions/files.jsonl
+index 9b6875839..d0b32907f 100644
+--- a/public/framework/ai/sessions/files.jsonl
++++ b/public/framework/ai/sessions/files.jsonl
+@@ -30588,6 +30588,8 @@
+ {"file":"failures.jsonl","gone":true}
+ {"file":"_context-alert-test/"}
+ {"file":"_context-alert-test/","gone":true}
++{"file":"_context-alert-test/"}
++{"file":"_context-alert-test/","gone":true}
+ {"file":"failures.jsonl"}
+ {"file":"index.jsonl"}
+ {"file":"openrouter-costs.json"}
+@@ -30599,3 +30601,14 @@
+ {"file":"spend-tree.json"}
+ {"file":"transcripts/"}
+ {"file":"week.json"}
++{"file":"transcripts/","gone":true}
++{"file":"sessions.json","gone":true}
++{"file":"spend-tree.json","gone":true}
++{"file":"week.json","gone":true}
++{"file":"session-index.json","gone":true}
++{"file":"session-tree.json","gone":true}
++{"file":"openrouter-reconcile.json","gone":true}
++{"file":"openrouter-costs.json","gone":true}
++{"file":"screenshots/","gone":true}
++{"file":"index.jsonl","gone":true}
++{"file":"failures.jsonl","gone":true}
+diff --git a/public/framework/ai/sessions/session-links.jsonl b/public/framework/ai/sessions/session-links.jsonl
+index 9a5716c84..22109076a 100644
+--- a/public/framework/ai/sessions/session-links.jsonl
++++ b/public/framework/ai/sessions/session-links.jsonl
+@@ -884,3 +884,6 @@
+ {"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-wall","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+ {"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/views-fix","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+ {"run":"2026-11-02T04:55:11.681Z","kind":"links","count":0}
++{"run":"2026-11-02T05:24:58.777Z","kind":"links","count":1}
++{"run":"2026-11-02T05:24:58.777Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s2","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl"}
++{"run":"2026-11-02T05:33:39.892Z","kind":"links","count":0}
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index b75477e28..b4b23e7ca 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -53,6 +53,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+   - A reply never splits a message in progress: while the owner is mid-thought (`Sessions.mid_thought`: the floor is `speaking`, or a thought is held), a reply waits in the writer and is appended when the thought ends (`release_thought`, or the floor going `done`), below the owner's last words.
+   - Known edge: a reply held at the moment Servex restarts is lost from the list (V1 still has it).
+ - **Any agent, through the item tool:** `item({path: <session url>, delta: {messages: {add: {type: "Reply", by: "smart", text: "…"}}}})`, or `{messages: {"<id>": {title, text}}}` to refine a message in place. A read of the session (`item({path})`) answers `messages: {count, last}` (the last 20).
++- **A root task, or a spawned child session, as a Ref** (2026-11-02, chat-model step 3): when `tasks.add` lands at a session's own root — a folder-making ask (`Servex/agents/page_tools.js`'s `put({task: …})`) or an inline subtask (`put({tasks: {add: …}})`) — the same write also appends `ChatWriter.ref_line({path|url})`: a Ref at the bottom of `session.messages`, right after the line that made the task. A spawned child session gets the same Ref wherever `SessionRecord.add_ref` (`Server/SessionRecord.mjs`, called by `Agents.open_task`/`link_parent` and `ChildLinks.link`) writes a `{"task":url}` reference directly onto the **session's own** `session.jsonl` (never onto some task's `task.jsonl` beneath it — "root tasks only": `SessionRecord.is_chat_ref_target`). Idempotent the same way the `{task}` reference already was: a retried link never adds a second Ref.
+ - **The fast seat's `{place}` lines** (written by the voice assistant through the item tool): one with a cleaned `text` (edit `improve` or `both`) also writes `{"messages":{"<prompt id>":{"clean":{"<sentence id>":"…"}}}}`, so that sentence's text updates on its Prompt **in place**: the Prompt keeps its position and its raw words, and a later improve of the same sentence wins (`ChatWriter.place`, called from the item tool, `page_tools.js`). Where a sentence goes (`to`, `where`) is not mirrored: the list's order never changes.
+ 
+ ## How a view reads it
+@@ -63,7 +64,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ 
+ ## Check it
+ 
+-- `node Servex/agents/chat-messages.test.mjs` (13 checks; the last: two `{place}` improves through the real item tool merge on one Prompt, nothing moves, and an edit with no text writes no chat line): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit.
++- `node Servex/agents/chat-messages.test.mjs` (17 checks): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit; two `{place}` improves merging on one Prompt; a root `tasks.add` and a `SessionRecord.add_ref` call each landing one Ref, in order, resolving by path or url, never duplicated on a retry.
+ - On a copy of the biggest real voice session (`v-9dvbbrn`, 2026-11-01): 1,004 owner lines gave 1,004 sentences in 330 Prompts, 316 replies gave 316 Replies; the replay took 86 ms.
+ 
+ ## Migration (written, not run)
+@@ -79,6 +80,6 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ 
+ - ✅ Chat V3 reads this list instead of re-reading `{chat}` lines ([ext/Chat/v3](/framework/ext/Chat/v3/readme.md), 2026-11-01; the views belong to `mastermind-dictation-v3`, this list is the contract). Chat V2 next ([views-on-messages.md](doc/views-on-messages.md) step 2).
+ - ✅ Ref as a message, and `resurface()` (2026-11-01, chat-model step 2): `core/List/List.js`'s explicit `ref(x)` (F7, reworded 2026-11-02 — `add()`'s own default is unchanged, see `plan.md` decision 2) plus `Chat.resurface(message)`.
++- ✅ Tasks and child sessions written as Refs in `session.messages` by Servex (2026-11-02, chat-model step 3): `page_tools.js`'s `tasks.add`, `Server/SessionRecord.mjs`'s `add_ref`.
+ - ⬜ Question and Card as messages, when a writer needs them.
+-- ⬜ Tasks and child sessions written as Refs in `session.messages` by Servex (chat-model step 3).
+ - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").
+diff --git a/public/framework/core/Test/results.jsonl b/public/framework/core/Test/results.jsonl
+index f3d8473b1..bfa5649ee 100644
+--- a/public/framework/core/Test/results.jsonl
++++ b/public/framework/core/Test/results.jsonl
+@@ -18692,3 +18692,28 @@
+ {"file":"public/framework/core/Item/transport.test.mjs","ok":true,"ms":11218,"at":"2026-11-02T05:21:38.438Z","trigger":"manual"}
+ {"file":"public/framework/core/List/List.test.mjs","ok":true,"ms":95,"at":"2026-11-02T05:23:37.555Z","trigger":"manual"}
+ {"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":182,"at":"2026-11-02T05:23:37.791Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.basic.test.mjs","ok":true,"ms":49,"at":"2026-11-02T05:33:09.800Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.test.mjs","ok":true,"ms":199,"at":"2026-11-02T05:33:09.958Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Item.steps.test.mjs","ok":true,"ms":298,"at":"2026-11-02T05:33:10.053Z","trigger":"manual"}
++{"file":"public/framework/core/Item/RecordWriter.test.mjs","ok":true,"ms":236,"at":"2026-11-02T05:33:10.194Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Store.test.mjs","ok":true,"ms":61,"at":"2026-11-02T05:33:10.255Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Outbox.test.mjs","ok":true,"ms":462,"at":"2026-11-02T05:33:10.263Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Ref.test.mjs","ok":true,"ms":237,"at":"2026-11-02T05:33:10.290Z","trigger":"manual"}
++{"file":"public/framework/core/Item/call.test.mjs","ok":true,"ms":57,"at":"2026-11-02T05:33:10.320Z","trigger":"manual"}
++{"file":"public/framework/core/Item/hooks.test.mjs","ok":true,"ms":50,"at":"2026-11-02T05:33:10.370Z","trigger":"manual"}
++{"file":"public/framework/core/Item/act.test.mjs","ok":true,"ms":149,"at":"2026-11-02T05:33:10.404Z","trigger":"manual"}
++{"file":"public/framework/core/Item/item-core.test.mjs","ok":true,"ms":54,"at":"2026-11-02T05:33:10.424Z","trigger":"manual"}
++{"file":"public/framework/core/Item/line-format.test.mjs","ok":true,"ms":153,"at":"2026-11-02T05:33:10.558Z","trigger":"manual"}
++{"file":"public/framework/core/Item/delta-flow.test.mjs","ok":true,"ms":295,"at":"2026-11-02T05:33:10.585Z","trigger":"manual"}
++{"file":"public/framework/core/Item/replay-vs-open.test.mjs","ok":true,"ms":51,"at":"2026-11-02T05:33:10.636Z","trigger":"manual"}
++{"file":"public/framework/core/Item/line-readers.test.mjs","ok":true,"ms":217,"at":"2026-11-02T05:33:10.641Z","trigger":"manual"}
++{"file":"public/framework/core/Item/snapshot.test.mjs","ok":true,"ms":196,"at":"2026-11-02T05:33:10.837Z","trigger":"manual"}
++{"file":"public/framework/core/Item/replay.test.mjs","ok":true,"ms":238,"at":"2026-11-02T05:33:10.874Z","trigger":"manual"}
++{"file":"public/framework/core/Item/Dated.test.mjs","ok":true,"ms":1572,"at":"2026-11-02T05:33:11.286Z","trigger":"manual"}
++{"file":"public/framework/core/Item/persistence.test.mjs","ok":true,"ms":1208,"at":"2026-11-02T05:33:11.766Z","trigger":"manual"}
++{"file":"public/framework/core/Item/transport.test.mjs","ok":true,"ms":11208,"at":"2026-11-02T05:33:22.046Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.steps.test.mjs","ok":true,"ms":86,"at":"2026-11-02T05:33:24.870Z","trigger":"manual"}
++{"file":"public/framework/core/List/List.test.mjs","ok":true,"ms":66,"at":"2026-11-02T05:33:24.887Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":144,"at":"2026-11-02T05:33:25.649Z","trigger":"manual"}
++{"file":"public/framework/core/Session/session-task.test.mjs","ok":true,"ms":60,"at":"2026-11-02T05:33:25.703Z","trigger":"manual"}
++{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":162,"at":"2026-11-02T05:33:25.703Z","trigger":"manual"}
+diff --git a/public/framework/ext/Chat/v2/fixture/files.jsonl b/public/framework/ext/Chat/v2/fixture/files.jsonl
+index 5564fb51e..bb9a46b3a 100644
+--- a/public/framework/ext/Chat/v2/fixture/files.jsonl
++++ b/public/framework/ext/Chat/v2/fixture/files.jsonl
+@@ -427,3 +427,5 @@
+ {"file":"messages-session.jsonl"}
+ {"file":"live-v2-52164.jsonl"}
+ {"file":"live-v2-52164.jsonl","gone":true}
++{"file":"live-v2-52204.jsonl"}
++{"file":"live-v2-52204.jsonl","gone":true}
+diff --git a/public/framework/ext/Chat/v3/fixture/files.jsonl b/public/framework/ext/Chat/v3/fixture/files.jsonl
+index 5bc9ae2c2..67ed2abe4 100644
+--- a/public/framework/ext/Chat/v3/fixture/files.jsonl
++++ b/public/framework/ext/Chat/v3/fixture/files.jsonl
+@@ -1,3 +1,5 @@
+ {"file":"messages-session.jsonl"}
+ {"file":"live-v3-49496.jsonl"}
+ {"file":"live-v3-49496.jsonl","gone":true}
++{"file":"live-v3-8464.jsonl"}
++{"file":"live-v3-8464.jsonl","gone":true}
+diff --git a/public/framework/files.jsonl b/public/framework/files.jsonl
+index 0211dceb1..f0e01c656 100644
+--- a/public/framework/files.jsonl
++++ b/public/framework/files.jsonl
+@@ -109,3 +109,7 @@
+ {"file":"zz-item-tool-test-28824/","gone":true}
+ {"file":"zz-item-tool-test-10096/"}
+ {"file":"zz-item-tool-test-10096/","gone":true}
++{"file":"zz-item-tool-test-48800/"}
++{"file":"zz-item-tool-test-48800/","gone":true}
++{"file":"zz-item-tool-test-48072/"}
++{"file":"zz-item-tool-test-48072/","gone":true}
