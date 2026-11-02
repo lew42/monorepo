@@ -14,3 +14,4 @@
 {"log":{"at":"2026-10-25T20:26:56-05:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
 {"log":{"at":"2026-10-25T20:31:56-05:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
 {"log":{"at":"2026-10-25T20:37:07-05:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"stop":{"at":"2026-11-02T00:08:28-06:00","why":"abandoned: no agent since 2026-10-25T20:37:07-05:00; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:08:28.689Z"}

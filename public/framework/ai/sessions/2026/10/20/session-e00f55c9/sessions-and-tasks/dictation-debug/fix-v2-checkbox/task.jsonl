@@ -3,3 +3,4 @@
 {"review":{"at":"2026-10-25T16:27:38-05:00","answer":{"n":2,"reply":"fixed: d261c0ce8, is_kid() also accepts a root Task/Question whose from is the prompt; ChatV2.test.mjs 44 passed"}}}
 {"review":{"at":"2026-10-25T16:27:38-05:00","answer":{"n":3,"reply":"noted: the fixture task is left running; nothing later reads it, and the live copy is per-run"}}}
 {"review":{"at":"2026-10-25T16:27:38-05:00","answer":{"n":4,"reply":"noted: proof is the test run (44 passed) and the fold script, rerun after d261c0ce8"}}}
+{"stop":{"at":"2026-11-02T00:02:41-06:00","why":"abandoned: no agent since 2026-10-25T21:27:38.581Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:41.433Z"}

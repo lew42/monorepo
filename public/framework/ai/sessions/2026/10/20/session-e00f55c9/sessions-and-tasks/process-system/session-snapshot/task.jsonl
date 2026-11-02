@@ -12,3 +12,4 @@
 {"review":{"at":"2026-10-23T20:27:03-05:00","answer":{"n":3,"reply":"noted: Claude Code applies updatedInput only together with a permission decision, and tabs run in bypassPermissions, so allow changes nothing in practice."}}}
 {"review":{"at":"2026-10-23T20:27:03-05:00","answer":{"n":4,"reply":"noted: a one-minute lag is acceptable for a session snapshot; the cache stops 3,000-row walks per task."}}}
 {"review":{"at":"2026-10-23T20:27:03-05:00","answer":{"n":5,"reply":"noted: both stay. agents_under covers agents whose task lives under the session folder; the hook covers tab spawns whose task lives elsewhere (a module folder)."}}}
+{"stop":{"at":"2026-11-02T00:02:42-06:00","why":"abandoned: no agent since 2026-10-24T01:34:14.799Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:42.389Z"}

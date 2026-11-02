@@ -7,3 +7,4 @@
 {"tasks":{"add":{"type":"Task","id":"land","title":"Merge","session":{"run":"owner"},"do":"Merge with Server/merge.mjs inside a hold; restart Servex only outside a voice call."}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:18:30.116Z"}
 {"start":{},"by":"ProcessRunner","at":"2026-10-25T16:18:30-05:00"}
 {"okay":{"wait":{"on":"owner","what":"Waits for the owner's okay on proposal.md, and for the chat-sent and polish processes to merge. mastermind-dictation-2 completes it."}},"by":"ProcessRunner","at":"2026-10-25T16:18:30-05:00"}
+{"stop":{"at":"2026-11-02T00:02:40-06:00","why":"abandoned: no agent since 2026-10-25T21:18:30.116Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:40.587Z"}

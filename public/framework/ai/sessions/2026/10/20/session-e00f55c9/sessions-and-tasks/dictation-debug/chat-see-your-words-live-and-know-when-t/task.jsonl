@@ -10,3 +10,4 @@
 {"spawn":{"step":"build","run":"owner","agent":"mastermind-dictation-2","session_id":null,"cost_before":118.31162499999996},"by":"ProcessRunner","at":"2026-10-25T16:32:02-05:00"}
 {"pulse":{"step":"build","n":1,"agent":"mastermind-dictation-2"},"by":"ProcessRunner","at":"2026-10-25T16:44:20-05:00"}
 {"build":{"wait":{"on":"minion-chat-sent","what":"round 1 (safe fixes 1-7) committed in worktree dictation-chat-sent, with screenshots read"}},"by":"mastermind-dictation-2","ts":"2026-10-25T21:44:23.811Z"}
+{"stop":{"at":"2026-11-02T00:02:41-06:00","why":"abandoned: no agent since 2026-10-25T21:44:23.811Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:41.035Z"}

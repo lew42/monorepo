@@ -9,3 +9,4 @@
 {"react":{"at":"2026-10-17T00:00:42.401-05:00","session":"v-hg4z3e9","re":"2026-10-17T00:00:36.042-05:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-hg4z3e9"}}}
 {"backing":{"at":"2026-10-17T00:03:44.797-05:00","fast":"d1f68237-c0f1-41e8-a320-68af87b3d9d3","smart":"de2a18e6-5e6e-49ea-914b-3f107b9385a7","how":{"fast":"resume"}}}
 {"chat":{"at":"2026-10-17T00:12:49.622-05:00","session":"v-hg4z3e9","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-17T00:00:36.042-05:00"}}
+{"stop":{"at":"2026-11-02T00:02:37-06:00","why":"abandoned: no agent since 2026-10-17T05:12:49.622Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:37.774Z"}

@@ -8,3 +8,4 @@
 {"chat":{"at":"2026-10-01T00:30:10.000-05:00","session":"v-h07426y","path":"/framework/ux/Dictate/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-h07426y"},"via":"text","text":"Got it, that one came in typed."}}
 {"chat":{"at":"2026-10-01T00:30:45.000-05:00","session":"v-h07426y","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"voice","text":"typed via keyboard"}}
 {"chat":{"at":"2026-10-01T23:39:11.741-05:00","session":"v-h07426y","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-10-01T00:30:45.000-05:00"}}
+{"stop":{"at":"2026-11-02T00:02:31-06:00","why":"abandoned: no agent since 2026-10-02T04:39:11.741Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:31.330Z"}

@@ -107,3 +107,6 @@
 {"file":"data/"}
 {"file":"data/","gone":true}
 {"file":"data/"}
+{"file":"failures.jsonl"}
+{"file":"Server/"}
+{"file":"Server/","gone":true}

@@ -25,3 +25,5 @@
 {"log":{"at":"2026-11-01T22:55:26-06:00","heartbeat":"check","msg":"status check sent to mastermind-pseudo-properties"}}
 {"log":{"at":"2026-11-01T22:55:31-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T04:55:31.930Z"}
 {"log":{"at":"2026-11-01T22:55:36-06:00","heartbeat":"answered","msg":"Finished and idle, with nothing in flight. I'm done unless someone sends new work. Landing the task would stop these checks, but I haven't done that."}}
+{"stop":{"at":"2026-11-01T23:57:17-06:00","why":"dropped: owner mastermind-pseudo-properties is dormant and the task is untouched"}}
+{"log":{"at":"2026-11-01T23:57:26-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

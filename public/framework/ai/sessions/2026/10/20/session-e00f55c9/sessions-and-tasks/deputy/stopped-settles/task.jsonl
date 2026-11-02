@@ -2,3 +2,4 @@
 {"review":{"at":"2026-10-24T22:59:31-05:00","answer":{"n":1,"reply":"fixed: the next commit on qf-2. child_changed uses Task.settled: when every child is settled and at least one is complete, the parent completes itself."}}}
 {"review":{"at":"2026-10-24T22:59:31-05:00","answer":{"n":2,"reply":"fixed: the next commit on qf-2. A series picks the next child that is not settled, so a dropped child is skipped (ProcessRunner.test 43 passing)."}}}
 {"review":{"at":"2026-10-24T22:59:31-05:00","answer":{"n":3,"reply":"declined: a note; the merge is next."}}}
+{"stop":{"at":"2026-11-02T00:02:40-06:00","why":"abandoned: no agent since 2026-10-25T03:59:31.147Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:40.356Z"}
