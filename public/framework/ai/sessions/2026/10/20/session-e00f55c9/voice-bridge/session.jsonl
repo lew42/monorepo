@@ -32,3 +32,6 @@
 {"review":{"at":"2026-11-01T18:11:11-06:00","answer":{"n":5,"reply":"noted: known, later; nothing reads queue.kinds at that moment, so the fake's order changes no result"}}}
 {"log":{"at":"2026-11-01T18:11:11-06:00","msg":"review loop stopped after 5 rounds (vscode-mastermind's call); every finding answered; known, later: live latency after a Servex restart, the fake agent's shift order, a direct CLAUDE_CODE_MESSAGING_SOCKET write experiment"}}
 {"log":{"at":"2026-11-01T18:11:20-06:00","msg":"ready: worktree/voice-bridge at 20cc49221 the voice bridge (ask_mastermind acks with a ticket and the mastermind's first sentence, voice_hear long-polls, answers ride on every tool result, spawn-gate fallback); gate ok; merge: MSYS_NO_PATHCONV=1 node Server/merge.mjs C:/Code/lew42/worktrees/voice-bridge --review-dir public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge"}}
+{"log":{"at":"2026-11-01T18:14:39-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T00:14:39.520Z"}
+{"log":{"at":"2026-11-01T18:20:06-06:00","heartbeat":"check","msg":"status check sent to mastermind-voice-bridge"}}
+{"log":{"at":"2026-11-01T18:20:09-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T00:20:09.343Z"}
