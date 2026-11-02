@@ -8,3 +8,4 @@
 {"file":"tasks/"}
 {"file":"inbox.jsonl"}
 {"file":"failures.jsonl"}
+{"file":"failures.jsonl","gone":true}

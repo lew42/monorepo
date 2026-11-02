@@ -117,7 +117,7 @@ test.optional("edge: no change saves no line; a throwing body saves none and rel
 test.optional("edge: act() still saves its one verb line around an as_call method, and it replays", t => {
 	const { table, lines } = fresh();
 	table.act("sort_by", "title");
-	t.eq(lines, [{ sort_by: "title" }], "act(): still one line, the verb (written bare unless Store.marked_lines)");
+	t.eq(lines, [{ "sort_by()": "title" }], "act(): still one line, the verb (always marked for as_call, per doc/line-format.md)");
 	const again = Table.replay([{ rows: { add: { id: "r1", title: "pear" } } }, { rows: { add: { id: "r2", title: "apple" } } }, ...lines]);
 	t.eq(again.order_of(), ["r2", "r1"], "act(): and its line replays (the bare spelling too)");
 	return again;

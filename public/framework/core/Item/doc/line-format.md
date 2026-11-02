@@ -20,9 +20,9 @@ A `name()` with no such method, or a `#id` with no such item, is **refused with 
 
 ## What writes which shape
 
-One switch, **`Item.Store.marked_lines`** (`Store.js`), is `false` today:
+One switch, **`Item.Store.marked_lines`** (`Store.js`), is `true` since 2026-11-02:
 
-| Writer | `marked_lines = false` (today) | `marked_lines = true` |
+| Writer | `marked_lines = false` | `marked_lines = true` (today) |
 |---|---|---|
 | `Item.act("start")` (`Item.js`) | `{"start": {}}` | `{"start()": {}}` |
 | a change inside a list item (`Store.hops`) | `{"tasks": {"c3": {"set": {…}}}}` | `{"tasks": {"#c3": {"set": {…}}}}` |
@@ -46,9 +46,9 @@ It is still stored as data, exactly as before, so every record replays the same 
 
 ## Switching it on
 
-**Why it is still off (2026-11-02).** Every reader reads both spellings (`line-readers.test.mjs`, including a with-it-on test) and `ReplayCompare` is 4068/4068 identical with it on. What blocks it: 10 core test files assert the bare spelling (`Item.test`, `Item.steps.test`, `Ref.test`, `act.test`, `call.test`, `item-core.test`, `replay.test`, `persistence.test`, `unset.test`, `Task.steps.test`) and fail with the switch on only because their expectations say `start`, not `start()`. Update those expectations, then switch.
+**Switched on (2026-11-02).** Every reader reads both spellings (`line-readers.test.mjs`), `ReplayCompare` was 4071/4071 identical with it on, and the 10 core test files that asserted the bare spelling now expect the marked one. Old files keep their bare lines and still replay; nothing on disk changed.
 
-**To switch on:** set `Item.Store.marked_lines = true` (`Store.js`, one line). Check first: `node public/framework/core/Item/line-readers.test.mjs` (all PASS, including its "with Store.marked_lines ON" test), `node Servex/agents/item_tool.test.mjs`, and `node public/framework/core/Test/TestRunner.mjs public/framework/core`. Then open a session page and a task page in the browser, press Start on a task, and check the new line in its `.jsonl` reads `{"tasks": {"#c3": {"start()": {}}}}` and the board still shows it running.
+**To switch it off again:** set `Item.Store.marked_lines = false` (`Store.js`, one line); before it was on, the check was: set `Item.Store.marked_lines = true` (`Store.js`, one line). Check first: `node public/framework/core/Item/line-readers.test.mjs` (all PASS, including its "with Store.marked_lines ON" test), `node Servex/agents/item_tool.test.mjs`, and `node public/framework/core/Test/TestRunner.mjs public/framework/core`. Then open a session page and a task page in the browser, press Start on a task, and check the new line in its `.jsonl` reads `{"tasks": {"#c3": {"start()": {}}}}` and the board still shows it running.
 
 **The helper.** [`LineKey.js`](../LineKey.js) takes the marks off a line: `LineKey.bare(key)`, `LineKey.unmark(line)` (top level, what `Item.unmark` calls), `LineKey.deep(line)` (every level; returns the same object when nothing is marked). It imports nothing, so a server script and a browser view share it. A reader that looks up verbs or ids by bare name calls `LineKey.deep` once, where it parses a line.
 

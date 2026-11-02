@@ -906,3 +906,9 @@
 {"run":"2026-11-02T21:10:02.994Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/marked-lines-switch","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl"}
 {"run":"2026-11-02T21:13:25.594Z","kind":"links","count":0}
 {"run":"2026-11-02T21:23:11.267Z","kind":"links","count":0}
+{"run":"2026-11-02T21:38:10.743Z","kind":"links","count":2}
+{"run":"2026-11-02T21:38:10.743Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-mic-sentences","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl"}
+{"run":"2026-11-02T21:38:10.743Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-roles-audit","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl"}
+{"run":"2026-11-02T21:47:52.380Z","kind":"links","count":0}
+{"run":"2026-11-02T21:49:19.433Z","kind":"links","count":0}
+{"run":"2026-11-02T21:51:56.398Z","kind":"links","count":0}

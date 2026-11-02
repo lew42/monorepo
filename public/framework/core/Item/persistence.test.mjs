@@ -169,7 +169,7 @@ try {
 		await c("remove", r => r.tasks.find("api").tasks.remove("c3"));
 		await c("replay", r => r.tasks.find("ui").act("start"));
 		const verb = lines_of(file).at(-1);
-		t.eq(J({ tasks: verb.tasks }), J({ tasks: { ui: { start: {} } } }), "Task (nested): a verb on a session's task names the list: {\"tasks\":{\"ui\":{\"start\":{}}}}");
+		t.eq(J({ tasks: verb.tasks }), J({ tasks: { "#ui": { "start()": {} } } }), "Task (nested): a verb on a session's task names the list: {\"tasks\":{\"#ui\":{\"start()\":{}}}}");
 	}
 	// ── Prompt, own file and nested in a Session ──
 	{
@@ -260,7 +260,7 @@ try {
 		await c("move", r => r.content.add({ id: "head", type: "part-heading", text: "Top" })); await c("move", r => r.content.move("head", { after: null }));
 		await c("remove", r => r.content.remove("head"));
 		await c("replay", r => r.content.find("card").set({ title: "Renamed card" }));
-		t.eq(J(lines_of(file).at(-1).content), J({ card: { set: { title: "Renamed card" } } }), "Page (nested part): a part's change names the content list");
+		t.eq(J(lines_of(file).at(-1).content), J({ "#card": { set: { title: "Renamed card" } } }), "Page (nested part): a part's change names the content list");
 	}
 } finally { fs.rmSync(TMP, { recursive: true, force: true }); }
 

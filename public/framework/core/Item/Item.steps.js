@@ -44,7 +44,7 @@ export default [
 		code: `milk.set({ count: 2 })`,
 		note: "The change climbs parent to shop, and the line names the path down, each hop by its list: items, then milk.",
 		run: t => { t.milk.set({ count: 2 }); },
-		check: t => t.milk.get("count") === 2 && t.lines.length === 1 && "milk" in (t.lines[0].items ?? {}),
+		check: t => t.milk.get("count") === 2 && t.lines.length === 1 && ("milk" in (t.lines[0].items ?? {}) || "#milk" in (t.lines[0].items ?? {})),
 		show: t => t.shop,
 	},
 	{

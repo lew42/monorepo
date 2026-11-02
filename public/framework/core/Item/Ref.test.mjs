@@ -92,7 +92,7 @@ try {
 	t.eq(["r1", "r2"].map(id => doc.chat.find(id).path), ["tasks.done.tasks.c3", "tasks.done.tasks.c3"], "a move re-paths the Refs that named the old path");
 	t.eq(Ref.repath(c3, "tasks.ui.tasks.c3"), [], "and calling repath again finds nothing left to do");
 	const added = read("doc.jsonl").slice(n + 1);   // after the move line itself
-	t.eq(added, [{ chat: { r1: { set: { path: "tasks.done.tasks.c3" } } } }, { chat: { r2: { set: { path: "tasks.done.tasks.c3" } } } }], "one line per Ref, naming its new path");
+	t.eq(added, [{ chat: { "#r1": { set: { path: "tasks.done.tasks.c3" } } } }, { chat: { "#r2": { set: { path: "tasks.done.tasks.c3" } } } }], "one line per Ref, naming its new path");
 
 	// Replayed from the file: the backlinks are rebuilt from the lines, and every Ref finds C3 at its new place.
 	const again = Item.hydrate({ id: "doc", title: "Doc", tasks: [{ id: "ui", title: "UI", tasks: [{ id: "c3", title: "C3" }] }, { id: "done", title: "Done", tasks: [] }], chat: [] });
@@ -122,7 +122,7 @@ try {
 	const followed = await old_ref.resolve();
 	t.eq(followed?.get_one("title"), "Work, in its new session", "an old Ref follows the forward to the new file");
 	t.eq([old_ref.url, old_ref.path], [BASE + "/s/new/", "tasks.w1"], "and takes the new address");
-	t.eq(read("holder.jsonl").slice(1), [{ chat: { o1: { set: { url: BASE + "/s/new/" } } } }], "written as one line (what changed: the url; the path is the same), so the next load goes straight there");
+	t.eq(read("holder.jsonl").slice(1), [{ chat: { "#o1": { set: { url: BASE + "/s/new/" } } } }], "written as one line (what changed: the url; the path is the same), so the next load goes straight there");
 
 	const loop = Item.hydrate({ id: "loop", chat: [] });
 	write("s/a/session.jsonl", [{ session: { id: "a" } }, { tasks: { add: { type: "Task", id: "x" } } }, { tasks: { x: { moved_to: { url: BASE + "/s/b/", path: "tasks.x" } } } }]);
