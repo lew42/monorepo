@@ -83,3 +83,5 @@
 {"at":"2026-11-02T02:24:48-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"Seven of the 12 scripts are green (swallow, new-session, deltas, in-place, settings, earlier and chat-sent). Batch 2 is merged, and `earlier` and `chat-sent` are committed on the worktree but not merged yet.\n\nI'm waiting on the full fenced browser run, which has to pass before I merge those two as batch 3. After that I'll work on debug-tab, reconnect, stall, dictation-bar and refresh."}
 {"read_upto":83,"at":"2026-11-02T02:29:18-06:00","by":"servex-task-loop"}
 {"read_upto":84,"at":"2026-11-02T02:29:28-06:00","by":"mastermind-dictation-v3"}
+{"at":"2026-11-02T02:36:06-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"Still waiting on the full fenced browser run, which gates the batch 3 merge of `earlier` and `chat-sent` (both committed on the worktree). Seven of the 12 scripts are green. Debug-tab, reconnect, stall, dictation-bar and refresh come after the merge."}
+{"read_upto":86,"at":"2026-11-02T02:36:25-06:00","by":"mastermind-dictation-v3"}
