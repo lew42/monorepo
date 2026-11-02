@@ -6,3 +6,6 @@
 {"file":"readme.md"}
 {"file":"Chat.test.mjs"}
 {"file":"doc/"}
+{"file":"PromptItem.js"}
+{"file":"fixture/"}
+{"file":"Prompt.raw.test.mjs"}

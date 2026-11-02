@@ -71,9 +71,9 @@ check("a reply that lands mid-thought waits, then goes below the thought", () =>
 	assert.deepEqual(chat.map(m => m.constructor.name), ["Prompt", "Reply", "Prompt", "Reply", "Prompt", "Message"]);
 });
 check("the owner's words: one Prompt grown while talking; after a reply, the next words start a new Prompt below it", () => {
-	assert.equal(chat[0].said, "The tab bar is broken. On my phone.");
-	assert.equal(chat[2].said, "An iPhone.");
-	assert.equal(chat[4].said, "Fix it today, please.");
+	assert.equal(chat[0].raw, "The tab bar is broken. On my phone.");
+	assert.equal(chat[2].raw, "An iPhone.");
+	assert.equal(chat[4].raw, "Fix it today, please.");
 	assert.equal(chat[0].by, "owner");
 	assert.ok(chat[0].prompt && session.tasks.find(chat[0].prompt) instanceof TaskPrompt, "the chat Prompt links today's Prompt task");
 });
@@ -96,7 +96,7 @@ check("a replay is the same list, in the same order, with no twins", () => {
 check("a snapshot round trip builds the same classes (the chat's own Prompt, not the Prompt task)", () => {
 	const back = Session.hydrate(JSON.parse(JSON.stringify(session.toJSON())));
 	assert.deepEqual(back.messages.messages.map(m => m.constructor), chat.map(m => m.constructor));
-	assert.equal(back.messages.messages[0].said, chat[0].said);
+	assert.equal(back.messages.messages[0].raw, chat[0].raw);
 });
 check("after a restart (empty writer memory) a reply still finds its sentence in the file", () => {
 	S._chat_writer = null;
@@ -146,7 +146,7 @@ try {
 	check("a {place} improve updates the sentence's text in its Prompt, in place: same position, raw words kept, V1's {place} line still written", () => {
 		assert.deepEqual(after.map(m => m.id), before.map(m => m.id), "no message moved, none added");
 		assert.equal(after[0].cleaned, "The tab bar is broken! On my phone (an iPhone).", "two improves on two sentences merge");
-		assert.equal(after[0].said, "The tab bar is broken. On my phone.", "the raw words stay");
+		assert.equal(after[0].raw, "The tab bar is broken. On my phone.", "the raw words stay");
 		assert.equal(raw.filter(l => l.place).length, 4, "every {place} line is written as before");
 		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\"), or one naming no sentence, adds no chat line");
 		assert.ok(no_match.ok, "a {place} naming no sentence is still written for V1");
@@ -197,6 +197,45 @@ try {
 			assert.ok(!SessionRecord.is_chat_ref_target(path.join("public", "framework", "core", "session.jsonl")), "outside the sessions store");
 		});
 	}
+
+		// ── step 5/6: marks on the Prompt MESSAGE, and a Prompt as a card (kind + items) ────────────────────────────────
+		{
+			const at0 = owner_v1[0].chat.at, sid0 = chat[0].sentences[0];
+			check("Sessions.mark_sent also marks the Prompt MESSAGE that owns the sentence (views-on-messages.md step 3), not only the task broadcast — for both seats, even after a restart wiped ChatWriter's own memory (an earlier check in this file already set `S._chat_writer = null`)", () => {
+				S.mark_sent(s, "smart", [{ at: at0 }]);
+				const p0 = Session.replay(read()).messages.messages.find(m => m.sentences?.includes?.(sid0));
+				assert.ok(p0.sent.smart?.at, "message_for fell back to reading the file (ChatWriter.find_message, Sessions.find_message) and found the mark's home");
+				assert.equal(p0.sent.fast, undefined, "the fast seat's mark is untouched so far (this harness runs with assistant: \"off\", which gates mark_sent(\"fast\") at the top)");
+				const was = S.assistant;
+				S.assistant = "voice";   // fast_off() reads this; flipped only for this one call, to prove the fast seat's mark goes through the same path
+				try { S.mark_sent(s, "fast", [{ at: at0 }]); } finally { S.assistant = was; }
+				const p0_again = Session.replay(read()).messages.messages.find(m => m.sentences?.includes?.(sid0));
+				assert.ok(p0_again.sent.fast?.at, "the fast seat's mark reaches the message too, through the same ChatWriter.sent_line path");
+				assert.ok(p0_again.sent.smart?.at, "and the earlier smart mark is still there (merged, not overwritten)");
+			});
+			let r = await run_item({ path: URL_, delta: { messages: { [chat[0].id]: { kind: "task", title: "Fix the mobile tab bar" } } } }, { caller: "t" });
+			check("the item tool sets a Prompt's kind and title", () => {
+				assert.ok(r.ok, r.why);
+				const p0 = replay_msgs().find(m => m.id === chat[0].id);
+				assert.equal(p0.kind, "task");
+				assert.equal(p0.title, "Fix the mobile tab bar");
+			});
+			r = await run_item({ path: URL_, delta: { messages: { [chat[0].id]: { items: { add: { title: "Call the owner", sentences: [chat[0].sentences[0]] } } } } } }, { caller: "t" });
+			check("…and adds an item under it", () => {
+				assert.ok(r.ok && r.ids?.length === 1, r.why);
+				const p0 = replay_msgs().find(m => m.id === chat[0].id);
+				assert.equal(p0.items.length, 1);
+				assert.equal(p0.items.items[0].title, "Call the owner");
+				assert.deepEqual(p0.items.items[0].sentences, [chat[0].sentences[0]]);
+			});
+			const item_id = r.ids[0];
+			r = await run_item({ path: URL_, delta: { messages: { [chat[0].id]: { items: { [item_id]: { sentences: { push: chat[2].sentences[0] } } } } } } }, { caller: "t" });
+			check("…and pushes another sentence into that item", () => {
+				assert.ok(r.ok, r.why);
+				const p0 = replay_msgs().find(m => m.id === chat[0].id);
+				assert.deepEqual(p0.items.items[0].sentences, [chat[0].sentences[0], chat[2].sentences[0]]);
+			});
+		}
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 console.log(`chat-messages.test.mjs: ${checks} checks passed`);
