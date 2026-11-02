@@ -13,7 +13,7 @@ export const MERGE_GAP_MS = 8000;
 export const GUESS_TITLE = "Gray words: the transcriber's guess, still changing. They turn black once it settles.";
 export const LIVE_SENT_TITLE = "Sent, waiting for the cleaned-up line, which replaces this — the text itself stays full strength; the left rule marks the wait.";
 
-// sender -> its one still-open bubble, per box (doc/notes.md#bubble-order, "the open bubble stays last"):
+// sender -> its one still-open bubble, per box (doc/notes.md#bubble-order; closed once something else is drawn below it):
 // tracked by reference, not by DOM position, so a reply landing in between never breaks the merge.
 const open_bubbles = new WeakMap();
 function set_open(box_el, sender, bubble){
@@ -38,7 +38,21 @@ export function mergeable($box, sender, at, prompt){
 	// review finding 3, 2026-10-25). A piece with no Prompt id at all (older callers) keeps the old
 	// sender+gap rule.
 	if (prompt && last.dataset.prompt && last.dataset.prompt !== prompt) return null;
+	// nothing on screen moves for a later arrival (the owner, 2026-11-01): once someone else's bubble has been drawn below it, the open
+	// bubble is closed, and the next line starts a new bubble below that one instead of pulling this one down past it
+	if (answered_below(last)) return null;
 	return at - Number(last.dataset.at) < MERGE_GAP_MS ? last : null;
+}
+
+/** True when something of another speaker sits below `b`: a bubble with another sender, or the assistant's own Task card that is not
+ * hung under a bubble (`data-under`). A live bubble does not count: it is lifted out while a line is drawn. */
+export function answered_below(b){
+	for (let s = b.nextElementSibling; s; s = s.nextElementSibling){
+		if (s.classList.contains("chatbox-live")) continue;
+		if (s.dataset?.sender && s.dataset.sender !== b.dataset.sender) return true;
+		if (s.matches?.(".chatbox-task.chatbox-reply:not([data-under])")) return true;
+	}
+	return false;
 }
 
 /** Put a drawn bubble before the first one with a later `at`, so a late line lands in time order (doc/notes.md#bubble-order). */
@@ -279,7 +293,7 @@ export function speak($box, { cls, who, text, sender, at, id, onmount, via, mark
 		i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
 		last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 		fill(last);
-		// the open bubble always stays last, even if a reply landed after it while it was still growing (the owner, 2026-10-25)
+		// a bubble something else was drawn below is closed (mergeable() above), so this only moves it past rows hung under it (the owner, 2026-11-01)
 		if ($box.el.lastElementChild !== last) $box.el.append(last);
 		return last;
 	}
@@ -809,7 +823,7 @@ export function chat({ source, keep = () => true, answer = () => {}, on_select, 
 				i < 0 ? pieces.push(piece) : pieces.splice(i, 0, piece);
 				last.dataset.at = Math.max(Number(last.dataset.at) || 0, at);
 				fill(last);
-				// the open bubble always stays last, even if a reply landed after it while it was still growing (the owner, 2026-10-25)
+				// a bubble something else was drawn below is closed (mergeable() above), so this only moves it past rows hung under it (the owner, 2026-11-01)
 				if ($box.el.lastElementChild !== last) $box.el.append(last);
 				fix_index.set(c.at, { bubble: last, piece });
 				target(c.at, last);
