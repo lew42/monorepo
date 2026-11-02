@@ -285,14 +285,23 @@ export class List extends Item {
 		// document shape `{type, id, data, <listname>: [...]}` that `hydrate()` reads back (it is tolerant of both this and
 		// the old flat shape), so an Item member nests its own data and lists instead of spreading them flat. A non-Item
 		// member (no toJSON, a list whose `of` was overridden to keep plain values) keeps the old flat spread.
+		// ⚠ `toJSON()`'s `data` is the LIVE object `made` itself keeps mutating, and a child list's members are the LIVE
+		// Item instances themselves (never their JSON) — nesting either by reference meant a line "recorded" now silently
+		// grew the item's LATER fields (a subtask's `state` written as "complete" on its own `add` line, because the same
+		// task object kept being written into after it was announced): found replaying Task.steps.test.mjs, where a child
+		// added, then started, then completed ended up with its `add` line already showing `state: "complete"`.
+		// `JSON.parse(JSON.stringify(...))` snapshots both at announce time the way they would be written to disk anyway
+		// (it runs every nested Item's own `toJSON()`, same as the real write does) — `structuredClone` cannot: an Item
+		// instance's own `parent` is a plain, enumerable field (never hidden, so `hydrate()` can restore it by adoption),
+		// and structuredClone walks it straight into the owning Store, which holds live functions.
 		const json = made?.toJSON ? made.toJSON() : null;
 		const { type, id: _id, data, ...child_lists } = json ?? {};
 		this.announce("add", {
 			id: this.key(made),
 			...(type && type !== "Item" ? { type } : {}),
 			after: this.after_of(made),
-			...(data && Object.keys(data).length ? { data } : {}),
-			...(json ? child_lists : (made?.data ?? {})),
+			...(data && Object.keys(data).length ? { data: JSON.parse(JSON.stringify(data)) } : {}),
+			...(json ? JSON.parse(JSON.stringify(child_lists)) : (made?.data ?? {})),
 		});
 		return made;
 	}

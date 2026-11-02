@@ -77,6 +77,30 @@ try {
 		fs.rmSync(DIR2, { recursive: true, force: true });
 	}
 
+	// Fix 5 regression (found replaying Task.steps.test.mjs after this fix landed, chat-model step 1 review round 2): the
+	// envelope's `data` and child lists must be a SNAPSHOT taken at announce time, not a live reference onto the member
+	// itself — otherwise a later mutation of the member (a subtask started, then completed) silently rewrites the line
+	// already "recorded" for its `add`, because `toJSON()`'s `data` is the member's own live `.data` object. A real
+	// `Store` queues a line (`queueMicrotask`) rather than writing it synchronously, so this needs a store that keeps the
+	// raw line OBJECT across that gap — `ScratchStore` (what core/Test's Steps.js and Task.steps.test.mjs both use) — not
+	// the synchronous `fs.appendFileSync` override above, which stringifies (and so snapshots) before this bug could show.
+	{
+		const { default: ScratchStore } = await import("../Item/watch/ScratchStore.js");
+		const root3 = Item.hydrate({ id: "root3", kids: [] });
+		const store3 = new ScratchStore({ url: "/list3.jsonl" });
+		store3.attach(root3);
+
+		const kid3 = Item.hydrate({ id: "k3", title: "before", notes: [{ id: "n1", text: "before" }] });
+		const added3 = root3.kids.add(kid3);
+		added3.set({ title: "after" });                   // mutate the member's own data in the same tick, before any flush
+		added3.notes.find("n1").set({ text: "after" });    // mutate a child-list member too
+
+		await new Promise(r => queueMicrotask(r));         // let the queued "add" line (and these two "set" lines) actually flush
+		const add_line = store3.lines.find(l => l.kids?.add)?.kids.add;
+		t.eq(add_line?.data?.title, "before", "add: the recorded line's data is a snapshot — a same-tick set() on the member does not rewrite it");
+		t.eq(add_line?.notes?.[0]?.data?.text, "before", "add: a child-list member's data is a snapshot too — a same-tick set() on IT does not rewrite the add line either");
+	}
+
 	// render(): nothing until the browser wires List.View; then that view, given the list, open one level (build B's default view)
 	const { default: ListClass } = await import("./List.js");
 	t.eq(pair.kids.render(), undefined, "render() with no List.View draws nothing (node, or before the view is wired)");
