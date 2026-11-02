@@ -54,6 +54,7 @@ It is still stored as data, exactly as before, so every record replays the same 
 
 | Reader | How it reads both | Test |
 |---|---|---|
+| `Servex/CloseLoop.js` | `lines()` passes each line through `LineKey.deep` | `line-readers.test.mjs` |
 | `Servex/agents/page_tools.js` (the item tool) | `unmark_delta` strips the marks at the door, so it writes bare even with the switch on | `item_tool.test.mjs`, `line-readers.test.mjs` |
 | `core/Session/Session.js`, `core/Task/Task.js` (`replay_line`), `Process.js`, `Prompt.js` | `Item.unmark` for the top level; `set()` for the rest | `line-format.test.mjs` |
 | `ext/Chat/v3/ChatV3.js` | `LineKey.deep` on each line before `wanted` / `replay_line` | `ChatV3.test.mjs` (browser, check "a marked line") |
