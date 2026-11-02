@@ -34,6 +34,7 @@ function read_saved(){
 	catch { return null; }
 }
 function write_saved(v){
+	Session.remember(v?.session);   // every tab: the ✦ sheet falls back to it (ext/Session/Session.js, LAST_SESSION_KEY)
 	try { v ? sessionStorage.setItem(SESSION_KEY, JSON.stringify(v)) : sessionStorage.removeItem(SESSION_KEY); }
 	catch {}   // ignored on purpose: sessionStorage is off (private mode), so the session is just not remembered across a reload
 }

@@ -27,7 +27,7 @@ export default class Sheet extends View {
 
 	// ⚠ see doc/rail-notes.md#c5-render
 	render(){
-		try { this.read_aloud(); } catch (e){ console.error("Sheet: read-aloud did not start", e); try { Recite.shared.trace("sheet: read-aloud failed", { error: String(e?.message ?? e) }); } catch {} }   // first, so nothing below can keep it from starting
+		Sheet.read_aloud("sheet render");   // already running since this file loaded (the bottom of this file); a no-op here unless that failed
 		this.ac(this.compact === false ? "drawer-rail-full" : "drawer-rail-compact");
 		this.home_button();
 		this.ai_button();
@@ -40,41 +40,69 @@ export default class Sheet extends View {
 	}
 
 	/* READ-ALOUD ON EVERY PAGE (dictation-v3, 2026-11-01): the owner's phone never constructed Recite, whichever chat view drew the
-	 * sheet. So the Sheet, which every page has, makes Recite and follows the current voice session's live wire itself: each new
-	 * smart-seat reply is read, from the stream as it is written. Recite drops a reply it already read, so the chat's own hook
-	 * (ux/Dictate/chat.js) reading the same reply does no harm. */
-	read_aloud(){
-		// Recite's milestones go to the session file too (a log line each): the one record a phone is sure to reach.
-		Recite.on_trace ??= (kind, f) => { if (/^(loaded|sheet|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
-		const first = chat.current?.() ?? null;
-		if (first) report.init(first);   // before Recite starts, so its "loaded" line has a session to go to
-		const recite = Recite.shared;
+	 * sheet. So this file, which every page loads (menu.js), makes Recite and follows the current voice session's live wire itself:
+	 * each new smart-seat reply is read, from the stream as it is written. Recite drops a reply it already read, so the chat's own
+	 * hook (ux/Dictate/chat.js) reading the same reply does no harm.
+	 * It starts when this file is imported, not when a Sheet renders, and it traces every branch ("sheet: …" lines in the Whisper
+	 * bucket and the session file), so a phone that stays silent shows the step it stopped at. READ_ALOUD_V says which code ran. */
+	static READ_ALOUD_V = "2026-11-01d";   // bump on every change here: a phone's trace that lacks it runs older code
+	static RECENT_MS = 3000;               // how long the search for a recent voice session may take; then the fallbacks below
+	static read_aloud(from){
+		if (this.reading) return;
+		this.reading = true;
+		globalThis.lew42_sheet_v = this.READ_ALOUD_V;   // Recite's "page check" trace reads it: proof this file ran on that device
+		let recite;
+		try {
+			// Recite's milestones go to the session file too (a log line each): the one record a phone is sure to reach.
+			Recite.on_trace ??= (kind, f) => { if (/^(loaded|sheet|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
+			const first = chat.current?.() ?? null;
+			if (first) report.init(first);   // before Recite starts, so its "loaded" line has a session to go to
+			recite = Recite.shared;
+			recite.trace("sheet: boot", { v: this.READ_ALOUD_V, from, session: first });
+		} catch (e){
+			this.reading = false;   // the next render tries again
+			console.error("Sheet: read-aloud did not start", e);
+			try { Recite.shared.trace("sheet: read-aloud failed", { v: this.READ_ALOUD_V, from, error: String(e?.message ?? e) }); } catch {}
+			return;
+		}
 		let followed, stop = null;   // undefined, not null: the first answer, even "no session", is logged
 		const listen = (session, why) => {
-			if (session === followed) return;
+			if (session === followed) return recite.trace("sheet: same session", { session, why });
 			followed = session; stop?.(); stop = null;
-			if (session) report.init(session);
+			if (session){ report.init(session); Wire.remember(session); }
 			recite.trace("sheet follows", { session, why });
 			if (session) stop = Wire.stream(session, ev => recite.from_wire(ev));
 		};
 		// No session on this page (a fresh tab, the Recite demo): follow the voice session used most recently, if it had a line within
 		// JOIN_IDLE_MS (the same rule chat.js uses to join it), so a reply is still read (the owner, 2026-11-01). The page's own session, once it has one, takes over.
-		const follow = async () => {
+		const follow = async why => {
 			const own = chat.current?.() ?? null;
-			if (own) return listen(own, "this page's session");
-			let rows = [];
-			try { rows = await Wire.recent_project({ limit: 5 }); } catch (e){ recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
-			if (chat.current?.()) return listen(chat.current(), "this page's session");
-			const recent = rows.filter(r => /^v-/.test(r.session ?? "") && Date.now() - Date.parse(r.last_at ?? r.at ?? 0) < JOIN_IDLE_MS)
+			if (own) return listen(own, `this page's session (${why})`);
+			recite.trace("sheet: looking for a recent voice session", { why });
+			let rows = [], timer;
+			try {
+				rows = await Promise.race([Wire.recent_project({ limit: 5 }),
+					new Promise((_, no) => timer = setTimeout(() => no(new Error(`no answer in ${this.RECENT_MS} ms`)), this.RECENT_MS))]);
+			} catch (e){ rows = null; recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
+			clearTimeout(timer);
+			if (chat.current?.()) return listen(chat.current(), `this page's session (${why}, found while searching)`);
+			if (!rows){   // the search failed or hung (the phone through the tunnel): a ?session= in the url, else the session this browser last followed
+				const last = Wire.last_session();   // written by every say, session pick and follow on this browser
+				const url = new URLSearchParams(location.search).get("session");
+				const pick = [url, last].find(v => /^v-[\w-]+$/.test(v ?? ""));
+				return listen(pick ?? null, pick ? `${pick === url ? "the url's ?session=" : "the session this browser last used"} (${why}, the search failed)` : `no session: the search failed and none is remembered (${why})`);
+			}
+			const recent = (rows ?? []).filter(r => /^v-/.test(r.session ?? "") && Date.now() - Date.parse(r.last_at ?? r.at ?? 0) < JOIN_IDLE_MS)
 				.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
-			listen(recent?.session ?? null, recent ? "the most recent voice session" : "no voice session within JOIN_IDLE_MS");
+			listen(recent?.session ?? null, recent ? `the most recent voice session (${why})` : `no voice session within JOIN_IDLE_MS (${why}, ${rows?.length ?? 0} rows)`);
 		};
-		this.follow_session = () => follow().catch(e => recite.trace("sheet: follow failed", { error: String(e?.message ?? e) }));
-		chat.on_change?.(this.follow_session);   // every session change: Switch session, New session, a session started by the first sentence
-		this.follow_session();
+		this.follow_session = (why = "a change") => follow(why).catch(e => recite.trace("sheet: follow failed", { error: String(e?.message ?? e) }));
+		try { chat.on_change?.(() => this.follow_session("session changed")); }   // every session change: Switch session, New session, a session started by the first sentence
+		catch (e){ recite.trace("sheet: on_change failed", { error: String(e?.message ?? e) }); }
+		this.follow_session(from);
 		// A session can be attached in ways that broadcast nothing to this module (another mount's controller, a resume in flight):
 		// a 5 s look at the page's session catches them all. It reads one variable; the follow itself only runs on a change.
-		setInterval(() => { const now = chat.current?.() ?? null; if (now && now !== followed) this.follow_session(); }, 5000);
+		setInterval(() => { const now = chat.current?.() ?? null; if (now && now !== followed) this.follow_session("the 5 s check"); }, 5000);
 	}
 
 	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
@@ -462,7 +490,7 @@ export class SheetPanel extends View {
 			placeholder: this.card_ref ? "talk into this card" : "say something",
 		});
 		this.panel = this.mount.panel;
-		this.follow_session?.();   // the chat just mounted: it may have attached a session
+		Sheet.follow_session?.();   // the chat just mounted: it may have attached a session
 		DictationBar.mount(this.panel);   // the sheet's mic footer (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
 		const bar = Recite.shared.bar.el;   // the read-aloud bar: DictationBar puts it above the mic; if it found no composer, it goes at the panel's foot
 		if (!bar.isConnected) this.$slot.el.append(bar);
@@ -661,3 +689,6 @@ Sheet.prototype.classes = "drawer-rail";
 
 let $one;
 export { Sheet, Sheet as DrawerRail };
+
+// Read-aloud starts when this file loads, on every page (menu.js imports it), before any Sheet is drawn: Sheet.read_aloud above.
+if (typeof document !== "undefined") Sheet.read_aloud("Sheet.js loaded");

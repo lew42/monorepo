@@ -76,7 +76,14 @@ export async function recent(page = location.pathname, { limit = 10, host = loca
  *  same shape `ext/drawer/select.js`'s `item()` already builds, `{kind, label, text, selector}` —
  *  passed straight through to Servex, which prefixes `[Selected: …]` ahead of the words it sends
  *  the assistants, the way `Layers.js`'s `heard()` already does for a card's own chip. */
+/** The voice session this browser used last, in localStorage so every tab sees it and it outlives a closed tab: every `say` writes it.
+ *  The ✦ sheet follows it when it cannot ask Servex for the recent sessions (ext/drawer/Sheet.js, read_aloud; dictation-v3, 2026-11-01). */
+export const LAST_SESSION_KEY = "lew42.recite.last_session";
+export function remember(session){ if (session) try { localStorage.setItem(LAST_SESSION_KEY, session); } catch {} }
+export function last_session(){ try { return localStorage.getItem(LAST_SESSION_KEY); } catch { return null; } }
+
 export const say = async ({ session, path = location.pathname, text, via = "text", raw, floor: f, cues, re, thread, selection, said_at }) => {
+	remember(session);
 	const spoken = via === "voice";
 	f ??= spoken ? mic_floor.state() : undefined;
 	const sent = Date.now();
@@ -291,4 +298,4 @@ export function entry(line){
 	return null;
 }
 
-export default { start, resume, recent, recent_project, say, floor, quiet, report_quiet, report_pause, pause, select, stream, nav, react, watch, entry, LEVELS };
+export default { remember, last_session, start, resume, recent, recent_project, say, floor, quiet, report_quiet, report_pause, pause, select, stream, nav, react, watch, entry, LEVELS };

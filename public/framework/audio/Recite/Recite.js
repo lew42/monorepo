@@ -32,7 +32,7 @@ export default class Recite extends Part {
 	voice = null;          // a Voice (one persona); Voice.PERSONAS lists them
 	chunks = [];           // one per sentence: {text, start, seconds, src, pending}
 	at = 0;                // the chunk playing, or paused in
-	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : !!globalThis.matchMedia?.("(pointer: coarse)").matches;   // read new replies by themselves (on by default on a phone)
+	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
 	live = null;           // the reply being streamed: {text, queued, fresh}
 
 	constructor(...args){
@@ -48,7 +48,9 @@ export default class Recite extends Part {
 		this.barge = new this.constructor.BargeIn({ recite: this });
 		this.highlight = new this.constructor.Highlight({ recite: this });
 		this.unlock_on_tap();
-		this.trace("loaded", { ua: globalThis.navigator?.userAgent?.slice(0, 80), coarse: !!globalThis.matchMedia?.("(pointer: coarse)").matches, saved_auto: Recite.remember("auto") });   // does Recite even start on this page?
+		this.trace("loaded", { host: globalThis.location?.host, ua: globalThis.navigator?.userAgent, coarse: !!globalThis.matchMedia?.("(pointer: coarse)").matches, saved_auto: Recite.remember("auto") });   // does Recite even start on this page?
+		// 4 s later: is the ✦ Sheet on this page, and which version of its read-aloud ran (a phone that logs no "sheet: boot" shows why here)
+		if (typeof document !== "undefined") setTimeout(() => this.trace("page check", { sheet_v: globalThis.lew42_sheet_v ?? null, sheet: !!document.querySelector(".drawer-rail"), app: !!document.querySelector("body > *"), page: location.pathname }), 4000);
 		Recite.track?.(this);
 	}
 
