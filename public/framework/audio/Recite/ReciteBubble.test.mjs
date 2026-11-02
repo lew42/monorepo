@@ -42,9 +42,11 @@ async function view(name, url, bubble_sel, text_sel, prepare){
 	await page.addInitScript(() => { try { localStorage.removeItem("lew42.recite.places"); localStorage.setItem("lew42.recite.auto", "false"); } catch {} });
 	await page.goto(url, { waitUntil: "domcontentloaded" });
 	await prepare?.(page);
-	await page.waitForSelector(bubble_sel + " > .audio-recite-bubble-ctl", { timeout: 15000 });
+	await page.waitForSelector(bubble_sel + " > .audio-recite-bubble-ctl", { state: "attached", timeout: 15000 });
 	const bubble = page.locator(bubble_sel).first();
 	check(`${name}: the reply bubble has the ▶ and ↺10 control`, (await bubble.locator(":scope > .audio-recite-bubble-ctl button").allTextContents()).join(" ") === "▶ ↺10", await bubble.locator(":scope > .audio-recite-bubble-ctl").textContent());
+	const idle_visible = await bubble.locator(":scope > .audio-recite-bubble-ctl").isVisible();
+	check(`${name}: an idle bubble shows no controls`, !idle_visible, idle_visible);
 	check(`${name}: nothing was spoken before a tap`, asked.length === 0, asked);
 
 	// a real click on the text (user activation, so the browser lets the audio play)
@@ -56,6 +58,8 @@ async function view(name, url, bubble_sel, text_sel, prepare){
 	const plain = n => n.replace(/[^\p{L}\p{N}]+/gu, " ").trim().toLowerCase();
 	check(`${name}: that first sentence is the start of what the bubble says`, plain(await bubble.locator(text_sel).first().innerText()).startsWith(plain(first.first).slice(0, 25)), first.first);
 	check(`${name}: the control shows ⏸ while it plays`, (await bubble.locator(".audio-recite-bubble-play").textContent()) === "⏸");
+
+	check(`${name}: once playing, ▶/⏸ and ↺10 are both shown`, (await bubble.locator(".audio-recite-bubble-play").isVisible()) && (await bubble.locator(".audio-recite-bubble-back").isVisible()));
 
 	// ⏸ pauses it and the place is kept
 	await page.waitForTimeout(700);

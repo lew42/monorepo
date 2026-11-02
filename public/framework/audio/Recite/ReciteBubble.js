@@ -6,6 +6,7 @@ View.stylesheet(import.meta, "ReciteBubble.css");
 /**
  * class ReciteBubble — `Recite.Bubble`: the one small control under an assistant reply, shared by Chat V1, V2 and V3 (each
  * view calls `Recite.Bubble.mount(el, { text })` once for a reply bubble; this class is the only place the buttons exist).
+ * The control is hidden until the bubble is tapped (selected) or playing, and ↺10 shows only once it has played.
  * ▶/⏸ plays or pauses THAT bubble (from the word it last stopped at, or from the start), ↺10 steps back about 10 s in its
  * text. A tap on the bubble's text does the same as ▶/⏸ (`Recite.Tap`). The audio is made again each time, never kept.
  *
@@ -39,6 +40,10 @@ export default class ReciteBubble {
 			back.addEventListener("click", () => this.run(host, r => r.back_bubble(this.text_of(host), host)));
 			ctl.append(play, back);
 		}
+		if (!host.recite_select){
+			host.recite_select = true;   // a tap on the reply (text or control) makes it THE selected bubble, the one that shows its control
+			host.addEventListener("click", e => { if (e.target.closest(".audio-recite-bubble-ctl") || ReciteTap.root_of(e)) this.select(host); });
+		}
 		if (!host.recite_tap){
 			host.recite_tap = true;
 			// before Recite exists there is no Recite.Tap to hear a tap on the text: this one starts it, and marks the click so Recite.Tap, made a moment later, does not toggle it again
@@ -51,6 +56,12 @@ export default class ReciteBubble {
 		host.append(ctl);   // always last: a view that redraws its pieces appends them after the control
 		this.sync();   // Recite is loaded and started only by a tap (attach); if the page already has one, this shows what it is reading
 		return ctl;
+	}
+
+	/** Only one bubble is selected at a time; its control shows (▶/⏸, and ↺10 once it has played). An idle, unselected bubble shows none. */
+	static select(host){
+		for (const el of document.querySelectorAll(`${this.HOST}.is-selected`)) if (el !== host) el.classList.remove("is-selected");
+		host.classList.add("is-selected");
 	}
 
 	static text_of(host){
@@ -90,6 +101,8 @@ export default class ReciteBubble {
 			let key = this.keys.get(host);
 			if (key == null){ key = r.constructor.bubble_key(this.text_of(host)); this.keys.set(host, key); }
 			const on = now.key === key && now.playing;
+			host.classList.toggle("is-playing", on);
+			if (on) host.classList.add("has-played");
 			const label = on ? "⏸" : "▶";
 			if (play.textContent !== label){ play.textContent = label; play.title = play.ariaLabel = on ? "Pause this reply" : "Play this reply"; play.classList.toggle("is-on", on); }
 		}

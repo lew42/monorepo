@@ -6,6 +6,7 @@ Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/se
 
 ## What you see
 
+- **The log fills its host.** V1 caps the log at 30vh (`Chat.css`) and each V1 host lifts it; V1.2's box lifts it itself in `ChatV1Dot2.css` (no cap; on the session page the Chat tab gives it the same tall height as V1).
 - **The bubbles are V1's**, so the layout, links, read-aloud highlight and ordering rules are V1's, and `Server/ChatV1Compare.mjs` stays at 0 differing bubbles.
 - **One ✓ after the last sentence the assistant has.** A sentence is "had" when it is not newer than the newest Prompt's `sent.fast.at`. Sentences after the ✓ are dimmed: they are said, but not sent yet. When a sentence goes out the ✓ moves forward to its end.
 - **The ✓ is dim while words wait, and lit green (`--ok`) once it has caught up.** A slow CSS fade, no per-sentence grey/green flashing.

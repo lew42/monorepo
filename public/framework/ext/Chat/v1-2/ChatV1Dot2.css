@@ -2,6 +2,9 @@
 
 /* Chat V1.2 (ChatV1Dot2.js): V1's own markup and Chat.css, plus the send cursor's two states. The ✓ itself is cursors.css's `.chat-cursor`. */
 @layer site {
+	/* V1's log stops at 30vh (Chat.css); V1 hosts lift it (sessions.css `.sessions-conv`, rail.css), V1.2's box is none of those, so it lifts it itself. */
+	.chat-v1-2 .chatbox-log { max-height: none; }
+	.sov-chat .chat-v1-2 .chatbox-log { height: max(22em, calc(100dvh - 20em)); overflow-y: auto; }
 	.chat-v1-2 .chat-cursor { color: var(--ok); opacity: 1; transition: opacity .6s ease; }
 	.chat-v1-2 .chat-cursor.chat-cursor-waiting { opacity: .55; }
 	.chat-v1-2 .chatbox-text.chat-unsent { color: var(--draft-ink, var(--subtle)); transition: color .6s ease; }
