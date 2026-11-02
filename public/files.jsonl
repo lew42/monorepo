@@ -111,3 +111,4 @@
 {"file":"Server/"}
 {"file":"Server/","gone":true}
 {"file":"failures.jsonl","gone":true}
+{"file":"data/","gone":true}
