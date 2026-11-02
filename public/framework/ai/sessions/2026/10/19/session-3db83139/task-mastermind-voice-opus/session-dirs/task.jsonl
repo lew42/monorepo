@@ -7,3 +7,4 @@
 {"decision":{"at":"2026-10-19T17:47:10-05:00","question":"review size","computed":"full","chose":"none","why":"mastermind read: Sessions.session_path one helper (central dated path), kind voice on line 1 + map, one AISessionBuckets rule, readme lines; minion's real-test PASS + layers 55/55; move script dry-run only"}}
 {"review":{"at":"2026-10-19T17:47:10-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/qf-7","head":"35c1e64defb12c81ff96cc1f25879b30c9a883d7","model":null,"cost":0,"file":"review.md"}}
 {"stop":{"at":"2026-10-21T00:02:20-05:00","why":"abandoned: no agent since 2026-10-19T17:37:34-05:00; closed by StaleClose 2026-10-21","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:43-06:00","why":"unclosed: 8 log lines of work, never completed; was closed as abandoned 2026-10-21T00:02:20-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:43.883Z"}

@@ -73,3 +73,4 @@
 {"log":{"at":"2026-10-13T17:09:13-05:00","heartbeat":"answered","msg":"Finished and idle, nothing running. `DS · 1.2 Dark grounds` (`163:18033`) is built and the report `kit/ds-darker.md` is committed as 690728b04. The only open item is swapping the hand-drawn toggles in"}}
 {"log":{"at":"2026-10-13T17:10:29-05:00","msg":"session ended (other) without landing"}}
 {"stop":{"at":"2026-10-18T08:03:00-05:00","why":"abandoned: no agent since 2026-10-13T17:10:29-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:19-06:00","why":"unclosed: 74 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:00-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:19.038Z"}

@@ -10,3 +10,4 @@
 {"log":{"at":"2026-10-13T19:18:39-05:00","heartbeat":"answered","msg":"Idle: the icon swap is finished and committed, and I'm not doing any new work. The report is `kit/icon-swap.md`. One thing needs a look: the UI Kit Back reaction's destination is my best guess, so cli"}}
 {"log":{"at":"2026-10-13T19:19:18-05:00","msg":"session ended (other) without landing"}}
 {"stop":{"at":"2026-10-18T08:03:02-05:00","why":"abandoned: no agent since 2026-10-13T19:25:00-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:21-06:00","why":"unclosed: 11 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:02-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:21.969Z"}

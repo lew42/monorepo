@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-15T17:30:10-05:00","msg":"census done: answers/debug-views/out.md written (DefaultView, view(), page_object, inspect(), object(), InstanceTree, static View override). Read-only, no commit."}}
 {"log":{"at":"2026-10-15T17:30:13-05:00","msg":"session ended (other) without landing"}}
 {"stop":{"at":"2026-10-18T08:03:06-05:00","why":"abandoned: no agent since 2026-10-15T17:30:13-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:38-06:00","why":"unclosed: 5 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:06-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:38.747Z"}

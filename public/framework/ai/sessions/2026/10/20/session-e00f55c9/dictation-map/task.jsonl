@@ -5,3 +5,7 @@
 {"action":{"at":"2026-11-01T17:02:10-06:00","did":"edit","files":[".claude/hooks/tab-spawn-guard.mjs"]},"by":"ledger","ts":"2026-11-01T23:02:10.208Z"}
 {"action":{"at":"2026-11-01T17:26:53-06:00","did":"edit","files":["public/framework/audio/Recite/doc/text-prep.md"]},"by":"ledger","ts":"2026-11-01T23:26:53.975Z"}
 {"action":{"at":"2026-11-01T20:55:49-06:00","did":"edit","files":["public/framework/ux/Dictate/doc/turn-taking.md"]},"by":"ledger","ts":"2026-11-02T02:55:49.977Z"}
+{"action":{"at":"2026-11-02T04:23:23-06:00","did":"edit","files":["public/framework/ai/handover.md"]},"by":"ledger","ts":"2026-11-02T10:23:23.492Z"}
+{"action":{"at":"2026-11-02T13:32:33-06:00","did":"edit","files":["public/framework/ai/doc/agent-rules.md"]},"by":"ledger","ts":"2026-11-02T19:32:33.715Z"}
+{"action":{"at":"2026-11-02T14:48:25-06:00","did":"edit","files":["public/framework/core/Task/processes/BuildProcess.js"]},"by":"ledger","ts":"2026-11-02T20:48:25.716Z"}
+{"action":{"at":"2026-11-02T15:11:03-06:00","did":"edit","files":["public/framework/core/Session/doc/classes.md"]},"by":"ledger","ts":"2026-11-02T21:11:03.015Z"}

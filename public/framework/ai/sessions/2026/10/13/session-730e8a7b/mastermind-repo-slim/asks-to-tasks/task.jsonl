@@ -40,3 +40,4 @@
 {"log":{"at":"2026-10-17T00:18:55-05:00","msg":"layout-check: 1 pages at 1280/1920/2560/3440 — /tasks/: empty 0.986 at 2560, empty 0.99 at 3440, narrow_share 1 at 3440; sheets in layout-check/"}}
 {"log":{"at":"2026-10-17T00:19:11-05:00","msg":"padding-check: /tasks/ 400: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 1280: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 1920: 1 at an edge (\"span.task-meter-fill\"); /tasks/ 3440: 1 at an edge (\"span.task-meter-fill\")"}}
 {"stop":{"at":"2026-10-24T00:04:01-05:00","why":"abandoned: no agent since 2026-10-17T00:19:11-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:26-06:00","why":"unclosed: 41 log lines of work, never completed; was closed as abandoned 2026-10-24T00:04:01-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:26.083Z"}

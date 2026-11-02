@@ -21,3 +21,4 @@
 {"task":"/framework/ai/sessions/2026/09/28/task-loop/task-loop/landing-checks/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.975Z"}
 {"task":"/framework/ai/sessions/2026/09/28/task-loop/task-loop/loop/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.976Z"}
 {"task":"/framework/ai/sessions/2026/09/28/task-loop/task-loop/spawn-line1/","by":"SessionRecord --links","ts":"2026-10-23T02:29:35.977Z"}
+{"unclosed":{"at":"2026-11-02T15:00:27-06:00","why":"unclosed: 22 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:31-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:27.710Z"}

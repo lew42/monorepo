@@ -4,3 +4,4 @@
 {"log":{"at":"2026-10-17T11:01:57-05:00","heartbeat":"check","msg":"status check sent to minion-uv-10"}}
 {"log":{"at":"2026-10-17T11:02:30-05:00","heartbeat":"answered","msg":"Idle: `results.json` is written and I'm not running anything. I'm waiting for the next instruction."}}
 {"stop":{"at":"2026-10-19T00:04:07-05:00","why":"abandoned: no agent since 2026-10-17T11:02:30-05:00; closed by StaleClose 2026-10-19","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:32-06:00","why":"unclosed: 5 log lines of work, never completed; was closed as abandoned 2026-10-19T00:04:07-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:32.265Z"}

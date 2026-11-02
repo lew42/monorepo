@@ -27,3 +27,4 @@
 {"log":{"at":"2026-10-09T18:24:39-05:00","heartbeat":"deliberate","msg":"helper-categorise-2 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:46:58-05:00; not revived."}}
 {"log":{"at":"2026-10-09T18:44:32-05:00","heartbeat":"deliberate","msg":"helper-categorise-2 its agent is not running: it was stopped on purpose by mastermind-task-audit at 2026-10-08T17:46:58-05:00; not revived."}}
 {"stop":{"at":"2026-10-18T08:02:55-05:00","why":"abandoned: no agent since 2026-10-09T18:44:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:11-06:00","why":"unclosed: 28 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:55-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:11.842Z"}

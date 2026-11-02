@@ -8,3 +8,4 @@
 {"review":{"at":"2026-10-22T23:53:13-05:00","answer":{"n":5,"reply":"noted: the play button, the next mark and open questions are in the code but no task in this session is idle or has a question; a press is unproven on purpose (it writes a real task log line)."}}}
 {"review":{"at":"2026-10-22T23:53:13-05:00","answer":{"n":6,"reply":"noted: the variant is for phones; at 1200 it falls back on Miller columns. Wide layouts stay a separate task."}}}
 {"stop":{"at":"2026-10-24T00:04:02-05:00","why":"abandoned: no agent since 2026-10-22T23:49:05-05:00; closed by StaleClose 2026-10-24","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:47-06:00","why":"unclosed: 9 log lines of work, never completed; was closed as abandoned 2026-10-24T00:04:02-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:47.433Z"}

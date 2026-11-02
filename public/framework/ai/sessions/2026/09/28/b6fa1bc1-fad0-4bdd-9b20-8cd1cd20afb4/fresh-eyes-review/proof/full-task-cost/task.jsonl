@@ -3,3 +3,4 @@
 {"review":{"answer":{"n":2,"reply":"fixed"}}}
 {"review":{"answer":{"n":3,"reply":"declined: this is a proof run on an already-merged historical commit, not a live task — there is nothing left to attach a screenshot or a card to"}}}
 {"stop":{"at":"2026-10-18T08:02:30-05:00","why":"abandoned: no agent since 2026-09-28T17:25:54.933Z; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:00:26-06:00","why":"unclosed: 4 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:30-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:26.140Z"}

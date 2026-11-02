@@ -4,3 +4,4 @@
 {"decision":{"at":"2026-10-16T23:39:29-05:00","question":"review size","computed":"full","chose":"none","why":"self-evident: only the reviewer's own notes 1,2,4 fixed (label names, a caption, a readme line); 1200 shot read after the fix; fresh full review passed on the first commit"}}
 {"review":{"at":"2026-10-16T23:39:29-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/usage-pace","head":"b0c622d55e468f276cd229e3d127da24c5aae396","model":null,"cost":0,"file":"review.md"}}
 {"stop":{"at":"2026-10-18T08:03:05-05:00","why":"abandoned: no agent since 2026-10-16T23:38:34-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:26-06:00","why":"unclosed: 5 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:05-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:26.233Z"}

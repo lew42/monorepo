@@ -47,3 +47,4 @@
 {"task":"/framework/ai/sessions/2026/10/15/voice-20261015/page-system/answers/trace/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.561Z"}
 {"task":"/framework/ai/sessions/2026/10/15/voice-20261015/page-system/class-map/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.561Z"}
 {"task":"/framework/ai/sessions/2026/10/15/voice-20261015/page-system/readme-claims/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.562Z"}
+{"unclosed":{"at":"2026-11-02T15:01:39-06:00","why":"unclosed: 48 log lines of work, never completed; was closed as abandoned 2026-10-19T00:04:11-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:39.923Z"}

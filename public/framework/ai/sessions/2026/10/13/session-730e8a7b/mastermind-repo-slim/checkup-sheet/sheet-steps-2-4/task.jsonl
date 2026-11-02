@@ -5,3 +5,4 @@
 {"commit":"5a8caeed9"}
 {"log":{"at":"2026-10-16T23:48:50-05:00","msg":"step 4 landed: Sheet.Size (closed | strip | split | full) replaces 84px/28%/85%; strip 100px above the bar with the last line said + ⌃; drag both ways; head drag steps down; back steps down; verified headless 400/1200; merged 5a8caeed9 (branch 593b3db9f). Next: step 5, the route (<path>/ai/)."}}
 {"stop":{"at":"2026-10-18T08:03:06-05:00","why":"abandoned: no agent since 2026-10-16T23:48:50-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:26-06:00","why":"unclosed: 6 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:06-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:26.382Z"}
