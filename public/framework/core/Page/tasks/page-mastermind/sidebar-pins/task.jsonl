@@ -5,3 +5,5 @@
 {"review":{"at":"2026-10-24T20:23:48-05:00","answer":{"n":1,"reply":"noted: at 400 the sidebar is the burger menu; opening it draws the same tree (same Sidebar.nav), so AI ▸ Task queue shows there once opened. The always-visible phone links are the AI tab bar's QUEUE tab and the day and session page links from the queue-page task."}}}
 {"review":{"at":"2026-10-24T20:23:48-05:00","answer":{"n":2,"reply":"noted: the 404s are the known baseline on AI pages (page-work.json, tasks.json, usage.json, index.json in the merge smoke before this diff); this diff loads no new file."}}}
 {"review":{"at":"2026-10-24T20:23:48-05:00","answer":{"n":3,"reply":"fixed: f67b2fc00, the comment now says nodes are matched by name."}}}
+{"stop":{"at":"2026-11-02T00:08:32-06:00","why":"abandoned: no agent since 2026-10-24T20:21:28-05:00; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:08:32.270Z"}
+{"unclosed":{"at":"2026-11-02T15:01:49-06:00","why":"unclosed: 7 log lines of work, never completed; was closed as abandoned 2026-11-02T00:08:32-06:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:49.849Z"}
