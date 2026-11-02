@@ -42,11 +42,14 @@ for (const width of [400, 1200]){
 		const at = n => `2026-10-17T00:00:0${n}.000-05:00`;
 		const words = ["The sheet should open at sixty percent.", "And it should remember the height I drag it to.", "Separately, the inbox labels need a count.",
 			"Each label shows how many notes wait.", "The count turns zero when you read them."];
-		words.forEach((text, i) => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text } }));
+		const say = i => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text: words[i] } });
+		// The card is placed while its first line is still the bubble's last: a later placement stays put (Widget.place, "late card placements stay put").
+		[0, 1, 2].forEach(say);
+		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
+		[3, 4].forEach(say);
 		const raw_all = document.querySelectorAll(".ux-dictate-raw").length;
 		w.say({ place: { re: at(0), to: "same" } });
 		const raw_after_place = document.querySelectorAll(".ux-dictate-raw").length;
-		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
 		w.say({ place: { re: at(3), to: "same" } }); w.say({ place: { re: at(4), to: "same" } });
 		const card = [...document.querySelectorAll(".ux-dictate-placed-card")];
 		const before = { visible: card[0].querySelectorAll("[data-re]").length, summary: !!card[0].querySelector(".ux-dictate-summary") };
@@ -59,7 +62,7 @@ for (const width of [400, 1200]){
 			summary: b.querySelector(".ux-dictate-summary-text")?.textContent, toggle: b.querySelector(".ux-dictate-fold-toggle")?.textContent,
 			count: b.querySelectorAll("[data-re]").length };
 	});
-	check(t.raw_all === 5 && t.raw_after_place === 4, `${width}: five raw lines, and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
+	check(t.raw_all === 4 && t.raw_after_place === 3, `${width}: four raw lines (the card line is placed), and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
 	check(!t.before.summary && t.before.visible === 3, `${width}: before the summary the card shows its ${t.before.visible} lines`);
 	check(t.hidden && t.ms < 1000 && /^Inbox labels show/.test(t.summary ?? ""), `${width}: the summary folded the lines in ${t.ms} ms`);
 	check(t.toggle?.startsWith("3 raw lines"), `${width}: the toggle says "${t.toggle}"`);

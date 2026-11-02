@@ -27,7 +27,7 @@ export const SCRIPTS = [
 	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"red","why":"delay 0.5 s: 3 prompts sent, wanted 2"},
 	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
-	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"red","why":"page.evaluate: querySelectorAll of undefined"},
+	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/v1-order.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/watch.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/repeat.mjs","args":[],"status":"pass"},
