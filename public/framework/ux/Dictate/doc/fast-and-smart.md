@@ -1,6 +1,6 @@
 # The fast and smart seats: who does what in the dictation chat
 
-**Now: the fast seat is off by default** (2026-11-01). `session-assistant.txt` takes `off` (the default), `voice` or `fast` (`Servex/agents/Sessions.js`, `session_assistant()`); with `off`, code files a Question for each "?" sentence and the smart seat is the one voice. Why: [dictation-v3 findings §2](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/findings.md). The table below describes the seat when it is on.
+**Now: the fast seat stays on** (the owner, 2026-11-01: it does half of the work, placement and refinement; "put them to work"). `session-assistant.txt` takes `voice` (the default), `fast` or `off` (`Servex/agents/Sessions.js`, `session_assistant()`). Only with `off` does code file a Question for each "?" sentence, so the seat and code never both file one. A one-day switch to `off` and its reasons: [dictation-v3 findings §2](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/findings.md).
 
 Status of what follows: a design from 2026-10-25, by the AI system architect, written while the seat was on; it answers the owner's question "what does each seat do, and what should it do?". The wake settings (`every`, `gap_ms`) are another task's (task-mastermind-2) and are not repeated here: [wake-policy.md](wake-policy.md).
 

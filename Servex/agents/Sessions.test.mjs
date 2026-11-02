@@ -45,7 +45,7 @@ const agents = {
 // reads the same file back in, and a `create()` within the hour would silently RESUME them.
 let n = 0;
 function make(){
-	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`), assistant: "fast" });   // the default is `off`, and a real session-assistant.txt may exist: pin fast for the tests below that are about the fast seat
+	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`), assistant: "fast" });   // the default is `voice`, and a real session-assistant.txt may exist: pin fast for the tests below that are about the fast seat
 	s.load();
 	s.servex = { agents };
 	return s;
@@ -256,17 +256,17 @@ check("voice roles run on Claude by default, even with OpenRouter ready; a Claud
 });
 
 // ── the voice seat (voice-assistant-plan, 2026-10-17): SERVEX_SESSION_ASSISTANT=voice ─────────────
-check("the assistant switch: session-assistant.txt, else the env var, else off (2026-11-01: the default flipped to off)", () => {
+check("the assistant switch: session-assistant.txt, else the env var, else voice (2026-11-01: the owner kept the fast seat on)", () => {
 	const home = fs.mkdtempSync(path.join(os.tmpdir(), "servex-home-"));   // a scratch SERVEX_HOME
 	const saved = process.env.SERVEX_SESSION_ASSISTANT;
 	const file = path.join(home, "session-assistant.txt");
 	try {
 		delete process.env.SERVEX_SESSION_ASSISTANT;
-		assert.equal(session_assistant(home), "off", "no file, no env: off");
+		assert.equal(session_assistant(home), "voice", "no file, no env: voice");
 		process.env.SERVEX_SESSION_ASSISTANT = "fast";
 		assert.equal(session_assistant(home), "fast", "no file: the env var");
 		process.env.SERVEX_SESSION_ASSISTANT = "nonsense";
-		assert.equal(session_assistant(home), "off", "a bad env word falls back to off");
+		assert.equal(session_assistant(home), "voice", "a bad env word falls back to voice");
 		fs.writeFileSync(file, " Fast \r\n");
 		process.env.SERVEX_SESSION_ASSISTANT = "voice";
 		assert.equal(session_assistant(home), "fast", "the file (trimmed, any case) beats the env var");
