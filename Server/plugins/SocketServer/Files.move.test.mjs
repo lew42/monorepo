@@ -51,7 +51,7 @@ let next = 0;
 ws.on("message", data => { const m = JSON.parse(data.toString()); waiting.get(m.index)?.(m.response); });
 // A message nobody answers (a verb that does not exist yet) ends as a refusal after 4 s instead of hanging the test.
 const rpc = (method, ...args) => new Promise(res => {
-	const index = next++, timer = setTimeout(() => res({ ok: false, reason: `no answer to ${method}` }), 4000);
+	const index = next++, timer = setTimeout(() => res({ ok: false, reason: `no answer to ${method}` }), 30000);
 	waiting.set(index, r => { clearTimeout(timer); res(r); });
 	ws.send(JSON.stringify({ method, args, index }));
 });

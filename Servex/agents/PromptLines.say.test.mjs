@@ -5,7 +5,7 @@
 // should be mirrored here. `PromptLines.js` itself is imported for real, not reimplemented.
 // Run: `node PromptLines.say.test.mjs`.
 import * as PromptLines from "./PromptLines.js";
-import ChatV2Model from "../../public/framework/ext/Chat/v2/ChatV2Model.js";
+import ChatV2Model from "../../public/framework/ext/Chat/v2/old/ChatV2Model.js";
 
 const results = [];
 const check = (title, fn) => {

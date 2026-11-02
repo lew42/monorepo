@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import * as PromptLines from "./PromptLines.js";
-import ChatV2Model from "../../public/framework/ext/Chat/v2/ChatV2Model.js";
+import ChatV2Model from "../../public/framework/ext/Chat/v2/old/ChatV2Model.js";
 
 const results = [];
 const check = (title, fn) => {
@@ -56,9 +56,9 @@ check("add_reply anchors a reply to a sentence of the Prompt", () => {
 	return r.text === "Already true: list order, never sorted." && ChatV2Model.anchor(r)?.sentence === "a1";
 });
 
-check("add_question nests a Question under the Prompt, found by ChatV2Model.children", () => {
+check("add_question nests a Question under the Prompt, found by own_and_from (RESURFACE hides it from children() once answered)", () => {
 	const m = fold(), p = m.by_id.get(PID), q = m.by_id.get(QID);
-	return ChatV2Model.kind(q) === "Question" && q.from === PID && m.children(p).some(c => c.id === QID);
+	return ChatV2Model.kind(q) === "Question" && q.from === PID && m.own_and_from(p).some(c => c.id === QID);
 });
 
 check("answer_question moves the Question's phase to answered", () => {
@@ -66,9 +66,9 @@ check("answer_question moves the Question's phase to answered", () => {
 	return ChatV2Model.answer(q)?.text === "Yes — say() treats it the same." && ChatV2Model.phase(q) === "answered";
 });
 
-check("roots() draws the Prompt once; the Question is reached only as its child", () => {
-	const m = fold();
-	return m.roots().length === 1 && m.roots()[0].id === PID;
+check("roots() draws the Prompt once; the answered Question surfaces after it (RESURFACE)", () => {
+	const m = fold(), r = m.roots();
+	return r.filter(n => n.id === PID).length === 1 && r.length === 2 && r[1].id === QID;
 });
 
 fs.rmSync(file, { force: true });
