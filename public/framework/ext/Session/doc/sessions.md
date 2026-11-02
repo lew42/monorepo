@@ -85,7 +85,7 @@ A line from the smart assistant with `re` alone is a reply. With `re` AND `level
 | `POST /api/session/react` | `{session, re, emoji, at?}` | `{ok, at}`: the owner's tap-back on line `re`; `emoji: ""` takes it off |
 | `GET /api/session/<id>` | | the session's record |
 
-**`/new` continues a recent session.** If a session from the same project started on this page, or passed through it, and its last line is less than an hour old (`SERVEX_SESSION_RESUME_MS`), `/new` returns that session with `resumed: true`. Otherwise it makes a new one, and `previous` is the page's most recent older session, `{session, title, summary, at}`, or `null`.
+**`/new` continues a recent session.** With no `card`: if the project's newest voice session (any page) spoke less than 30 minutes ago (`idle_ms`), `/new` returns it with `resumed: true`; this is the one rule, shared with the browser's join (`ux/Dictate/chat.js` `latest_voice`) and `Layers.session_for`. With a `card`, the card's own session within an hour (`SERVEX_SESSION_RESUME_MS`). Otherwise it makes a new one, and `previous` is the most recent older session, `{session, title, summary, at}`, or `null`.
 
 ### Card sessions
 

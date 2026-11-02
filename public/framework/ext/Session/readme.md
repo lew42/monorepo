@@ -40,7 +40,7 @@ whole thought. The fast one mostly stays silent. Replies stream in token by toke
 - Ordinary replies are the agents' own final text for a turn; refined lines (`level`: `clean`, `edit`, `summary`) come from the `session_line` tool.
 - Sessions are listed and resumed per **project**, not per host: the phone on `10.0.0.135:8481` and the PC on `monorepo.localhost` see the same ones; two different sites never mix ([doc/sessions.md](./doc/sessions.md)).
 - For the ✦ sheet (`ext/drawer/rail.js`): `start()` on the first sentence, `recent(page, {limit: 1})` on open for the one-line resume offer, `resume(id)` when it is tapped, and `say({floor, cues})` + `floor()` for the floor.
-- `start({path, fresh: true})` always begins a new session, even if this page spoke within the last hour — that is what the ✦ sheet's "New session" button sends on its next sentence, so the button actually starts fresh instead of silently continuing.
+- `start({path, fresh: true})` always begins a new session, even if a session spoke within the last 30 minutes — that is what the ✦ sheet's "New session" button sends on its next sentence, so the button actually starts fresh instead of silently continuing.
 - `start({path, card})` makes an AI 2 card the session's home (`/framework/ai/<card>/`) instead of the nearest folder to `path`, so a card page can be a voice session's home too: [doc/sessions.md](./doc/sessions.md#card-sessions).
 - A page that never calls `report_quiet()` still works: a held spoken line is released after 8 s anyway.
 - The fast assistant's `(listening)` and short fillers are written as invisible `{skip}` lines, never drawn.
