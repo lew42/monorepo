@@ -17,13 +17,13 @@
 	/* The words still being spoken (the draft at the end): gray, but readable on a phone in daylight (the owner, 2026-11-01: "far too dim").
 	   Everything written to the file is final and solid. */
 	.chat-v3-text { overflow-wrap: anywhere; line-height: 1.45; transition: color .4s; }
-	.chat-v3-text.is-moving { color: color-mix(in srgb, currentColor 75%, transparent); }
+	.chat-v3-text.is-moving { color: var(--final-ink); }   /* what is already written stays solid; only the guess below is dim */
 	.chat-v3-text > :first-child { margin-top: 0; }
 	.chat-v3-text > :last-child { margin-bottom: 0; }
 	.chat-v3-title.is-untitled { font-weight: 500; color: color-mix(in srgb, currentColor 60%, transparent); }
 	.chat-v3-dictation { display: flex; flex-direction: column; gap: .5em; }
 	.chat-v3-dictation.is-clamped { max-block-size: 9.5em; overflow: hidden; mask-image: linear-gradient(to bottom, black 70%, transparent); }
-	.chat-v3-guess { color: color-mix(in srgb, currentColor 60%, transparent); }
+	.chat-v3-guess { color: var(--draft-ink); }   /* framework.css: the dim-to-strong pair */
 
 	.chat-v3-toggle { align-self: flex-start; font: inherit; font-size: .78em; background: none; border: 0; padding: 0; cursor: pointer; color: color-mix(in srgb, currentColor 50%, transparent); }
 	.chat-v3-toggle:hover { color: inherit; }

@@ -73,7 +73,9 @@ ever appeared — no error, no clue why.
 
 **Settings panel:** the ⚙ beside ⌨ on the sheet's bar (and the gear on a plain composer) opens "Dictation settings": the send delay (2 s) and the smart assistant's batch seconds and sentences; values live in `localStorage` key `chat.mic.settings.4` (`ext/Chat/Mic.js` `SETTINGS`): [`doc/settings.md`](doc/settings.md).
 
-**How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md).
+**How fast is the first reply?** Measured hop by hop, before and after: [`doc/latency.md`](doc/latency.md). **Raw text slow on the phone?** On a slow uplink the upload is the delay, so the WAV is 8-bit mu-law (half the bytes) and a guess in flight is dropped when the segment ends: [`doc/upload.md`](doc/upload.md).
+
+**Dim to strong:** words still being spoken use `--draft-ink`, and every line once written uses `--final-ink`. The pair is defined in `framework.css`, and V1, V2 and V3 all use it.
 
 **Class architecture of the voice UI** (which class owns what, what is a copy of what): [`doc/voice-architecture.md`](doc/voice-architecture.md). **`VoiceStrip`** is the compact panel Refine and the demo below use; **mobile**: [`doc/mobile-socket-2026-10-09.md`](doc/mobile-socket-2026-10-09.md).
 

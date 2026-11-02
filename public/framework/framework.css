@@ -75,6 +75,12 @@
              = 3.95:1 on white and 3.81:1 on `--wash`, under AA either way; 0.55 is
              #737373 = 4.74:1 and 4.54:1, over it on both. One step, one token. */
         --subtle: light-dark(rgba(0,0,0,0.55), rgba(255,255,255,0.55));
+        /* Dim to strong, one pair for every chat view (V1, V2, V3; the owner, 2026-11-01): words still being spoken
+           (a Whisper guess, not yet written) are --draft-ink; a line once written to the session is --final-ink.
+           Relative to the text colour, so it reads inside a dark bubble too. Set on ONE element only: two nested
+           drafts would multiply (60% inside 75% read as 45%, "far too dim"). */
+        --draft-ink: color-mix(in srgb, currentColor 70%, transparent);
+        --final-ink: currentColor;
 
         --ink:     light-dark(#1a1a1a, #e8e8ea);            /* body text */
         --surface: light-dark(#fff, #17161a);               /* content background */

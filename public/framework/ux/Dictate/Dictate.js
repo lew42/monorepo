@@ -65,8 +65,7 @@ export function remembered_device(){
 	} catch { return null; }
 }
 
-async function fetch_timeout(url, opts, ms){
-	const ctrl = new AbortController();
+async function fetch_timeout(url, opts, ms, ctrl = new AbortController()){
 	const timer = setTimeout(() => ctrl.abort(), ms);
 	try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
 	finally { clearTimeout(timer); }
@@ -510,7 +509,7 @@ export default class Dictate extends View {
 		const seq = ++this.req_seq;
 		this.inflight = this.transcribe(samples, "interim");
 		let text;
-		try { text = await this.inflight; } catch (e){ DictateHealth.fail("whisper", e, "a guess request"); return; } finally { this.inflight = null; }
+		try { text = await this.inflight; } catch (e){ if (!e?.dropped) DictateHealth.fail("whisper", e, "a guess request"); return; } finally { this.inflight = null; }
 		// Stale answers are dropped (epoch + ticket). see doc/notes.md#duplicate-bubble-race
 		if (epoch !== this.segment_epoch || seq <= this.applied_seq){ this.on_trace?.("stale", { kind: "interim", req: seq, msg: text }); return; }
 		this.applied_seq = seq;
@@ -531,6 +530,9 @@ export default class Dictate extends View {
 			return;
 		}
 
+		// A guess still uploading is dropped, not waited for: on a slow uplink waiting cost one whole guess round trip
+		// (about 2.5 s from the phone on 2026-11-01) before the final could even start. see doc/upload.md
+		if (this.guess_ctrl){ this.guess_ctrl.dropped = true; this.guess_ctrl.abort(); }
 		if (this.inflight) try { await this.inflight; } catch { /* ignored — see above */ }
 
 		const seq = ++this.req_seq;
@@ -583,8 +585,14 @@ export default class Dictate extends View {
 		const t_sent = performance.now();
 		const url = this.whisper_url + "/inference";
 		let r;
-		try { r = await fetch_timeout(url, { method: "POST", body: form }, 20000); }
-		catch (e){ throw new Error(`${url}: ${e?.name === "AbortError" ? "timed out after 20 s" : (e?.message || "network error")}`); }
+		const ctrl = new AbortController();
+		if (kind === "interim") this.guess_ctrl = ctrl;   // close_segment() drops it
+		try { r = await fetch_timeout(url, { method: "POST", body: form }, 20000, ctrl); }
+		catch (e){
+			if (ctrl.dropped) throw Object.assign(new Error("guess dropped for the final"), { dropped: true });
+			throw new Error(`${url}: ${e?.name === "AbortError" ? "timed out after 20 s" : (e?.message || "network error")}`);
+		}
+		finally { if (this.guess_ctrl === ctrl) this.guess_ctrl = null; }
 		if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
 		const body = await r.json();
 		this.t_result = performance.now();   // the delay marks (ComposerMic.draw_caption) start here
