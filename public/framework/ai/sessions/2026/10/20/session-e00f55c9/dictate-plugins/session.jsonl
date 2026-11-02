@@ -27,3 +27,5 @@
 {"log":{"at":"2026-11-02T14:48:40-06:00","msg":"PAUSED for core/Plugin (owner, 14:50, via vscode-mastermind): plugin base becomes core/Plugin extends Events, built elsewhere. Merge A was finished and tested on worktree/dictate-plugins (088d46933, 6a3f7352c, c7330581d), not reviewed, not merged. Pause note with what Voice Chat needs from core/Plugin at the top of plan.md. Builder minion-voice-chat-a told to stop."}}
 {"commit":"df55655dcc38","by":"append.mjs","ts":"2026-11-02T20:48:46.726Z"}
 {"commit":"6c63feea242c","by":"append.mjs","ts":"2026-11-02T20:49:03.464Z"}
+{"commit":"3b3db3855c7f","by":"append.mjs","ts":"2026-11-02T20:49:08.247Z"}
+{"mym535wt":{"description":"plan.md row 9. Unblocked: playback-stutter landed b0fce2e7f; BargeIn.js is plugin-shaped (static id barge, defaults {on, mode: volume|words}, start/stop). Waits only on core/Plugin."},"by":"mastermind-dictate-plugins","ts":"2026-11-02T20:52:53.343Z"}

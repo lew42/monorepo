@@ -32,6 +32,8 @@
 6. **An off plugin gets one `stop()` when its host arrives** (the finding above).
 7. **Wrapping is enough:** existing classes (`Recite.Tap`, `Highlight`, `Bubble`, `BargeIn`) get `start()`/`stop()` and stay built by their host.
 
+**Barge-in is ready to plug in** (row 9): `mastermind-playback-stutter` landed it on `michael/dev` at b0fce2e7f. `audio/Recite/BargeIn.js` already has the plugin shape: `static id = "barge"`, a label, `defaults {on, mode: "volume"}` (or `"words"`), and `start()`/`stop()`, with no `ux/` import. `BargeIn.js` and `Recite.js` are free to edit again.
+
 **To resume:** port `VoiceChat.js` onto `core/Plugin` (most of it should become a thin list of plugins), keep ThinkingCue and the tests, then do section 3's rows 4 to 11 one merge each. The child tasks on this task's log are still the queue.
 
 **What it is:** each Voice Chat feature (barge-in, the thinking cue, read-aloud highlight, tap to pause…) becomes one class with an on/off switch. The gear panel lists them, one toggle each, and switching one takes effect at once, with no reload. Brief: [requirements.md](requirements.md). Census of what exists: [census/census.jsonl](census/census.jsonl).
