@@ -28,8 +28,27 @@ export default class ChatV2 extends JSONL {
 	}
 	reset(){ this.lines = []; this.model = null; this.els.clear(); this.parts.clear(); return super.reset(); }   // the file was rewritten: the replay that follows is a first draw
 	// JSONL.live() starts its stream only after the record's url resolves, so an unsubscribe() before then would miss it: stopped remembers.
-	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); return this; }
-	unsubscribe(){ this.stopped = true; return super.unsubscribe(); }
+	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); return this; }
+	unsubscribe(){ this.stopped = true; this.listen(false); return super.unsubscribe(); }
+
+	// The words being spoken right now, before they are sent: faint, last in the chat (views-fix item 2,
+	// 2026-11-01 -- the same "chat-live" window event ChatV3 already listens to; every composer with a
+	// mic fires it, so this is the one thing to add, not a second live-guess mechanism, CLAUDE.md law 6).
+	listen(on){
+		this._live ??= e => this.draft(e.detail ?? {});
+		window[on ? "addEventListener" : "removeEventListener"]("chat-live", this._live);
+	}
+	draft({ text = "", settled = text, guess = "" } = {}){
+		if (!this.$box) return;
+		if (!text) { this.$draft?.el.remove(); this.$draft = null; return; }
+		if (!this.$draft?.el.isConnected) this.$draft = div.c("chat-v2-prompt chat-v2-draft");
+		this.$draft.el.replaceChildren();
+		const t = document.createElement("div"); t.className = "chat-v2-draft-text is-moving";
+		t.textContent = settled; if (guess) { const g = document.createElement("span"); g.className = "chat-v2-guess"; g.textContent = (settled ? " " : "") + guess; t.append(g); }
+		this.$draft.el.append(t);
+		this.draft_at_end();
+	}
+	draft_at_end(){ if (this.$draft?.el.isConnected || this.$draft) this.$box?.el.append(this.$draft.el); }
 
 	draw(){
 		this.model = this.constructor.Model.fold(this.lines);

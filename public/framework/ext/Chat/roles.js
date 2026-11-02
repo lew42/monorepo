@@ -56,12 +56,16 @@ export function who_name(id){
 }
 
 /** The avatar for an agent id — a small round icon, coloured by role — or nothing for an empty id.
- *  Its tooltip names who: the role, and the exact agent id (`agent`, when the line carries one). */
+ *  Its tooltip names who: the role, and the exact agent id (`agent`, when the line carries one).
+ *  The owner's own 👤 has no click handler anywhere it's drawn (Widget.js, Chat.js) -- it is not a
+ *  button and does nothing, so its tooltip says that outright (owner item 27, 2026-11-01: "the owner
+ *  thinks it turns voice mode off" -- it doesn't, it's just the avatar on your own messages). */
 export function who_label(id, agent){
 	if (!id) return null;
 	const k = role_key(id), icon = avatar_of(id);
 	const name = who_name(id) + (agent && agent !== id ? " · " + agent : "");
-	const $a = span.c("chatbox-who chatbox-avatar" + (k ? " chatbox-who-" + k : "")).attr("title", name).attr("aria-label", name);
+	const title = k === "you" ? name + " — your avatar on your own messages. Not a button: it does nothing, and never turns dictation or voice mode off." : name;
+	const $a = span.c("chatbox-who chatbox-avatar" + (k ? " chatbox-who-" + k : "")).attr("title", title).attr("aria-label", title);
 	if (/^(https?:|\/|data:image)/.test(icon)) $a.el.append(Object.assign(document.createElement("img"), { src: icon, alt: "" }));
 	else $a.el.textContent = icon;
 	return $a;
