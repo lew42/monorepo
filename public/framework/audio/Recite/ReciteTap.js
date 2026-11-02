@@ -25,6 +25,7 @@ export default class ReciteTap {
 		if (e.target.closest(ReciteTap.IGNORE)) return;
 		if (e.target.closest(ReciteHighlight.SKIP)) return;   // never the bar's own copy
 		if (!e.target.closest(ReciteHighlight.ROOTS)) return;   // only inside a chat bubble
+		if (globalThis.getSelection?.()?.toString()) return;   // a drag to select text still fires `click` on mouseup — never a tap
 		if (!this.recite.chunks.length) return;   // nothing to play or pause
 		this.recite.toggle();
 	}

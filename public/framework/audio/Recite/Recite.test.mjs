@@ -602,6 +602,36 @@ if (Recite) test("Recite: an agent update queues right away when no direct answe
 	return r;
 });
 
+// Review finding, read-aloud-b 2026-11-02: flushing on every streamed partial (not just once the stream ends) let a
+// held update land in the MIDDLE of the very answer it was meant to wait behind — queued after the stream's first
+// sentence, ahead of its second. The stream's own "" (ended) signal is the only point flush_updates() should run.
+if (Recite) test("Recite: a held update waits for the whole stream to end, not just its first sentence", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_pending = true;   // the owner's line landed; a direct reply is still expected
+
+	r.from_wire({ kind: "line", line: { chat: { text: "An update while a streamed answer is coming.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-read-aloud-b" } } } });
+	t.eq(r.pending_updates.length, 1, "held — the direct answer hasn't started");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "First sentence of the answer. " });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 1, "the stream's first sentence queued");
+	t.eq(r.pending_updates.length, 1, "still held — the stream has not ended, only its first sentence has");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "First sentence of the answer. Second sentence of the answer. " });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 2, "the stream's second sentence queued too");
+	t.eq(r.pending_updates.length, 1, "still held — the stream has still not ended");
+
+	r.from_wire({ kind: "stream", role: "smart", text: "" });   // the stream ends
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 3, "the update is queued now, behind BOTH of the answer's own sentences");
+	t.eq(r.chunks[2].text, "I have an update on read aloud b, tap to hear it.", "and it is the collapsed update line, not read in full");
+	t.eq(r.pending_updates.length, 0, "nothing left waiting");
+	return r;
+});
+
 // A held update must not be lost forever if the direct answer never arrives (the owner's line may not have needed one).
 if (Recite) test("Recite: a held agent update is released on its own if no direct answer ever arrives", async t => {
 	const r = new Recite({ voice: fake_voice });
@@ -654,6 +684,39 @@ if (Recite) test("Recite.Tap: tapping a chat bubble plays or pauses, but a link,
 	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 	await new Promise(res => setTimeout(res, 20));   // resume()'s own audio.play() promise settles
 	t.eq(r.state, "playing", "and a second tap resumes it");
+
+	root.remove();
+	return r;
+});
+
+// Review finding, read-aloud-b 2026-11-02: a drag to select text inside a bubble still fires a native `click` on
+// mouseup — by then the selection is already in place, so checking for one at click time tells a drag apart from a tap.
+if (Recite) test("Recite.Tap: a drag that leaves a text selection behind does not toggle playback", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	root.textContent = "Some reply text to select.";
+	document.body.appendChild(root);
+
+	r.queue("Some reply text to select.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+
+	const range = document.createRange();
+	range.selectNodeContents(root.firstChild);
+	const sel = window.getSelection();
+	sel.removeAllRanges();
+	sel.addRange(range);   // what a mouse drag leaves behind by the time `click` fires on mouseup
+
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "playing", "a tap that left a text selection behind is a drag, not a tap — playback is untouched");
+
+	sel.removeAllRanges();
+	root.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+	t.eq(r.state, "paused", "with no selection in place, the same tap still pauses");
 
 	root.remove();
 	return r;

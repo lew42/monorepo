@@ -45,7 +45,7 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue, the highlight dropout fix (+ lit words), no-flood + prioritise, and tap to pause (piece (b)) have landed. Still to come, in this order:
 
-1. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
+1. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting). This is also the piece that makes an agent update's own spoken line ("tap to hear it") true: today tapping only pauses or resumes whatever Recite is already doing, never replays that specific update.
 2. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
 3. **(c) Karaoke follow** — without phrase-level streaming.
 4. **Gate Dictate's send path on the echo/phantom guards** — proposed to `mastermind-ink-check` ([doc/architecture.md](doc/architecture.md), the echo decision's open item), not scheduled yet.

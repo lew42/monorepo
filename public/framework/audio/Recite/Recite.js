@@ -45,7 +45,7 @@ export default class Recite extends Part {
 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
 	thinking_cue = true;    // a short, subtle tone once the owner stops speaking and a reply is pending, again cue_repeat_ms later if it still has not started; false turns it off
 	cue_repeat_ms = 2000;   // thinking cue: how long to wait for the reply before the second, and last, cue
-	cue_timer = null;       // thinking cue: schedule_cue()'s own pending timeout for the second cue
+	cue_timer = null;       // thinking cue: expect_reply()'s own pending timeout for the second cue
 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
 	pending_updates = [];   // no-flood: agent updates (a reply from any assistant id but "smart") held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
 	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
@@ -232,7 +232,12 @@ export default class Recite extends Part {
 	/** One event from a session's live wire (ext/Session `Session.stream`): the smart seat's reply is read, the owner's line pauses it.
 	 *  Wire shapes: dictation-notes.md in the voice-recite task. */
 	from_wire(ev){
-		if (ev?.kind === "stream" && ev.role === "smart"){ if (!this.live && ev.text) this.trace("reply streaming", { text: ev.text.slice(0, 40) }); const out = this.partial(ev.text); this.flush_updates(); return out; }
+		if (ev?.kind === "stream" && ev.role === "smart"){
+			if (!this.live && ev.text) this.trace("reply streaming", { text: ev.text.slice(0, 40) });
+			const out = this.partial(ev.text);
+			if (!ev.text) this.flush_updates();   // only once the stream itself ends (`""`, partial()'s own signal) — flushing on every partial queued a held update mid-stream, between two sentences of the very answer it was meant to wait behind (review finding, read-aloud-b 2026-11-02)
+			return out;
+		}
 		if (ev?.kind !== "line") return;
 		const line = ev.line ?? {}, chat = line.chat;
 		if (chat?.at && Date.now() - Date.parse(chat.at) > 120000) return;   // a replayed old line, not a reply just now
@@ -250,17 +255,21 @@ export default class Recite extends Part {
 		}
 		if (chat?.text){
 			if (this.auto && this.barge.on){ if (this.state === "playing" || this.state === "loading") this.trace("paused by your line", { text: chat.text.slice(0, 40) }); this.barge.owner_spoke(chat.text, chat.via); }   // ear off = manual playback
-			if (this.auto && this.thinking_cue) this.schedule_cue();
+			if (this.auto) this.expect_reply();
 		}
 	}
 
-	/** The owner's line just landed on the wire: soon a reply should start. A short, subtle cue plays now, and once
-	 *  more about `cue_repeat_ms` later if the reply still has not arrived — then it stays quiet. A fresh line
-	 *  (another message before the first reply showed up) restarts the sequence from here; `partial()`/`final()`
-	 *  cancel it the moment real reply text arrives (dictation-v3, 2026-11-02). */
-	schedule_cue(){
+	/** The owner's line just landed on the wire: a direct answer is now expected (`cue_pending` — no-flood's
+	 *  `agent_update()` reads this to decide whether to hold an update, whether or not the thinking cue is even
+	 *  on). When `thinking_cue` is also on, a short, subtle tone plays now, and once more about `cue_repeat_ms`
+	 *  later if the reply still has not arrived — then it stays quiet. A fresh line (another message before the
+	 *  first reply showed up) restarts the sequence from here; `partial()`/`final()` cancel it the moment real
+	 *  reply text arrives (dictation-v3, 2026-11-02; decoupled from `thinking_cue`, read-aloud-b 2026-11-02 —
+	 *  no-flood held nothing with the cue off, since `cue_pending` was only ever set while scheduling the tone). */
+	expect_reply(){
 		clearTimeout(this.cue_timer);
 		this.cue_pending = true;
+		if (!this.thinking_cue) return;
 		this.play_cue();
 		this.cue_timer = setTimeout(() => { if (this.cue_pending) this.play_cue(); }, this.cue_repeat_ms);
 	}
