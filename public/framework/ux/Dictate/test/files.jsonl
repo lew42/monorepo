@@ -120,3 +120,5 @@
 {"file":"tmp-chat-sent.jsonl"}
 {"file":"tmp-chat-sent.jsonl","gone":true}
 {"file":"active-session.mjs"}
+{"file":"v1-order-fixture.jsonl"}
+{"file":"v1-order.mjs"}

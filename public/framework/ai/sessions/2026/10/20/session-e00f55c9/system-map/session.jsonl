@@ -8,3 +8,12 @@
 {"action":{"at":"2026-11-01T21:50:49-06:00","did":"edit","files":["public/framework/ux/Dictate/doc/map.md"]},"by":"ledger","ts":"2026-11-02T03:50:49.892Z"}
 {"commit":"cf8aa18bec97","by":"append.mjs","ts":"2026-11-02T03:50:52.273Z"}
 {"assign":{"landed_at":"2026-11-01T21:51:13-06:00","title":"Dictation: map the background work, and index what has been built","outcome":"Mapped 13 background jobs on a spoken sentence (models, costs, readers) and computed a 71-task built index. Surprises: four refiners clean the same sentence; in-session refinement costs ~$0.29/line; prompt-audit files have no reader.","links":["/framework/ux/Dictate/doc/background-work.md","/framework/ai/doc/built-index.md"]}}
+{"commit":"225fe61ba33b","by":"append.mjs","ts":"2026-11-02T03:51:14.563Z"}
+{"log":{"at":"2026-11-01T21:51:21-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"log":{"at":"2026-11-01T21:51:25-06:00","msg":"text-check: no walls of text"}}
+{"log":{"at":"2026-11-01T21:51:25-06:00","msg":"doc-check: 1 module — clean"}}
+{"log":{"at":"2026-11-02T03:51:25.635Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-11-01T21:51:25-06:00","msg":"owner-check: no owner words found"},"by":"append.mjs","ts":"2026-11-02T03:51:25.825Z"}
+{"log":{"at":"2026-11-01T21:51:36-06:00","msg":"lifecycle: nothing of this task's was left running"}}
+{"log":{"at":"2026-11-01T21:51:36-06:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"assign":{"at":"2026-11-01T21:51:59-06:00","outcome":"Two docs now answer \"what runs on a spoken sentence, and what have we built?\"\n- [x] Inventory of background jobs: 13 jobs with model, cost and reader, in [background-work.md](/framework/ux/Dictate/doc/background-work.md) (52 lines)\n- [x] Map linked from the Dictate [readme](/framework/ux/Dictate/readme.md) and [map](/framework/ux/Dictate/doc/map.md)\n- [x] Built index, computed by script: 71 tasks, in [built-index.md](/framework/ai/doc/built-index.md), linked from the [handover](/framework/ai/handover.md)\n- [ ] 5-line report to vscode-mastermind: no proof it was sent\nSurprises: four refiners clean the same sentence; in-session refinement costs about $0.29 a line; prompt-audit files have no reader."}}
