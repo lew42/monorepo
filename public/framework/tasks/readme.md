@@ -34,15 +34,12 @@ Until then: one line per task below, and when one gets a real task folder, link 
   - **What happens (2026-11-02, three times this afternoon):** `quick_fix` and the voice seat both get "no quick-fix worktree is ready", while `Server/worktree-servers.mjs --list` shows pool slots qf-6, qf-7 and qf-8 "kept", and qf-1 and qf-2 taken by masterminds.
   - **To find:** why a kept slot isn't "ready" (stale branch? not current?), and whether masterminds should take pool slots at all.
   - **The fix to build:** one slot always reserved for the fixer. See `Servex/Pool.js`, the `hold()` notes at line 172.
-- **Agents still say the tab "isn't a live agent".**
-  - **What happens:** every report reaches the tab's inbox. Since 22:26Z, Servex answers a send to the tab with `{ok: true, delivered_to: "the inbox of the VS Code tab …", note: "Delivered…"}` (`Servex/agents/External.js:110`, test `External.test.mjs:90`).
-  - **Still,** v1-2-scroll-fix and process-runner-stall (16:51 and 16:53) wrote "couldn't message vscode-mastermind (not a live agent)" and posted an `owner_note` instead.
-  - **To find:** which tool or wording they read. Is it the card's `state: "external"`, `wait_for_agent`, or a role readme saying the tab isn't an agent? Fix that one place, so agents trust the delivery.
-  - **Again at 17:04 and 17:17** (recite-cue-icon, in-flight-real-data), after the 22:26Z restart, so the cause is still live.
+- ~~**Agents still say the tab "isn't a live agent".**~~ Fixed 2026-11-02: all four agents checked (v1-2-scroll-fix, process-runner-stall, recite-cue-icon, in-flight-real-data) called `send_to_agent` with `to` (one also `agent`), the name Claude Code's own SendMessage uses, so the call failed. It now takes `to`, `agent` and `message` too (`Servex/agents/tools.js`, test `send-alias.test.mjs`).
 - **A session page takes about 15 s to read its tasks** (2026-11-02, found by in-flight-real-data). Until then the In-flight block now says "Reading N tasks…". Each referenced task file loads on its own, so a session with hundreds of tasks is slow. To find: one index read instead of N file reads (see `core/Page/doc/index-jsonl.md`).
 - **A revived agent can end its turn empty.**
   - **What happened (2026-11-02, 23:22Z):** `sustain.mjs --restart` revived mastermind-core-plugin-build, which was mid-merge. Its revive turn ended in 114 ms with 0 API turns and no cost ("its prompt was probably blocked (a hook timeout)"). It sat idle until vscode-mastermind resent the message by hand.
   - **To find:** why a revive right after boot gets an empty turn (a hook that times out while Servex starts? a race in `Agents.revive`?). Then retry an empty revive once by itself.
+- **`worktree-up.mjs` doesn't install `Servex/node_modules`,** so a Servex test in a fresh worktree fails with "Cannot find package '@anthropic-ai/claude-agent-sdk'"; run `npm ci` in `Servex/` by hand until it does.
 - **A worktree's dev server sometimes never boots** (in-flight-real-data, 17:10). The agent routed its changed files into the live site to take its shot instead. `Server/worktree-restart.mjs` exists; find why the first boot fails.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.

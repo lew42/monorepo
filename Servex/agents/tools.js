@@ -460,6 +460,9 @@ return [
 		{
 			id: ID,
 			text: { type: "string", description: "What to say." },
+			to: { type: "string", description: "Same as `id` (a common guess; accepted, as is `agent`)." },
+			agent: { type: "string", description: "Same as `id`." },
+			message: { type: "string", description: "Same as `text` (a common guess; accepted)." },
 			from: { type: "string", description: "Who is asking — your own agent id or name. The agent sees this." },
 			reply_to: { type: "string", description: "Where the answer should go, in plain words: `log agent-host`, `message mastermind-servex`." },
 			priority: { type: "string", description: "`now` to cut in mid-answer. Omit to queue behind the current turn." },
@@ -467,9 +470,14 @@ return [
 			revive: { type: "boolean", description: "Wake it even though it was stopped on purpose or its task has landed (refused otherwise, with the reason). Never wakes one whose directory is gone." },
 			dormant_after: DORMANT_AFTER
 		},
-		["id", "text"],
-		({ id, text, dormant_after, direct, ...note }, ctx = {}) => {
-			// a call with `message` instead of `text` delivered the word "undefined" to six masterminds (09-29)
+		[],
+		({ id, text, to, agent: agent_id, message, dormant_after, direct, ...note }, ctx = {}) => {
+			/* agents guess {to, message}: with `id` and `text` schema-required that failed validation, and they
+			   reported "vscode-mastermind isn't a live agent" (2026-11-02: every one of 4 agents checked used `to`, one also `agent`;
+			   Claude Code's own SendMessage takes `to`). Take all three spellings. Test: send-alias.test.mjs. */
+			id = id ?? to ?? agent_id; text = text ?? message;
+			if (typeof id !== "string" || !id.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `id` (the agent's id, e.g. vscode-mastermind); it was missing." });
+			// a call with `message` instead of `text` delivered the word "undefined" to six masterminds (09-29); `message` is now an alias
 			if (typeof text !== "string" || !text.trim()) return JSON.stringify({ ok: false, why: "send_to_agent needs `text` (what to say); it was missing or empty." });
 			id = agents.holder?.(id) ?? id;
 			const ruling = policy.message(ctx.caller ?? null, id);
