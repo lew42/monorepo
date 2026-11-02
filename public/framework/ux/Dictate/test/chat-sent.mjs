@@ -96,12 +96,15 @@ ${ev(queue.splice(0))}` });
 		// never merged into line 29's (review finding 3, 2026-10-25).
 		const where = await page.evaluate(() => {
 			const q = document.querySelector(".drawer-rail-sheet.on .chatbox-task[data-id=q-1792961349]");
-			const next = q?.nextElementSibling;
-			return q && { before: q.previousElementSibling?.textContent.slice(0, 40), after: next?.textContent, pieces: next?.querySelectorAll("[data-re]").length };
+			const next = q?.nextElementSibling, before = q?.previousElementSibling;
+			return q && { before: before?.textContent.slice(0, 40), before_visible: before ? getComputedStyle(before).display !== "none" : false, after: next?.textContent, pieces: next?.querySelectorAll("[data-re]").length };
 		});
 		console.log(tag, "real Question sits:", JSON.stringify(where));
 		check(!!where && /So, The words/.test(where.before ?? "") && /And then if I start/.test(where.after ?? "") && where.pieces === 1,
 			tag + ": the real Question sits right under its own Prompt's bubble; a later, different Prompt gets its OWN, separate bubble (never merged across the boundary)");
+		// V1 is the raw log (the owner, 2026-11-01, ux/Dictate/tasks/v1-raw): the Prompt's own bubble must stay
+		// visible once it has a Question — it used to be hidden here, swallowing the owner's own words.
+		check(!!where?.before_visible, tag + ": the Prompt's own bubble stays visible once it has a Question (never hidden)");
 	}
 	await page.screenshot({ path: `${shots}/${tag}-5-question.png` });
 	queue.push(...Array.from({ length: 40 }, (_, i) => owner(i + 1, Date.now() + i)));

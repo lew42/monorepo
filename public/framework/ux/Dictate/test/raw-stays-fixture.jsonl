@@ -1,0 +1,5 @@
+{"tasks":{"add":{"type":"Prompt","id":"p-1793574312076","raw":["All right, are we working?"],"paragraphs":[{"id":"a","text":"All right, are we working?"}]}},"ts":"2026-11-01T23:05:12.077Z","by":"fast"}
+{"chat":{"at":"2026-11-01T17:05:12.079-06:00","session":"v-u48msei","path":"/","from":{"kind":"owner"},"via":"voice","text":"All right, are we working?","prompt":"p-1793574312076","said_at":"2026-11-01T23:05:11.644Z","floor":"done","cues":{"mic_on_at":"2026-11-01T23:05:05.817Z","pauses":[{"start":3764,"end":null,"ms":2159}],"speaking_ms":734}}}
+{"place":{"re":"2026-11-01T17:05:12.079-06:00","to":"same","edit":"improve","text":"All right, are we working?"},"by":"voice-assistant-v-u48msei","ts":"2026-11-01T23:05:15.766Z"}
+{"p-1793574312076":{"tasks":{"add":{"id":"q-1793574312079","type":"Question","text":"Are we working?","from":"p-1793574312076"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-01T23:05:16.143Z"}
+{"p-1793574312076":{"tasks":{"add":{"id":"t-raw-stays-1","type":"Task","text":"follow up on this","from":"p-1793574312076"}}},"by":"raw-stays-fixture","ts":"2026-11-01T23:05:17.000Z"}

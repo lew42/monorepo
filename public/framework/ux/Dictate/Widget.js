@@ -479,9 +479,9 @@ Widget.Thread = class WidgetThread extends View {
 			after.insertAdjacentElement("afterend", node);
 		}
 		if (parent) node.dataset.under = t.at;
-		// A Question card replaces the plain bubble it came from: hide that source bubble (view only, the log keeps it).
-		// Hiding is idempotent, so a second Question from the same bubble changes nothing.
-		if (parent && t.question) parent.style.display = "none";
+		// V1 is the raw log (the owner, 2026-11-01): a Question or Task made from a sentence is drawn IN
+		// ADDITION to it, never in place of it — the source bubble used to be hidden here, which swallowed
+		// the owner's own words the moment the fast seat turned one into a Question (ux/Dictate/tasks/v1-raw).
 		rows.set(t.id, node);
 		this.anchor();
 	}
