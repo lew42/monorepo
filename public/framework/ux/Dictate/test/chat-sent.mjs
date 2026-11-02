@@ -26,7 +26,9 @@ async function round(v2){
 	fs.writeFileSync(scratch, "");
 	const queue = [];   // the lines the next stream (re)connect delivers; the proof pushes into it, and every one is also appended to the scratch file (Chat v2 reads the file)
 	queue.push = (...ls) => { fs.appendFileSync(scratch, ls.map(l => JSON.stringify(l) + String.fromCharCode(10)).join("")); return Array.prototype.push.apply(queue, ls); };
-	const owner = (n, ms) => v2 ? { tasks: { add: { id: `p-fill-${n}`, type: "Prompt", title: `Prompt number ${n}`, text: `line number ${n} of the proof, with enough words to take a little room in the box` } } } : { chat: { at: iso(ms), from: { kind: "owner" }, text: `line number ${n} of the proof`, via: "voice" } };
+	// Chat V2 is a ChatV3 subclass that draws session.messages (a sentence plus the Prompt message that holds it, one line as Servex writes it; fixture/messages-session.jsonl), not {chat} lines
+	const prompt_line = (id, at, text) => ({ sentences: { add: { id: `s-${id}`, at, text, via: "voice" } }, messages: { add: { type: "Prompt", id: `m-${id}`, by: "owner", at, sentences: [`s-${id}`], prompt: `p-${id}` } } });
+	const owner = (n, ms) => v2 ? prompt_line(`fill-${n}`, iso(ms), `line number ${n} of the proof, with enough words to take a little room in the box`) : { chat: { at: iso(ms), from: { kind: "owner" }, text: `line number ${n} of the proof`, via: "voice" } };
 	const v2_done = new Set();
 	const ev = lines => lines.map(line => `data: ${JSON.stringify({ kind: "line", line })}
 
@@ -45,8 +47,8 @@ ${ev(queue.splice(0))}` });
 			const body = said, at = iso(Date.now());
 			out = { ok: true, at };
 			if (!v2_done.has(at)) setTimeout(() => { const r = { refined: { at: iso(Date.now()), re: at, sentences: [{ n: 1, text: "hello from the proof" }], sections: [], flags: [], cost_usd: 0.0123 } }; queue.push(r, r); }, 2200);
-			if (v2) queue.push({ tasks: { add: { id: "p-say", type: "Prompt", title: "Said", text: body.text } } });
-			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text", ...(v2 ? { prompt: "p-say" } : {}) } });
+			if (v2) queue.push(prompt_line("say", at, body.text));
+			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text", ...(v2 ? { prompt: "p-say" } : {}) } });   // V2 reads only this line's prompt id (ChatV2.read, to match {sent} to its Prompt); the words it draws come from the line above
 			setTimeout(() => queue.push({ sent: { to: "fast", at: iso(Date.now()), re: [at], delay_ms: 420 } }), 1500);
 			setTimeout(() => queue.push({ sent: { to: "smart", at: iso(Date.now()), re: [at], delay_ms: 3100 } }), 5000);
 		}
@@ -120,7 +122,7 @@ ${ev(queue.splice(0))}` });
 	console.log(tag, "after fill:", JSON.stringify(s0));
 	check(!!s0 && s0.max > 100 && (v2 ? Math.abs(s0.top - s0.max) < 4 : s0.newest_in_view), `${tag}: ${v2 ? "pinned to the bottom" : "the newest bubble is in view (V1 turns pages: newest top stays visible, blank below)"} by default`);
 	await page.screenshot({ path: `${shots}/${tag}-2-pinned.png` });
-	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.scrollTop = 0; b.dispatchEvent(new Event("scroll")); }, v2);
+	await page.evaluate(isV2 => { const b = (isV2 ? document.querySelector(".drawer-rail-sheet-v2 > .chatbox-jump") : [...document.querySelectorAll(".drawer-rail-sheet.on .chatbox-jump")].find(j => !j.closest(".drawer-rail-sheet-v2")))?.parentElement; b.dispatchEvent(new WheelEvent("wheel", { deltaY: -100 })); b.scrollTop = 0; b.dispatchEvent(new Event("scroll")); }, v2);   // a reader gesture first: only a reader unlocks the pin (Chat.js sticky_scroll)
 	await page.waitForTimeout(300);
 	const s1 = await box();
 	queue.push(...Array.from({ length: 3 }, (_, i) => owner(i + 50, Date.now() + i)));

@@ -21,6 +21,7 @@ export default class ChatV2 extends ChatV3 {
 	// session page's Chat tab, the drawer/✦ sheet) gets ChatV3.css's own column/padding rules, with no fence crossing.
 	read(entries){
 		this.$box?.el.classList.add("chat-v3");
+		const marked = new Set();   // Prompt task ids whose marks changed in this batch
 		for (const raw of entries) {
 			if (raw?.chat?.from?.kind === "owner" && raw.chat.prompt && raw.chat.at) this.prompt_of.set(raw.chat.at, raw.chat.prompt);
 			if (raw?.sent?.to) {
@@ -30,10 +31,14 @@ export default class ChatV2 extends ChatV3 {
 					const rec = this.sent_by_task.get(task_id) ?? {};
 					rec[raw.sent.to] = { at: raw.sent.at };
 					this.sent_by_task.set(task_id, rec);
+					marked.add(task_id);
 				}
 			}
 		}
-		return super.read(entries);
+		const out = super.read(entries);
+		// a {sent} line changes no session member, so ChatV3 marks no card dirty for it: redraw the Prompt it belongs to (the ✓/🧠 move live)
+		for (const id of marked){ const p = this.card_roots().find(r => r instanceof Prompt && r.prompt === id), view = p && this.els.get(p.id); if (view) view.empty(() => this.fill(p)); }
+		return out;
 	}
 	reset(){ this.prompt_of.clear(); this.sent_by_task.clear(); return super.reset(); }
 
