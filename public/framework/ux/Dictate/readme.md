@@ -80,6 +80,8 @@ ever appeared — no error, no clue why.
 
 **When is the smart assistant woken?** Not per sentence: on a pause, a question or name, or every N sentences; the two knobs are per session: [`doc/wake-policy.md`](doc/wake-policy.md).
 
+**How a reply is paced** (one paragraph at a time, shown then read; title and quoted question not read; conversation mode; questions filed per module): [`doc/reply-pacing.md`](doc/reply-pacing.md), the owner's design, 2026-11-02.
+
 **When should the AI show or speak a reply?** The owner's turn-taking design notes (modes, a short wait after a question, holding replies while you talk, per-sentence smart work, paced streaming, heard-only context) and what is cheapest to try first: [`doc/turn-taking.md`](doc/turn-taking.md).
 
 **What do the fast and smart seats each do, and which model, prompt and effort do they run?** A job-by-seat table, the gaps, a recommended split and how to experiment: [`doc/fast-and-smart.md`](doc/fast-and-smart.md).

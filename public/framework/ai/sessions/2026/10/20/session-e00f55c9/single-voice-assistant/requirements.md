@@ -105,3 +105,13 @@ Run as a **build process**: Haiku investigates → plan → Sonnet improves the 
 - **Sentences now go out the moment they end.** But a sentence sent early can't be corrected yet when Whisper's final text hears it differently. The early wording stays, and the difference is logged.
 - **The missing piece:** a Servex verb (`session/amend`, or the item tool on `sentences.#<id>`) that writes the correction for one of the owner's sentences in place. The display can already patch a line. See `ux/Dictate/doc/upload.md`.
 - **Fold it into this build:** the single voice assistant's own cleaning uses the same "correct a sentence by id" path.
+
+## Added by the owner, 16:30: how replies are paced
+
+The design is in [ux/Dictate/doc/reply-pacing.md](/framework/ux/Dictate/doc/reply-pacing.md). For this build, put its rules into the assistant's brief:
+- silent first;
+- one short paragraph at a time, the most helpful one first;
+- an answer goes on the question's own card;
+- conversation mode when read-aloud is on.
+
+The read-aloud mechanics (preparing the next paragraph halfway through, the pause between paragraphs, the extra turn after each read-aloud, words appearing as they're read) are a separate follow-up task. Name it in the plan; don't build it here.
