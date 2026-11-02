@@ -88,9 +88,9 @@ export default class BargeIn extends Part {
 	speaking(){ return this.on && this.level > Math.max(this.threshold, this.noise_floor * 1.15); }
 
 	/** Real speech was heard (this mic's own check, or the chat's own line): note it, and decide what happens to the
-	 *  paused reply. A question ("...?") means a new answer is coming, so the old one is dropped outright — resuming
-	 *  it a moment later would talk over the new one. Anything else schedules an auto-resume once things go quiet
-	 *  (schedule_resume), and the rest of the queue (any later replies already waiting) stays queued either way. */
+	 *  paused reply. A question ("...?") means a new answer is coming, so the paused reply is dropped outright
+	 *  (recite.drop_heard() — only its own chunks; anything else already queued behind it keeps its place and still
+	 *  plays). Anything else schedules an auto-resume once things go quiet (schedule_resume). */
 	heard_speech(text, { close_mic = false } = {}){
 		if (close_mic && this.mic) this.close();   // close() resets state to "off"; set it below, after
 		this.heard = text;
@@ -98,9 +98,9 @@ export default class BargeIn extends Part {
 		this.state = "heard";
 		if (/\?\s*$/.test(text)){
 			this.note = "heard a question: " + text;
-			this.cancel_resume();          // state is "off" before stop() runs, so its own sync() sees the right state (finding 5)
-			this.recite.stop();
-			this.sync();                   // belt and suspenders: stop()'s own set("idle") already calls this
+			this.cancel_resume();          // state is "off" before drop_heard() runs, so its own sync() sees the right state
+			this.recite.drop_heard();
+			this.sync();                   // belt and suspenders: drop_heard()'s own set() already calls this when it goes idle
 		} else this.schedule_resume();
 		this.recite.changed();
 	}

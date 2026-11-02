@@ -100,9 +100,11 @@ if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start, 
 
 	let synced = 0; const real_sync = r.barge.sync.bind(r.barge); r.barge.sync = () => { synced++; real_sync(); };
 	r.barge.owner_spoke("but what about the other one?");   // a question: a new answer is coming
-	t.eq(r.state, "idle", "the old reply, and whatever was still queued behind it, is dropped");
-	t.eq(r.chunks.length, 0, "nothing left queued — talking over the new answer would make no sense");
-	t.ok(synced > 0, "dropping a question re-syncs the mic, ready for the next interruption (finding 5)");
+	await new Promise(res => setTimeout(res, 20));   // drop_heard()'s own play() of whatever is queued behind settles
+	t.eq(r.chunks.length, 1, "only the dropped reply (the one that was heard) is gone");
+	t.eq(r.chunks[0].text, "Second reply arrives while the first still plays.", "the reply that was already queued behind it was never touched, and starts right where it was waiting");
+	t.eq(r.state, "playing", "playback carries on with what was queued behind the dropped reply");
+	t.ok(synced > 0, "dropping a question re-syncs the mic, ready for the next interruption");
 	return r;
 });
 
@@ -125,6 +127,55 @@ if (Recite) test("Recite: a reply arriving while the old one is paused by barge-
 	return r;
 });
 
+// Dropping the reply a barge-in cut off must not drop what is already queued behind it — only that one reply's own
+// chunks go (review: drop_heard() called stop(), which emptied the whole queue; a second reply that had not even
+// started yet was lost along with the first).
+if (Recite) test("Recite: dropping a cut-off reply keeps whatever is already queued behind it", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.barge.quiet_ms = 10000;   // long enough that a non-question line could not auto-resume during this test
+
+	r.final("First reply.", "msg-q1");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the first reply started");
+
+	r.final("Second reply, queued behind the first.", "msg-q2");
+	t.eq(r.chunks.length, 2, "both replies are queued, in order");
+
+	r.barge.owner_spoke("actually never mind");   // real speech, no question — just pauses it
+	t.eq(r.state, "heard", "paused mid first reply");
+
+	r.final("The answer that was coming is this one.", "msg-q3");   // a fresh reply arriving is itself the drop signal
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 2, "the first reply is gone; the second (never heard) and the new third reply remain");
+	t.eq(r.chunks[0].text, "Second reply, queued behind the first.", "the one already waiting its turn kept its place — and plays first, not last");
+	t.eq(r.chunks[1].text, "The answer that was coming is this one.", "the new reply queues behind it, not ahead of it");
+	t.eq(r.state, "playing", "playback carries straight on with the reply that was already queued");
+	return r;
+});
+
+// A question drop must also clear `this.live`, or a reply still streaming in picks up as if nothing happened: its
+// next partial() would match the old live object's text prefix and queue only the unsent tail — a context-less
+// half reply (review note 6: drop_heard() left `this.live` set).
+if (Recite) test("Recite: a question drop also clears a still-streaming reply, so it is not half-read if it keeps coming", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	r.partial("First partial sentence of a stream. ");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 1, "the first complete sentence streamed in and started playing");
+
+	r.barge.owner_spoke("wait, what?");   // a question: drop
+	t.eq(r.live, null, "the streaming reply being tracked is cleared along with the chunks it had queued");
+
+	r.partial("First partial sentence of a stream. Second partial sentence continues anyway. ");
+	await new Promise(res => setTimeout(res, 20));
+	t.ok(r.chunks.some(c => c.text.includes("First partial sentence")), "the stream continuing is read as a fresh reply from its own start, not a bare, context-less tail");
+	return r;
+});
+
 // Never start a fresh reply while the owner is talking; wait for a moment of quiet (the owner, 2026-11-01, "turn-taking").
 // Proof for item 14: mic speech comes FIRST, then a reply arrives — nothing plays until the quiet window. Then a real
 // barge-in (owner_spoke) stops the reply mid-sentence, and the rest resumes once the owner is quiet again.
@@ -134,15 +185,16 @@ if (Recite) test("Recite: a reply waits for the owner to stop talking before it 
 	r.barge.on = true;      // start_or_hold() only holds when barge.on is true — but stub sync() below so it never opens a real mic (error 4: a real mic rejects async in a headless test and clobbers barge.state)
 	r.barge.sync = () => {};
 	r.turn_wait_ms = 15;
-	let talking = true;   // the owner is already speaking BEFORE the reply arrives
-	r.barge.speaking = () => talking;
+	r.barge.hear(0.9);   // the owner is already speaking BEFORE the reply arrives — a real level fed through hear(), not a stubbed speaking()
 
 	r.queue("A reply arriving while you are still talking.");
+	t.eq(r.barge.speaking(), true, "speaking() computes true from the real level/threshold math, not a stub");
 	t.eq(r.state, "idle", "it does not start over you");
 	t.eq(r.wait_at, 0, "it is waiting for a moment of quiet");
 	await new Promise(res => setTimeout(res, 40));
 	t.eq(r.state, "idle", "still waiting — you are still talking");
-	talking = false;
+	r.barge.hear(0.05);   // the level actually drops below threshold: real quiet, not a flipped flag
+	t.eq(r.barge.speaking(), false, "and speaking() now reads quiet from that same real path");
 	await new Promise(res => setTimeout(res, 150));
 	t.eq(r.state, "playing", "started once you had been quiet for a moment");
 
@@ -196,8 +248,7 @@ if (Recite) test("Recite: a second reply queued while the first still waits for 
 	r.barge.on = true;
 	r.barge.sync = () => {};   // never open a real mic in a test
 	r.turn_wait_ms = 15;
-	let talking = true;
-	r.barge.speaking = () => talking;
+	r.barge.hear(0.9);   // a real level above threshold, fed through the real hear() path, not a stubbed speaking()
 
 	r.queue("First reply, held.");
 	t.eq(r.wait_at, 0, "the first reply is held at chunk 0");
@@ -206,7 +257,7 @@ if (Recite) test("Recite: a second reply queued while the first still waits for 
 	t.eq(r.wait_at, 0, "still held at chunk 0 — a second queue() while still talking must not move it");
 	t.eq(r.chunks.length, 2, "both replies are queued, in order");
 
-	talking = false;
+	r.barge.hear(0.05);   // the level drops below threshold: real quiet
 	clearTimeout(r.wait_timer);
 	r.check_wait();   // first poll: notices quiet, starts the clock — not long enough yet
 	t.eq(r.state, "idle", "not yet — the quiet window just started");

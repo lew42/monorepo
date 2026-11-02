@@ -30,7 +30,8 @@ export default class Recite extends Part {
 	error = "";            // the last failure, one plain line, shown on the bar
 	url = Recite.default_url();
 	voice = null;          // a Voice (one persona); Voice.PERSONAS lists them
-	chunks = [];           // one per sentence: {text, start, seconds, src, pending}
+	chunks = [];           // one per sentence: {text, start, seconds, src, pending, reply}
+	reply_id = -1;         // bumped by every queue() that is not a take() continuation: chunks.reply groups a reply's own sentences, so drop_heard() can cut just one reply out of the queue
 	at = 0;                // the chunk playing, or paused in
 	auto = Recite.remember("auto") != null ? Recite.remember("auto") === "true" : true;   // read new replies by themselves: on by default, phone and PC alike (the owner, 2026-11-01); the 🗣 button turns it off and that is remembered
 	live = null;           // the reply being streamed: {text, queued, fresh}
@@ -105,10 +106,14 @@ export default class Recite extends Part {
 	read(text){ this.stop(); return this.queue(text); }
 
 	/** Add `text` after what is already queued; starts reading if idle, UNLESS the owner is talking right now — then it
-	 *  waits for about `turn_wait_ms` of quiet (turn-taking: never start a reply over the owner's own words). */
-	queue(text){
+	 *  waits for about `turn_wait_ms` of quiet (turn-taking: never start a reply over the owner's own words).
+	 *  `continuing` (set only by take(), below): these chunks are more of the SAME live reply, not a new one — keep
+	 *  the current `reply_id` so drop_heard() still treats the whole streamed-so-far reply as one unit. */
+	queue(text, continuing = false){
 		const first = this.chunks.length;
-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null });
+		if (!continuing) this.reply_id++;
+		const id = this.reply_id;
+		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id });
 		if (this.chunks.length === first) return this;
 		this.retime();
 		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
@@ -267,11 +272,31 @@ export default class Recite extends Part {
 
 	/** A new reply starts arriving while an old one sits paused by barge-in (`state === "heard"`): a reply is coming,
 	 *  the same signal as the owner's line ending in "?" (BargeIn.heard_speech) — finishing the cut-off reply first
-	 *  would talk over the new one, so it is dropped outright, not resumed (dictation-v3, 2026-11-01). */
+	 *  would talk over the new one, so it is dropped outright, not resumed (dictation-v3, 2026-11-01). Only the heard
+	 *  reply's own chunks go: a later reply already queued behind it (never heard yet) keeps its place and still
+	 *  plays — calling `stop()` here used to empty the whole queue, losing whatever came after (dictation-v3,
+	 *  2026-11-02). `chunks[i].reply` groups every sentence pushed by one `queue()` call (take()'s own calls share
+	 *  their live reply's id, so a streamed-so-far reply still drops as one unit). */
 	drop_heard(){
 		if (this.state !== "heard") return;
 		this.barge.cancel_resume();
-		this.stop();
+		this.live = null;   // the dropped reply might still be streaming in; left set, its next partial() would read as a
+		                    // continuation and queue only its unsent tail — a half reply the drop was meant to prevent
+		this.token++;
+		clearTimeout(this.wait_timer);
+		this.wait_at = this.quiet_since_wait = null;
+		this.audio?.pause();
+		globalThis.speechSynthesis?.cancel();
+		const id = this.chunks[this.at]?.reply;
+		let start = this.at, end = this.at;
+		while (this.chunks[start - 1]?.reply === id) start--;
+		while (this.chunks[end + 1]?.reply === id) end++;
+		const cut = this.chunks.splice(start, end - start + 1);
+		for (const c of cut) if (c.src) URL.revokeObjectURL(c.src);
+		this.pending_ids = this.pending_ids.filter(p => p.last > end).map(p => ({ id: p.id, last: p.last - cut.length }));
+		this.at = start;
+		if (this.chunks.length > start) this.start_or_hold(start);
+		else this.set("idle");
 	}
 
 	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
@@ -282,7 +307,7 @@ export default class Recite extends Part {
 		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
 		live.queued += cut;
 		live.fresh = false;
-		this.queue(rest.slice(0, cut));
+		this.queue(rest.slice(0, cut), true);   // continuing the same live reply, not a new one
 	}
 
 	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }

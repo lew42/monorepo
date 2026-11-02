@@ -38,13 +38,16 @@ Decisions and why: [doc/architecture.md](doc/architecture.md).
 
 Only resume + queueing + turn-taking (this page's piece (a)) has landed so far. Still to come, in this order:
 
-1. **No flood + prioritise** (if not folded into a small change already): one quiet window of 2–3 s (not 1.5 s) before a queued reply releases; the one reply that directly answers the owner's latest line plays first; an agent update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
+1. **No flood + prioritise** (if not folded into a small change already): one quiet window of 2–3 s before a queued reply releases — today's code still waits only 1.5 s (`turn_wait_ms`/`barge.quiet_ms`); the one reply that directly answers the owner's latest line plays first; an agent's update collapses into one spoken line ("I have an update on X, tap to hear it") instead of being read in full.
 2. **Echo suppression** — the read-aloud voice leaking into the mic: `echoCancellation`/`noiseSuppression` in `getUserMedia`, ignoring heard words that match the sentence being read, and a higher mic threshold while playing and ~1.5 s after (so coughs and leakage don't fire a barge-in).
-3. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
-4. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
-5. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
-6. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, and a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button).
-7. **(c) Karaoke follow** — without phrase-level streaming.
+3. **A thinking cue**, its own small merge right after echo: once the owner stops speaking and a reply is pending, a short subtle cue (a generated tone or a tiny audio file, never Kokoro speech) — once, then once more at ~2 s if still pending, then quiet. A setting turns it off (`thinking_cue: true`).
+4. **Highlight dropout** — the karaoke highlight skipping whole sentences — plus subtle lit words: the bubble text stays muted until read, then each word lights up and stays lit as it is said (the visible "read" marker; the played flag above stays data-only).
+5. **(b) Tap to pause** — tapping a bubble plays/pauses it, ignoring taps on links, mention chips and buttons.
+6. **Resumable bubbles** — tapping an old bubble replays it from its last spoken word, regenerating the audio each time by default (a `replay_audio: "regenerate" | "keep"` setting).
+7. **Bubble toolbar + voice chevron** — a per-bubble voice toolbar (play/pause, back 10 s; small targets are fine) in place of the tiny bottom-left button, a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
+8. **(c) Karaoke follow** — without phrase-level streaming.
+
+Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in [ux/Dictate/doc/turn-taking.md](/framework/ux/Dictate/doc/turn-taking.md), "Voice dynamics".
 
 The owner's own order and why: [requirements.md, "Order now"](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/requirements.md).
 
@@ -55,7 +58,8 @@ The owner's own order and why: [requirements.md, "Order now"](/framework/ai/sess
 - **Speakers leak into the mic.** Not built yet (the owner has heard the leak): the plan is echo cancelling in `getUserMedia`, plus ignoring words that match the sentence being read. Headphones are best until then.
 - **The Claude-app voice agent is separate.** It speaks with the app's own voice and writes `/live/`, not the chat session, so Recite never reads it twice (`Servex/ext/remote/doc/cloud-voice-agent.md`). From the phone, `/recite/*` goes through the site gateway exactly like `/whisper/*`.
 - **Reading starts only for new replies** (lines under 2 minutes old), never for history on a reload.
-- **Open item: `chunks` never shrinks until a full `stop()`.** Each queued reply's rendered audio (a blob URL) stays in memory for the whole session; a very long session with no interruption and no session switch holds every reply's audio at once. Deferred (review note 9, 2026-11-01): a page reload bounds it in practice, so no eviction was added. [doc/architecture.md](doc/architecture.md) has the detail.
+- **With the ear (barge-in) off, a reply never waits for you.** `speaking()` requires `barge.on`; turning the ear off is the opt-out from turn-taking, so a freshly queued reply starts right away even if you are still mid-sentence. Intended, not a bug.
+- **Open item: `chunks` never shrinks until a full `stop()`.** Each queued reply's rendered audio (a blob URL) stays in memory for the whole session; a very long session with no interruption and no session switch holds every reply's audio at once. Deferred: a page reload bounds it in practice, so no eviction was added. [doc/architecture.md](doc/architecture.md) has the detail.
 
 ## Why it was silent
 
