@@ -8,6 +8,10 @@
 
 Try it: [/framework/ext/Chat/v2/](/framework/ext/Chat/v2/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (V3's own fixture, plus a few `sent` lines on two of its Prompt messages so the marks have data); `?src=<url of any session.jsonl>` draws that session, live. Shot with both the marks and the live draft visible: [shots/chat-v2-marks-and-live-draft.png](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v2-subclass/shots/chat-v2-marks-and-live-draft.png).
 
+## Layout (2026-11-02)
+
+Same shared rules as V3 ([`../bubbles.css`](../bubbles.css)). A Prompt with refined text is one hugging pill. In dictation mode (no refined text yet) each sentence row is its own small pill (`.chat-v2-sentence-text.chat-v3-you`) inside a plain `.chat-v3-yours` group, and the Reply anchored to a sentence (`.chat-v2-beside`) sits plain beneath it on the left. The old side-by-side grid is gone.
+
 ## Files
 
 `ChatV2.js` (the class, above) · `ChatV2.css` (its own rules) · `report.js` (unchanged by this step: the page's own errors/clicks/context, posted down the real dictation path `POST /api/session/say` — see "Who writes the data") · `ChatV2.test.mjs`, `live-guess.test.mjs`, `resurface.test.mjs` (Test, below).
