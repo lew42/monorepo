@@ -1,0 +1,7 @@
+{"session":{"id":"v-fixture-v1-2","kind":"voice","at":"2026-11-02T20:00:00.000Z"}}
+{"sentences":{"add":{"id":"s-1","at":"2026-11-02T20:00:00.000Z","text":"Can you check the build?","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1","by":"owner","at":"2026-11-02T20:00:00.000Z","sentences":["s-1"]}}}
+{"sentences":{"add":{"id":"s-2","at":"2026-11-02T20:00:04.000Z","text":"I think the cursor is lagging behind.","via":"voice"}},"messages":{"m-1":{"sentences":{"push":"s-2"}}}}
+{"sentences":{"add":{"id":"s-3","at":"2026-11-02T20:00:09.000Z","text":"Maybe it is the cache.","via":"voice"}},"messages":{"m-1":{"sentences":{"push":"s-3"}}}}
+{"sentences":{"add":{"id":"s-4","at":"2026-11-02T20:00:14.000Z","text":"Try a hard refresh.","via":"voice"}},"messages":{"m-1":{"sentences":{"push":"s-4"}}}}
+{"messages":{"m-1":{"sent":{"fast":{"at":"2026-11-02T20:00:10.000Z"}}}}}
+{"messages":{"add":{"id":"m-2","type":"Reply","by":"smart","at":"2026-11-02T20:00:12.000Z","text":"Looking at the build now.","re":{"to":"s-1"}}}}
