@@ -92,3 +92,11 @@ The owner's notes, items 13–18: [owner-notes-2026-11-01-2040.md](../owner-note
 The owner's notes: [owner-notes-2026-11-01-2040.md](../owner-notes-2026-11-01-2040.md), items 31–33.
 - **Replay (items 31–32), in the resumable-bubbles merge:** long replies never get heard because the owner's new speech interrupts them, and tapping an old bubble does nothing today. Tapping an old bubble replays it from its last spoken word. Generate the audio again on demand (Kokoro), do not store it; name a setting (`replay_audio: "regenerate" | "keep"`) with regenerate as the default, and say in the readme what "keep" would cost.
 - **Per-bubble controls (item 33, revises item 26), in the bubble-UI merge:** play/pause and back 10 s are the two main controls; the targets need NOT be big. Optional, only if cheap: tap a spot in the text to jump there.
+
+## Folded in (2026-11-01 21:50): the night plan, stream A
+
+The owner's words: [night-2026-11-01/requirements.md](../../night-2026-11-01/requirements.md), points 5–6. The decisions are recorded in [ux/Dictate/doc/turn-taking.md](/framework/ux/Dictate/doc/turn-taking.md), "Voice dynamics".
+- **Async updates as one line (in the no-flood merge):** an agent's news is never read mid-idea. Speak only "I have an update on X, tap to hear it", and only in a quiet window. The full text waits in its bubble.
+- **A thinking cue (its own small merge, right after echo):** soon after the owner stops speaking, while a reply is pending, play a short, subtle cue. Play it once more after about 2 s if the reply is still pending, then stay quiet. Make the cue very short (a generated tone or a tiny audio file, never Kokoro speech), and add a setting that turns it off (`thinking_cue: true`). Prove it with a test: the cue plays once, plays again at 2 s, and stops when the reply starts.
+- **Hidden page (in the bubble-UI merge):** add the setting `read_aloud_hidden: "keep" | "pause"`, default `keep`. With `pause`, playback pauses on `visibilitychange` to hidden and resumes when the page is visible again.
+- **Not built:** the polite interjection ("excuse me", then wait). It's a ⬜ in turn-taking.md.
