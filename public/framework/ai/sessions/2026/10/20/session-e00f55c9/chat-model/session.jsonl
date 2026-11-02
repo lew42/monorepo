@@ -1,2 +1,12 @@
 {"assign":{"session_id":"9d491f36-84ff-4609-8091-67a5977a43f0","agent":"mastermind-chat-model","role":"mastermind","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/requirements.md","model":"claude-opus-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","home":"/framework/core/Session/","requested_at":"2026-11-01T21:46:17-06:00","now":"starting"}}
 {"action":{"at":"2026-11-01T21:48:47-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md"]},"by":"ledger","ts":"2026-11-02T03:48:47.385Z"}
+{"tasks":{"add":{"type":"Task","id":"s1","title":"Item/List phase 0: fixes 1–5 proven or built, every test runs"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:27.046Z"}
+{"sessions":[{"id":"mastermind-chat-model","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/"}],"by":"mastermind-chat-model","ts":"2026-11-02T03:52:27.064Z"}
+{"tasks":{"add":{"type":"Task","id":"s2","title":"Ref: adding an item that has a parent makes a Ref (F7); a Ref can be a chat member"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:27.337Z"}
+{"tasks":{"add":{"type":"Task","id":"s3","title":"Tasks and child sessions appear in session.messages as Refs, written by Servex"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:27.577Z"}
+{"tasks":{"add":{"type":"Task","id":"s4","title":"List view updates on add, remove, move and sort"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:27.913Z"}
+{"tasks":{"add":{"type":"Task","id":"s5","title":"Every sentence has a time; the raw prompt is rebuilt from its sentences"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:32.576Z"}
+{"tasks":{"add":{"type":"Task","id":"s6","title":"A prompt can become a task, request or question card with items"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:32.620Z"}
+{"tasks":{"add":{"type":"Task","id":"s7","title":"Each session computes its completion from its open tasks, shown on its page"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:32.686Z"}
+{"tasks":{"add":{"type":"Task","id":"s8","title":"V1 switch-over: side-by-side check and plan (no migration run)"}},"by":"mastermind-chat-model","ts":"2026-11-02T03:52:33.320Z"}
+{"action":{"at":"2026-11-01T21:53:06-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/builder.md"]},"by":"ledger","ts":"2026-11-02T03:53:06.152Z"}
