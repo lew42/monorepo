@@ -294,7 +294,7 @@ check("the assistant switch: session-assistant.txt, else the env var, else voice
 	}
 	assert.equal(make().assistant, "fast", "make() pins fast for the fast-seat tests");
 	assert.equal(make().voice_seat(), false);
-	assert.deepEqual(ASSISTANTS, ["fast", "voice", "off"]);
+	assert.deepEqual(ASSISTANTS, ["fast", "voice", "single", "off"]);
 });
 
 check("fast seat off: no fast agent is spawned or sent to, and a \"?\" sentence files its Question in code", () => {

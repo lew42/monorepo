@@ -58,6 +58,8 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
 
 **The voice assistant** (one assistant places each sentence as you talk: same paragraph, own paragraph, own card; the plan and why the chat jumps): [`doc/voice-assistant.md`](doc/voice-assistant.md).
 
+**The single voice assistant** (one Sonnet agent per voice session instead of the fast + smart pair: files every sentence silently, replies on a pause; the `single` setting, per session or at boot): [`doc/single-voice-assistant.md`](doc/single-voice-assistant.md).
+
 **The phone sheet** (✦ at the bottom of every page under 52em): `class Sheet` in [`ext/drawer/Sheet.js`](/framework/ext/drawer/Sheet.js), mounting the one [`chat.js`](chat.js). One layout at every height: a head, a full-width chat well, the mic footer; it opens over the page and snaps open at 90%. **Its connection log:** every lost, retried or restored link to Servex is a `src: "connection"` line in [the Whisper log](/framework/audio/Whisper/log/) (`ai/whisper/bucket.jsonl`). How and why: [ext/drawer/doc/sheet.md](/framework/ext/drawer/doc/sheet.md). Proofs: `test/sheet-steps.mjs` (a shot per 40 px of drag), `test/reconnect.mjs` (a Servex restart).
 
 **Replies read aloud:** `chat.js` hands every event on the live wire to `Recite.shared.from_wire(ev)`, and `DictationBar.mount` puts the Recite bar directly above the mic ([audio/Recite](/framework/audio/Recite/)).

@@ -46,3 +46,6 @@ Read-aloud mechanics from reply-pacing (prepare halfway, 1 s gap, extra turn aft
 
 ## Improved
 (Step 3 skipped by the owner's "one quick pass"; vscode-mastermind approves instead.)
+
+## Built (2026-11-02)
+Setting `single` at boot or per session (`POST /api/session/settings {assistant}`); role `single-voice-assistant`; `Servex/agents/Sessions.single.test.mjs` (11 checks) green. The assistant writes the cleaned text (`place` + `improve`), the Prompt title (`messages.<message id>.title`, the message id arrives as `(message m-…)`) and V1 `place` lines. Moving a sentence to another paragraph or card as data Chat V3 draws, and Ref cards, are still later (V3 does not read `place` for those). How it works: [single-voice-assistant](/framework/ux/Dictate/doc/single-voice-assistant.md).

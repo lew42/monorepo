@@ -1,5 +1,7 @@
 # The fast and smart seats: who does what in the dictation chat
 
+**A fourth value, `single` (2026-11-02):** one Sonnet agent replaces both seats; it files every sentence silently and replies on a pause cue. Set per session or at boot. How it works: [single-voice-assistant.md](single-voice-assistant.md).
+
 **Now one assistant (the owner, 2026-11-02):** "I think that we'll just have one assistant… that's the way we'll go for now." `session-assistant.txt` says `off`, so only the answering seat (`session-smart`) runs, from the next Servex restart. What the fast seat did that is now lost: paragraph breaks and placement, per-sentence cleaning, and a Question per "?" (code files those instead). To go back to two seats, write `voice` to that file and restart. The role map is [voice-roles-audit/roles.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-roles-audit/roles.md).
 
 **Now: the fast seat stays on** (the owner, 2026-11-01: it "might be doing half of the work", placement and refinement; "put them to work"; [the prompt](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl), id `qrct21sx`). `session-assistant.txt` takes `voice` (the default), `fast` or `off` (`Servex/agents/Sessions.js`, `session_assistant()`). Only with `off` does code file a Question for each "?" sentence, so the seat and code never both file one. A one-day switch to `off` and its reasons: [dictation-v3 findings §2](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/findings.md).

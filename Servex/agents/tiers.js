@@ -10,6 +10,8 @@ export const TIERS = {
 	scan: { provider: "anthropic", model: "claude-haiku-5-5" },
 	// The voice session's smart seat: Opus 5.5 from 2026-10-25 01:15, back to Sonnet the same night to save pace (the owner).
 	voice_smart: { provider: "anthropic", model: "claude-sonnet-5-5" },
+	// The single voice assistant (Servex/agents/single-voice-assistant.md): one Sonnet agent per voice session. Alternative: low-effort Opus, change the model here.
+	voice_single: { provider: "anthropic", model: "claude-sonnet-5-5" },
 	/* EXAMPLE, not wired to any role yet (Servex/ext/openrouter/readme.md): giving
 	 * a role this tier instead of `scan` would send every one of its turns through
 	 * OpenRouter at whatever the cheapest model there costs. `roles.js`'s

@@ -16,6 +16,7 @@ A map lists every piece of one system (each class, tool, writer and file) in one
 | [records.md](records.md) | Every file in `ai/`, its writer and its reader | you wonder who writes a record |
 | [../systems-map.md](../systems-map.md) | The systems and how they connect | you cross systems |
 | [ux/Dictate/doc/map.md](/framework/ux/Dictate/doc/map.md) | Every dictation piece (mic, Whisper, cleaners, chat, voice) | you touch dictation |
+| [ux/Dictate/doc/single-voice-assistant.md](/framework/ux/Dictate/doc/single-voice-assistant.md) | The `single` voice setting: one agent per session | you touch the voice assistant seats |
 
 ## Folders and topics
 
