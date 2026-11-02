@@ -8,6 +8,7 @@
 - [TestResults.js](./TestResults.js) + [page.js](./page.js) — the live page of `results.jsonl`
 - [Steps.js](./Steps.js) — `class Steps`: runs a class's core test written as steps (`X.steps.js`), the same in node and the browser
 - [TestView.js](./TestView.js) + [view/](/framework/core/Test/view/) — watch a test run: every object drawn live in the default view, every line beside it
+- [doc/health.md](./doc/health.md) — which tests exist, which gate runs them, what is red now, and the browser scripts nothing runs
 - [tasks/test-system/plan.md](./tasks/test-system/plan.md) — the design and why
 
 ## Use
