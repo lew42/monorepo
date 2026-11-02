@@ -1,23 +1,27 @@
 // Proof that the Refine page keeps every sentence: dictate with a fake microphone (the jfk.wav recording),
 // let the mic auto-send, then type and send a second line. The Cleaned list must hold BOTH, in order.
 //
-//   PWENTRY=<path to playwright/index.mjs> node public/framework/ext/Refine/test/composer-flow.mjs <base-url> [shot.png]
+//   node public/framework/ext/Refine/test/composer-flow.mjs <base-url> [shot.png]
 //
 // HARD CAPS (each /api/refine call is a real Haiku session, 64 of them ran in 3 minutes on 2026-10-16): at most MAX_REFINE_CALLS
 // (env, default 6) refine requests per run, the rest are aborted at the browser; the whole run is killed after MAX_SECONDS (default 90).
 //
 // Needs the local Whisper server (:8178) and Servex for the refine call. Headless only: never the owner's tabs.
+import path from "path";
 import { pathToFileURL } from "url";
 
 const [base = "http://monorepo.localhost", shot] = process.argv.slice(2);
 const wav = process.env.WAV ?? new URL("../../../ai/recordings/jfk.wav", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
-const { chromium } = await import(pathToFileURL(process.env.PWENTRY).href);
-const browser = await chromium.launch({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
+const here = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
+const { default: Browser } = await import(pathToFileURL(path.join(here, "../../../../../Server/Browser.mjs")).href);
+const browser = await Browser.browser({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", `--use-file-for-fake-audio-capture=${wav}`] });
 const ctx = await browser.newContext({ viewport: { width: 400, height: 1000 }, permissions: ["microphone"] });
 const page = await ctx.newPage();
 const MAX_CALLS = +(process.env.MAX_REFINE_CALLS ?? 6), MAX_SECONDS = +(process.env.MAX_SECONDS ?? 90);
 let calls = 0, aborted = 0;
 await page.route("**/api/refine**", route => { if (route.request().method() !== "POST") return route.continue(); if (++calls > MAX_CALLS){ aborted++; return route.abort(); } route.continue(); });
+// The Servex fence answers /api/tidy with {ok:true} and no text, which the revise step types into the box as "undefined"; a real clean echoes the words.
+await page.route(/\/api\/tidy/, route => { if (route.request().method() !== "POST") return route.fallback(); const { text = "" } = JSON.parse(route.request().postData() || "{}"); route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, text }) }); });
 const kill = setTimeout(() => { console.log("FAIL run longer than MAX_SECONDS, killed"); process.exit(2); }, MAX_SECONDS * 1000);
 const errors = [];
 page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
@@ -59,6 +63,6 @@ else console.log("ok 2: typed send added sentences, earlier ones kept:", JSON.st
 
 if (shot) await page.screenshot({ path: shot, fullPage: true });
 clearTimeout(kill);
-await browser.close();
+await Browser.close();
 console.log(`refine calls: ${Math.min(calls, MAX_CALLS)} sent, ${aborted} aborted (cap ${MAX_CALLS})`);
 if (!process.exitCode) console.log("PASS");

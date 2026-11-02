@@ -24,6 +24,7 @@
 
 ## Still red, filed rather than fixed
 - Seen red in the 2026-11-02 `run-all.mjs` run from the test-browser worktree (201 of 205 passed; line in [run-all.jsonl](../run-all.jsonl)): `Files.move.test.mjs` failed with `EPERM` after 64 s (the earlier run only timed out), `ChatV2.test.mjs` and `ChatV3.test.mjs` hit a Playwright `TimeoutError` against the worktree's site. Sent to mastermind-chat-model (cause unknown: a Playwright timeout against the worktree site). Not yet re-run on the main checkout; a main-checkout `run-all` is the check.
+- After the loose-ends-red pass (2026-11-02, run-all.mjs): 213 of 214 node tests passed; the one red moves between runs (`Servex/whisper-detach.test.mjs` once, `Server/SiteGateway.cache.test.mjs` once), neither in files this pass touched. `jsonl-schema.test.mjs` is green (readers and schema agree). Refine `composer-flow` and `nothing-to-refine` now pass fenced; `dictate-flow` is skipped (headless page crashes while the fake mic loops the wav; `composer-flow` covers dictate, Whisper and send).
 - `jsonl-schema.test.mjs`: the schema lists verbs (`agent`, `chat`, `note`, …) that the task reader and `ai/cards/fold.js` do not list or mark `pending`. Needs a call on which reader owns them.
 
 ## The browser scripts: `--browser` (2026-11-02)
