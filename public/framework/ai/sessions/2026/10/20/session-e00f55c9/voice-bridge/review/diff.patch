@@ -1,0 +1,586 @@
+diff --git a/.claude/skills/voice-mastermind/SKILL.md b/.claude/skills/voice-mastermind/SKILL.md
+index cfcd2e7eb..1128536cd 100644
+--- a/.claude/skills/voice-mastermind/SKILL.md
++++ b/.claude/skills/voice-mastermind/SKILL.md
+@@ -11,8 +11,9 @@ Load the `mastermind` skill first; everything there holds (one task dir per effo
+ 
+ - **You are talking to a voice agent, not to the owner.** The Claude app's voice session sits between you and the owner and decides how to say things aloud. So you do not write for the ear; you write for a colleague who will: the answer first, then the detail that colleague needs to hold a conversation about it (what it is, where it lives, what is open, what the alternatives were, a link or two). A few short paragraphs is fine; a wall is not. Use names the owner knows for the things themselves (a page, a module, a class by its site name), and let the voice agent choose the words. (The owner, 2026-10-15: "the voice mastermind doesn't really need to worry about responding properly, and can give added detail, so the actual voice agent has some context, and the voice agent can decide how to respond.")
+ - **Answer fast, from the record, never from memory.** `public/framework/ai/handover.md` (LATEST first), the readme chain, the task cards and the pages. A question you can answer in seconds, answer. A question that needs reading (a module's docs, a log) goes to a Haiku minion with the exact files; say so, then answer when it returns.
+-- **Announce before anything slow.** If what you are about to do takes more than a few seconds (a minion, a build, a search, a check_page), write the reply FIRST: what you are starting, roughly how long, what it will produce, and that you will report when it lands. Then start it. The voice agent needs that sentence to keep the conversation going.
++- **Announce before anything slow.** If what you are about to do takes more than a few seconds (a minion, a build, a search, a check_page), say it in your first sentence, before any tool call (the message calls this SAY FIRST; it is streamed to the voice agent): what you are starting, roughly how long, what it will produce, and that you will report when it lands. Then start it. The voice agent needs that sentence to keep the conversation going.
+ - **Real work is a minion's.** A build, a fix, a review or a long read goes to a `mastermind` spawned at the work's path and named for its job, or to a minion (`spawn_agent`) with a brief, or to the module's inbox (`module_inbox`) when it is an ask for later. You stay free to answer the next question. Report each landing in one sentence when it arrives, or when asked.
+ - **Log everything.** Every question and every answer is a `chat` line in your task.jsonl (`from: "owner (voice)"` / `from: "voice-mastermind"`); every minion an `agent` line; each landing a `log` line with its link; so later sessions and the per-module asks lists see what was said and done.
+ - **Stay hands-free.** You do not edit files yourself beyond your own task log; you do not restart servers; you do not spawn more than the budget and `usage-now` allow, and you say when you are holding back for pace.
++- **Say first.** Each question's message asks for ONE plain sentence before any tool call (the answer, or what you are doing and how long); that sentence is streamed to the voice agent as you write it, then the full answer goes to the reply file the message names. Follow the message's wording.
+ - **Answer inside the tool's one-minute window.** The voice client drops the session if a reply takes longer (it did, 2026-10-15). Reply within the minute with an ack and where the work is routed; never block on a minion. Carry each minion's result to the next ask. (The directives for the voice agent live only in the MCP's own description, `Servex/ext/remote/RemoteMCP.js`, never here.)
+diff --git a/Servex/ext/remote/RemoteMCP.js b/Servex/ext/remote/RemoteMCP.js
+index 653b916b5..659bcb29a 100644
+--- a/Servex/ext/remote/RemoteMCP.js
++++ b/Servex/ext/remote/RemoteMCP.js
+@@ -27,8 +27,14 @@ export default class RemoteMCP {
+         "Never call restart_servex (or stop_server on Servex) during a call: it would drop your own connection. The owner picks the time.",
+         "One question at a time. Relay open items (things waiting on the owner) before the call ends.",
+         "Call `updates` at the start of nearly every turn: it returns only what arrived for you since your last call (agent messages, the owner's notes, changes to logs you follow). Subscribe to a log with follow({path, agent: \"voice-app\"}).",
+-        "The mastermind answers inside the tool's one-minute window with an ack and routing; minion results arrive on your next ask, so ask again to hear them. If the call times out or is cancelled, the answer still arrives through `updates` (from \"voice-mastermind\", reply_to the question id). ask_mastermind with wait:false returns a ticket at once and the answer arrives the same way. Every answer also arrives through `updates` with reply_to = its ticket, even one the call returned, so skip an answer you already have.",
++        "ask_mastermind waits at most a few seconds. If the answer is not in yet it returns a ticket, the mastermind's status and its first words: say those, keep talking, and never wait in silence. Its answer rides along on your next tool result (cloud_voice_log included), or call voice_hear({ticket}) to hear the status and the answer the moment they change. Every answer also arrives through `updates` with reply_to = its ticket, so skip an answer you already have.",
+     ].join("\n");
++    // The bridge's listening tool (voice-bridge, 2026-11-01): a short long-poll on one ask's ticket. Remote route only.
++    static HEAR = {
++        name: "voice_hear",
++        description: "Cloud voice agents: hear what the mastermind has said so far on an ask (its status, what it is doing, its first words, the answer). Returns the moment anything new arrives, or after wait_s (default 8, max 20). Every reply carries the whole state, so a call cut off by noise loses nothing. Leave ticket out for your latest ask.",
++        inputSchema: { type: "object", properties: { ticket: { type: "string" }, wait_s: { type: "number", description: "Default 8, at most 20." } } },
++    };
+     // One generic door that never changes: the app approves it once, and any tool added later is reachable through it (doc/remote-tools.md).
+     static CALL = {
+         name: "call",
+@@ -46,13 +52,16 @@ export default class RemoteMCP {
+     static CALLER = "voice-app";
+     static TOOL = {
+         name: "ask_mastermind",
+-        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC) and wait up to a minute for its answer (or pass wait:false to get a ticket at once). An answer that misses the minute, or whose call is cancelled, still arrives through updates. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
+-        inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." }, wait: { type: "boolean", description: "Default true. false returns a ticket at once; the answer arrives through updates." } }, required: ["question"] },
++        description: "Ask the project's mastermind (the AI that coordinates this codebase, an SDK agent on the owner's PC). It waits a few seconds: you get the answer, or a ticket with the mastermind's status and first words to say while it works (wait:false returns the ticket at once). The answer rides along on your next tool result, or call voice_hear. You are the voice agent: call this FIRST, before saying anything, then summarize the answer briefly for the owner (do not read it back), ask one question at a time, and relay open items. The mastermind replies verbosely, for you, not for the owner.",
++        inputSchema: { type: "object", properties: { question: { type: "string", description: "What to ask." }, wait: { type: "boolean", description: "Default true (a few seconds). false returns a ticket at once." }, to: { type: "string", description: "Optional: ask this agent instead of your voice mastermind, e.g. vscode-mastermind." } }, required: ["question"] },
+     };
+ 
+-    /* servex: needs .agents (send, list, registry_list, task_dir_for); root: repo root; wait_ms: reply timeout */
+-    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = 60000, late_ms = 1800000, target } = {}){
++    /* servex: needs .agents (send, list, registry_list, task_dir_for; watch, live: optional, for the bridge); root: repo root;
++     * wait_ms: how long ask_mastermind waits before it returns a ticket (REMOTE_MCP_WAIT_MS, default 8 s; was 60 s) */
++    constructor({ servex, root, router, token_file = RemoteMCP.TOKEN_FILE, wait_ms = Number(process.env.REMOTE_MCP_WAIT_MS) || 8000, late_ms = 1800000, target } = {}){
+         Object.assign(this, { servex, root, token_file, wait_ms, late_ms, target });
++        this.tickets = new Map();               // ticket -> what the mastermind has said so far on that ask (see ticket())
++        this.listen();
+         this.replies = path.join(path.dirname(token_file), "remote-replies");
+         this.sessions_file = path.join(path.dirname(token_file), RemoteMCP.SESSIONS_FILE);
+         this.sessions = this.load_sessions();   // session id -> { agent, dir, started, last }
+@@ -101,7 +110,7 @@ export default class RemoteMCP {
+         const bad = (code, message) => res.json({ jsonrpc: "2.0", id, error: { code, message } });
+         if (id === undefined){   // a notification (notifications/initialized, notifications/cancelled)
+             if (method === "notifications/cancelled" && params?.requestId !== undefined){
+-                const u = this.open.get(`${req.headers["mcp-session-id"] || `voice-${new Date().toISOString().slice(0, 10)}`}:${params.requestId}`);
++                const u = this.open.get(`${req.headers["mcp-session-id"] || `voice-${TaskDirs.day(new Date())}`}:${params.requestId}`);
+                 if (u) u.cancel = true;
+             }
+             return res.status(202).end();
+@@ -118,14 +127,17 @@ export default class RemoteMCP {
+         if (method === "tools/call"){
+             const header_sid = req.headers["mcp-session-id"] || `voice-${TaskDirs.day(new Date())}`;
+             params = this.intercept(params, header_sid);
+-            if (params.done) return ok(params.done);
++            if (params.done) return ok(this.ride(params.done, header_sid));
+             if (params?.name === RemoteMCP.CALL.name){
+                 const { tool, args } = params.arguments ?? {};
+                 if (tool === "list") return ok({ content: [{ type: "text", text: JSON.stringify(this.tools().map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))) }] });
+-                if (tool === RemoteMCP.TOOL.name) params = { name: tool, arguments: args };
++                if (tool === RemoteMCP.TOOL.name || tool === RemoteMCP.HEAR.name) params = { name: tool, arguments: args };
+                 else try { return ok(this.after(tool, header_sid, await this.servex.mcp.call(tool, args ?? {}, { caller: RemoteMCP.CALLER }), args)); }
+                 catch (e) { return bad(e.code ?? -32603, String(e.message || e)); }
+             }
++            if (params?.name === RemoteMCP.HEAR.name){
++                    return ok({ content: [{ type: "text", text: JSON.stringify(await this.hear(params.arguments ?? {}, header_sid, () => res.destroyed || !!res.socket?.destroyed)) }] });
++            }
+             if (params?.name !== RemoteMCP.TOOL.name){
+                 // every other tool is the servex registry's own handler; the caller is this app, so writes say who made them
+                 try { return ok(this.after(params?.name, header_sid, await this.servex.mcp.call(params?.name, params?.arguments ?? {}, { caller: RemoteMCP.CALLER }), params?.arguments)); }
+@@ -135,9 +147,10 @@ export default class RemoteMCP {
+             if (!question) return bad(-32602, "question is required");
+             const started = Date.now();
+             let text;
+-            const sid = req.headers["mcp-session-id"] || `voice-${new Date().toISOString().slice(0, 10)}`;
++            const sid = header_sid;   // one key for asks, voice_hear, ride and cancels (it was the UTC date here, the local date elsewhere)
+             let used = {};
+             used.wait = params.arguments?.wait !== false;
++            used.to = typeof params.arguments?.to === "string" && params.arguments.to.trim() ? params.arguments.to.trim() : null;
+             used.cancelled = () => used.cancel === true || res.destroyed || !!res.socket?.destroyed;   // the app cancelled or dropped the call: stop waiting, keep watching
+             const key = `${sid}:${id}`;
+             this.open.set(key, used);
+@@ -151,7 +164,7 @@ export default class RemoteMCP {
+ 
+     // the one registry (servex.mcp, read at call time so late registrations show up) with ask_mastermind on top
+     tools(){
+-        const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name], all = [RemoteMCP.TOOL, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
++        const own = [RemoteMCP.TOOL.name, RemoteMCP.CALL.name, RemoteMCP.LOG.name, RemoteMCP.HEAR.name], all = [RemoteMCP.TOOL, RemoteMCP.HEAR, RemoteMCP.CALL, RemoteMCP.LOG, ...(this.servex.mcp?.tools ?? []).filter(t => !own.includes(t.name))];
+         return all.map(t => t.name === "register_session" ? { ...t, description: RemoteMCP.REGISTER_DESCRIPTION, inputSchema: { type: "object", properties: { title: { type: "string", description: "A short name for this conversation, e.g. live page; the session is filed as cloud-voice-<name>." }, cost: { type: "number", description: "Your own cost so far in USD, if you know it (optional)." } } } } : t);
+     }
+ 
+@@ -209,7 +222,7 @@ export default class RemoteMCP {
+ 
+     // a spawned agent is logged by code with its id and task dir (owner, 2026-10-19), read from the tool's own result
+     after(tool, sid, result, args){
+-        result = this.hint(tool, result);
++        result = this.hint(tool, result, sid);
+         if (tool !== "spawn_agent") return result;
+         try {
+             const v = this.voice_session(sid), text = result?.content?.[0]?.text ?? "", j = JSON.parse(text);
+@@ -220,9 +233,10 @@ export default class RemoteMCP {
+     }
+ 
+     // catch-up.md item 1: when the cursor is behind, every other tool result says so in one line (nothing when nothing is new)
+-    hint(tool, result){
++    hint(tool, result, sid){
+         try {
+             if (tool === "updates" || !result?.content) return result;
++            result = this.ride(result, sid);
+             const n = this.servex.external?.ensure?.(RemoteMCP.CALLER)?.pending?.(RemoteMCP.CALLER) ?? 0;
+             if (n > 0) return { ...result, content: [...result.content, { type: "text", text: `${n} new update${n === 1 ? "" : "s"} for you: call updates.` }] };
+         } catch {}
+@@ -248,19 +262,40 @@ export default class RemoteMCP {
+         return named;
+     }
+ 
++    // who answers while this connection's own mastermind waits at the spawn gate: REMOTE_MCP_FALLBACK or the file remote.fallback (e.g. vscode-mastermind)
++    fallback(){
++        let named = process.env.REMOTE_MCP_FALLBACK;
++        try { named ??= fs.readFileSync(path.join(path.dirname(this.token_file), "remote.fallback"), "utf8").trim() || undefined; } catch {}
++        return named;
++    }
++
++    // why an agent cannot answer yet: the spawn gate's reason while it is still in the gate's queue (Servex.js queued_entry), else null
++    queued_why(id){
++        const held = this.servex.agents?.queued_entry?.(id);
++        return held ? (held.card?.()?.reason ?? "queued at the spawn gate") : null;
++    }
++
+     dir_of(id){
+         const a = this.servex.agents;
+         return a.task_dir_for(a.registry_list().find(r => r.id === id) ?? { id });
+     }
+ 
+     // the agent for this voice session: the stored one, else spawn it (once, even for two simultaneous first asks)
+-    async agent_for(sid){
++    // `to` (an ask's own target) wins; a mastermind queued at the spawn gate hands the ask to the fallback, if one is named
++    async agent_for(sid, to){
++        if (to) return { id: to, dir: this.dir_of(to) };
+         const named = this.override();
+         if (named) return { id: named, dir: this.dir_of(named) };
+         const s = this.sessions[sid] ??= { agent: null, dir: null, started: new Date().toISOString(), last: null };
+-        if (s.agent) return { id: s.agent, dir: s.dir };
+-        if (!this.spawning.has(sid)) this.spawning.set(sid, this.spawn(sid, s).finally(() => this.spawning.delete(sid)));
+-        return this.spawning.get(sid);
++        let own;
++        if (s.agent) own = { id: s.agent, dir: s.dir };
++        else {
++            if (!this.spawning.has(sid)) this.spawning.set(sid, this.spawn(sid, s).finally(() => this.spawning.delete(sid)));
++            own = await this.spawning.get(sid);
++        }
++        const why = this.queued_why(own.id), fb = why && this.fallback();
++        if (fb && fb !== own.id) return { id: fb, dir: this.dir_of(fb), routed: `${own.id} is waiting to start (${why}), so ${fb} answers` };
++        return own;
+     }
+ 
+     // 1:1 — a fresh mastermind for this session, with a task dir under ai/sessions/YYYY/MM/DD/ and a card
+@@ -271,7 +306,7 @@ export default class RemoteMCP {
+         const when = `${day} ${now.toTimeString().slice(0, 5)}`;
+         let card;
+         try { card = JSON.parse(await this.servex.cards.tools().find(t => t.name === "create_card").handler({ title: `Voice session ${when}`, type: "note", by: "remote-mcp" })).id; } catch {}
+-        const prompt = `Load the voice-mastermind skill first. You are the mastermind of voice session ${sid}. Your task dir is ${dir}/ (task.jsonl is already open)${card ? ` and your card is ${card}` : ""}. Each owner question arrives as a message that names a reply file: answer by writing plain text to it. The gateway already writes the question and answer chat lines into your task.jsonl, so skip that part of the skill and log your own work (agents, decisions) there. Wait for the first question.`;
++        const prompt = `Load the voice-mastermind skill first. You are the mastermind of voice session ${sid}. Your task dir is ${dir}/ (task.jsonl is already open)${card ? ` and your card is ${card}` : ""}. Each owner question arrives as a message: say one plain sentence first, before any tool call (it is streamed to the voice agent), then write the full answer to the reply file the message names; follow that message's wording. The gateway already writes the question and answer chat lines into your task.jsonl, so skip that part of the skill and log your own work (agents, decisions) there. Wait for the first question.`;
+         const agent = this.servex.agents.spawn({ role: "mastermind", name: `voice-${short}`, prompt, model: "claude-opus-5-5", dormant_after: 600, permission_mode: "bypassPermissions", task: { dir, ...(card ? { card } : {}) } });
+         Object.assign(s, { agent: agent.id, dir });
+         this.save_sessions();
+@@ -279,17 +314,25 @@ export default class RemoteMCP {
+     }
+ 
+     async ask(question, sid, used = {}){
+-        let { id, dir } = await this.agent_for(sid);
++        let { id, dir, routed } = await this.agent_for(sid, used.to);
+         const qid = crypto.randomBytes(4).toString("hex");
+         const out = path.join(this.replies, qid + ".txt");
+         fs.mkdirSync(this.replies, { recursive: true });
+-        const msg = `The owner asks by voice (question ${qid}): "${question}"\nAnswer for the voice agent, which will decide how to say it aloud: the answer first, then the context it needs to hold a conversation (what it is, where it lives, what is open, alternatives, a link or two); a few short paragraphs at most. Reply by writing your answer as plain text to ${out} (one file write, nothing else).`;
++        const t = this.ticket(qid, { sid, agent: id, routed, ahead: this.ahead(id) });
++        // say first (voice-bridge): the sentence before the first tool call is streamed to the voice agent as it is written. Only a Servex
++        // agent streams; a VS Code tab (reached through its inbox file) streams nothing, so it always writes the reply file.
++        const streams = !!this.servex.agents?.live?.get?.(id);
++        const answer = `the full answer for the voice agent, which will decide how to say it aloud: the answer first, then the context it needs to hold a conversation (what it is, where it lives, what is open, alternatives, a link or two); a few short paragraphs at most. Write it as plain text to ${out} (one file write)`;
++        const msg = `The owner asks by voice (question ${qid}): "${question}"\n` + (streams
++            ? `SAY FIRST: begin your reply with ONE plain sentence, before any tool call: the answer if you know it, else what you are doing and about how long. The voice agent hears it the moment you write it.\nThen, if more is needed, do it and write ${answer}. If your first sentence was the whole answer, skip the file.`
++            : `Reply as soon as you can: write ${answer}. Always write the file, even for a one-sentence answer: it is the only way your answer reaches the voice agent.`);
+         try { this.servex.agents.send(id, msg, { from: "owner (voice)" }); }
+         catch (e) {
+             // the stored agent was stopped on purpose or landed: this session gets a fresh one
+-            if (this.override() || !this.sessions[sid]) throw e;
++            if (used.to || this.override() || !this.sessions[sid]) { this.tickets.delete(qid); throw e; }
+             Object.assign(this.sessions[sid], { agent: null, dir: null });
+-            ({ id, dir } = await this.agent_for(sid));
++            ({ id, dir, routed } = await this.agent_for(sid));
++            Object.assign(t, { agent: id, routed, ahead: this.ahead(id) });
+             this.servex.agents.send(id, msg, { from: "owner (voice)" });
+         }
+         used.agent = id;
+@@ -302,15 +345,19 @@ export default class RemoteMCP {
+         used.ticket = qid;
+         let sent = false;   // set once the answer is delivered anywhere (returned, or put in the inbox)
+         const read = () => { try { return fs.existsSync(out) ? fs.readFileSync(out, "utf8").trim() : ""; } catch { return ""; } };
+-        // every answer goes to the inbox, returned or not: a call the app dropped can swallow what we return
++        // every answer goes to the inbox, returned or not: a call the app dropped can swallow what we return.
++        // The answer is the reply file, else (once the turn has ended) the words the agent said: say-first may be the whole answer.
+         const deliver = () => {
+-            const t = read();
+-            if (!t || sent) return null;
++            const text = read() || (t.turn_done ? t.words.trim() : "");
++            if (!text || sent) return null;
+             sent = true;
+-            chat("voice-mastermind", t);
+-            this.give(qid, t);
+-            return t;
++            chat("voice-mastermind", text);
++            this.give(qid, text);
++            Object.assign(t, { answer: text, done: true });
++            this.changed(t);
++            return text;
+         };
++        t.deliver = deliver;   // the listener calls it when the agent's turn ends
+         // keep watching after we stop waiting: the answer goes to the caller's inbox, which `updates` delivers
+         const watch = () => {
+             const until = Date.now() + this.late_ms;
+@@ -318,15 +365,120 @@ export default class RemoteMCP {
+             setTimeout(tick, 500).unref?.();
+         };
+         const ack = `the answer will arrive through updates (ticket ${qid}; the question is logged at ${link})`;
+-        if (used.wait === false){ watch(); return JSON.stringify({ ticket: qid, note: ack }); }
++        if (used.wait === false){ watch(); return JSON.stringify({ ...this.view(t), note: ack }); }
+         const until = Date.now() + this.wait_ms;
+         while (Date.now() < until && !used.cancelled?.()){
+-            await new Promise(r => setTimeout(r, 500));
+-            const t = deliver();
+-            if (t) return t;
++            await this.until_change(t, Math.min(250, until - Date.now()));   // a stream event wakes it at once; the 250 ms tick reads the reply file
++            const text = deliver() ?? (t.done ? t.answer : null);   // the listener may have finished the ticket first
++            if (text) return this.mark(t), text;
+         }
+         watch();
+-        return `the mastermind is busy; ${ack}`;
++        this.mark(t);
++        const v = this.view(t);
++        return `Not answered yet (ticket ${qid}). ${v.to} is ${v.status}.${v.first ? ` Its first words: "${v.first}"` : ""} Say that, keep talking; the answer rides along on your next tool result, or call voice_hear. (${ack})`;
++    }
++
++    /* THE BRIDGE (voice-bridge, 2026-11-01; plan: public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/plan.md).
++     * One ticket per ask: what the agent has said so far. `first` is its text before its first tool call (the say-first sentence),
++     * `words` all its text this ask, `doing` its latest tool, `rev` bumps on every change so voice_hear and ride() know what is new.
++     * `ahead` counts the turns the agent must finish before this ask's own turn (the one running, plus messages queued before ours):
++     * their words are about other work, so the ticket ignores them, and every turn end counts one off. */
++    ticket(qid, { sid, agent, routed, ahead = 0 }){
++        const now = Date.now();
++        for (const [k, x] of this.tickets) if (now - x.at > this.late_ms) this.tickets.delete(k);
++        const t = { id: qid, sid, agent, routed: routed ?? null, ahead, at: now, first: "", words: "", doing: null, tools: 0, answer: null, done: false, turn_done: false, rev: 0, heard: 0, rode: { first: 0, answer: false }, waiters: new Set() };
++        this.tickets.set(qid, t);
++        return t;
++    }
++
++    changed(t){ t.rev++; for (const w of [...t.waiters]) w(); }
++
++    // resolves on the ticket's next change, after ms, or when gone() says the caller hung up
++    until_change(t, ms, gone){
++        return new Promise(res => {
++            let tm, iv;
++            const w = () => { clearTimeout(tm); clearInterval(iv); t.waiters.delete(w); res(); };
++            t.waiters.add(w);
++            tm = setTimeout(w, Math.max(0, ms));
++            if (gone) iv = setInterval(() => { if (gone()) w(); }, 250);
++        });
++    }
++
++    // the honest state of one ask, in words the voice agent can say
++    view(t){
++        const why = this.queued_why(t.agent), row = why ? null : this.servex.agents?.live?.get?.(t.agent);
++        const status = t.stopped && !t.answer ? "stopped before answering" : t.done ? "done" : why ? `waiting to start: ${why}` : t.doing ? `working (${t.doing})` : row?.state === "working" ? "working" : row ? `${row.state}: the question is queued for it` : "asked";
++        return { ticket: t.id, to: t.agent, status, routed: t.routed, first: t.first.trim() || null, answer: t.answer, done: t.done, seconds: Math.round((Date.now() - t.at) / 100) / 10 };
++    }
++
++    // what this caller has now been told: ride() only repeats what is new
++    mark(t){ t.heard = t.rev; t.rode = { first: t.first.trim().length, answer: !!t.answer }; }
++
++    // turns an agent must finish before a message sent now is answered: the running one plus those already queued
++    // (a priority message can jump the queue; then the count is one high and that ask's answer arrives by its reply file)
++    ahead(id){
++        const a = this.servex.agents?.live?.get?.(id);
++        return a?.state === "working" ? 1 + (a.queue?.items?.length ?? 0) : 0;
++    }
++
++    // the open tickets of an agent, oldest first: its stream belongs to the oldest ask it has not finished
++    open_for(agent_id){ return [...this.tickets.values()].filter(t => t.agent === agent_id && !t.done); }
++
++    // agents.watch is the host's one seam for every agent event (Sessions.listen wraps it the same way)
++    listen(){
++        const agents = this.servex?.agents;
++        if (typeof agents?.watch !== "function") return;
++        const watch = agents.watch.bind(agents);
++        agents.watch = (event, agent) => {
++            watch(event, agent);
++            try { this.heard_event(event, agent); } catch (e){ console.error("remote-mcp: bridge:", e.message); }
++        };
++    }
++
++    heard_event(event, agent){
++        if (event.nested || !this.tickets.size || !["delta", "tool", "result"].includes(event.type)) return;
++        const open = this.open_for(agent?.id);
++        if (!open.length) return;
++        const t = open.find(x => !x.ahead);   // the oldest ask whose turn has come; asks still behind other turns ignore this one
++        if (event.type === "result"){
++            const behind = open.filter(x => x.ahead);   // every ask still waiting: a turn ahead of each of them just ended
++            if (t && event.stopped) Object.assign(t, { done: true, stopped: true }), this.changed(t);   // cut off mid-turn: closed, and its partial words are not an answer
++            // the turn's words go to the oldest open ask only; a later ask the same turn answered arrives by its reply file
++            else if (t) for (const x of open) if (!x.ahead && (x === t || x.words)){ x.turn_done = true; x.deliver?.() || this.changed(x); }
++            for (const x of behind) x.ahead--;
++            return;
++        }
++        if (!t) return;
++        t.turn_done = false;   // a new turn: its words are not an answer until it ends
++        if (event.type === "delta"){ if (!t.tools) t.first += event.text; t.words += event.text; return this.changed(t); }
++        if (event.type === "tool"){ t.tools++; t.doing = `${String(event.name).replace(/^mcp__\w+__/, "")} ${event.input ?? ""}`.trim().slice(0, 80); return this.changed(t); }
++    }
++
++    /* voice_hear: a short long-poll on one ticket (default: this connection's latest). Returns at the first change, at wait_s,
++     * or when the app hangs up; every reply carries the whole state, so a call cut off by noise loses nothing. */
++    async hear({ ticket, wait_s } = {}, sid, gone){
++        const t = ticket ? this.tickets.get(String(ticket)) : [...this.tickets.values()].filter(x => x.sid === sid).at(-1);
++        if (!t) return { ok: false, error: ticket ? `no open ask with ticket ${ticket} (answers older than 30 minutes are in updates)` : "no ask yet on this connection" };
++        const ms = Math.min(20, Math.max(0, Number(wait_s ?? 8))) * 1000, seen = t.heard, start = Date.now();
++        if (t.rev === seen && !t.done) await this.until_change(t, ms, gone);
++        if (!t.done) t.deliver?.();   // a reply file written since the last tick
++        this.mark(t);
++        return { ok: true, ...this.view(t), new: t.rev !== seen, waited_ms: Date.now() - start };
++    }
++
++    // answers ride along: any tool result on the remote route carries what an open ask of this connection said since the caller last heard
++    ride(result, sid){
++        if (!result?.content || !sid) return result;
++        const lines = [];
++        for (const t of this.tickets.values()){
++            if (t.sid !== sid) continue;
++            const first = t.first.trim();
++            if (t.answer && !t.rode.answer) lines.push(`Answer from ${t.agent} (ticket ${t.id}): ${t.answer}`);
++            else if (!t.answer && first.length > t.rode.first) lines.push(`${t.agent} so far (ticket ${t.id}, ${this.view(t).status}): "${first}"`);
++            else continue;
++            this.mark(t);
++        }
++        return lines.length ? { ...result, content: [...result.content, { type: "text", text: lines.join("\n") }] } : result;
+     }
+ 
+     /* Put an answer in the caller's inbox (from voice-mastermind, reply_to = ticket) and mark its reply file delivered. */
+diff --git a/Servex/ext/remote/RemoteMCP.test.mjs b/Servex/ext/remote/RemoteMCP.test.mjs
+index aed92b891..ec488d14f 100644
+--- a/Servex/ext/remote/RemoteMCP.test.mjs
++++ b/Servex/ext/remote/RemoteMCP.test.mjs
+@@ -94,7 +94,7 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     const list = (await rpc({ id: 5, method: "tools/list" })).json.result.tools.map(t => t.name);
+     assert.equal(list[0], "ask_mastermind");
+     assert.ok(list.includes("page_add") && list.includes("whoami_test"), "page_add and the registry's own tools are listed");
+-    assert.equal(list.length, mcp.tools.length + 3, "tool count = registry + ask_mastermind + call + cloud_voice_log");
++    assert.equal(list.length, mcp.tools.length + 4, "tool count = registry + ask_mastermind + voice_hear + call + cloud_voice_log");
+     assert.equal(new Set(list).size, list.length, "no duplicates");
+     const call = (name, args) => rpc({ id: 6, method: "tools/call", params: { name, arguments: args } });
+     assert.equal((await call("whoami_test", {})).json.result.content[0].text, "caller=voice-app");
+@@ -230,6 +230,123 @@ assert.ok(!JSON.stringify(log).includes(gw.token), "token never logged");
+     assert.equal(swept[0].text, "written while Servex was down"); assert.equal(swept[0].reply_to, "feedbeef");
+     assert.ok(fs.existsSync(path.join(rd, "feedbeef.delivered")), "delivery is marked");
+ }
++// THE BRIDGE (voice-bridge, 2026-11-01): a fake agent streams through the host's real seam, agents.watch(event, agent)
++{
++    const live = new Map(), standin = { id: "mastermind-voice-queued", queued: true, card: () => ({ state: "queued", reason: "only 1200 MB of memory is free; waiting for 2560 MB" }) };
++    let queue_next = false, script = null;
++    const in_queue = new Set();   // the gate's queue (Servex.js queued_entry): an id leaves it when the gate admits it
++    const agents2 = {
++        live, watch(){},
++        queued_entry: id => in_queue.has(id) ? standin : null,
++        registry_list: () => [], task_dir_for: () => null,
++        spawn(spec){
++            if (queue_next){ in_queue.add(standin.id); return standin; }
++            const a = { id: `mastermind-${spec.name}`, state: "idle", effort: spec.effort };
++            live.set(a.id, a); return a;
++        },
++        // the agent: say-first words, a tool, more words, then the reply file (or none) and the turn's end, on the timing given
++        send(id, text){
++            if (!live.has(id)){   // a VS Code tab: no stream, it answers only by writing the reply file
++                assert.ok(!/skip the file/.test(text) && /Always write the file/.test(text), "a non-streaming target is told to always write the file");
++                const out = /plain text to (\S+\.txt)/.exec(text)[1];
++                return setTimeout(() => fs.writeFileSync(out, "From the tab, by file."), 200);
++            }
++            const a = live.get(id) ?? { id };
++            const out = /plain text to (\S+\.txt)/.exec(text)?.[1];
++            const ev = (ms, e) => setTimeout(() => { if (e.type === "result") a.state = "idle"; agents2.watch(e, a); }, ms);   // a real agent is idle once its turn ends
++            a.state = "working";
++            for (const [ms, e] of script(out)) e === "file" ? setTimeout(() => fs.writeFileSync(out, "the full answer, from the file"), ms) : ev(ms, e);
++        },
++    };
++    const servex2 = { mcp, sessions: { map: {}, save(){} }, cards: servex.cards, agents: agents2, external: servex.external };
++    const app2 = express(), gw2 = new RemoteMCP({ servex: servex2, root, router: app2, token_file, wait_ms: 1000 });
++    const srv2 = await new Promise(r => { const s = app2.listen(0, "127.0.0.1", () => r(s)); });
++    const url2 = `http://127.0.0.1:${srv2.address().port}${RemoteMCP.PATH}/${gw2.token}`;
++    const rpc2 = async (body, sid) => {
++        const r = await fetch(url2, { method: "POST", headers: { "content-type": "application/json", ...(sid ? { "mcp-session-id": sid } : {}) }, body: JSON.stringify({ jsonrpc: "2.0", ...body }) });
++        return { sid: r.headers.get("mcp-session-id"), text: (await r.json()).result?.content?.map(c => c.text).join("\n") };
++    };
++    const tool2 = (name, args, sid) => rpc2({ id: 3, method: "tools/call", params: { name, arguments: args } }, sid);
++    const b1 = (await rpc2({ id: 1, method: "initialize", params: {} })).sid;
++    // 6) slow agent: the ack comes in under a second with status; first words arrive through voice_hear before the answer
++    script = out => [[300, { type: "delta", text: "Checking the handover, " }], [350, { type: "delta", text: "about ten seconds." }], [500, { type: "tool", name: "Read", input: "handover.md" }], [900, { type: "delta", text: "thinking aloud" }], [1800, "file"], [1900, { type: "result" }]];
++    let t0 = Date.now();
++    const fire = JSON.parse((await tool2("ask_mastermind", { question: "what landed?", wait: false }, b1)).text);
++    const ack_ms = Date.now() - t0;
++    assert.ok(ack_ms < 1000 && fire.ticket && fire.status, `ack under 1 s with a status (${ack_ms} ms, ${fire.status})`);
++    const h1 = JSON.parse((await tool2("voice_hear", { ticket: fire.ticket, wait_s: 5 }, b1)).text);
++    const first_ms = Date.now() - t0;
++    assert.ok(h1.new && /^Checking the handover/.test(h1.first) && !h1.done && first_ms < 900, `voice_hear returns the first words as soon as they are said (${first_ms} ms)`);
++    let h = h1;
++    while (!h.done && Date.now() - t0 < 5000) h = JSON.parse((await tool2("voice_hear", { ticket: fire.ticket, wait_s: 5 }, b1)).text);
++    assert.equal(h.answer, "the full answer, from the file", "the reply file is the answer");
++    assert.equal(h.first, "Checking the handover, about ten seconds.", "first words are only the text before the first tool call");
++    const answer_ms = Date.now() - t0;
++    // 7) say-first was the whole answer: no file, the turn's words are the answer, and it rides on cloud_voice_log
++    script = () => [[200, { type: "delta", text: "Two branches are ready to merge." }], [400, { type: "result" }]];
++    const quick = await tool2("ask_mastermind", { question: "anything to merge?", wait: false }, b1);
++    const qt = JSON.parse(quick.text).ticket;
++    await new Promise(r => setTimeout(r, 600));
++    const logged = (await tool2("cloud_voice_log", { words: "and what else" }, b1)).text;
++    assert.match(logged, new RegExp(`Answer from mastermind-voice-\\w+ \\(ticket ${qt}\\): Two branches are ready to merge\\.`), "the answer rides on the next tool result");
++    assert.ok(!/Answer from/.test((await tool2("cloud_voice_log", { words: "again" }, b1)).text), "and rides only once");
++    // 8) the default short wait: a quick say-first answer comes back inline, a slow one returns the ticket and first words
++    script = () => [[150, { type: "delta", text: "Yes, it is up." }], [250, { type: "result" }]];
++    assert.equal((await tool2("ask_mastermind", { question: "is the site up?" }, b1)).text, "Yes, it is up.", "a fast answer is returned in the call");
++    script = () => [[150, { type: "delta", text: "Starting a minion for that." }], [200, { type: "tool", name: "spawn_agent" }], [3000, { type: "result" }]];
++    t0 = Date.now();
++    const slow = (await tool2("ask_mastermind", { question: "fix the layout" }, b1)).text;
++    assert.ok(Date.now() - t0 < 1500 && /Not answered yet/.test(slow) && /Starting a minion for that\./.test(slow), "a slow ask returns within the short wait, with its first words");
++    // 9) a mastermind queued at the spawn gate: the status says why, and the fallback answers instead
++    queue_next = true;
++    const b2 = (await rpc2({ id: 1, method: "initialize", params: {} })).sid;
++    const held = JSON.parse((await tool2("ask_mastermind", { question: "hello?", wait: false }, b2)).text);
++    assert.ok(/waiting to start: only 1200 MB/.test(held.status), `a queued mastermind's status says why (${held.status})`);
++    live.set("vscode-mastermind", { id: "vscode-mastermind", state: "idle" });
++    process.env.REMOTE_MCP_FALLBACK = "vscode-mastermind";
++    script = () => [[100, { type: "delta", text: "The tab here, answering." }], [200, { type: "result" }]];
++    const routed = JSON.parse((await tool2("ask_mastermind", { question: "hello again?", wait: false }, b2)).text);
++    delete process.env.REMOTE_MCP_FALLBACK;
++    assert.equal(routed.to, "vscode-mastermind"); assert.match(routed.routed, /waiting to start/, "routed to the fallback, and says so");
++    // the gate admits it: the next ask goes to the connection's own mastermind again, and says nothing about waiting
++    in_queue.delete(standin.id); live.set(standin.id, { id: standin.id, state: "idle" });
++    await new Promise(r => setTimeout(r, 300));
++    process.env.REMOTE_MCP_FALLBACK = "vscode-mastermind";
++    script = () => [[100, { type: "delta", text: "Started now." }], [150, { type: "result" }]];
++    const own = JSON.parse((await tool2("ask_mastermind", { question: "now?", wait: false }, b2)).text);
++    delete process.env.REMOTE_MCP_FALLBACK;
++    assert.ok(own.to === standin.id && !/waiting/.test(own.status), `an admitted mastermind is asked directly (${own.to}, ${own.status})`);
++    await new Promise(r => setTimeout(r, 300));
++    // a busy agent: the words of the turn it was already in are not this ask's answer; the next turn's are
++    live.get("vscode-mastermind").state = "working";
++    script = () => [[50, { type: "delta", text: "unrelated work" }], [100, { type: "result" }], [200, { type: "delta", text: "Your answer." }], [250, { type: "result" }]];
++    const busy = (await tool2("ask_mastermind", { question: "busy?", to: "vscode-mastermind" }, b1)).text;
++    assert.equal(busy, "Your answer.", "words from the turn already running are skipped");
++    // stopped mid-turn: partial words are not an answer
++    live.get("vscode-mastermind").state = "idle";
++    script = () => [[50, { type: "delta", text: "half a thou" }], [100, { type: "result", stopped: true }]];
++    const cut = (await tool2("ask_mastermind", { question: "stop?", to: "vscode-mastermind", wait: false }, b1)).text;
++    await new Promise(r => setTimeout(r, 300));
++    const ch = JSON.parse((await tool2("voice_hear", { ticket: JSON.parse(cut).ticket, wait_s: 0 }, b1)).text);
++    assert.ok(ch.done && ch.answer === null && /stopped/.test(ch.status), `a stopped turn closes its ask with no answer (${ch.status})`);
++    // 10) `to` asks a named agent directly
++    await new Promise(r => setTimeout(r, 400));   // one question at a time: a turn's words belong to the oldest open ask of that agent
++    script = () => [[100, { type: "delta", text: "Direct." }], [150, { type: "result" }]];
++    assert.equal((await tool2("ask_mastermind", { question: "you?", to: "vscode-mastermind" }, b1)).text, "Direct.");
++    // 11) the real fallback kind: a tab reached through its inbox, which streams nothing; its reply file is the answer
++    assert.equal((await tool2("ask_mastermind", { question: "tab?", to: "vscode-tab-test" }, b1)).text, "From the tab, by file.", "a non-streaming target's file answer is returned");
++    // 12) two asks in a row: the second is sent while the first's turn runs; each gets its own turn's words, none by file
++    script = () => [[50, { type: "delta", text: "Answer A." }], [300, { type: "result" }]];
++    const qa = JSON.parse((await tool2("ask_mastermind", { question: "first?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
++    script = () => [[400, { type: "delta", text: "Answer B." }], [450, { type: "result" }]];
++    const qb = JSON.parse((await tool2("ask_mastermind", { question: "second?", to: "vscode-mastermind", wait: false }, b1)).text).ticket;
++    await new Promise(r => setTimeout(r, 650));
++    const heard = async q => JSON.parse((await tool2("voice_hear", { ticket: q, wait_s: 0 }, b1)).text);
++    assert.equal((await heard(qa)).answer, "Answer A.", "the first ask gets its own turn's words");
++    assert.equal((await heard(qb)).answer, "Answer B.", "the second ask, sent mid-turn, gets the next turn's words");
++    console.log("bridge:", JSON.stringify({ ack_ms, first_ms, answer_ms }));
++    srv2.close();
++}
+ srv.close();
+ fs.rmSync(root, { recursive: true, force: true });
+ console.log("ok", log.length, "calls");
+diff --git a/Servex/ext/remote/doc/cloud-voice-agent.md b/Servex/ext/remote/doc/cloud-voice-agent.md
+index c878c6268..c31f2fd05 100644
+--- a/Servex/ext/remote/doc/cloud-voice-agent.md
++++ b/Servex/ext/remote/doc/cloud-voice-agent.md
+@@ -63,6 +63,12 @@ What the check showed (session `cloud-voice-session-system-test`):
+ - ⚠ **Open:** a nested subtask gets a uuid id, while a top-level task gets a slug of its title. Reported to mastermind-item.
+ - ⚠ **Open:** a phase that runs `owner` goes to the creator. For you, that is `voice-app`, which is not a Servex agent, so the phase waits on you. Read `updates` to see it.
+ 
++## Asking without waiting (the bridge, 2026-11-01)
++
++- `ask_mastermind` waits a few seconds. Without an answer it returns a ticket, the mastermind's status and its first sentence: say that sentence, then keep talking.
++- The answer comes to you by itself on your next tool result (your `cloud_voice_log` call every turn carries it), or call `voice_hear({ticket})` to hear the status and the answer the moment they change.
++- `ask_mastermind({question, to: "vscode-mastermind"})` asks the VS Code tab instead. Which agent is which, and the measured paths: [voice-agents.md](../../../../public/framework/ai/doc/voice-agents.md).
++
+ ## Caveats
+ 
+ - Never call `restart_servex` or stop Servex during a call: it drops your own connection.
+diff --git a/Servex/ext/remote/doc/remote-tools.md b/Servex/ext/remote/doc/remote-tools.md
+index 96f522a3e..57ab08913 100644
+--- a/Servex/ext/remote/doc/remote-tools.md
++++ b/Servex/ext/remote/doc/remote-tools.md
+@@ -24,6 +24,18 @@ Takes effect at the next Servex restart.
+ 
+ Handover question: "is `append_prompt_event` / `log_session` already the door for a per-prompt hook?" **No, and the door that exists is `ask_mastermind`.** Every call writes the question and the reply as stamped `chat` lines in the voice mastermind's own `task.jsonl` (`RemoteMCP.ask()`), plus one `remote_mcp` index line in `public/framework/ai/log.jsonl` (`RemoteMCP.log()`, the first 200 characters, never the token). `append_prompt_event` is the browser dictation log (Assistant.js, the voice sessions' prompt cards); `log_session` writes tags and notes into a Claude session's `session.jsonl` and needs a session uuid, which a cloud app session does not have. What is not caught: words the voice model never forwards through `ask_mastermind`. No Servex code sees them, and a Claude-app session has no hook to install, so a two-line change cannot close that. Should the owner want them, the voice agent's directives (`RemoteMCP.INSTRUCTIONS`) are the place to say "forward every owner request verbatim".
+ 
++## The bridge: an ack at once, first words by themselves (voice-bridge, 2026-11-01)
++
++Built in `RemoteMCP.js` (one class); plan and measurements: [plan.md](../../../../public/framework/ai/sessions/2026/10/20/session-e00f55c9/voice-bridge/plan.md).
++
++- **Say first.** The message to the mastermind asks for one plain sentence before any tool call. RemoteMCP wraps `agents.watch` (the host's seam for every agent event, as `Sessions.listen` does) and keeps a **ticket** per ask: `first` (the text before its first tool call), `words`, `doing` (its latest tool), `answer`, `done`. A turn that ends with no reply file makes its words the answer.
++- **Short wait.** `ask_mastermind` waits `wait_ms` (8 s, `REMOTE_MCP_WAIT_MS`; it was 60 s). It returns the answer, or "Not answered yet" with the ticket, the status ("waiting to start: only 1200 MB of memory is free…", "working (Read handover.md)") and the first words.
++- **`voice_hear({ticket, wait_s})`** (remote route only): returns at the first change, at `wait_s` (8, at most 20), or when the app hangs up. Every reply is the whole state, so a call cut off by noise loses nothing.
++- **Answers ride along.** Every tool result on the remote route, `cloud_voice_log` included, carries an open ask's first sentence and then its answer, each once. Words in between (text after a tool call) are not relayed; `voice_hear` shows what it is doing instead.
++- **Never wait on a spawn.** `ask_mastermind({to})` asks any agent. When the connection's own mastermind is queued at the spawn gate, the ask goes to `REMOTE_MCP_FALLBACK` or the file `remote.fallback` beside the token (for example `vscode-mastermind`), and `routed` says so.
++- **Attribution rule:** an agent's streamed words belong to its oldest unfinished ask. An ask counts the turns ahead of it when sent (the running one plus messages already queued) and ignores their words; each turn end counts one off, for every waiting ask at once. A turn stopped mid-way closes its ask as "stopped before answering", with no answer.
++- Tested in `RemoteMCP.test.mjs` (cases 6–12). It takes effect at the next Servex restart.
++
+ ## ask_mastermind never loses an answer
+ 
+-`ask_mastermind` waits up to a minute. If it times out, or the app cancels the call, `RemoteMCP.ask()` keeps watching the reply file (up to 30 minutes) and, when the answer appears, writes its `chat` line and delivers it to the `voice-app` inbox (`from: voice-mastermind`, `reply_to` = the question id), so the `updates` tool returns it. `wait: false` skips the wait and returns `{ticket, note}` at once; the answer arrives the same way. Every answer goes to the inbox, including one the call returned in time (the app may have dropped that call), so the voice agent skips a `reply_to` it already has. A `notifications/cancelled` for the call id stops the wait at once. Each delivery leaves `remote-replies/<qid>.delivered`; at boot `RemoteMCP.sweep()` delivers any `<qid>.txt` without one (files under 24 h old; the first sweep only marks existing files, replaying nothing). Tested in `RemoteMCP.test.mjs`.
++`ask_mastermind` waits a few seconds (`wait_ms`, the bridge above). If it times out, or the app cancels the call, `RemoteMCP.ask()` keeps watching the reply file (up to 30 minutes) and, when the answer appears, writes its `chat` line and delivers it to the `voice-app` inbox (`from: voice-mastermind`, `reply_to` = the question id), so the `updates` tool returns it. `wait: false` skips the wait and returns the ticket's state (`ticket`, `to`, `status`, `first`, `answer`, `done`) and a `note` at once; the answer arrives the same way. Every answer goes to the inbox, including one the call returned in time (the app may have dropped that call), so the voice agent skips a `reply_to` it already has. A `notifications/cancelled` for the call id stops the wait at once. Each delivery leaves `remote-replies/<qid>.delivered`; at boot `RemoteMCP.sweep()` delivers any `<qid>.txt` without one (files under 24 h old; the first sweep only marks existing files, replaying nothing). Tested in `RemoteMCP.test.mjs`.
+diff --git a/Servex/ext/remote/readme.md b/Servex/ext/remote/readme.md
+index fcd679173..bac88a841 100644
+--- a/Servex/ext/remote/readme.md
++++ b/Servex/ext/remote/readme.md
+@@ -1,6 +1,6 @@
+ # ext/remote — the tunnel MCP the Claude voice app talks to
+ 
+-`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, wait up to a minute). Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
++`RemoteMCP.js` serves `POST /mcp/remote` (reached through `Server/Tunnel.mjs`, bearer token in the path or header). It serves the **whole Servex tool registry** (`servex.mcp`, the same tools every local session has) plus `ask_mastermind` (ask the voice mastermind, or any agent with `to`; it waits a few seconds, then returns a ticket with the status and the mastermind's first sentence) and `voice_hear` (hear an ask's status and answer the moment they change). A mastermind stuck at the spawn gate hands asks to `remote.fallback`. How it works: [doc/remote-tools.md](doc/remote-tools.md), "The bridge". Calls run as caller `voice-app`. The voice-agent directives live only in `RemoteMCP.INSTRUCTIONS`. Test: `node Servex/ext/remote/RemoteMCP.test.mjs`.
+ 
+ - Why one registry, fully exposed (and the shelved `local`/`remote` split): [doc/mcp-unify.md](doc/mcp-unify.md)
+ - The tunnel and its keeper (Servex restarts it, shows the connector URL, the named-tunnel steps), and **the site from anywhere** (`monorepo.lew42.com` through `Server/SiteGateway.mjs`): [doc/tunnel.md](doc/tunnel.md)
+diff --git a/public/framework/ai/doc/voice-agents.md b/public/framework/ai/doc/voice-agents.md
+index 975350afd..833019da6 100644
+--- a/public/framework/ai/doc/voice-agents.md
++++ b/public/framework/ai/doc/voice-agents.md
+@@ -40,14 +40,17 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
+ 
+ | Path | Ack | Answer | Use it? |
+ |---|---|---|---|
+-| `ask_mastermind` (waits up to 60 s) | none until the answer | median **13.5 s**, p90 45 s, 2 of 75 over the minute, 4 never answered | Only for a quick question; noise cancels the wait (the answer then comes through `updates`) |
+-| `ask_mastermind wait:false`, then `updates` | **64–89 ms** (a ticket) | when the app next polls; nothing tells it to | Yes, today's best: fire, keep talking, call `updates` each turn |
++| **The bridge** (live after the next Servex restart): `ask_mastermind` waits 8 s, then `voice_hear` or any tool result | **3 ms** in the test door, with an honest status | the first words the moment the mastermind writes them: **8.7 s** for Opus with the say-first rule (a cold CLI start included; about 4.7 s once it is up), against a median **40 s** for its first words today | Yes, once live: say the first sentence, keep talking |
++| `ask_mastermind` before the bridge (waited up to 60 s) | none until the answer | median **13.5 s**, p90 45 s, 2 of 75 over the minute, 4 never answered | Only for a quick question; noise cancels the wait (the answer then comes through `updates`) |
++| `ask_mastermind wait:false`, then `updates` | **64–89 ms** (a ticket) | when the app next polls; nothing tells it to | The best path before the bridge; still works |
+ | `send_to_agent` to a running agent | at once | only if that agent answers by `send_to_agent`, then via `updates` | For a named agent you know is live |
+ | `wait_for_agent` | none | blocks until the agent's turn ends | Never from voice: it is a long blind wait |
+ | A VS Code tab, through its inbox file (`send_to_agent` to `vscode-mastermind`) | at once (the line is written) | the tab **saw it 9 s later** (its Monitor), then answers in its own turn | Yes for the tab, while it keeps a Monitor armed (at most 30 min each, re-armed every turn; filter out `servex-follow` lines) |
+ | Claude Code's peer `SendMessage` to a tab | at once ("queued") | **never arrived**: the idle tab `e00f55c9` showed no message and no approval prompt after 12 min | No. Local agents only (the cloud agent has no `SendMessage`), and a tab in another permission mode holds it unseen |
+ 
+-**Today's blocker (2026-11-01, 23:10Z):** every new agent waits at Servex's spawn gate while free memory is under 2.5 GB (`SERVEX_MIN_FREE_MB`, `Global.admit`); it was 1.2 GB, with 137 `node` processes holding 6.7 GB. So an `ask_mastermind` that must spawn its mastermind gets a ticket in 0.1 s and then **no answer at all** until memory frees. Two voice masterminds sat queued that way.
++**Where the time went (59 past voice turns):** the mastermind made its first tool call at a median 10 s, said its first words at 40 s, and ended its turn at 51 s. It worked before it spoke. The bridge asks it to speak first ([first-words.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/first-words.mjs) times it).
++
++**Today's blocker (2026-11-01, 23:10Z):** every new agent waits at Servex's spawn gate while free memory is under 2.5 GB (`SERVEX_MIN_FREE_MB`, `Global.admit`); it was 1.2 GB, with 137 `node` processes holding 6.7 GB. So an `ask_mastermind` that must spawn its mastermind gets a ticket in 0.1 s and then **no answer at all** until memory frees. Two voice masterminds sat queued that way. The bridge says so in its status, and hands the ask to a fallback agent that is already running (`remote.fallback`).
+ 
+ ## 5. "Switch your voice"
+ 
+@@ -56,6 +59,6 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
+ 
+ ## 6. Rules for a cloud voice agent, in short
+ 
+-- Never wait on a slow call: fire it (`wait: false`), say "looking into it", keep talking, and call `updates` at the start of every turn.
++- Never wait in silence: `ask_mastermind` returns within a few seconds with the mastermind's first sentence; say it, keep talking, and its answer rides along on your next tool call (or call `voice_hear`). Call `updates` at the start of every turn.
+ - Never call `restart_servex` during a call: it drops your own connection.
+ - Log the owner's words first (`cloud_voice_log`), every turn. The full guide: [cloud-voice-agent.md](/Servex/ext/remote/doc/cloud-voice-agent.md).
