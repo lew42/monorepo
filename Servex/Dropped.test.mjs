@@ -36,20 +36,28 @@ make("defer-ok", [head("a-working"), { start: {} }, { wait: { on: "core/Task", w
 make("defer-homeless", [head("a-working"), { start: {} }, { wait: { what: "later", deferred: true } }]);
 make("defer-late", [head("a-working"), { start: {} }, { wait: { on: "core/Task", what: "after the merge", decide_by: iso(T - 3600e3), deferred: true } }]);
 
+// CAUSE 3 (2026-11-02): a process step's own session, its agent stopped, after the process recorded the step complete, is not dropped work; an open step's is.
+const proc = make("proc", [{ class: "Process", process: "steps", title: "P", by: "mm1" }, { tasks: { add: { type: "Task", id: "done-step", title: "A", session: { run: "fresh" } } } }, { tasks: { add: { type: "Task", id: "open-step", title: "B", session: { run: "fresh" } } } },
+	{ start: {} }, { "done-step": { start: {} } }, { "done-step": { complete: { outcome: "ok", evidence: ["x"] } } }, { "open-step": { start: {} } }]);
+for (const id of ["done-step", "open-step"]) make("proc/" + id, [head("a-stopped", { title: id }), { start: {} }]);
+
 const written = [];
 const dropped = new Dropped({ root, clock: () => T, write: async (f, o) => { written.push({ f, o }); fs.appendFileSync(f, line(o)); } });
 const r1 = await dropped.tick(rows, T);
 const by = Object.fromEntries(r1.rows.map(r => [path.basename(r.url.replace(/\/$/, "")), r.code]));
+assert.equal(by["done-step"], undefined, "a complete step's stopped agent is not dropped");
+delete by["open-step"];   // an open step with a dead agent still is
 assert.deepEqual(by, { sleeps: "owner-dormant", dead: "owner-stopped", gone: "owner-gone", nobody: "never-assigned", "defer-homeless": "deferral-no-home", "defer-late": "deferral-overdue" });
 assert.equal(r1.queued, 1, "the prioritised idle task is queued, not dropped");
-assert.equal(r1.flagged, 6, "one parent line per dropped task");
+assert.ok(r1.rows.some(r => r.url.endsWith("/proc/open-step/")), "an open step's stopped agent is dropped");
+assert.equal(r1.flagged, 7, "one parent line per dropped task");
 const parent_writes = written.filter(w => w.f === path.join(session, "session.jsonl"));
-assert.ok(parent_writes.length === 6 && parent_writes.every(w => w.o.log.dropped && w.o.log.reason));
+assert.ok(parent_writes.length === 7 && parent_writes.every(w => w.o.log.dropped && w.o.log.reason));
 const stop_writes = written.filter(w => w.o.stop);
-assert.equal(stop_writes.length, 6, "each dropped task is also settled on its own file: running/idle/waiting never stays open forever");
+assert.equal(stop_writes.length, 7, "each dropped task is also settled on its own file: running/idle/waiting never stays open forever");
 assert.ok(stop_writes.every(w => w.o.stop.why && w.f !== path.join(session, "session.jsonl")), "the stop line lands on the task's own file, not the parent's");
 const snap = JSON.parse(fs.readFileSync(path.join(root, "public/framework/ai/queue/dropped.json"), "utf8"));
-assert.equal(snap.dropped, 6);
+assert.equal(snap.dropped, 7);
 
 const r2 = await dropped.tick(rows, T + 60000);
 assert.equal(r2.flagged, 0, "a second tick writes nothing new");
@@ -70,5 +78,5 @@ assert.equal(red_lines(red_file), 1);
 assert.equal(red_lines(calm_file), 0);
 await dropped.tick(rows, T + 240000);
 assert.equal(red_lines(red_file), 1, "flagged once, not every tick");
-console.log("PASS Dropped: 6 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
+console.log("PASS Dropped: 7 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
 fs.rmSync(root, { recursive: true, force: true });

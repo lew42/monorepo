@@ -26,7 +26,7 @@ const agents = {
 	send(id, text){ if (!live.has(id)) throw new Error(`no agent ${id}`); sent.push({ id, text }); },
 	stopped: [], stop(id){ this.stopped.push(id); },
 };
-const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0 });
+const runner = new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, pulse_after_ms: 0, index_file: path.join(DIR, "processes.json") });   // never the real index
 hooks.changed = file => runner.step(file);
 const settle = async file => { await runner.chains.get(path.resolve(file)); await runner.chains.get(path.resolve(file)); };
 const item = (delta, caller, url = URL) => run_item({ path: url, delta }, { caller });
@@ -93,7 +93,7 @@ try {
 	ok(sess.completion === 1 && sess._tasks.find("fix-x")?.constructor.name === "Process", "the session's completion counts it (replayed as a Process)");
 
 	const before = read(FILE).length;
-	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set() }).step(FILE);
+	await new ProcessRunner({ servex: { agents, say(){} }, root: ROOT, files: new Set(), index_file: path.join(DIR, "processes-2.json") }).step(FILE);
 	ok(read(FILE).length === before, "a restart re-steps a finished process and writes nothing");
 
 	// A stall: the step agent ends two turns without completing; the step then waits on the creator.
@@ -175,7 +175,40 @@ try {
 	await item({ stop: { why: "not needed" } }, "mm1", URL + "stop-me/"); await settle(T);
 	const tp = runner.read(T);
 	ok(agents.stopped.includes(ta) && tp.state === "stopped" && tp.steps.find(x => x.id === "questions").state === "stopped" && !agents.stopped.includes("mm1"), "a stopped process stops its running step and that step's agent");
+
+	// CAUSE 1 (2026-11-02): the agent completes its step after the runner's first read of the file. The runner must look again before it writes pulse/wait, so a complete step gets neither, and the next step starts.
+	await item({ tasks: { add: { title: "Race", process: "investigate" } } }, "mm1");
+	const RF = path.join(DIR, "race", "task.jsonl"); await settle(RF);
+	const ra = spawned.at(-1).id; live.set(ra, { state: "idle", cost: 0 });
+	await runner.after_turn(RF, ra);
+	ok(read(RF).some(l => l.pulse?.step === "questions" && l.pulse.n === 1), "race: a silent turn end pulses once");
+	const real_read = runner.read.bind(runner); let reads = 0;
+	runner.read = file => { const p0 = real_read(file); if (path.resolve(file) === path.resolve(RF) && reads++ === 0) fs.appendFileSync(RF, JSON.stringify({ questions: { complete: { outcome: "done between the read and the write", evidence: ["test"] } }, by: ra, ts: "2026-11-02T00:00:00.000Z" }) + "\n"); return p0; };
+	await runner.after_turn(RF, ra);
+	runner.read = real_read;
+	const RL = read(RF);
+	ok(!RL.some(l => l.questions?.wait), "race: a step completed after the runner's read is not put on wait");
+	ok(!RL.some(l => l.pulse?.n === 2), "race: nor pulsed again");
+	ok(runner.read(RF).step?.id !== "questions" && runner.read(RF).step?.state !== "idle", "race: the next step started (" + runner.read(RF).step?.id + ")");
+
+	// CAUSE 2: a running process in an old-dated folder is resumed by the tick, found by the index, not by a date scan; with no index, one wide scan builds it.
+	const OLD_REL = "public/framework/ai/sessions/2020/01/01/.process-test-" + process.pid + "/old-run";
+	const OLD = path.join(ROOT, OLD_REL, "task.jsonl"); fs.mkdirSync(path.dirname(OLD), { recursive: true });
+	const mk = () => fs.writeFileSync(OLD, Process.lines({ process: "build", title: "Old run" }).map((l, i) => JSON.stringify(i ? l : { ...l, by: "mm1" })).join("\n") + "\n");
+	mk();
+	const tick_of = (index, extra = {}) => { const days = []; const r = new ProcessRunner({ servex: { agents, say(){}, task_loop: { find_task_files: d => { days.push(d); return d >= 30 ? [OLD] : []; } } }, root: ROOT, index_file: path.join(DIR, index), ...extra }); return { r, days }; };
+	fs.writeFileSync(path.join(DIR, "idx-known.json"), JSON.stringify([OLD_REL + "/task.jsonl"]));
+	let t = tick_of("idx-known.json"); const n_spawn = spawned.length;
+	await t.r.tick(); await settle(OLD);
+	ok(spawned.length === n_spawn + 1 && read(OLD).some(l => l.spawn?.step === "investigate"), "old folder: the tick found the process through the index and started its next step");
+	ok(!t.days.includes(60), "old folder: with an index, no wide scan");
+	fs.rmSync(OLD); mk();
+	t = tick_of("idx-none.json");
+	await t.r.tick(); await settle(OLD);
+	ok(t.days.includes(60) && read(OLD).some(l => l.spawn?.step === "investigate"), "old folder: no index yet, one wide scan seeds it and the process resumes");
+	ok(JSON.parse(fs.readFileSync(path.join(DIR, "idx-none.json"), "utf8")).includes(OLD_REL + "/task.jsonl"), "old folder: the index now lists it");
 } finally {
+	fs.rmSync(path.join(ROOT, "public/framework/ai/sessions/2020/01/01/.process-test-" + process.pid), { recursive: true, force: true });
 	fs.rmSync(DIR, { recursive: true, force: true });
 	fs.rmSync(path.join(ROOT, "public/framework/ai/process-test-" + process.pid), { recursive: true, force: true });
 }
