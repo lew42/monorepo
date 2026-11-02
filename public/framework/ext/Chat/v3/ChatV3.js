@@ -14,6 +14,7 @@ import Question from "/framework/core/Task/Question.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
+import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
 import * as Wire from "/framework/ext/Session/Session.js";
 import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
@@ -188,7 +189,10 @@ export default class ChatV3 extends JSONL {
 	}
 
 	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
-	reply(r){ div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }); }
+	reply(r){
+		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
+		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
+	}
 
 	// The ✓/🧠 marks slot beside a Prompt's title: nothing yet (they live on the Prompt TASK until views-on-messages.md step 3); V2 overrides this.
 	marks(p){ return null; }

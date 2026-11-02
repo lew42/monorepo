@@ -62,6 +62,8 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
 
 **Replies read aloud:** `chat.js` hands every event on the live wire to `Recite.shared.from_wire(ev)`, and `DictationBar.mount` puts the Recite bar directly above the mic ([audio/Recite](/framework/audio/Recite/)).
 
+**Replay any reply:** every assistant reply bubble carries the [Recite.Bubble](/framework/audio/Recite/readme.md#architecture) control (▶/⏸ and ↺10; a tap on the text does the same). `Widget.Thread.replay_ctl(bubble)` mounts it for V1 after each piece lands; Chat V2 and V3 mount the same control in `ChatV3.reply()`.
+
 **`DictationBar`** (the phone sheet's one big mic that says its state, a Type button, no Send; switch back in one line): [`doc/refine-dictate-tasks.md#the-bar`](doc/refine-dictate-tasks.md).
 
 **Talking to the mastermind from the Claude app's voice mode** (why not a browser bridge; a connector instead): [`doc/voice-bridge.md`](doc/voice-bridge.md).

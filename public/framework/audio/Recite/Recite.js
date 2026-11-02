@@ -6,6 +6,7 @@ import BargeIn from "./BargeIn.js";
 import ReciteBar from "./ReciteBar.js";
 import ReciteHighlight from "./ReciteHighlight.js";
 import ReciteTap from "./ReciteTap.js";
+import ReciteBubble from "./ReciteBubble.js";
 
 View.stylesheet(import.meta, "Recite.css");
 
@@ -49,6 +50,7 @@ export default class Recite extends Part {
 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
 	pending_updates = [];   // no-flood: agent updates (a reply whose from.id matches AGENT_ID — not "smart", and not "fast"/"revise"/"card" either) held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
 	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
+	focus_el = null;        // replay: the bubble element a tapped replay reads, so the highlight lights that bubble's words first
 	update_hold_ms = 4000;   // no-flood: how long an agent update waits for the direct answer before it is queued anyway
 
 	constructor(...args){
@@ -60,7 +62,7 @@ export default class Recite extends Part {
 		this.done = new Set();   // replies already read, so the settled line after a stream is not read twice
 		this.audio = typeof Audio === "function" ? new Audio() : null;   // node (the core test) has none
 		this.audio?.addEventListener("ended", () => this.ended());
-		this.audio?.addEventListener("timeupdate", () => this.changed());
+		this.audio?.addEventListener("timeupdate", () => { this.note_place(); this.changed(); });
 		this.barge = new this.constructor.BargeIn({ recite: this });
 		this.highlight = new this.constructor.Highlight({ recite: this });
 		this.tap = new this.constructor.Tap({ recite: this });
@@ -130,17 +132,21 @@ export default class Recite extends Part {
 	/** Add `text` after what is already queued; starts reading if idle, UNLESS the owner is talking right now — then it
 	 *  waits for about `turn_wait_ms` of quiet (turn-taking: never start a reply over the owner's own words).
 	 *  `continuing` (set only by take(), below): these chunks are more of the SAME live reply, not a new one — keep
-	 *  the current `reply_id` so drop_heard() still treats the whole streamed-so-far reply as one unit. */
-	queue(text, continuing = false){
+	 *  the current `reply_id` so drop_heard() still treats the whole streamed-so-far reply as one unit.
+	 *  `key` (Recite.bubble_key) names the bubble these sentences belong to, so it can be replayed and its place remembered;
+	 *  `from` ({i, t}): a replay, start at sentence i, t seconds in, at once. */
+	queue(text, continuing = false, key = null, from = null){
 		const first = this.chunks.length;
 		if (!continuing) this.reply_id++;
 		const id = this.reply_id;
-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id });
+		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key });
 		if (this.chunks.length === first) return this;
 		this.retime();
 		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
 		// call start_or_hold again — it would move `wait_at` to this later chunk and skip everything held before it.
-		if (this.state === "idle" && this.wait_at == null) this.start_or_hold(first);
+		if (!from) this.focus_el = null;
+		if (from && this.state === "idle"){ this.wait_at = null; this.play(first + Math.min(from.i, this.chunks.length - first - 1), from.t); }   // a replay was asked for by a tap: no turn-taking hold
+		else if (this.state === "idle" && this.wait_at == null) this.start_or_hold(first);
 		else this.prefetch(this.at);
 		return this;
 	}
@@ -180,7 +186,7 @@ export default class Recite extends Part {
 		if (token !== this.token || !this.audio) return;   // paused, seeked or stopped while it rendered
 		this.engine = "kokoro";
 		this.audio.src = c.src;
-		this.audio.currentTime = offset;
+		this.audio.currentTime = c.seconds ? Math.max(0, Math.min(offset, c.seconds - 0.2)) : offset;   // a replay's offset came from an estimate or an earlier render: never past the end
 		try { await this.audio.play(); }
 		catch (e){ this.trace("play refused", { error: e.name, msg: String(e.message).slice(0, 120), sentence: i }); if (token === this.token) this.set("paused", e.name === "NotAllowedError" ? "tap play: the browser wants a tap before it plays sound" : e.message); return; }
 		this.trace("playing", { sentence: i });
@@ -224,7 +230,12 @@ export default class Recite extends Part {
 		}
 	}
 
-	ended(){ this.settle_pending(this.at); if (this.state === "playing") this.play(this.at + 1, 0); }
+	ended(){
+		const here = this.chunks[this.at], next = this.chunks[this.at + 1];
+		if (here?.key && !(next && next.key === here.key)) Recite.clear_place(here.key);   // the whole reply was heard: the next play starts at its start
+		this.settle_pending(this.at);
+		if (this.state === "playing") this.play(this.at + 1, 0);
+	}
 	finish(){ this.token++; this.at = Math.max(0, this.chunks.length - 1); this.set("idle"); }
 
 	/* ── replies from a chat session ────────────────────────────────── */
@@ -306,8 +317,8 @@ export default class Recite extends Part {
 	partial(text){
 		if (!this.auto){ if (text && !this.live) this.trace("not read: auto is off (the 🗣 button)"); return; }
 		if (text) this.cancel_cue();   // the reply started: stop waiting for it (dictation-v3 thinking cue, 2026-11-02)
-		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.live = null; } return; }
-		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true }; }
+		if (!text){ if (this.live){ this.take(this.live.text, true); this.done.add(Recite.norm(this.live.text)); this.tag_live(this.live.text); this.live = null; } return; }
+		if (!this.live || !text.startsWith(this.live.text.slice(0, 30))){ this.drop_heard(); this.live = { text, queued: 0, fresh: true, chunks: [] }; }
 		this.live.text = text;
 		this.take(text, false);
 	}
@@ -328,15 +339,18 @@ export default class Recite extends Part {
 		this.done.add(key);
 		const before = this.chunks.length;
 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
-			this.live.text = text; this.take(text, true); this.live = null;
+			this.live.text = text; this.take(text, true); this.tag_live(text); this.live = null;
 			this.mark_when_done(id, before);
 			return;
 		}
 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
 		this.live = null;
-		this.queue(text);
+		this.queue(text, false, Recite.bubble_key(text));
 		this.mark_when_done(id, before);
 	}
+
+	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */
+	tag_live(text){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []) c.key = key; }
 
 	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
 	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
@@ -426,7 +440,9 @@ export default class Recite extends Part {
 		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
 		live.queued += cut;
 		live.fresh = false;
+		const before = this.chunks.length;
 		this.queue(rest.slice(0, cut), true);   // continuing the same live reply, not a new one
+		live.chunks?.push(...this.chunks.slice(before));
 	}
 
 	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }
@@ -452,6 +468,7 @@ export default class Recite extends Part {
 
 	pause(why = "paused"){
 		if (!["playing", "loading"].includes(this.state)) return;
+		this.note_place(true);
 		this.token++;
 		this.audio?.pause();
 		if (this.engine === "browser") globalThis.speechSynthesis?.cancel();
@@ -482,10 +499,68 @@ export default class Recite extends Part {
 		this.play(i, offset);
 	}
 
-	back(seconds = 10){ this.seek(this.position() - seconds); }
+	/** Back `seconds` from here, sentence by sentence: a sentence not rendered yet counts by its estimate (`Recite.est_seconds`), so it works right after a replay started mid-reply. */
+	back(seconds = 10){
+		if (!this.chunks.length) return;
+		const t = this.engine === "browser" ? 0 : this.audio?.currentTime ?? 0;
+		const to = Recite.step_back(this.chunks, this.at, t, seconds);
+		this.play(to.i, to.t);
+	}
 	restart(){ this.seek(0); }
 
+	/* ── bubbles: replay any reply, keep its place ───────────────────── */
+
+	/** What the bubble controls need: the key of the bubble being read, and whether it is playing right now. */
+	bubble_state(){ return { key: this.chunks[this.at]?.key ?? null, playing: ["playing", "loading"].includes(this.state), active: this.state !== "idle" }; }
+
+	/** First chunk index of the bubble that chunk `at` belongs to. */
+	group_start(at = this.at){
+		const key = this.chunks[at]?.key;
+		let i = at;
+		while (key && i > 0 && this.chunks[i - 1].key === key) i--;
+		return i;
+	}
+
+	/** Remember where the bubble being read is (sentence in the bubble, seconds in): memory always, localStorage at most once a second unless `force`. */
+	note_place(force = false){
+		const c = this.chunks[this.at];
+		if (!c?.key || !["playing", "paused", "heard"].includes(this.state) || this.engine === "browser" || !c.src || this.audio?.src !== c.src) return;
+		const place = { i: this.at - this.group_start(), t: Math.round((this.audio.currentTime ?? 0) * 10) / 10 };
+		Recite.set_place(c.key, place, force);
+	}
+
+	/** A tap on a bubble's ▶/⏸ or its text. The bubble being read: pause or carry on. Any other: stop what is playing and read this one from where it was left. */
+	tap_bubble(text, el = null){
+		const key = Recite.bubble_key(text), c = this.chunks[this.at];
+		if (key && c?.key === key && this.state !== "idle") return this.toggle();
+		this.replay(text, el);
+	}
+
+	/** ↺10 on a bubble: 10 s back inside that bubble (starting it, 10 s before its remembered place, if it was not the one being read). */
+	back_bubble(text, el = null){
+		const key = Recite.bubble_key(text), c = this.chunks[this.at];
+		if (key && c?.key === key && this.state !== "idle"){
+			const t = this.engine === "browser" ? 0 : this.audio?.currentTime ?? 0;
+			const to = Recite.step_back(this.chunks, this.at, t, 10, this.group_start());
+			return this.play(to.i, to.t);
+		}
+		this.replay(text, el, 10);
+	}
+
+	/** Read `text` (one reply bubble) again: from the word its last read stopped at (else its start), `back` seconds earlier. Stops whatever is playing; the sentences are rendered again, never kept. */
+	replay(text, el = null, back = 0){
+		const key = Recite.bubble_key(text);
+		if (!key) return this;
+		let from = Recite.place_of(key) ?? { i: 0, t: 0 };
+		if (back) from = Recite.step_back(Recite.split(text).map(t => ({ text: t })), from.i, from.t, back);
+		this.stop();
+		this.focus_el = el;
+		this.trace("replay", { bubble: key.slice(0, 40), sentence: from.i, at: from.t });
+		return this.queue(text, false, key, from);
+	}
+
 	stop(){
+		this.note_place(true);
 		this.token++;
 		this.cancel_cue();
 		clearTimeout(this.wait_timer);
@@ -600,6 +675,52 @@ export default class Recite extends Part {
 	/** Where the last finished sentence of `s` ends (0 = none yet): a stop followed by a space, or a line break. */
 	static complete(s){ let end = 0; for (const m of String(s).matchAll(/[.!?…:;](?=\s)|\n/g)) end = m.index + 1; return end; }
 
+	/** A bubble's name: its first ten words as they are spoken (markdown out, case and punctuation ignored), so the markdown a reply was written in and the text drawn on the page give the same key. */
+	static bubble_key(text){
+		return Recite.split(text).join(" ").toLowerCase().replace(/[^\p{L}\p{N}\s]+/gu, " ").split(/\s+/).filter(Boolean).slice(0, 10).join(" ");
+	}
+
+	/** About how long a sentence takes to say before it has been rendered: 15 characters a second. */
+	static est_seconds(text){ return Math.max(1, String(text ?? "").length / 15); }
+
+	/** Where `seconds` back from `t` seconds into chunk `at` lands: {i, t}. A sentence not rendered yet counts by its estimate; never earlier than chunk `floor`. */
+	static step_back(chunks, at, t, seconds, floor = 0){
+		let i = at, left = seconds;
+		if (t >= left) return { i, t: t - left };
+		left -= t;
+		while (i > floor){
+			i--;
+			const len = chunks[i].seconds ?? Recite.est_seconds(chunks[i].text);
+			if (len >= left) return { i, t: len - left };
+			left -= len;
+		}
+		return { i: floor, t: 0 };
+	}
+
+	/** Each bubble's last read place by key: {i, t}. Kept in memory and in localStorage (200 newest) so a reload remembers it. */
+	static places = null;
+	static load_places(){
+		if (Recite.places) return Recite.places;
+		try { Recite.places = JSON.parse(globalThis.localStorage?.getItem("lew42.recite.places") ?? "{}") ?? {}; } catch { Recite.places = {}; }
+		return Recite.places;
+	}
+	static place_of(key){ return Recite.load_places()[key] ?? null; }
+	static set_place(key, place, force = false){
+		const all = Recite.load_places();
+		delete all[key];   // newest last, so the cap in save_places() drops the oldest
+		all[key] = place;
+		const now = Date.now();
+		if (!force && now - (Recite.saved_at ?? 0) < 1000) return;
+		Recite.save_places(now);
+	}
+	static clear_place(key){ const all = Recite.load_places(); if (key in all){ delete all[key]; Recite.save_places(Date.now()); } }
+	static save_places(now){
+		Recite.saved_at = now;
+		const all = Recite.load_places(), keys = Object.keys(all);
+		for (const k of keys.slice(0, Math.max(0, keys.length - 200))) delete all[k];
+		try { globalThis.localStorage?.setItem("lew42.recite.places", JSON.stringify(all)); } catch {}
+	}
+
 	/** Text compared loosely: spaces and markdown marks do not count. */
 	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
 
@@ -636,13 +757,17 @@ export default class Recite extends Part {
 	}
 
 	/** The one Recite a page's chat views share, so two views never read over each other. */
-	static get shared(){ return Recite._shared ??= new Recite(); }
+	static get shared(){
+		if (!Recite._shared){ Recite._shared = new Recite(); Recite.Bubble.follow(Recite._shared); }
+		return Recite._shared;
+	}
 }
 
 Recite.BargeIn = BargeIn;
 Recite.Bar = ReciteBar;
 Recite.Highlight = ReciteHighlight;
 Recite.Tap = ReciteTap;
+Recite.Bubble = ReciteBubble;
 Recite.SILENCE = "data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";   // 0.1 s of silence, 8 kHz: what unlock_on_tap() plays
 track(Recite);
 

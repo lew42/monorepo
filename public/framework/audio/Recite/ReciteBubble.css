@@ -1,0 +1,33 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* Recite.Bubble: the one small play/back control under an assistant reply, the same in V1, V2 and V3 */
+	.audio-recite-bubble-ctl {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		gap: 0.25em;
+		margin-block-start: 0.2em;
+		font-size: 0.8em;
+		flex: none;
+		white-space: nowrap;
+		line-height: 1;
+	}
+	/* V2 and V3 draw a reply as a flex row (brain, text): wrap, so the control gets its own row under the text instead of a third column */
+	.audio-recite-bubble.chat-v3-reply { flex-wrap: wrap; }
+	.audio-recite-bubble.chat-v3-reply > .chat-v3-reply-text { flex: 1 1 0; }
+	.audio-recite-bubble > .audio-recite-bubble-ctl { flex-basis: 100%; }
+	.audio-recite-bubble-ctl button {
+		min-inline-size: 2.2em;
+		min-block-size: 2.2em;
+		padding: 0 0.5em;
+		border: 0;
+		border-radius: 1.1em;
+		background: transparent;
+		color: var(--subtle);
+		font: inherit;
+		cursor: pointer;
+	}
+	.audio-recite-bubble-ctl button:hover { background: var(--wash); color: var(--ink); }
+	.audio-recite-bubble-ctl .audio-recite-bubble-play.is-on { color: var(--prime); }
+}

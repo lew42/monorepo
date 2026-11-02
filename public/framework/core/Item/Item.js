@@ -153,7 +153,7 @@ export class Item extends Events(Object) {
 		}
 		if (!gone.length) return this;
 		this.emit("delta", { [Store.marked_lines ? "unset()" : "unset"]: gone.map(([key]) => key) }, this);
-		for (const [key, old] of gone) this.emit_safely("change", key, undefined, old);
+		for (const [key, old] of gone) this.emit_safely("change", key, undefined, old, { source: Item.source });
 		return this;
 	}
 
@@ -169,6 +169,21 @@ export class Item extends Events(Object) {
 		try { this[verb](args); } finally { Store.unmute(this, above); this.off("delta", count); }
 		if (changed) this.emit("delta", { [verb + (Store.marked_lines ? "()" : "")]: args ?? {} }, this);
 		return this;
+	}
+
+	/* One user action, saved as one line per item it touched (spec T2, doc/batch.md): the store this item saves through holds every
+	   line until fn ends (an async fn: until it settles), then folds them (Store.merge). Lines in one tick are folded anyway;
+	   batch is for an action that awaits in between. No store: fn just runs. Answers what fn answers. */
+	batch(fn){
+		let store = null;
+		for (let n = this; n && !store; n = n.parent) if (n.store?.host === n) store = n.store;
+		if (!store) return fn();
+		store.hold();
+		let result;
+		try { result = fn(); } catch (error){ store.release(); throw error; }
+		if (result && typeof result.then === "function") return Promise.resolve(result).finally(() => store.release());
+		store.release();
+		return result;
 	}
 
 	/* D14, a method saved as ONE call. The method wraps its body, so a caller never has to remember act():
@@ -309,7 +324,7 @@ export class Item extends Events(Object) {
 			// The save comes first and does not wait for any view: a listener that throws (a view that broke) is reported and
 			// skipped, so it can never stop the line from being written (item-core.test.mjs, 1a).
 			this.emit("delta", { set: { [key]: value } }, this);
-			this.emit_safely("change", key, value, old);
+			this.emit_safely("change", key, value, old, { source: Item.source });
 		}
 	}
 
@@ -338,7 +353,7 @@ export class Item extends Events(Object) {
 		const now = this.get_one(key);
 		if (now !== old){
 			this.emit("delta", now === undefined ? { [Store.marked_lines ? "unset()" : "unset"]: [key] } : { set: { [key]: now } }, this);
-			this.emit_safely("change", key, now, old);
+			this.emit_safely("change", key, now, old, { source: Item.source });
 		}
 		return result;
 	}
@@ -730,6 +745,10 @@ export class Item extends Events(Object) {
 	// writes this same value.
 	static get clock(){ return Item._clock; }
 	static set clock(at){ Item._clock = at; }
+
+	// Where the change being made right now comes from (spec T1): "local" (code in this tab), "replay" (a log being loaded) or
+	// "remote" (a line another writer saved, read live). The last argument of every "change" event, {source}.
+	static get source(){ return Store.replay_depth > 0 ? Store.reading ?? "replay" : "local"; }
 
 	// A line's dotted keys, one level opened: `{"tasks.c3.tasks.d1": v}` -> `{"tasks": {"c3.tasks.d1": v}}` (each level's set()
 	// opens the next). For a replay_line that reads its top-level keys itself (Task, Session) before any set() runs.

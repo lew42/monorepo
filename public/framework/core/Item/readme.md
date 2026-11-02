@@ -89,6 +89,7 @@ new RefView({ ref });         // a row: "child › task", redrawn when either ch
 - **`set_<key>(value)` is a hook (D17):** `set()` calls it for that key, it stores with `this.put`, and a direct call saves too; it runs live, from another tab and on replay: [doc/hooks.md](./doc/hooks.md). Test: `hooks.test.mjs`.
 - **`unset(...keys)` clears a field so a reload agrees (T5):** one line `{"unset":["color"]}`; `set({color: undefined})` is the same; a key never set writes nothing; hooks are not run: [doc/line-format.md](./doc/line-format.md#clearing-a-field-unset). Test: `unset.test.mjs`.
 - **A read line that names something not there is reported, never refused (T6):** a List id that is no member, or an object under a list member that names no method, field or data; still stored as data, counted in `Item.unknown_keys`, warned in node: [doc/line-format.md](./doc/line-format.md#a-line-that-names-something-that-is-not-there). Test: `unknown-key.test.mjs`.
+- **One action saves one line per item (T2), and every change says where it came from (T1):** `Store.flush` folds the data lines that name the same item (a page edit: 2 lines, not 3; `Task.wait()`: 1, not 8); `item.batch(fn)` holds the store across an await; every `change` event ends with `{source: "local" | "replay" | "remote"}`; a reaction to a line read live is not saved: [doc/batch.md](./doc/batch.md). Test: `batch.test.mjs`.
 - **`as_call(name, [args], body)` saves a method as one line (D14),** outermost only, never on replay: [doc/call.md](./doc/call.md). Test: `call.test.mjs`.
 - **While any store replays, no store saves** (`Store.replay_depth`); `set()` refuses a function, DOM node or cycle; a throwing view listener cannot stop a save; a running task's `ran_since` is saved data: [doc/core-fixes.md](./doc/core-fixes.md). Test: `item-core.test.mjs`.
 
@@ -101,6 +102,7 @@ Each test file below opens as a page: one block per test, its checks as green/re
 - [hooks.test.mjs](/framework/core/Test/view/?file=core/Item/hooks.test.mjs) — `set_<key>` hooks (D17)
 - [call.test.mjs](/framework/core/Test/view/?file=core/Item/call.test.mjs) — `as_call` saves a method as one line (D14)
 - [unknown-key.test.mjs](/framework/core/Test/view/?file=core/Item/unknown-key.test.mjs) — a line naming a missing member or an unknown verb is reported, still stored (T6)
+- [batch.test.mjs](/framework/core/Test/view/?file=core/Item/batch.test.mjs) — one line per item per action, `batch()`, the `source` of a change (T1, T2)
 - [unset.test.mjs](/framework/core/Test/view/?file=core/Item/unset.test.mjs) — clearing a field replays, also from a snapshot (T5)
 - [item-core.test.mjs](/framework/core/Test/view/?file=core/Item/item-core.test.mjs) — the core's safety fixes
 - [bind.test.mjs](/framework/core/Test/view/?file=core/View/bind.test.mjs) — `view.bind(item, key, fn)`: binds now and on change, one draw per frame, unbinds on remove (D7, built; in `core/View`)
