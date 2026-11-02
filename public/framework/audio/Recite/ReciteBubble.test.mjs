@@ -42,9 +42,9 @@ async function view(name, url, bubble_sel, text_sel, prepare){
 	await page.addInitScript(() => { try { localStorage.removeItem("lew42.recite.places"); localStorage.setItem("lew42.recite.auto", "false"); } catch {} });
 	await page.goto(url, { waitUntil: "domcontentloaded" });
 	await prepare?.(page);
-	await page.waitForSelector(bubble_sel + " > .recite-bubble-ctl", { timeout: 15000 });
+	await page.waitForSelector(bubble_sel + " > .audio-recite-bubble-ctl", { timeout: 15000 });
 	const bubble = page.locator(bubble_sel).first();
-	check(`${name}: the reply bubble has the ▶ and ↺10 control`, (await bubble.locator(":scope > .recite-bubble-ctl button").allTextContents()).join(" ") === "▶ ↺10", await bubble.locator(":scope > .recite-bubble-ctl").textContent());
+	check(`${name}: the reply bubble has the ▶ and ↺10 control`, (await bubble.locator(":scope > .audio-recite-bubble-ctl button").allTextContents()).join(" ") === "▶ ↺10", await bubble.locator(":scope > .audio-recite-bubble-ctl").textContent());
 	check(`${name}: nothing was spoken before a tap`, asked.length === 0, asked);
 
 	// a real click on the text (user activation, so the browser lets the audio play)
@@ -55,28 +55,28 @@ async function view(name, url, bubble_sel, text_sel, prepare){
 	check(`${name}: and it plays`, first.state === "playing", first.state);
 	const plain = n => n.replace(/[^\p{L}\p{N}]+/gu, " ").trim().toLowerCase();
 	check(`${name}: that first sentence is the start of what the bubble says`, plain(await bubble.locator(text_sel).first().innerText()).startsWith(plain(first.first).slice(0, 25)), first.first);
-	check(`${name}: the control shows ⏸ while it plays`, (await bubble.locator(".recite-bubble-play").textContent()) === "⏸");
+	check(`${name}: the control shows ⏸ while it plays`, (await bubble.locator(".audio-recite-bubble-play").textContent()) === "⏸");
 
 	// ⏸ pauses it and the place is kept
 	await page.waitForTimeout(700);
-	await bubble.locator(".recite-bubble-play").click();
+	await bubble.locator(".audio-recite-bubble-play").click();
 	const paused = await page.evaluate(async () => { const m = await import("/framework/audio/Recite/Recite.js"), R = m.default.shared; return { state: R.state, place: m.default.place_of(R.chunks[R.at]?.key), t: R.audio.currentTime }; });
 	check(`${name}: ⏸ pauses it`, paused.state === "paused", paused.state);
 	check(`${name}: the place it stopped at is remembered (sentence 0, a little way in)`, paused.place && paused.place.i === 0 && paused.place.t > 0.2, paused);
-	check(`${name}: the control is back to ▶`, (await bubble.locator(".recite-bubble-play").textContent()) === "▶");
+	check(`${name}: the control is back to ▶`, (await bubble.locator(".audio-recite-bubble-play").textContent()) === "▶");
 	const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("lew42.recite.places") ?? "{}"));
 	check(`${name}: and kept in the browser's storage for a reload`, Object.keys(stored).length === 1, stored);
 
 	// stop everything, then play again: the bubble starts from where it stopped, not from 0
 	await page.evaluate(async () => { (await import("/framework/audio/Recite/Recite.js")).default.shared.stop(); });
 	asked.length = 0;
-	await bubble.locator(".recite-bubble-play").click();
+	await bubble.locator(".audio-recite-bubble-play").click();
 	await playing(page);
 	const again = await page.evaluate(async () => { const R = (await import("/framework/audio/Recite/Recite.js")).default.shared; return { state: R.state, t: R.audio.currentTime }; });
 	check(`${name}: playing it again starts where it stopped (${paused.place?.t}s), not at 0`, again.state === "playing" && again.t >= (paused.place?.t ?? 0) - 0.3, { again, place: paused.place });
 
 	// ↺10 in a 3 s sentence goes to the bubble's start
-	await bubble.locator(".recite-bubble-back").click();
+	await bubble.locator(".audio-recite-bubble-back").click();
 	await page.waitForTimeout(300);
 	const back = await page.evaluate(async () => (await import("/framework/audio/Recite/Recite.js")).default.shared.audio.currentTime);
 	check(`${name}: ↺10 steps back to the start of a short bubble`, back < 1.0, back);

@@ -16,23 +16,24 @@ View.stylesheet(import.meta, "ReciteBubble.css");
  */
 export default class ReciteBubble {
 
-	static HOST = ".recite-bubble";
+	static HOST = ".audio-recite-bubble";
 	static texts = new WeakMap();   // host element -> () => the text Recite should read
-	static keys = new WeakMap();    // host element -> Recite.bubble_key(text), refreshed at mount and at every tap
+	static keys = new WeakMap();    // host element -> Recite.bubble_key(text), dropped at every mount (so a patched bubble is re-read) and set again at every tap
 
 	/** Add (or move to the end) the control on `host`; `text()` is read when a tap needs the words, so a patched bubble reads its latest text. */
 	static mount(host, { text }){
 		if (!host || typeof document === "undefined") return null;
 		this.texts.set(host, text);
-		host.classList.add("recite-bubble");
-		let ctl = host.querySelector(":scope > .recite-bubble-ctl");
+		this.keys.delete(host);
+		host.classList.add("audio-recite-bubble");
+		let ctl = host.querySelector(":scope > .audio-recite-bubble-ctl");
 		if (!ctl){
 			ctl = document.createElement("span");
-			ctl.className = "recite-bubble-ctl";
+			ctl.className = "audio-recite-bubble-ctl";
 			const play = document.createElement("button"), back = document.createElement("button");
 			play.type = back.type = "button";
-			play.className = "recite-bubble-play"; play.textContent = "▶"; play.title = play.ariaLabel = "Play this reply";
-			back.className = "recite-bubble-back"; back.textContent = "↺10"; back.title = back.ariaLabel = "Back 10 seconds";
+			play.className = "audio-recite-bubble-play"; play.textContent = "▶"; play.title = play.ariaLabel = "Play this reply";
+			back.className = "audio-recite-bubble-back"; back.textContent = "↺10"; back.title = back.ariaLabel = "Back 10 seconds";
 			play.addEventListener("click", () => this.run(host, r => r.tap_bubble(this.text_of(host), host)));
 			back.addEventListener("click", () => this.run(host, r => r.back_bubble(this.text_of(host), host)));
 			ctl.append(play, back);
@@ -55,7 +56,7 @@ export default class ReciteBubble {
 		const get = this.texts.get(host);
 		if (get) return String(get() ?? "");
 		const copy = host.cloneNode(true);
-		copy.querySelector(":scope > .recite-bubble-ctl")?.remove();
+		copy.querySelector(":scope > .audio-recite-bubble-ctl")?.remove();
 		return copy.textContent ?? "";
 	}
 
@@ -81,7 +82,7 @@ export default class ReciteBubble {
 		if (!r || typeof document === "undefined") return;
 		const now = r.bubble_state();
 		for (const host of document.querySelectorAll(this.HOST)){
-			const play = host.querySelector(":scope > .recite-bubble-ctl > .recite-bubble-play");
+			const play = host.querySelector(":scope > .audio-recite-bubble-ctl > .audio-recite-bubble-play");
 			if (!play) continue;
 			let key = this.keys.get(host);
 			if (key == null){ key = r.constructor.bubble_key(this.text_of(host)); this.keys.set(host, key); }
