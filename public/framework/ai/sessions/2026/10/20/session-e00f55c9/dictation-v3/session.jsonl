@@ -34,3 +34,5 @@
 {"review":{"at":"2026-11-01T18:02:32-06:00","answer":{"n":1,"reply":"declined: the owner set the order (voice on the phone first, then highlight, then Chatterbox, then text prep); settings, voice command, echo guard and voice-models are queued in plan.md, not dropped"}}}
 {"action":{"at":"2026-11-01T18:05:18-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/owner-decisions.md"]},"by":"ledger","ts":"2026-11-02T00:05:18.018Z"}
 {"log":{"at":"2026-11-01T18:05:22-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T00:05:22.840Z"}
+{"action":{"at":"2026-11-01T18:10:16-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/sheet-reads/review.md"]},"by":"ledger","ts":"2026-11-02T00:10:16.324Z"}
+{"action":{"at":"2026-11-01T18:12:39-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/chat-structure.md"]},"by":"ledger","ts":"2026-11-02T00:12:39.700Z"}

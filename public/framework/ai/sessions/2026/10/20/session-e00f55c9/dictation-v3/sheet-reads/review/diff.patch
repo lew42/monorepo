@@ -1,0 +1,91 @@
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index 7c7d6d1ff..161f94344 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -79,7 +79,9 @@ export default class Recite extends Part {
+ 	 *  silent on a real phone says why: reply heard, skipped and why, speak asked, play() refused. (dictation-v3, 2026-11-01) */
+ 	trace(kind, fields = {}){
+ 		if (typeof document === "undefined") return;
+-		import("../Whisper/WhisperLog.js").then(m => m.default.event("recite", kind, { state: this.state, auto: this.auto, server: this.server, ...fields })).catch(() => {});
++		const line = { state: this.state, auto: this.auto, server: this.server, unlocked: !!this.unlocked, ...fields };
++		import("../Whisper/WhisperLog.js").then(m => m.default.event("recite", kind, line)).catch(e => console.error("Recite trace: the Whisper log failed", e));
++		try { Recite.on_trace?.(kind, line); } catch (e){ console.error("Recite trace: on_trace failed", e); }   // a second channel the page wires (ux/Dictate/chat.js: the session file)
+ 	}
+ 
+ 	/** Calls fn() on every change of state or position; returns an unsubscribe. */
+diff --git a/public/framework/ext/Chat/v2/report.js b/public/framework/ext/Chat/v2/report.js
+index 422f385fe..27c3f5de3 100644
+--- a/public/framework/ext/Chat/v2/report.js
++++ b/public/framework/ext/Chat/v2/report.js
+@@ -33,3 +33,5 @@ export function click(label){ post(current_session, "click", label); }
+ 
+ /** Opt-in: any other page context worth a mention ("the drawer is now open", a page's own state). */
+ export function context(text){ post(current_session, "context", text); }
++/** A diagnostic line filed in the session record as a `log` line (the error path), never read as speech: "recite: loaded …". */
++export function diag(text){ post(current_session, "error", text); }
+diff --git a/public/framework/ext/drawer/Sheet.js b/public/framework/ext/drawer/Sheet.js
+index d583d76fa..ba5f73aba 100644
+--- a/public/framework/ext/drawer/Sheet.js
++++ b/public/framework/ext/drawer/Sheet.js
+@@ -11,6 +11,9 @@ import AIFeed from "./AIFeed.js";
+ import DictationBar from "/framework/ux/Dictate/DictationBar.js";
+ import Socket from "/framework/dev/Socket/Socket.js";
+ import ChatView from "./ChatView.js";
++import Recite from "/framework/audio/Recite/Recite.js";
++import * as Wire from "/framework/ext/Session/Session.js";
++import * as report from "/framework/ext/Chat/v2/report.js";
+ 
+ View.stylesheet(import.meta, "rail.css");
+ 
+@@ -33,6 +36,30 @@ export default class Sheet extends View {
+ 		this.watch_nav();
+ 		this.restore();
+ 		this.keep_on_reload();
++		this.read_aloud();
++	}
++
++	/* READ-ALOUD ON EVERY PAGE (dictation-v3, 2026-11-01): the owner's phone never constructed Recite, whichever chat view drew the
++	 * sheet. So the Sheet, which every page has, makes Recite and follows the current voice session's live wire itself: each new
++	 * smart-seat reply is read, from the stream as it is written. Recite drops a reply it already read, so the chat's own hook
++	 * (ux/Dictate/chat.js) reading the same reply does no harm. */
++	read_aloud(){
++		// Recite's milestones go to the session file too (a log line each): the one record a phone is sure to reach.
++		Recite.on_trace ??= (kind, f) => { if (/^(loaded|sheet|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
++		const first = chat.current?.() ?? null;
++		if (first) report.init(first);   // before Recite starts, so its "loaded" line has a session to go to
++		const recite = Recite.shared;
++		let followed = null, stop = null;
++		const follow = () => {
++			const session = chat.current?.() ?? null;
++			if (session === followed) return;
++			followed = session; stop?.(); stop = null;
++			if (session) report.init(session);
++			recite.trace("sheet follows", { session });
++			if (session) stop = Wire.stream(session, ev => recite.from_wire(ev));
++		};
++		chat.on_change?.(follow);
++		follow();
+ 	}
+ 
+ 	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index e4133afaf..506157728 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -209,6 +209,8 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 				: Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
+ 		});
+ 	});
++	// Recite's milestones also go to the session file (a log line each), the one record a phone is sure to reach (dictation-v3, 2026-11-01).
++	Recite.on_trace ??= (kind, f) => { if (/^(loaded|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
+ 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
+ 
+ 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
+@@ -243,6 +245,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		}
+ 		if (!line?.chat) return void draw_task(line);
+ 		if (line.chat.prompt && line.chat.from?.kind === "owner") prompt_at.set(line.chat.prompt, line.chat.at);
++		if (line.chat.from?.kind === "assistant") Recite.shared.trace("reply seen", { from: line.chat.from.id, at: line.chat.at, new: Date.parse(line.chat.at) > (watching_since ?? 0), watching_since: watching_since && new Date(watching_since).toISOString() });   // before any filter
+ 		if (line.chat.from?.kind === "assistant" && Date.parse(line.chat.at) > (watching_since ?? 0)) { health_answer(line); Recite.shared.from_wire({ kind: "line", line }); }   // read aloud from whichever path drew it (the wire OR the 1.5 s file poll); Recite skips a reply it already read   // as times, never as text: Servex writes "…-05:00", the browser "…Z"
+ 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
+ 		if (echo){
