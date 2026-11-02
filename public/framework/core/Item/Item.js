@@ -138,6 +138,25 @@ export class Item extends Events(Object) {
 	// `apply()` below).
 	set(a, b){ return this.apply(Array.isArray(a) || is_plain(a) ? a : { [a]: b }); }
 
+	/* Clear data keys, saved as ONE line `{"unset":["color"]}` (`unset()` with Store.marked_lines), which a replay reads back by
+	   calling this again (spec T5: `set({color: undefined})` used to save `{"set":{}}`, so the old value came back on reload;
+	   set_one now sends an undefined value here). Arrays are flattened, so the line's own value is the one argument. A key that is
+	   not in data is skipped, and nothing at all is saved when none was. A `set_<key>` hook is NOT run (doc/hooks.md). */
+	unset(...keys){
+		const gone = [];
+		for (const key of keys.flat()){
+			if (typeof key !== "string" || skipped(key) || !Object.hasOwn(this.data, key)) continue;
+			const old = this.data[key];
+			delete this.data[key];
+			if (old instanceof Item && old.parent === this && old._slot === key){ delete old.parent; delete old._slot; }
+			gone.push([key, old]);
+		}
+		if (!gone.length) return this;
+		this.emit("delta", { [Store.marked_lines ? "unset()" : "unset"]: gone.map(([key]) => key) }, this);
+		for (const [key, old] of gone) this.emit_safely("change", key, undefined, old);
+		return this;
+	}
+
 	// A button's verb (browser): run `this[verb](args)` now so the page redraws at once, but record the VERB —
 	// `{start:{}}` — not the `set` lines it made, so the item tool's writer (Store.flush) saves it like an agent's call.
 	// A verb that refused (warned, changed nothing) records nothing. `Store.mute(this)` is what keeps the `set` lines out:
@@ -258,6 +277,9 @@ export class Item extends Events(Object) {
 		const hook = this.hook_for(key);
 		if (hook) return void hook.call(this, value);
 
+		// An undefined value clears the key (JSON has no undefined: `{"set":{"k":undefined}}` would be saved as `{"set":{}}`).
+		if (value === undefined) return void this.unset(key);
+
 		// An old line named a list member by its id alone (`{"c3":{…}}`, what Store.hops wrote before every hop named its
 		// list): still replayed, from the first list that has it, as get() used to; new lines name the list. It warns only
 		// when the list could have been named (a Page's `pages` cannot be yet, so the page tool's `{"<tab>":{…}}` is current).
@@ -314,7 +336,7 @@ export class Item extends Events(Object) {
 		try { result = raw.call(this, value, old); } finally { running.delete(key); }
 		const now = this.get_one(key);
 		if (now !== old){
-			this.emit("delta", { set: { [key]: now } }, this);
+			this.emit("delta", now === undefined ? { [Store.marked_lines ? "unset()" : "unset"]: [key] } : { set: { [key]: now } }, this);
 			this.emit_safely("change", key, now, old);
 		}
 		return result;
