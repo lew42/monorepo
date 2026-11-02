@@ -28,3 +28,5 @@
 {"log":{"at":"2026-11-02T10:41:51-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T16:41:51.889Z"}
 {"log":{"at":"2026-11-02T10:41:54-06:00","heartbeat":"answered","msg":"Done and idle. I logged the landing on the task and sent the 3-line report to vscode-mastermind. All four brief items are committed on `michael/dev`, with no worktree, `review.mjs` or `merge.mjs`. `di"}}
 {"log":{"at":"2026-11-02T10:42:50-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T16:42:50.854Z"}
+{"stop":{"at":"2026-11-02T11:47:41-06:00","why":"dropped: owner mastermind-loose-ends-red is dormant and the task is untouched"}}
+{"log":{"at":"2026-11-02T11:47:47-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
