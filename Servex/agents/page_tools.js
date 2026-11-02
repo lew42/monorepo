@@ -1324,7 +1324,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		const was = verb ? steady(print(root())) : null;
 		put(nest(at.target, { ...stamp_ids(body, ids), by, ts: stamp() }), !!tasky);
 		// THE REAL CHAT LIST (core/Session/Chat): a {place} with a cleaned text also updates that sentence's text on its Prompt, in place.
-		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { const m = ChatWriter.place(root(), body.place); if (m){ const keep = line; put({ ...m, by, ts: stamp() }); line = keep; } } catch {}
+		if (kind === "Session" && !at.target.length && is_plain(body.place)) try { const m = ChatWriter.place(root(), body.place); if (m){ const keep = line; put({ ...m, by, ts: stamp() }); line = keep; } } catch (e) { console.error(`item: a {place} was written but not mirrored into the chat list (${at.file}): ${e.message}`); }
 		if (verb && steady(print(root())) === was) unchanged = `"${verb}" was written but changed nothing: the task (or the child it names) is in a state that refuses it, or no child has that id`;
 	} else if (size === undefined) size = size_of(at.file);
 	// An approve line starts a templated task's agent (TaskLoop.launch); never awaited into the answer, a failure never reaches the tool.

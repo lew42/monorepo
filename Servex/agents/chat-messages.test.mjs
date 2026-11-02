@@ -134,13 +134,15 @@ try {
 	await run_item({ path: URL_, delta: { place: { re: owner_ats[1], to: "same", edit: "improve", text: "On my phone (an iPhone)." } } }, { caller: "voice-assistant-t" });
 	await run_item({ path: URL_, delta: { place: { re: owner_ats[0], to: "same", edit: "both", text: "The tab bar is broken!" } } }, { caller: "voice-assistant-t" });
 	await run_item({ path: URL_, delta: { place: { re: owner_ats[2], to: "card", where: "beside", edit: "nothing" } } }, { caller: "voice-assistant-t" });
+	const no_match = await run_item({ path: URL_, delta: { place: { re: "2026-01-01T00:00:00.000-06:00", edit: "improve", text: "No such sentence." } } }, { caller: "voice-assistant-t" });
 	const after = replay(), raw = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
 	check("a {place} improve updates the sentence's text in its Prompt, in place: same position, raw words kept, V1's {place} line still written", () => {
 		assert.deepEqual(after.map(m => m.id), before.map(m => m.id), "no message moved, none added");
 		assert.equal(after[0].cleaned, "The tab bar is broken! On my phone (an iPhone).", "two improves on two sentences merge");
 		assert.equal(after[0].said, "The tab bar is broken. On my phone.", "the raw words stay");
 		assert.equal(raw.filter(l => l.place).length, 3, "every {place} line is written as before");
-		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\") adds no chat line");
+		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\"), or one naming no sentence, adds no chat line");
+		assert.ok(no_match.ok, "a {place} naming no sentence is still written for V1");
 	});
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
