@@ -18,6 +18,12 @@ Until then: one line per task below, and when one gets a real task folder, link 
   - **Method docs already exist** in `doc/method/` folders: `core/App`, `Item`, `List`, `Page`, `Router`, `Session`, `Shell`, `Sidebar`, `View` and `ui`. A per-method page could pull from them.
   - **A rougher first version:** a debug view that loops over any object's properties.
   - **What it's for:** the dictation flow's state (dictating, the floor, Recite playing, a reply queued) shown as live objects you can click through to their classes. The owner: "seeing as much of that structure is important."
+- **Task cost when a task moves between sessions.**
+  - **The problem:** when a task is moved to a module, or picked up by a second session, its cost must not all roll up to the session that first filed it.
+  - **Idea:** each task log line carries the session id and its cost, so a task's cost is split by session. A session's total is the sum of its own lines.
+  - **Today:** node stamps `by` and `ts` on every item-tool line, and Servex writes the cost.
+  - **Another idea:** a server-side instance adds each new line's cost in memory instead of recomputing.
+- **Fewer Servex tools: mostly the item tool.** The owner has asked several times for the tool list to shrink. The item tool already reaches any property, list or method of a task or session, so most single-purpose tools could become item deltas. Audit which tools still need to exist.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
   - **How it picks tests:** the module folder, or a hand-written watch list per test file. Static dependency analysis can come later.
