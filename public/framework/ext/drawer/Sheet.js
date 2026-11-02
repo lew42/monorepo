@@ -2,7 +2,7 @@
 import { View, div, span, button, a, img } from "/framework/core/View/View.js";
 import grip from "/framework/ext/grip/grip.js";
 import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
-import chat, { session_switcher as chat_session_switcher } from "/framework/ux/Dictate/chat.js";
+import chat, { session_switcher as chat_session_switcher, JOIN_IDLE_MS } from "/framework/ux/Dictate/chat.js";
 import Inbox from "./inbox.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
@@ -27,6 +27,7 @@ export default class Sheet extends View {
 
 	// ⚠ see doc/rail-notes.md#c5-render
 	render(){
+		try { this.read_aloud(); } catch (e){ console.error("Sheet: read-aloud did not start", e); try { Recite.shared.trace("sheet: read-aloud failed", { error: String(e?.message ?? e) }); } catch {} }   // first, so nothing below can keep it from starting
 		this.ac(this.compact === false ? "drawer-rail-full" : "drawer-rail-compact");
 		this.home_button();
 		this.ai_button();
@@ -36,7 +37,6 @@ export default class Sheet extends View {
 		this.watch_nav();
 		this.restore();
 		this.keep_on_reload();
-		this.read_aloud();
 	}
 
 	/* READ-ALOUD ON EVERY PAGE (dictation-v3, 2026-11-01): the owner's phone never constructed Recite, whichever chat view drew the
@@ -49,17 +49,32 @@ export default class Sheet extends View {
 		const first = chat.current?.() ?? null;
 		if (first) report.init(first);   // before Recite starts, so its "loaded" line has a session to go to
 		const recite = Recite.shared;
-		let followed = null, stop = null;
-		const follow = () => {
-			const session = chat.current?.() ?? null;
+		let followed, stop = null;   // undefined, not null: the first answer, even "no session", is logged
+		const listen = (session, why) => {
 			if (session === followed) return;
 			followed = session; stop?.(); stop = null;
 			if (session) report.init(session);
-			recite.trace("sheet follows", { session });
+			recite.trace("sheet follows", { session, why });
 			if (session) stop = Wire.stream(session, ev => recite.from_wire(ev));
 		};
-		chat.on_change?.(follow);
-		follow();
+		// No session on this page (a fresh tab, the Recite demo): follow the voice session used most recently, if it had a line within
+		// JOIN_IDLE_MS (the same rule chat.js uses to join it), so a reply is still read (the owner, 2026-11-01). The page's own session, once it has one, takes over.
+		const follow = async () => {
+			const own = chat.current?.() ?? null;
+			if (own) return listen(own, "this page's session");
+			let rows = [];
+			try { rows = await Wire.recent_project({ limit: 5 }); } catch (e){ recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
+			if (chat.current?.()) return listen(chat.current(), "this page's session");
+			const recent = rows.filter(r => /^v-/.test(r.session ?? "") && Date.now() - Date.parse(r.last_at ?? r.at ?? 0) < JOIN_IDLE_MS)
+				.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
+			listen(recent?.session ?? null, recent ? "the most recent voice session" : "no voice session within JOIN_IDLE_MS");
+		};
+		this.follow_session = () => follow().catch(e => recite.trace("sheet: follow failed", { error: String(e?.message ?? e) }));
+		chat.on_change?.(this.follow_session);   // every session change: Switch session, New session, a session started by the first sentence
+		this.follow_session();
+		// A session can be attached in ways that broadcast nothing to this module (another mount's controller, a resume in flight):
+		// a 5 s look at the page's session catches them all. It reads one variable; the follow itself only runs on a change.
+		setInterval(() => { const now = chat.current?.() ?? null; if (now && now !== followed) this.follow_session(); }, 5000);
 	}
 
 	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
@@ -447,7 +462,11 @@ export class SheetPanel extends View {
 			placeholder: this.card_ref ? "talk into this card" : "say something",
 		});
 		this.panel = this.mount.panel;
+		this.follow_session?.();   // the chat just mounted: it may have attached a session
 		DictationBar.mount(this.panel);   // the sheet's mic footer (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
+		const bar = Recite.shared.bar.el;   // the read-aloud bar: DictationBar puts it above the mic; if it found no composer, it goes at the panel's foot
+		if (!bar.isConnected) this.$slot.el.append(bar);
+		requestAnimationFrame(() => { const r = bar.getBoundingClientRect(); Recite.shared.trace("sheet: bar", { placed: bar.isConnected, height: Math.round(r.height), top: Math.round(r.top), screen: innerHeight }); });
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
