@@ -1,0 +1,180 @@
+diff --git a/Servex/agents/session-smart.md b/Servex/agents/session-smart.md
+index feeaf58c9..f972c1b9a 100644
+--- a/Servex/agents/session-smart.md
++++ b/Servex/agents/session-smart.md
+@@ -53,6 +53,8 @@ Presence and decisions only, one line each: never step-by-step progress. When yo
+ 
+ **How you answer: structured, with context first** (the owner, 2026-10-04: "structured content beats verbose readable content ... put the context in a header above it"). Your final text in each turn is posted to the owner as your reply (markdown renders). A quick one-line comment is fine for a quick thing. Anything more: lead with the context it is about (a short heading, or a tag/link to the page, class or task: `/framework/core/Page/`, `@task-mastermind-x`), then the answer under it: a big heading per major part, smaller ones only if needed, bullets only if needed, a few words each. Don't repeat the context if it was just given in the last minute. When answering a question in chat, quote it first in a short `>` line (a question he asked is a Question card on the Prompt and its answer goes inside it: see "Chat v2" below). Never a paragraph the owner has to read to find out what you're talking about. Use `session_line` only for a refined version of the owner's words.
+ 
++**Long lookup? Fire the thinking cue** (owner, 2026-11-02): the phone plays no tone after a plain line. Before a lookup that will take several seconds, write `item({path: <session>, delta: {thinking: {by: "smart"}}})`; the phone then plays a soft tone, repeating until your reply arrives ([audio/Recite](/framework/audio/Recite/)).
++
+ **Your replies may be read aloud** (the owner, 2026-11-01): the phone reads each reply with a voice ([audio/Recite](/framework/audio/Recite/)), often while the owner walks. So: no tables (a short list instead), no bare paths, ids or URLs in a sentence (name the page; put the link on its own line), and spell out what reads badly (write "about two dollars", not "~$2"). Headings and short bullets are fine; Recite reads them as sentences.
+ 
+ **Never prompt the owner to continue** (the owner, 2026-10-01: "why do you keep saying go on… you're not being very helpful"). Don't write "Go on", "Still listening", "Keep going" or "Go on: you were about to say…", or ask what an unfinished sentence meant. A thought that ends mid-sentence is NOT a cue: the owner is still thinking. Say nothing (an empty reply) and wait for the rest. If you have nothing useful to add, think about what WOULD help: a link to the page or file they mentioned, a card from the card library, the task it belongs to. If none fits, stay silent. An unhelpful line should never reach the chat.
+diff --git a/public/framework/audio/Recite/Recite.css b/public/framework/audio/Recite/Recite.css
+index 9cf05b6b5..336f333cd 100644
+--- a/public/framework/audio/Recite/Recite.css
++++ b/public/framework/audio/Recite/Recite.css
+@@ -32,8 +32,8 @@
+ 	.audio-recite-btn.is-open { color: var(--prime); }
+ 	/* The resume control: the same Play button, filled while state is `heard`/`paused`, so it reads as a
+ 	   distinct "tap to resume" rather than a generic play/pause toggle. */
+-	.audio-recite-btn.is-resume { background: var(--prime); color: var(--prime-ink); }
+-	.audio-recite-btn.is-resume:hover { background: var(--prime); color: var(--prime-ink); }
++	.audio-recite-btn.is-resume { background: var(--prime); color: #1a1008; }   /* --prime is the same orange in light and dark, so the ink is one fixed dark (about 9:1); --prime-ink is orange in dark mode and vanished */
++	.audio-recite-btn.is-resume:hover { background: var(--prime); color: #1a1008; }
+ 
+ 	.audio-recite-track {
+ 		position: relative;
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index 76e0bc93f..f61775166 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -45,8 +45,8 @@ export default class Recite extends Part {
+ 	turn_wait_ms = 2500;    // no-flood: how much quiet before a held reply starts (2-3 s, the owner's own range, 2026-11-02; was 1.5 s) — BargeIn.quiet_ms (the auto-resume-after-a-barge-in window) is a separate field with the same new default, not merged into this one: several existing tests set it directly for speed, and the two timers gate different moments (starting a fresh reply vs. resuming a cut one)
+ 	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
+ 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
+-	thinking_cue = true;    // a short, subtle tone once the owner stops speaking and a reply is pending, again cue_repeat_ms later if it still has not started; false turns it off
+-	cue_repeat_ms = 2000;   // thinking cue: how long to wait for the reply before the second, and last, cue
++	thinking_cue = true;    // a short, subtle tone fired by start_thinking() (the voice agent's long-lookup signal), repeated every cue_repeat_ms until the reply starts; false turns it off
++	cue_repeat_ms = 2000;   // thinking cue: the gap between repeats while the agent is still working
+ 	cue_timer = null;       // thinking cue: expect_reply()'s own pending timeout for the second cue
+ 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
+ 	pending_updates = [];   // no-flood: agent updates (a reply whose from.id matches AGENT_ID — not "smart", and not "fast"/"revise"/"card" either) held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
+@@ -261,6 +261,7 @@ export default class Recite extends Part {
+ 			if (!Recite.AGENT_ID.test(chat.from.id ?? "")) return;   // "fast", "revise" (every voice revision), "card": not an agent update, ignored exactly as before this task (review finding, read-aloud-b 2026-11-02 — revise posts on every dictated sentence, the very flood this task was meant to stop)
+ 			return this.agent_update(chat.text, chat.at, chat.from.id);
+ 		}
++		if (line.thinking?.by === "smart"){ if (this.auto) this.start_thinking(); return; }   // the voice agent's own "long lookup" signal: the only thing that plays the cue
+ 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
+ 		if (add){
+ 			if (add.by === "smart"){ const out = this.final(add.text, add.id); this.flush_updates(); return out; }
+@@ -274,18 +275,22 @@ export default class Recite extends Part {
+ 	}
+ 
+ 	/** The owner's line just landed on the wire: a direct answer is now expected (`cue_pending` — no-flood's
+-	 *  `agent_update()` reads this to decide whether to hold an update, whether or not the thinking cue is even
+-	 *  on). When `thinking_cue` is also on, a short, subtle tone plays now, and once more about `cue_repeat_ms`
+-	 *  later if the reply still has not arrived — then it stays quiet. A fresh line (another message before the
+-	 *  first reply showed up) restarts the sequence from here; `partial()`/`final()` cancel it the moment real
+-	 *  reply text arrives (dictation-v3, 2026-11-02; decoupled from `thinking_cue`, read-aloud-b 2026-11-02 —
+-	 *  no-flood held nothing with the cue off, since `cue_pending` was only ever set while scheduling the tone). */
++	 *  `agent_update()` reads this to decide whether to hold an update). No tone here. */
+ 	expect_reply(){
++		clearTimeout(this.cue_timer); this.cue_timer = null;
++		this.cue_pending = true;
++	}
++
++	/** The voice agent marked itself working (a `{thinking:{by:"smart"}}` session line): the cue replaces a LONG
++	 *  silence, so only this plays it (owner, 2026-11-02: after every line was annoying). Plays now, then every
++	 *  `cue_repeat_ms` until `cancel_cue()` (the reply started). `thinking_cue = false` turns it off. */
++	start_thinking(){
+ 		clearTimeout(this.cue_timer);
+ 		this.cue_pending = true;
+ 		if (!this.thinking_cue) return;
+ 		this.play_cue();
+-		this.cue_timer = setTimeout(() => { if (this.cue_pending) this.play_cue(); }, this.cue_repeat_ms);
++		const again = () => { if (!this.cue_pending) return; this.play_cue(); this.cue_timer = setTimeout(again, this.cue_repeat_ms); };
++		this.cue_timer = setTimeout(again, this.cue_repeat_ms);
+ 	}
+ 
+ 	/** The reply arrived, or a fresh line replaced the one being waited on: stop waiting. */
+diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
+index 40d8ebe42..d33717258 100644
+--- a/public/framework/audio/Recite/Recite.test.mjs
++++ b/public/framework/audio/Recite/Recite.test.mjs
+@@ -377,7 +377,7 @@ if (Recite) test("Recite + BargeIn: owner_spoke() drops a Whisper final heard ou
+ // The thinking cue (dictation-v3, 2026-11-02): a short tone once the owner's line lands, again cue_repeat_ms later
+ // if the reply still has not started, then quiet. cue_repeat_ms is shortened here — the logic is the same at any
+ // interval, and the real 2 s default would make this test needlessly slow.
+-if (Recite) test("Recite: a thinking cue plays once, again if the reply has not started, then stays quiet", async t => {
++if (Recite) test("Recite: a thinking cue needs the explicit thinking line, repeats, and stops on the reply", async t => {
+ 	const r = new Recite({ voice: fake_voice });
+ 	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+ 	r.barge.on = false;
+@@ -386,13 +386,18 @@ if (Recite) test("Recite: a thinking cue plays once, again if the reply has not
+ 	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+ 
+ 	r.from_wire({ kind: "line", line: { chat: { text: "what's the weather like", at: new Date().toISOString() } } });
+-	t.eq(cues.length, 1, "the cue plays once, right away");
++	await new Promise(res => setTimeout(res, 50));
++	t.eq(cues.length, 0, "a plain line plays no cue, however long it waits");
+ 
+-	await new Promise(res => setTimeout(res, 35));
+-	t.eq(cues.length, 2, "and again once the reply still has not started");
++	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
++	t.eq(cues.length, 1, "the explicit thinking line plays the cue right away");
++	await new Promise(res => setTimeout(res, 50));
++	t.ok(cues.length >= 3, "and repeats while the agent stays working");
+ 
+-	await new Promise(res => setTimeout(res, 35));
+-	t.eq(cues.length, 2, "then it stays quiet — no third cue");
++	r.from_wire({ kind: "stream", role: "smart", text: "Found it" });
++	const n = cues.length;
++	await new Promise(res => setTimeout(res, 50));
++	t.eq(cues.length, n, "the reply arriving stops it");
+ 	return r;
+ });
+ 
+@@ -405,7 +410,7 @@ if (Recite) test("Recite: a thinking cue stops the moment the reply starts", asy
+ 
+ 	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+ 
+-	r.from_wire({ kind: "line", line: { chat: { text: "what's the weather like", at: new Date().toISOString() } } });
++	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
+ 	t.eq(cues.length, 1, "the cue plays once");
+ 
+ 	r.from_wire({ kind: "stream", role: "smart", text: "It is sunny" });   // the reply starts arriving
+@@ -427,7 +432,7 @@ if (Recite) test("Recite: a thinking cue is skipped while a reply is already pla
+ 	await new Promise(res => setTimeout(res, 20));
+ 	t.eq(r.state, "playing", "the earlier reply is playing");
+ 
+-	r.from_wire({ kind: "line", line: { chat: { text: "a follow-up line", at: new Date().toISOString() } } });
++	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
+ 	t.eq(cues.length, 0, "no cue while something is already playing");
+ 	return r;
+ });
+@@ -441,7 +446,7 @@ if (Recite) test("Recite: thinking_cue = false turns the cue off", async t => {
+ 
+ 	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+ 
+-	r.from_wire({ kind: "line", line: { chat: { text: "what's the weather like", at: new Date().toISOString() } } });
++	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
+ 	t.eq(cues.length, 0, "thinking_cue = false means no cue at all");
+ 	return r;
+ });
+diff --git a/public/framework/audio/Recite/ai/files.jsonl b/public/framework/audio/Recite/ai/files.jsonl
+index c88e54555..bb0d932d2 100644
+--- a/public/framework/audio/Recite/ai/files.jsonl
++++ b/public/framework/audio/Recite/ai/files.jsonl
+@@ -3,3 +3,4 @@
+ {"file":"log.jsonl"}
+ {"file":"log.jsonl","gone":true}
+ {"file":"log.jsonl"}
++{"file":"log.jsonl","gone":true}
+diff --git a/public/framework/audio/Recite/doc/architecture.md b/public/framework/audio/Recite/doc/architecture.md
+index 65ca46e01..2e8e2386d 100644
+--- a/public/framework/audio/Recite/doc/architecture.md
++++ b/public/framework/audio/Recite/doc/architecture.md
+@@ -28,7 +28,7 @@ Built 2026-11-01 in the voice-recite task ([requirements](/framework/ai/sessions
+   - *Known trade-off, not fixed here:* `echo_active()`'s guard window also starts when playback pauses for an ordinary barge-in (`set("heard")`), not only when a chunk finishes — so the owner's own genuine speech right after interrupting Recite is briefly judged against the raised `echo_threshold_mult` floor too. Harmless for the fuzzy echo match (real words rarely score ≥ 60% against the sentence just cut off) and bounded to `echo_guard_ms` (1500 ms), but it can delay `schedule_resume()`'s quiet-window push by that long. Left as is rather than tracking "ended by chunk" vs. "ended by pause" separately, since the bound is small and the behavior (reading resumes a little later, never earlier) already errs the safe way.
+   - *Open item, not built here:* every guard above only stops BargeIn acting on a phantom/echo line — it still reaches the chat as a sent message, since posting the owner's transcribed line is `ux/Dictate/`'s send path, a file this task never touches. Filed as a task on the session record (owner `mastermind-ink-check`, who owns `ux/Dictate/`), not built here: gate the send on the same `BargeIn.noise(text)` / `echo(text)` checks this file already exports.
+   - *Scope note:* `recent_peak` decays continuously (×0.995 per `hear()` frame) including mid-transcription, so a long Whisper transcription could in principle decay it under `near_silent` for a real but quiet line. Not reproduced; a real-phone check beats a synthetic one here.
+-- **The thinking cue is driven by the wire, not the mic.** The owner's own line landing on `from_wire` (any non-assistant `chat.text`, typed or spoken) is "a reply should be coming": `expect_reply()` sets `cue_pending` right away — no-flood's `agent_update()` reads that flag to decide whether to hold an update behind the coming answer, whatever `thinking_cue` is set to — and, only when `thinking_cue` is also on, plays a short generated tone (`play_cue()`, a plain Web Audio oscillator — never Kokoro, never an asset file) right away, and once more `cue_repeat_ms` (2000) later if `cue_pending` is still true. `partial()`/`final()` call `cancel_cue()` the moment real reply text arrives. `play_cue()` is skipped (but still traced) while `state === "playing"`; `thinking_cue = false` turns the tone off, never the holding (fixed, read-aloud-b 2026-11-02: `cue_pending` used to only ever be set while scheduling the tone, so no-flood silently did nothing with the cue off).
++- **The thinking cue is fired by the voice agent, not by the owner's line (changed 2026-11-02).** The owner's own line landing on `from_wire` only calls `expect_reply()`, which sets `cue_pending` (no-flood's `agent_update()` reads it to hold an update behind the coming answer) and plays nothing. The tone (`play_cue()`, a plain Web Audio oscillator, never Kokoro) comes from `start_thinking()`, run when a `{thinking:{by:"smart"}}` line arrives: it plays at once and every `cue_repeat_ms` (2000) while `cue_pending` stays true. `partial()`/`final()` call `cancel_cue()` when real reply text arrives. `play_cue()` is skipped (but traced) while `state === "playing"`; `thinking_cue = false` turns the tone off, never the holding.
+   - *Why "any non-assistant `chat.text`" is close enough:* `ext/Chat`'s own wire only ever stamps `from.kind` `"owner"` or `"assistant"` (grepped across every `.js` there) — no third role to slip through. Deliberately NOT gated on `barge.on` (the mic-listening toggle is a different question from "chime once a line was sent"); gated on `auto` alone.
+ - **Highlight dropout: `find()` was a strict positional match, so markdown noise broke it outright.** Raw, not-yet-rendered markdown (a link's bracket text followed by its own literal URL) interposes extra words the spoken text never had; once `find()` returned null, nothing retried it until the next sentence's key arrived, so the highlight stayed dark. Two fixes: `find()` now matches `want` as a **subsequence** (`ReciteHighlight.subsequence()`, bounded to `want.length * 2 + 20` positions) instead of requiring an unbroken run, and a genuine miss (`ranges === null`) now retries every `RETRY_MS` (300 ms) in `draw()`, tracing `"highlight: not found"` once per distinct miss (`logged_key`) rather than once per retry. A candidate start must still match the first TWO words contiguously (`find()`), not just the first, so a common word ("the") can't anchor the match somewhere wrong. Proved by 4 tests: markdown noise skipped, a miss retried and found, a re-render reconnects with zero dropout, a mention chip's own icon word doesn't break the match.
+ - **Lit words (item 24), same file, same merge:** `draw()` sets three disjoint CSS Custom Highlights instead of one wash over the whole sentence — `recite-unread` (not reached yet, muted), `recite-read` (already said, stays lit as later words play), `recite-word` (current, brightest) — the same `.is-said`/`.is-now` scheme `ReciteBar.js`'s karaoke line already used. *Scope:* "muted until read" is per-sentence (the word playhead within the sentence Recite is on), not the whole reply dimming until Recite reaches it — that would need a signal into the bubble's own base styling, which this DOM-free `CSS.highlights` approach cannot give; a whole-reply dim is a bubble-level change (`ext/Chat`), not this file. Shown at 400 and 1200 in `shots/piece-highlight-sheet-*.png` (at 1200 the AI surface is a docked panel, not an overlay sheet — the framework's own ≥52em breakpoint, same feature either way).
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+index afa2bdd1e..100baa152 100644
+--- a/public/framework/audio/Recite/readme.md
++++ b/public/framework/audio/Recite/readme.md
+@@ -21,7 +21,7 @@ Tapping a reply bubble's text (or its ▶/⏸) plays or pauses that bubble — f
+ 
+ **Echo settings:** `recite.echo_guard_ms` (default 1500) is how long after playback stops the echo guard below still applies; `recite.barge.echo_threshold_mult` (default 1.6) raises the barge-in loudness floor during that guard, so the voice itself and a cough right after it don't hold a reply or fire the fast trigger; `recite.barge.near_silent` (default 0.045) is the own-mic peak level below which a Whisper final is treated as hallucinated, not real speech.
+ 
+-**The thinking cue:** `recite.thinking_cue` (default `true`) plays a short, subtle generated tone once the owner's line lands and a reply has not started yet, again `recite.cue_repeat_ms` (default 2000 ms) later if it still has not — then it stays quiet. Set `thinking_cue = false` to turn it off.
++**The thinking cue:** a short, subtle generated tone that replaces a long silence. It plays only when the voice agent fires it, by writing the session line `{"thinking":{"by":"smart"}}` (`item({path: <session>, delta: {thinking: {by: "smart"}}})`); `Recite.start_thinking()` then plays it and repeats every `recite.cue_repeat_ms` (default 2000 ms) until the reply starts. A plain owner line plays nothing. `recite.thinking_cue = false` turns it off.
+ 
+ In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
+ 
