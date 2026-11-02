@@ -89,6 +89,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 - ✅ Tasks and child sessions written as Refs in `session.messages` by Servex (2026-11-02, chat-model step 3): `page_tools.js`'s `tasks.add`, `Server/SessionRecord.mjs`'s `add_ref`.
 - ✅ List view hooks: `ext/Chat/list/ChatList.js` draws the list through `DefaultView.place()` (chat-model step 4).
 - ✅ `Prompt.raw`, the sent/working marks on the message, and Prompt as a card (`kind`/`items`) (2026-11-02, chat-model steps 5–6). `working` is still written on whichever Prompt (task or message) an instruction names; no caller does yet.
+- ✅ V1 side by side, read-only (2026-11-02, chat-model step 8): `V1Bubbles.js` turns `session.messages` into the bubble list V1 draws; `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way, and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. What it found, and the switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
 - ⬜ Question and Card as messages, when a writer needs them.
 - ⬜ remove the old `said` alias once Chat V3 reads `sent.smart` (and `raw`) directly, instead of `ext/Chat/v3/ChatV3.js:163`'s `p.cleaned || p.said`.
 - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").

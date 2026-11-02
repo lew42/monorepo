@@ -33,11 +33,15 @@ Chat V2 (`ext/Chat/v2/ChatV2Model.js:20`) reads `chat` only to remember which Pr
 
 `core/Session/Chat` ([readme](../readme.md)) holds the conversation as one ordered list of real Items, by id: `session.sentences` (the raw words), `session.messages` (`Prompt` holds its sentence ids and the cleaned text per sentence; `Reply` is anchored by `re.to`). Order is the list's order and never changes. Servex dual-writes it: `write()` (line 679) calls `mirror_chat()` (267) after every `{chat}` line, via `ChatWriter.js`, since b35ee6370; the fast seat's `{place}` improve is mirrored as an in-place `clean` edit since 9165c4e6c (`ChatWriter.place`). A `{place}` move (`to`, `where`) is deliberately not mirrored.
 
-## The plan for V1 to switch over (not yet)
+## How V1 switches over (not yet; builder.md step 8)
 
-1. V2 and V3 read `messages` first ([views-on-messages.md](views-on-messages.md)).
-2. Then V1's `Widget.js` draws the list instead of `{chat}` / `{place}`, and its `waiting` / `orphans` machinery goes.
-3. Then the other readers above move one by one (read-aloud, timeline, mobile).
-4. Last, Servex stops writing `{chat}` and `{place}`, and old sessions are migrated with `node Server/ChatToMessages.mjs`.
+Each step only starts once `node Server/ChatV1Compare.mjs` (read-only; `core/Session/Chat/V1Bubbles.js` is the adapter, `compare.txt` beside this doc's task is one real run) shows the thing that step needs. Run it again before trusting any of these — it moves as more sessions get mirrored.
 
-Until step 4 both are written, and the `{chat}` lines stay exactly as they were. Nothing here is built yet.
+1. **V2 and V3 read `messages` first** ([views-on-messages.md](views-on-messages.md)) — done; nothing for the compare to check here.
+2. **Every session must have a `messages`/`sentences` list, not just the newest ones.** Right now most real sessions have none at all, and even `v-u48msei` only got the tail mirrored (`readme.md`'s "only the tail written after chat-model step 1 landed was ever mirrored"). The compare must show **0 sessions still needing `ChatToMessages.plan()`** among the ones it checks — today it is 4 of 5 (every session but `v-timqv56` needed it, one, `v-u48msei`, even with real `messages` lines, was still missing most of its early tail). Nothing is migrated for real until this step; `--apply` stays unused.
+3. **Ordering must match, not just counts.** `ChatWriter`'s reply-hold rule ("a reply never splits a message in progress", above) places a held reply after the owner's thought ends; V1 draws a `{chat}` line the moment Servex writes it, in file order. On the two biggest real sessions this is the dominant cause of difference in `compare.txt` (`v-sq8y7db`: 1114 of 1247 bubbles differ, `v-9dvbbrn`: 591 of 729) — once one reply lands at a different point, every later bubble index is shifted by one even though no words are lost (see `compare.txt` bubbles 137–166 of `v-9dvbbrn`: the same lines, one position apart, over and over). The compare must show **0 differing bubbles**, not just equal counts, on a session before `Widget.js` can trust the list's order over `{chat}`'s.
+4. **V1's `Widget.js` draws `session.messages` instead of `{chat}`/`{place}`,** and its `waiting`/`orphans` machinery goes — only once a session clears step 3.
+5. **The other ~20 readers move one by one** (read-aloud, timeline, mobile — the list above, "Who draws them").
+6. **Last, Servex stops writing `{chat}` and `{place}`,** and every remaining old session is migrated for real: `node Server/ChatToMessages.mjs --apply` on each file the compare still finds missing `messages`.
+
+Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Nothing here is built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are read-only tools, not a migration.
