@@ -11,3 +11,18 @@
 {"messages":{"m-1793609614447":{"clean":{"s-1793609614447":"First demo sentence about sessions."}}},"by":"voice-assistant-v-urmyr2k","ts":"2026-11-02T08:53:37.696Z"}
 {"sessions":[{"id":"voice-assistant-v-urmyr2k","task":"/framework/ai/sessions/2026/11/02/v-urmyr2k/"}],"by":"voice-assistant-v-urmyr2k","ts":"2026-11-02T08:53:37.697Z"}
 {"react":{"at":"2026-11-02T02:53:38.793-06:00","session":"v-urmyr2k","re":"2026-11-02T02:53:34.444-06:00","emoji":"👍","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-urmyr2k"}}}
+{"log":{"at":"2026-11-02T02:59:38-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-02T03:00:17.126-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-urmyr2k\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T03:00:22.900-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-urmyr2k\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T03:00:22.907-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-urmyr2k\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T03:00:25.224-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-urmyr2k\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T03:00:26.262-06:00","msg":"recite: sheet follows {\"state\":\"idle\",\"auto\":true,\"server\":\"unknown\",\"unlocked\":false,\"session\":\"v-urmyr2k\",\"why\":\"the most recent voice session (Sheet.js loaded)\"}"}}
+{"log":{"at":"2026-11-02T03:09:40-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"chat":{"at":"2026-11-02T03:10:58.388-06:00","session":"v-urmyr2k","path":"/framework/ux/Dictate/","from":{"kind":"system","id":"servex"},"via":"text","text":"Servex restarted; this line wasn't answered. Say it again.","re":"2026-11-02T02:53:34.444-06:00"}}
+{"messages":{"add":{"id":"m-1793610658391","type":"Message","by":"system","at":"2026-11-02T03:10:58.388-06:00","text":"Servex restarted; this line wasn't answered. Say it again.","re":{"to":"s-1793609614447"}}},"by":"servex","ts":"2026-11-02T09:10:58.391Z"}
+{"log":{"at":"2026-11-02T03:16:00-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-02T03:21:03-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-02T03:31:02-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-02T03:36:03-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-02T04:37:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-02T05:37:40-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
