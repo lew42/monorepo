@@ -40,6 +40,7 @@ Each new class gets its readme line and class doc in the same commit (the owner,
 
 ## Queued, in the owner's order (after the voice works on the phone)
 
+0. ⬜ **V3 reads the real chat list** once worktree/chat-messages merges: replay into a Session, draw `session.messages.messages` (Prompt / Reply / Message), live from the Session "delta" event; drop V3's own `{chat}` reading. Contract: [chat-structure.md](chat-structure.md), the branch's core/Session/Chat/readme.md.
 1. ⬜ **Merge worktree/dictation-v3:** the version dropdown, V3 every reply + live reply + brighter draft + no link icon, the karaoke playhead, fast seat off.
 2. ⬜ **V3 paragraphs:** a long dictated Prompt shows as one 50–75 line paragraph; break it at pauses, sentence groups and topic shifts (the gap the mic already measures before each segment, `on_level`).
 3. ⬜ **Read-aloud in the dictation settings gear:** on/off, voice, speed, a Sample button (V3's toolbar gear too).

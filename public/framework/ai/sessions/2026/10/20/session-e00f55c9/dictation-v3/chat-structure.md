@@ -1,6 +1,6 @@
 # One chat list: `session.messages`, written beside the old lines
 
-**Status: a plan, nothing built.** It follows [the owner's decisions](owner-decisions.md) (2026-11-01, 18:04): dual write, order kept, the list belongs to the chat, no migration yet. It reconciles [dictation-map/plan.md](../dictation-map/plan.md) and the data-shapes synthesis ([core/Session/tasks/data-shapes/synthesis.md](/framework/core/Session/tasks/data-shapes/synthesis.md), decisions 2 to 4; fork F3 leans "Prompts and Questions are messages").
+**Status: built** by mastermind-chat-messages on branch `worktree/chat-messages` (commit 28189ccf3), merging after review. Its doc: [core/Session/Chat/readme.md](/framework/core/Session/Chat/readme.md) (on the branch until it merges); a 60-line reference view: `ext/Chat/list/ChatList.js`. What follows is the plan it was built from. It follows [the owner's decisions](owner-decisions.md) (2026-11-01, 18:04): dual write, order kept, the list belongs to the chat, no migration yet. It reconciles [dictation-map/plan.md](../dictation-map/plan.md) and the data-shapes synthesis ([core/Session/tasks/data-shapes/synthesis.md](/framework/core/Session/tasks/data-shapes/synthesis.md), decisions 2 to 4; fork F3 leans "Prompts and Questions are messages").
 
 ## The idea
 
