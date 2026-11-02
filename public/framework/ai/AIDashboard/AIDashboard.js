@@ -4,6 +4,8 @@ import AINow from "../now/AINow.js";
 import DashNeeds from "./DashNeeds.js";
 import DashBig from "./DashBig.js";
 import DashQueue from "./DashQueue.js";
+import InFlightView from "/framework/core/Session/InFlightView.js";
+import QueryClient from "/framework/ext/Query/QueryClient.js";
 import UsageLine from "./UsageLine.js";
 import PageNav from "./PageNav.js";
 
@@ -28,7 +30,16 @@ export default class AIDashboard extends View {
 
 	get classes(){ return "ad-dash"; }
 
+	// The 8 most recently active sessions (the "inflight" query, state active; no one-hour cutoff), then InFlightView over their records: only those with something in flight or waiting show.
+	async in_flight($box){
+		const res = await new QueryClient("inflight", { row: () => {}, stale: () => {} }).ask({ where: [{ field: "state", op: "eq", value: "active" }], sort: { by: "last_activity", dir: "desc" }, limit: 8 }, { timeout: 20000 });
+		if (res.error || !res.rows?.length) return;
+		$box.append(new InFlightView({ all: true, empty_text: "Nothing is in flight.", urls: res.rows.map(r => r.url.replace(/\/?$/, "/") + "session.jsonl") }));
+	}
+
 	render(){
+		const $if = div.c("ad-sec ad-inflight");
+		this.in_flight($if);
 		div.c("ad-grid", () => {
 			div.c("ad-col ad-col-a", () => {
 				div.c("ad-sec ad-say", () => {

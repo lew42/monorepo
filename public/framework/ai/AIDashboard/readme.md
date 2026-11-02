@@ -23,6 +23,7 @@ The five files that drew the old sessions list are retired to [archive/retired/A
 
 | Section | Source | How |
 |---|---|---|
+| In flight (top) | `core/Session/InFlightView.js` over the `session.jsonl` of up to 8 sessions the "inflight" query reports active; sessions with nothing in flight or waiting are left out | one live reader per session; [doc](../../core/Session/doc/in-flight.md) |
 | Say something | `ux/Dictate/chat.js` (`chat(el, {keep:true})`), the one global chat box | reused, not rebuilt |
 | Needs you: waiting | Servex `GET /waiting` (decisions, questions, blockers, asks) | read once |
 | Needs you: ready to merge | Servex `GET /api/ready-to-merge` (`Server/ReadyToMerge.mjs`), the same list as `/framework/ai/merge/` | read once |
