@@ -445,7 +445,7 @@ function page_text(root, file, url, format = "markdown"){
 }
 const CLASS_SOURCES = { Task: ["core/Task/Task.js", "core/Item/Item.js"], Session: ["core/Session/Session.js", "core/Item/Item.js"], Process: ["core/Task/Process.js", "core/Task/processes/index.js", "core/Task/Task.js", "core/Item/Item.js"], Improvements: ["core/Task/Improvements.js", "core/Task/Task.js", "core/Item/Item.js"] };
 // Fields a Session line may carry: its identity, a title, and its tasks.
-const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
+const SESSION_KEYS = ["id", "session", "title", "description", "module", "now", "tasks", "task", "by", "ts", "class", "place", "summary", "messages", "sentences"];   // "place" and "summary": the voice assistant's lines (one per sentence; one per card of 2+ sentences) (ux/Dictate/doc/voice-assistant.md)
 
 // Fields a Task line may carry beyond its getters (plan section 2) and the legacy line keys Task.replay reads.
 const TASK_KEYS = ["id", "now", "title", "description", "state", "expected", "complete", "completion", "priority", "commits", "session", "session_id", "module", "tags", "tasks", "task", "path", "parent", "content", "mode", "waiting_on", "outcome", "why", "steps", "step", "checked_by", "verdict", "brief", "assign", "at", "log", "decision", "review", "note", "by", "ts"];
@@ -877,7 +877,9 @@ export function session_state(task, tasks = []){
 		counts: { direct: counts(task._tasks ?? []), all: counts(all), children: { entries: count_entries(entries), unlinked: agents.filter(a => !counted.has(a.id)).length } },
 		biggest, children: [...entries, ...unlinked], agents: agents.length,
 		// Its own turns bucketed by the task open at the time (Task.attribute); null when no per-turn record exists (a VS Code tab today).
-		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks };
+		by_task: (turns => turns.length ? task.attribute(turns) : null)(task.constructor.turns_resolver?.(uuid) ?? []), data: { ...task.data }, tasks,
+		// The chat (core/Session/Chat): how many messages, and the last 20, each {id, type, by, at, text} (a Prompt's text is its words as said).
+		...(task._messages?.length ? { messages: { count: task._messages.length, last: task._messages.messages.slice(-20).map(m => ({ id: m.id, type: m.wire(), by: m.by, at: m.at, text: String(m.said || m.text).slice(0, 300) })) } } : {}) };
 }
 
 /* The child sessions as a tree, from the entries (Task.sessions_below: a Session entry at any depth of the task tree, under its cause).

@@ -14,6 +14,7 @@ import { clean } from "../../public/framework/ext/Refine/engine.js";
 import { structure } from "../../public/framework/ext/Refine/structure.js";
 import WakePolicy from "./WakePolicy.js";
 import * as PromptLines from "./PromptLines.js";
+import ChatWriter from "./ChatWriter.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.join(HERE, "../..");
@@ -254,6 +255,33 @@ export default class Sessions {
 			prompt_timers: new Map(),
 			map: {}, by_agent: new Map(), held: new Map(), floor_timers: new Map(),
 			thoughts: new Map(), clients: new Map(), buffers: new Map() };
+	}
+
+	/* THE ONE REAL CHAT LIST (core/Session/Chat/readme.md): every V1 {chat} line written here is also written as a line on
+	 * `session.messages` and `session.sentences`, right after it (`write()` below). V1's own lines stay exactly as they were. */
+	get chat_writer(){
+		return this._chat_writer ??= new ChatWriter({ find_sentence: (id, at) => this.find_sentence(this.map[id], at) });
+	}
+	// The owner is mid-thought: a reply now would land between the sentences of one message, so it waits (ChatWriter.flush).
+	mid_thought(s){ return this.speaking(s) || !!this.thoughts.get(s.id)?.lines.length; }
+	mirror_chat(s, chat){
+		for (const l of this.chat_writer.mirror(s.id, chat, { hold: chat?.from?.kind !== "owner" && this.mid_thought(s) })) this.write(s, l);
+	}
+	flush_chat(s){
+		if (this.mid_thought(s)) return;
+		for (const l of this.chat_writer.flush(s.id)) this.write(s, l);
+	}
+	/* The id of the sentence whose `at` is `at`, read back from the session's file (after a restart the writer's memory is empty). */
+	find_sentence(s, at){
+		if (!s || !at) return null;
+		try {
+			const lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n");
+			for (let i = lines.length - 1; i >= 0; i--){
+				if (!lines[i].includes(at) || !lines[i].includes('"sentences"')) continue;
+				try { const a = JSON.parse(lines[i]).sentences?.add; if (a?.at === at) return a.id; } catch {}
+			}
+		} catch {}
+		return null;
 	}
 
 	/* THE SMART SEAT'S WAKE GATE (dictation-wake, 2026-10-25): every smart-seat prompt that carries the owner's words goes through
@@ -556,8 +584,10 @@ export default class Sessions {
 				}
 			} catch { continue; }
 			if (last?.from?.kind !== "owner") continue;
-			this.append(this.disk(s.file), { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
-				text: "Servex restarted; this line wasn't answered. Say it again.", re: last.at } });
+			const line = { chat: { at: now_ms(), session: s.id, path: s.path, from: { kind: "system", id: "servex" }, via: "text",
+				text: "Servex restarted; this line wasn't answered. Say it again.", re: last.at } };
+			this.append(this.disk(s.file), line);
+			for (const l of this.chat_writer.mirror(s.id, line.chat)) this.append(this.disk(s.file), l);   // the real chat list too (core/Session/Chat)
 			n++;
 		}
 		if (n) console.log(`sessions: ${n} session${n === 1 ? "" : "s"} had an unanswered line at restart`);
@@ -646,6 +676,7 @@ export default class Sessions {
 		s.last_at = now_ms();
 		this.save();
 		this.push(s.id, { kind: "line", line });
+		if (line.chat) this.mirror_chat(s, line.chat);   // the real chat list, beside V1's line (its own line has no `chat` key, so no loop)
 	}
 
 	/* THE FAST ASSISTANT'S REFINEMENT (one-dictation, minion-voice-refine, 2026-10-03): a
@@ -1097,7 +1128,7 @@ export default class Sessions {
 	set_floor(s, floor){
 		s.floor = floor;
 		clearTimeout(this.floor_timers.get(s.id));
-		if (floor !== "speaking"){ this.waker.resume(s.id); return this.release(s); }
+		if (floor !== "speaking"){ this.waker.resume(s.id); this.flush_chat(s); return this.release(s); }
 		this.waker.hold(s.id);   // the owner is talking, so no pause is running: the smart seat's pause timer stops until the floor is "done"
 		const t = setTimeout(() => this.set_floor(s, "done"), this.floor_wait_ms);
 		this.floor_timers.set(s.id, t);
@@ -1215,6 +1246,7 @@ export default class Sessions {
 		this.waker.add(s.id, h.lines, typed ? { hold_ms: this.quiet_ms } : { elapsed_ms: quiet ?? 0 });
 		if (mic_off) this.waker.flush(s.id, "the mic went off");
 		else if (quiet != null) this.waker.silence(s.id, quiet);
+		this.flush_chat(s);   // the replies that came in while the owner was talking go below their words now
 		return true;
 	}
 

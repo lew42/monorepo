@@ -93,6 +93,8 @@ export default class SessionTimelineRows {
 		// `place`, `sent` and `quiet` are internal relay/pause bookkeeping: real, but not worth reading by default.
 		if (l.chat !== undefined) return { kind: "chat", at, text: (l.chat?.from?.kind === "owner" ? "You: " : "Reply: ") + clip(l.chat?.text ?? "") };
 		if (l.place !== undefined) return { kind: "plumbing", at, text: "Placed: " + clip(l.place?.text ?? "") };
+		// The real chat list (core/Session/Chat), written beside each `chat` line above: the same words again, so plumbing here.
+		if (l.messages !== undefined || l.sentences !== undefined) return { kind: "plumbing", at, text: "Chat list: " + clip(l.sentences?.add?.text ?? l.messages?.add?.text ?? Object.keys(l.messages ?? {})[0] ?? "") };
 		if (l.sent !== undefined) return { kind: "plumbing", at, text: "Relayed to " + (l.sent?.to ?? "?") + (Array.isArray(l.sent?.re) ? ` (${l.sent.re.length} lines)` : "") };
 		if (l.quiet !== undefined) return { kind: "plumbing", at, text: "Quiet" + (l.quiet?.ms ? ` (${l.quiet.ms}ms)` : "") };
 		const inner = Object.values(l).find(v => v && typeof v === "object" && !Array.isArray(v) && (v.tasks || typeof v.task === "string"));

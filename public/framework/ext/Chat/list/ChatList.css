@@ -1,0 +1,14 @@
+@layer base, theme, site, util;
+
+@layer site {
+	.chatlist { width: 100%; max-width: 46rem; margin-inline: auto; display: flex; flex-direction: column; gap: .6rem; padding: .5rem; box-sizing: border-box; }
+	.chatlist-empty { color: color-mix(in srgb, currentColor 55%, transparent); padding: 1rem; text-align: center; }
+	.chatlist-msg { display: flex; flex-direction: column; gap: .25rem; padding: .55rem .8rem; border-radius: .7rem; max-width: 85%; min-width: 0; overflow-wrap: anywhere; }
+	.chatlist-msg.is-prompt { align-self: flex-end; background: color-mix(in srgb, currentColor 8%, transparent); }
+	.chatlist-msg.is-reply { align-self: flex-start; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+	.chatlist-msg.is-note { align-self: center; font-size: .85em; color: color-mix(in srgb, currentColor 80%, transparent); }
+	.chatlist-who { font-size: .75em; color: color-mix(in srgb, currentColor 78%, transparent); }
+	.chatlist-msg.is-note .chatlist-who { color: inherit; }
+	.chatlist-text > :first-child { margin-top: 0; }
+	.chatlist-text > :last-child { margin-bottom: 0; }
+}
