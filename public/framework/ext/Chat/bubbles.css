@@ -1,0 +1,71 @@
+@layer base, theme, site, util;
+
+/* THE CHAT LAYOUT, ONE RULE SET FOR ALL THREE VIEWS (the owner, 2026-11-02: "follow Claude's chat UI"; law 6).
+   V1 draws `.chatbox-you` / `.chatbox-reply` (Chat.js, Widget.js); V2 and V3 draw `.chat-v3-you` / `.chat-v3-reply` (ChatV3.js).
+   The point is hierarchy at a glance: YOUR words are a tinted bubble on the right that HUGS its text (one word is a small pill, and a
+   bubble you are dictating into widens as the words arrive, then wraps at the max); the ASSISTANT's words are plain text on the page,
+   on the left, no fill and no border. Updates and notes stay small and muted (`.chatbox-update`, `.chat-v3-loose`).
+   Change `--bubble-max` on any host to move both sides at once. Load this file from every view (Chat.js, ChatV3.js). */
+@layer site {
+	.chatbox-log, .chat-v3, .ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
+
+	.chatbox-you,
+	.chat-v3-you {
+		align-self: flex-end;
+		box-sizing: border-box;
+		inline-size: fit-content;
+		max-inline-size: var(--bubble-max);
+		min-inline-size: 0;
+		padding: 0.4em 0.85em;
+		border-radius: 1.1em;
+		background: color-mix(in srgb, var(--prime) 22%, transparent);
+		overflow-wrap: anywhere;
+	}
+
+	.chatbox-reply,
+	.chat-v3-reply {
+		align-self: flex-start;
+		box-sizing: border-box;
+		inline-size: auto;
+		max-inline-size: var(--bubble-max);
+		min-inline-size: 0;
+		padding-block: 0.3em;
+		padding-inline: 0;
+		border: 0;
+		border-radius: 0;
+		background: none;
+		overflow-wrap: anywhere;
+	}
+
+	/* The owner's avatar sits in a pill only as clutter: the side already says who. The assistant's icon stays (fast, smart and a
+	   mastermind look different, and the tooltip names the agent). */
+	.chatbox-you > .chatbox-who { display: none; }
+
+	/* V1 reply: the avatar is a column of its own, so the words wrap beside it, never under it, and a one-word reply keeps its
+	   width (a floated icon is left out of the bubble's intrinsic width, which squeezed "Compacted." to "Compa|cted."). */
+	.chatbox-reply:has(> .chatbox-who) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 0.45em; align-items: start; }
+	.chatbox-reply:has(> .chatbox-who) > :not(.chatbox-who, .chatbox-reacts, .chatbox-react-btn, .chatbox-react-picker) { grid-column: 2; }
+	.chatbox-reply:has(> .chatbox-who) > .chatbox-who { grid-column: 1; grid-row: 1 / span 6; float: none; margin: 0.1em 0 0; }
+
+	/* A small gap, like Claude's: bubbles are told apart by side and fill, not by borders. */
+	.chat-v3-card { display: flex; flex-direction: column; gap: 0.5rem; border: 0; padding: 0; }
+	.chat-v3-card > .chat-v3-you { display: flex; flex-direction: column; gap: 0.3rem; }
+	.chat-v3-you .chat-v3-head, .chat-v3-yours .chat-v3-head { flex-wrap: wrap; }
+	.chat-v3-you .chat-v3-title.is-untitled { display: none; }   /* a muted copy of the words' own first words, right above them: noise inside a bubble */
+
+	/* V2 dictation: the group holds several small bubbles of yours (each `.chat-v3-you`), all on the right, each Reply under its own. */
+	.chat-v3-yours { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+	.chat-v3-yours :is(.chat-v3-dictation, .chat-v3-para) { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; align-self: stretch; }
+	.chat-v3-you .chat-v3-title { font-size: 0.95rem; flex: none; max-inline-size: 100%; }
+	.chat-v3-you .chat-v3-toggle { align-self: flex-end; }
+	.chat-v3-draft > .chat-v3-you { border: 1px dashed color-mix(in srgb, var(--prime) 55%, transparent); }
+	.chat-v3-reply { border-top: 0; }
+
+	/* A note (Servex saying something, not a person): small, muted, on the assistant's side. */
+	.chat-v3-loose { align-self: flex-start; max-inline-size: var(--bubble-max); font-size: 0.85em; opacity: 0.7; }
+	.chat-v3-loose .chat-v3-title { display: none; }
+
+	@media (max-width: 500px) {
+		.chatbox-log, .chat-v3, .ux-dictate-widget-bubbles { --bubble-max: 80%; }
+	}
+}
