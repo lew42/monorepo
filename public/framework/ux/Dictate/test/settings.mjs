@@ -1,8 +1,8 @@
 // The settings panel: the send delay holds across a reload, and it really is the wait before a send.
 //   node public/framework/ux/Dictate/test/settings.mjs <base-url> [shots-dir]
 // Headless, phone sheet at 400 , every Servex call stubbed (nothing is posted). The mic is driven by hand, as in test/order.mjs.
-// Checks: (1) change the send delay to 3 s, reload, the gear panel still shows 3; (2) with the delay at 3 s, two sentences 1 s apart leave as ONE prompt,
-// and with it at 0.5 s the same two sentences leave as TWO; (3) the smart assistant's batch seconds POST /api/session/settings {gap_ms}.
+// Checks: (1) change the send delay to 3 s, reload, the gear panel still shows 3; (2) by default every finished sentence leaves at once, even with the delay at 3 s (TWO prompts); with sentences_per_send 0 the delay is the wait:
+// 3 s joins two sentences 1 s apart into ONE prompt, 0.5 s leaves them as TWO; (3) the smart assistant's batch seconds POST /api/session/settings {gap_ms}.
 import fs from "fs";
 import path from "path";
 
@@ -14,12 +14,11 @@ const { default: Browser } = await import(new URL("../../../../../Server/Browser
 const browser = await Browser.launch();
 const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
 let fails = 0;
+const unstubbed = [];   // every API call no stub answered, over the whole run (must stay empty: this script never touches Servex)
 const check = (ok, what) => { console.log((ok ? "ok   " : "FAIL ") + what); if (!ok) fails++; };
 
-async function open(ctx, store){
-	const page = await ctx.newPage();
-	const errors = [], said = [], knobs = [];
-	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
+async function stub(page, said, knobs){
+	await page.route(u => (u.origin !== new URL(base).origin && !/(^|\.)fonts\.(gstatic|googleapis)\.com$/.test(u.hostname)), r => { unstubbed.push(r.request().method() + " " + r.request().url()); return r.abort(); });   // registered first = tried last: only a call to another origin (Servex lives on one) that no stub below claims lands here; the dev server's own read APIs are not Servex
 	const cors = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" };
 	const json = (route, out) => route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) }).catch(() => {});
 	await page.route(/\/api\/session\//, async route => {
@@ -33,9 +32,15 @@ async function open(ctx, store){
 	});
 	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
 	await page.route(/\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
-	await page.route(/\/log\/prompts/, r => json(r, {}));
+	await page.route(/\/log\/(prompts|features)/, r => json(r, {}));
 	await page.route(/\/api\/hitl/, r => json(r, { ok: true, marks: [{ mark: "ok" }] }));
 	await page.route(/\/api\/refine\/live/, r => json(r, { ok: true, slots: [], outline: { sections: [] } }));
+}
+async function open(ctx, store){
+	const page = await ctx.newPage();
+	const errors = [], said = [], knobs = [];
+	page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
+	await stub(page, said, knobs);
 	await page.goto(base + "/framework/ext/drawer/", { waitUntil: "domcontentloaded" });
 	await page.waitForSelector(".drawer-rail-ai", { state: "attached", timeout: 20000 });
 	await page.evaluate(async () => { const { default: Sheet } = await import("/framework/ext/drawer/Sheet.js"); window.$sheet = Sheet.of(); await window.$sheet.to("full", { listen: false }); });
@@ -74,16 +79,18 @@ const gear = async page => {   // open the gear panel (the old "Dictation settin
 	await ctx.close();
 }
 // 2 and 3: the delay is the wait
-for (const [delay_s, want] of [[3, 1], [0.5, 2]]){
+// per = sentences_per_send: 1 is the default since views-fix item 0 (commit e7f8e5d36, 2026-11-01: every finished sentence goes out at once, the
+// send delay only holds the unfinished tail); 0 is the older "join within the delay" path the delay knob still drives.
+for (const [delay_s, per, want] of [[3, 1, 2], [3, 0, 1], [0.5, 0, 2]]){
 	const ctx = await browser.newContext({ viewport: { width: 400, height: 800 }, hasTouch: true, isMobile: true });
 	const { page, errors, said, knobs } = await open(ctx);
 	await gear(page);
 	await page.fill("input[data-key=send_delay]", String(delay_s));
 	await page.locator("input[data-key=send_delay]").dispatchEvent("change");
 	await page.evaluate(async () => { await new Promise(r => setTimeout(r, 0)); document.querySelector(".chatbox-compose-menu-close")?.click(); });
-	const trace = await page.evaluate(async delay_s => {   // the mic is driven by hand; the automatic-send timer is the real one
+	const trace = await page.evaluate(async ({ delay_s, per }) => {   // the mic is driven by hand; the automatic-send timer is the real one
 		const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
-		m.state = "listening"; m.revise = false;
+		m.state = "listening"; m.revise = false; m.sentences_per_send = per;
 		clearInterval(m.auto_timer); m.auto_timer = setInterval(() => m.auto_check(), 250);
 		let chunk = 0;
 		const say = async text => {
@@ -101,10 +108,10 @@ for (const [delay_s, want] of [[3, 1], [0.5, 2]]){
 		for (let i = 0; i < 6; i++){ await wait(delay_s * 1000 / 4 + 400); trace.push(Math.round(performance.now() - m.last_speech) + "ms quiet, box=" + JSON.stringify(m.box()?.value) + ", held=" + (m.held ?? []).length); }
 		clearInterval(m.auto_timer);
 		return trace;
-	}, delay_s);
+	}, { delay_s, per });
 	if (process.env.TRACE) console.log(trace.join("; ") + " said: " + JSON.stringify(said));
 	await page.waitForTimeout(500);
-	check(said.length === want, `delay ${delay_s} s, sentences 1 s apart: ${said.length} prompt(s) sent (want ${want})${said.length ? ": " + said.map(t => JSON.stringify(t)).join(" + ") : ""}`);
+	check(said.length === want, `delay ${delay_s} s, ${per ? "one prompt per finished sentence" : "join within the delay"}, sentences 1 s apart: ${said.length} prompt(s) sent (want ${want})${said.length ? ": " + said.map(t => JSON.stringify(t)).join(" + ") : ""}`);
 	if (want === 1) check(/flicker/i.test(said[0] ?? "") && /order/i.test(said[0] ?? ""), "the one prompt holds both sentences");
 	// 3. the smart assistant's knob goes to Servex (the session exists now that something was sent)
 	await gear(page);
@@ -119,6 +126,7 @@ for (const [delay_s, want] of [[3, 1], [0.5, 2]]){
 {
 	const ctx = await browser.newContext({ viewport: { width: 1920, height: 1000 } });
 	const page = await ctx.newPage();
+	await stub(page, [], []);
 	await page.goto(base + "/framework/ux/Dictate/", { waitUntil: "domcontentloaded" });
 	const g = page.locator(".chatbox-compose-menu").first();
 	await g.waitFor({ state: "attached", timeout: 20000 });
@@ -129,6 +137,8 @@ for (const [delay_s, want] of [[3, 1], [0.5, 2]]){
 	await page.screenshot({ path: path.join(shots, "panel-1920.png") });
 	await ctx.close();
 }
+const bad = unstubbed.filter(u => !u.startsWith("GET ") || /\/api\/session\//.test(u));
+check(bad.length === 0, "no write or session call reached an unstubbed origin (read-only GETs such as the inbox are aborted, not stubbed)" + (bad[0] ? ": " + bad.slice(0, 3).join(" ") : ""));
 clearTimeout(kill);
 await browser.close();
 process.exit(fails ? 1 : 0);

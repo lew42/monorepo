@@ -16,7 +16,7 @@ Every knob is one exported object, `SETTINGS`, at the top of `Mic.js`. The gear 
 | Setting | Default | Meaning |
 |---|---|---|
 | `send_mode` | `"pause"` | `"pause"` sends at natural pauses and after silence; `"sentences"` never sends on silence; `"manual"` only Send or Enter sends. |
-| `sentences_per_send` | `0` | 0 is off. N means one message per N finished sentences (the old way). |
+| `sentences_per_send` | `1` | One message per N finished sentences, sent at once while still listening (default 1 since 2026-11-01); 0 is off, and then the send delay joins sentences said within it. |
 | `paragraph_pause_ms` | `2500` | Quiet after a finished sentence that sends everything said so far as one message (the natural pause). |
 | `pause_send_ms` | `4000` | Quiet before everything left on screen is sent, even an unfinished sentence. |
 | `break_pause_ms` | `1500` | Quiet before the next segment may start a new paragraph (blank line) in the box. It also needs a finished sentence before it. |
