@@ -190,7 +190,7 @@ export default class ChatV3 extends JSONL {
 
 	// One assistant Reply: the brain mark and its markdown text. Small and overridable (V2 adds its ✓/🧠 marks, step 2).
 	reply(r){
-		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
+		const box = div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); }).attr("data-id", r.id);
 		ReciteBubble.mount(box.el, { text: () => r.text });   // play / pause / back 10 s for this reply (Chat V2 draws replies through here too)
 	}
 

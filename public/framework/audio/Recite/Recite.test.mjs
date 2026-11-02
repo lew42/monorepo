@@ -823,3 +823,28 @@ if (Recite) test("Recite: a tap on the bubble being read pauses it; a tap on ano
 	Recite.clear_place(Recite.bubble_key(a)); Recite.clear_place(Recite.bubble_key(b));
 	return r;
 });
+
+// A reply is highlighted in ITS bubble, found by the message id it was queued for (final(text, id)), never by matching text alone:
+// an older bubble that opens with the same words (and is nearer the top, or newer in the DOM) must not be lit instead.
+if (Recite) test("Recite.Highlight: two bubbles with the same opening words, the one queued for message m-2 is lit, not the other", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	const root = document.createElement("div");
+	root.setAttribute("data-recite-root", "");
+	const mk = id => { const d = document.createElement("div"); d.className = "chat-v3-reply"; d.setAttribute("data-id", id); d.textContent = "Done, the layout is in place now."; root.append(d); return d; };
+	const first = mk("m-1"), second = mk("m-2"), third = mk("m-3");   // the same words in all three; m-3 is the NEWEST in the DOM, the one text-only search prefers
+	document.body.appendChild(root);
+
+	r.final("Done, the layout is in place now.", "m-2");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the reply started");
+	t.eq(r.chunks[0].msg, "m-2", "its chunks carry the message id they were queued for");
+	r.highlight.tick();
+	t.ok(Array.isArray(r.highlight.ranges) && r.highlight.ranges.length > 0, "found");
+	t.ok(second.contains(r.highlight.ranges[0].startContainer), "the words lit are in the bubble m-2");
+	t.ok(!third.contains(r.highlight.ranges[0].startContainer) && !first.contains(r.highlight.ranges[0].startContainer), "not in the other two bubbles with the same opening");
+
+	root.remove();
+	return r;
+});

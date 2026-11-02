@@ -47,6 +47,9 @@
 	.chatbox-reply:has(> .chatbox-who) > :not(.chatbox-who, .chatbox-reacts, .chatbox-react-btn, .chatbox-react-picker) { grid-column: 2; }
 	.chatbox-reply:has(> .chatbox-who) > .chatbox-who { grid-column: 1; grid-row: 1 / span 6; float: none; margin: 0.1em 0 0; }
 
+	/* The replay control (audio/Recite/ReciteBubble.css) sits under the plain assistant text, at its left edge, like the action row under a reply in Claude. */
+	.chatbox-reply > .audio-recite-bubble-ctl, .chat-v3-reply > .audio-recite-bubble-ctl { justify-content: flex-start; }
+
 	/* A small gap, like Claude's: bubbles are told apart by side and fill, not by borders. */
 	.chat-v3-card { display: flex; flex-direction: column; gap: 0.5rem; border: 0; padding: 0; }
 	.chat-v3-card > .chat-v3-you { display: flex; flex-direction: column; gap: 0.3rem; }
