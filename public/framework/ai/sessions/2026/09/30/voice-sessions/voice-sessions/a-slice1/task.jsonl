@@ -16,3 +16,4 @@
 {"log":{"at":"2026-09-29T20:40:53-05:00","heartbeat":"escalated","msg":"minion-voice-slice1 its agent is not running, and the revive failed: Agent minion-voice-slice1 was not woken: its task a-slice1 has landed. Pass revive: true to wake it anyway."}}
 {"log":{"at":"2026-09-29T20:51:32-05:00","msg":"task-loop escalated: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","chase":"escalated"}}
 {"stop":{"at":"2026-10-18T08:02:38-05:00","why":"abandoned: no agent since 2026-09-29T20:51:32-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:00:36-06:00","why":"unclosed: 17 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:38-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:36.615Z"}

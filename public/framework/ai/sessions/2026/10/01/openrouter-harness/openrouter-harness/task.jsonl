@@ -389,3 +389,4 @@
 {"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.114Z"}
 {"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/wire-provider/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.148Z"}
 {"log":{"at":"2026-10-25T03:20:47-05:00","msg":"dropped: wire-provider: owner minion-openrouter-wire is stopped","dropped":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/wire-provider/","reason":"owner-stopped"}}
+{"unclosed":{"at":"2026-11-02T15:00:51-06:00","why":"unclosed: 390 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:46-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:51.946Z"}

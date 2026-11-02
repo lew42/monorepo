@@ -36,3 +36,4 @@
 {"log":{"at":"2026-11-02T14:42:08-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T20:42:08.461Z"}
 {"log":{"at":"2026-11-02T14:42:08-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T20:42:08.581Z"}
 {"log":{"at":"2026-11-02T14:43:10-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T20:43:10.617Z"}
+{"unclosed":{"at":"2026-11-02T15:00:27-06:00","why":"unclosed: 37 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:31-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:27.415Z"}

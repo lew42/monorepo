@@ -1,4 +1,6 @@
-# Tasks: an agent that finishes its work also finishes its task (you are a mastermind, on Sonnet, high effort)
+# Tasks: an agent that finishes its work also closes its task
+
+*Run as a mastermind, on Sonnet, high effort.*
 
 **Why:** [the task audit](../task-system-audit/findings.md) measured it.
 - **Only 39% of 2,114 tasks ever landed.**

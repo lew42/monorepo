@@ -16,3 +16,4 @@
 {"review":{"found":6,"real":3,"fixed":3}}
 {"log":{"at":"NOW","msg":"Docs check (docs-check.md): 5 gaps (phone button unnamed, no phone picture, ?select= format, plain-page chat path, tap sequence). All fixed in 3597d6b9 with two phone shots in ext/drawer/doc/."}}
 {"stop":{"at":"2026-10-18T08:02:37-05:00","why":"abandoned: no agent since 2026-09-30T22:44:53-05:00; closed by StaleClose 2026-10-18","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:00:34-06:00","why":"unclosed: 17 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:37-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:34.992Z"}

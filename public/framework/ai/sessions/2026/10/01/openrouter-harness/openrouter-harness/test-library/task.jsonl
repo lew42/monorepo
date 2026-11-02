@@ -168,3 +168,4 @@
 {"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/plan-views-claude-opus-5-5-low-1790834490362/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.144Z"}
 {"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/plan-views-claude-sonnet-5-low-1790834547634/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.145Z"}
 {"task":"/framework/ai/sessions/2026/10/01/openrouter-harness/openrouter-harness/test-library/runs/plan-views-fable-low-1790834718888/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.146Z"}
+{"unclosed":{"at":"2026-11-02T15:01:06-06:00","why":"unclosed: 169 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:50-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:06.254Z"}

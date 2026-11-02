@@ -271,3 +271,4 @@
 {"task":"/framework/ai/tasks/build-a-named-system-that-defines-its-ow/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.689Z"}
 {"task":"/framework/core/Item/tasks/decide-later-how-to-prioritise-data-bind/","by":"helper-undone-to-tasks","ts":"2026-10-17T17:58:17.699Z"}
 {"stop":{"at":"2026-10-24T00:04:01-05:00","why":"abandoned: no agent since 2026-10-17T17:58:17.699Z; closed by StaleClose 2026-10-24","by":"StaleClose"}}
+{"unclosed":{"at":"2026-11-02T15:01:29-06:00","why":"unclosed: 272 log lines of work, never completed; was closed as abandoned 2026-10-24T00:04:01-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:29.629Z"}

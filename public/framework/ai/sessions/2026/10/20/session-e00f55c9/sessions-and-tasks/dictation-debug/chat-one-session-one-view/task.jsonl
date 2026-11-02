@@ -8,3 +8,4 @@
 {"start":{},"by":"ProcessRunner","at":"2026-10-25T16:18:30-05:00"}
 {"okay":{"wait":{"on":"owner","what":"Waits for the owner's okay on proposal.md, and for the chat-sent and polish processes to merge. mastermind-dictation-2 completes it."}},"by":"ProcessRunner","at":"2026-10-25T16:18:30-05:00"}
 {"stop":{"at":"2026-11-02T00:02:40-06:00","why":"abandoned: no agent since 2026-10-25T21:18:30.116Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:40.587Z"}
+{"unclosed":{"at":"2026-11-02T15:01:46-06:00","why":"unclosed: 9 log lines of work, never completed; was closed as abandoned 2026-11-02T00:02:40-06:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:46.565Z"}

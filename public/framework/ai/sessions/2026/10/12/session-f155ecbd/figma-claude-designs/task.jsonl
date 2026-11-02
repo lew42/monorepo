@@ -74,3 +74,4 @@
 {"task":"/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-layouts/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.307Z"}
 {"task":"/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/web-select/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.308Z"}
 {"task":"/framework/ai/sessions/2026/10/12/session-f155ecbd/figma-claude-designs/kit/workflows/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.309Z"}
+{"unclosed":{"at":"2026-11-02T15:01:25-06:00","why":"unclosed: 75 log lines of work, never completed; was closed as abandoned 2026-10-18T08:03:04-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:25.482Z"}

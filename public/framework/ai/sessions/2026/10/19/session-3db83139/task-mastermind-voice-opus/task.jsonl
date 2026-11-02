@@ -79,3 +79,4 @@
 {"task":"/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/session-dirs/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.613Z"}
 {"task":"/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/sheet-redesign/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.614Z"}
 {"task":"/framework/ai/sessions/2026/10/19/session-3db83139/task-mastermind-voice-opus/walkthrough/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.615Z"}
+{"unclosed":{"at":"2026-11-02T15:01:44-06:00","why":"unclosed: 80 log lines of work, never completed; was closed as abandoned 2026-10-22T00:02:51-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:44.313Z"}

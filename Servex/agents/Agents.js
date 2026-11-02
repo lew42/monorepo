@@ -1520,8 +1520,9 @@ Agents.Agent = class Agent {
 	 * `queue.push()` now says whether the queue was actually open to take it, and a push that
 	 * missed is held on `held_messages`, never silently gone. The very next `awaken()` replays
 	 * it first, before anything else. */
-	send(text, { from, reply_to, priority } = {}){
+	send(text, { from, reply_to, priority, revive } = {}){
 		if (this.state === "stopped") throw new Error(`Agent ${this.id} has stopped.`);
+		if (this.landed_fyi(text, { from, priority, revive })) return this;
 		const skip = this.watchdog_refusal(from);
 		if (skip) return this.watchdog_skipped(from, skip);
 		if (this.state === "dormant") this.awaken(from);
@@ -1718,6 +1719,22 @@ Agents.Agent = class Agent {
 	request_compact(){
 		this.compact_requested = true;
 		return { ok: true, note: "Compaction runs when this turn ends; end your turn now." };
+	}
+
+	/* A LANDED AGENT IS NOT WOKEN BY NEWS (2026-11-02, Servex/agents/readme.md "When an agent stops"). Once a worker's own task has
+	 * landed, a clarity note, a sibling's merge news or a landing nag would wake it for a full paid turn that answers "already handled"
+	 * (three agents burned 3-6 turns each in one hour). The line goes to its task log instead. Still wake it: the owner and tabs, its
+	 * parent, `priority: "now"`, `revive: true`. Never applied to a mastermind (it lands one task and goes on to the next). */
+	static WAKES_LANDED = /^(owner|voice|vscode-|tab-|user)/;
+	landed_fyi(text, { from, priority, revive } = {}){
+		const dir = this.task?.dir;
+		if (!dir || revive || priority === "now" || this.one_shot || /^(task-mastermind|mastermind|sub-mastermind)/.test(this.role ?? "")) return false;
+		if (!from || from === this.parent || this.constructor.WAKES_LANDED.test(from) || !task_landed(dir)) return false;
+		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
+		try { LogLine.raw(file, { log: { at: stamp(), msg: `FYI from ${from} (task complete, so the agent was not woken): ${String(text).slice(0, 600)}` }, by: "servex-close-loop" }); } catch { return false; }
+		this.host?.store?.().append("servex", { type: "fyi-logged", agent: this.id, from, task: dir }).catch(() => {});
+		this.fyi_held = "not woken: its task has landed, so your message went to its task log. Pass revive:true (or priority \"now\") to wake it.";
+		return true;
 	}
 
 	/* THE WATCHDOG GUARD (2026-10-17, Servex/doc/heartbeat.md): the heartbeat, the compact nudge and the landing check wake an

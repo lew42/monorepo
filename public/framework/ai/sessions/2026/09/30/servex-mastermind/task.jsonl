@@ -303,3 +303,4 @@
 {"task":"/framework/ai/sessions/2026/09/30/servex-mastermind/apply-improvements/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.039Z"}
 {"task":"/framework/ai/sessions/2026/09/30/servex-mastermind/stopped-tasks-audit/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.040Z"}
 {"task":"/framework/ai/sessions/2026/09/30/servex-mastermind/voice-dir-404/","by":"SessionRecord --links","ts":"2026-10-23T02:29:36.041Z"}
+{"unclosed":{"at":"2026-11-02T15:00:35-06:00","why":"unclosed: 304 log lines of work, never completed; was closed as abandoned 2026-10-18T08:02:37-05:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:00:35.647Z"}

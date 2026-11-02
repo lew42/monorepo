@@ -6,3 +6,4 @@
 {"start":{},"by":"ProcessRunner","at":"2026-10-25T16:18:25-05:00"}
 {"okay":{"wait":{"on":"owner","what":"Waits for the owner's okay on proposal.md, and for 'Chat: see your words live' to merge (same files). mastermind-dictation-2 completes it."}},"by":"ProcessRunner","at":"2026-10-25T16:18:25-05:00"}
 {"stop":{"at":"2026-11-02T00:02:40-06:00","why":"abandoned: no agent since 2026-10-25T21:18:25.059Z; closed by StaleClose 2026-11-02","by":"StaleClose"},"by":"append.mjs","ts":"2026-11-02T06:02:40.868Z"}
+{"unclosed":{"at":"2026-11-02T15:01:46-06:00","why":"unclosed: 7 log lines of work, never completed; was closed as abandoned 2026-11-02T00:02:40-06:00; re-closed by Unclose 2026-11-02","by":"Unclose"},"by":"append.mjs","ts":"2026-11-02T21:01:46.784Z"}

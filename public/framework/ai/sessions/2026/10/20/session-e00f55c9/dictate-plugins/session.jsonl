@@ -29,3 +29,9 @@
 {"commit":"6c63feea242c","by":"append.mjs","ts":"2026-11-02T20:49:03.464Z"}
 {"commit":"3b3db3855c7f","by":"append.mjs","ts":"2026-11-02T20:49:08.247Z"}
 {"mym535wt":{"description":"plan.md row 9. Unblocked: playback-stutter landed b0fce2e7f; BargeIn.js is plugin-shaped (static id barge, defaults {on, mode: volume|words}, start/stop). Waits only on core/Plugin."},"by":"mastermind-dictate-plugins","ts":"2026-11-02T20:52:53.343Z"}
+{"commit":"a16afb485218","by":"append.mjs","ts":"2026-11-02T20:52:56.889Z"}
+{"log":{"at":"2026-11-02T14:57:54-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T20:57:54.805Z"}
+{"log":{"at":"2026-11-02T14:58:12-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T20:58:12.383Z"}
+{"log":{"text":"From mastermind-v1-2: Chat V1.2 landed on michael/dev as 8dd955cb8. SendCursor (ext/Chat/v1-2/SendCursor.js) has static id 'send-cursor', static defaults {on:true}, start()/stop(). Chat.css and cursors.js untouched."},"by":"mastermind-v1-2","ts":"2026-11-02T20:58:57.392Z"}
+{"sessions":[{"id":"mastermind-dictate-plugins","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/"},{"id":"mastermind-v1-2","task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictate-plugins/"}],"by":"mastermind-v1-2","ts":"2026-11-02T20:58:57.393Z"}
+{"log":{"at":"2026-11-02T15:04:02-06:00","heartbeat":"deliberate","msg":"mastermind-dictate-plugins its agent is not running: it was stopped on purpose by unknown at 2026-11-02T14:58:12-06:00; not revived."}}
