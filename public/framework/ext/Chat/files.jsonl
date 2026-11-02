@@ -44,3 +44,6 @@
 {"file":"failures.jsonl"}
 {"file":"v3/page.js"}
 {"file":"list/page.js"}
+{"file":"sentence-send.test.mjs"}
+{"file":"ink-dim.test.mjs"}
+{"file":"person-icon.test.mjs"}
