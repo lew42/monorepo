@@ -21,6 +21,10 @@ import { fileURLToPath } from "url";
  *      /Servex/, /Server/, /ask/turn, /push/send) never pass.
  *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
  * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
+ * Caching (2026-11-01): a phone kept an old Sheet.js for days, served from its HTTP cache with no request at all (an older reply carried
+ * no Cache-Control, so Chrome cached it by heuristic). Two guards: every reply without a Cache-Control gets `no-cache`, and a page load
+ * from a browser whose `lew42_cache_v` cookie is not CACHE_V gets `Clear-Site-Data: "cache"` (only the HTTP cache: cookies, the
+ * site key and storage stay) plus the cookie, so it happens once per browser. Bump CACHE_V to clear every browser again. localhost never passes here.
  * A live stream (SSE) gets a comment line after 20 s of silence (the socket gets a ping from Socket.js), so Cloudflare's ~100 s idle cut does not drop it.
  *
  *     node Server/SiteGateway.mjs       run it alone (Tunnel.mjs `up` also starts it in named mode)
@@ -31,6 +35,8 @@ export default class SiteGateway {
     static PORT = 8192;
     static PUBLIC = "https://monorepo.lew42.com";
     static COOKIE = "lew42_site";
+    static CACHE_COOKIE = "lew42_cache_v";
+    static CACHE_V = "1";   // bump to clear every browser's HTTP cache once more, on its next page load
     static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(?![\w-])/i;   // a prefix: /mcp, /mcp/x, /mcp;x all match
     static SERVEX = /^\/servex\/(api\/item|api\/page-ai|api\/page-session\/(new|resume)|api\/session\/[\w-]+(\/stream)?|api\/refine(\/live)?|api\/tidy|api\/voice(\/card|\/stream)?|api\/whisper(\/stream)?|api\/hitl|api\/local-chat|log\/prompts)$/;
     static SERVEX_GET = /^\/servex\/(api\/agents|api\/page-agents|api\/page-sessions|api\/sessions|api\/stream|api\/ready-to-merge|waiting)$/;
@@ -56,6 +62,15 @@ export default class SiteGateway {
 
     // the login cookie, 30 days from now: sent on sign-in and again on every page visit, so the owner signs in once
     set_cookie(){ return `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`; }
+
+    // a page load (not a module, an image or a fetch) from a browser whose HTTP cache was not cleared at CACHE_V yet
+    stale_cache(req){
+        if (req.method !== "GET") return false;
+        const dest = req.headers["sec-fetch-dest"];
+        if (dest ? dest !== "document" : !/text\/html/i.test(String(req.headers.accept))) return false;
+        const m = new RegExp(`(?:^|;\\s*)${SiteGateway.CACHE_COOKIE}=([^;]*)`).exec(req.headers.cookie ?? "");
+        return m?.[1] !== SiteGateway.CACHE_V;
+    }
 
     // ── the four checks ────────────────────────────────────────────────────
     has_cookie(req){
@@ -93,7 +108,7 @@ export default class SiteGateway {
         h["x-forwarded-proto"] = "https";
         if (h.origin) h.origin = "http://" + this.target.name;
         if (h.referer) h.referer = h.referer.replace(SiteGateway.PUBLIC, "http://" + this.target.name);
-        const rest = (h.cookie ?? "").split(/;\s*/).filter(c => c && !c.startsWith(SiteGateway.COOKIE + "="));
+        const rest = (h.cookie ?? "").split(/;\s*/).filter(c => c && !c.startsWith(SiteGateway.COOKIE + "=") && !c.startsWith(SiteGateway.CACHE_COOKIE + "="));
         if (rest.length) h.cookie = rest.join("; "); else delete h.cookie;
         return h;
     }
@@ -114,10 +129,17 @@ export default class SiteGateway {
         const why = this.refuse(req.method, p, req.headers.origin);
         if (why) return res.writeHead(403, { "content-type": "text/plain" }).end("refused: " + why);
         let to; try { to = this.dest(); } catch (e) { return res.writeHead(502, { "content-type": "text/plain" }).end("site unreachable: " + e.message); }
-        const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: this.headers(req) }, r => {
+        const stale = this.stale_cache(req), ask = this.headers(req);
+        if (stale){ delete ask["if-none-match"]; delete ask["if-modified-since"]; }   // a 304 would skip the clear: make the site send the page whole
+        const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: ask }, r => {
             const h = { ...r.headers };
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
             h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
+            h["cache-control"] ??= "no-cache";   // never left to a heuristic cache: the browser always asks (a 304 is cheap)
+            if (stale && r.statusCode === 200 && /text\/html/i.test(String(r.headers["content-type"]))){   // once per browser per CACHE_V: drop its HTTP cache before this page loads its modules
+                h["clear-site-data"] = '"cache"';
+                h["set-cookie"].push(`${SiteGateway.CACHE_COOKIE}=${SiteGateway.CACHE_V}; Path=/; Max-Age=31536000; Secure; SameSite=Lax`);
+            }
             res.writeHead(r.statusCode, h);
             // A live stream (SSE) that goes quiet is cut by Cloudflare after about 100 s; a comment line every 20 s of silence keeps it open.
             // EventSource ignores comment lines. Only sent when the upstream has been silent, so it never lands inside an event.
