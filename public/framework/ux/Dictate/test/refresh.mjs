@@ -40,7 +40,7 @@ async function context(){
 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
-		if (verb === "say") run.said.push({ text: body.text, t: Date.now() });
+		if (verb === "say" && !body.kind) run.said.push({ text: body.text, t: Date.now() });   // a post with a kind is a diagnostic (Recite files one as the sheet opens): its text has words too, so counting it passed a round with no sentence, or not, by when it landed
 		const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
 		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
 	});

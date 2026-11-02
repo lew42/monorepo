@@ -22,6 +22,7 @@ const errors = [];
 page.on("pageerror", e => errors.push(e.message));
 const json = (r, body) => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(body) });
 await page.route(/\/api\/session\/(new|resume|say|nav|floor|quiet|react|pause|select)/, r => json(r, { ok: true, session: "stub-session", file: "/stub-session.jsonl", at: new Date().toISOString() }));
+await page.route(/\/(cards\?|api\/agents)/, r => json(r, []));   // the Dictate page lists live cards and agents (core/Page/ai/live.js); unstubbed it asks Servex
 await page.route(/\/api\/sessions\?/, r => json(r, { ok: true, sessions: [] }));
 await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
 let phase = "blip", hits = 0;
@@ -29,11 +30,12 @@ await page.route(/\/api\/session\/[^/]+\/stream/, r => {
 	hits++;
 	if (phase === "blip") return r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" });
 	if (phase === "down") return r.fulfill({ status: 502, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: '{"error":"Servex unreachable"}' });
-	return r.fallback();   // not continue(): that goes to the live Servex; the fence answers
+	return r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" });   // Servex back: a stream that opens (continue() would reach the live Servex; fallback() leaves the fence answering 502)
 });
 const logged = [];
 page.on("websocket", ws => ws.on("framesent", f => { const s = String(f.payload ?? ""); if (s.includes('"connection"')) logged.push(s); }));
 await page.addInitScript(() => {
+	window.$WHISPER_LOG_FORCE = true;   // scripted browsers skip connection lines (audio/Whisper/WhisperLog.js automated()); this proof reads them
 	sessionStorage.setItem("lew42-voice-session", JSON.stringify({ session: "stub-session", file: "/stub-session.jsonl" }));
 	// Count the live wires (EventSources on a session stream) and every time the button becomes visible.
 	const ES = window.EventSource; window.__wires = new Set(); window.__shows = 0;
@@ -45,7 +47,7 @@ await page.addInitScript(() => {
 	new MutationObserver(() => { const b = document.querySelector(".dev-link"); const v = !!b && !b.hidden; if (v && !was) window.__shows++; was = v; })
 		.observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden"] });
 });
-const shown = () => page.evaluate(() => !document.querySelector(".dev-link")?.hidden);
+const shown = () => page.evaluate(() => { const b = document.querySelector(".dev-link"); return !!b && !b.hidden; });   // dev/Socket/Link.js builds the banner only once a source has been down its grace, so no element means not shown
 const label = () => page.evaluate(() => document.querySelector(".dev-link")?.textContent ?? "");
 const wires = () => page.evaluate(() => window.__wires.size);
 

@@ -7,6 +7,7 @@ const [base, repo] = process.argv.slice(2);
 const WT = process.env.WT || repo;   // serve THIS checkout's chat.js and Sheet.js in place of the main tree's
 const b = await Browser.browser({});
 const p = await (await b.newContext({ viewport: { width: 400, height: 800 } })).newPage();
+await p.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));   // core/Page/ai/work.js wants an array; unstubbed the fence answers 502
 const errs = [], said = [], streams = [];
 if (WT) for (const f of ["ux/Dictate/chat.js", "ext/drawer/Sheet.js"])
 	await p.route(new RegExp("/framework/" + f.replace(/[./]/g, "\\$&") + "(\\?.*)?$"), r => r.fulfill({ path: WT + "/public/framework/" + f, contentType: "application/javascript" }));

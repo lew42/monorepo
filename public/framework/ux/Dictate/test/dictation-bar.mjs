@@ -29,7 +29,7 @@ page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
 await page.route(/\/api\/session\//, async route => {
 	const req = route.request(), verb = req.url().split("/api/session/")[1].split("?")[0];
 	let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
-	if (verb === "say") said.push(body.text);
+	if (verb === "say" && !body.kind) said.push(body.text);   // a post with a kind is a diagnostic (Recite files one when the sheet opens, at a varying moment): it is not a sentence, and counting it ended the wait early
 	const out = verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : verb === "say" ? { ok: true, at: new Date().toISOString() } : { ok: true };
 	await route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify(out) });
 });

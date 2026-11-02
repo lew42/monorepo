@@ -6,6 +6,11 @@ import Browser from "../../../../../Server/Browser.mjs";
 const [base, repo] = process.argv.slice(2);
 const b = await Browser.browser({ args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"] });
 const p = await (await b.newContext({ viewport: { width: 1400, height: 1000 } })).newPage();
+await p.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));   // core/Page/ai/work.js wants an array; unstubbed the fence answers 502
+let made = 0;   // a Servex that only answers the session verbs: the fence keeps the live one out, so the test stands one in
+await p.route(/\/api\/session\/(new|resume|say|nav|floor|quiet|react|pause|select)/, r => { const id = "stub-" + ++made; r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ ok: true, session: id, file: "/" + id + ".jsonl", at: new Date().toISOString() }) }); });
+await p.route(/\/stub-\d+\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
+await p.route(/\/api\/session\/[^/]+\/stream/, r => r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" }));
 const errs = [];
 // WT=<worktree dir>: serve THIS checkout's chat.js (the fix) in place of the main tree's copy, so the test proves the fix before merge.
 const WT = process.env.WT;

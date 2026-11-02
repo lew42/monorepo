@@ -31,7 +31,7 @@ async function open({ say = "ok", whisper_dies_after = Infinity } = {}){
 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type" } });
 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 60000\n\n" });
 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
-		if (verb === "say"){
+		if (verb === "say" && !body.kind){   // a post with a kind is a diagnostic line (Recite, errors), filed as a log line and never a prompt: only prompts count and get stalled
 			run.said.push(body.text);
 			if (say === "hang" && run.said.length === 1){ run.hung++; return; }   // never answered: the request stays open
 			if (say === "late" && run.said.length === 1){   // a slow success: written at once, answered after the client gave up

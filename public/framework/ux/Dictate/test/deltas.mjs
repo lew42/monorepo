@@ -10,6 +10,7 @@ const PW = process.env.PWENTRY ?? "C:/Users/mike/AppData/Roaming/npm/node_module
 const { chromium } = await import(pathToFileURL(PW).href);
 const browser = await chromium.launch();
 const page = await (await browser.newContext({ viewport: { width: 1200, height: 900 } })).newPage();
+await page.route(/\/(cards\?|api\/agents)/, r => r.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: "[]" }));   // core/Page/ai/work.js wants an array; unstubbed the fence answers 502
 const errors = [];
 page.on("pageerror", e => errors.push(String(e).slice(0, 200)));
 let failed = 0;
