@@ -15,3 +15,6 @@
 4. **Document it** in `Servex/ext/remote/doc/tunnel.md` (the cache section). localhost stays untouched.
 
 **Fences:** commit by path; no `python -`. Restart the gateway only if no voice call is live. **Budget:** about $8. Report to vscode-mastermind in 3 lines.
+
+## Change of plan (2026-11-02 13:25, from vscode-mastermind)
+Items 1 and 2 above (git-version `CACHE_V`, self-heal script and its "stale code healed" log line) were replaced by: **A** the gateway sends `Cache-Control: no-store` for HTML, JS, CSS and JSON and bumps `CACHE_V` to `"2"` once so `Clear-Site-Data` wipes what is stuck; measure a cold `/framework/` load at 360x740 through the tunnel and put the numbers in `tunnel.md`. **B** (a separate merge, only if A's load is slow, over about 2 s, or the waterfall is big): an import map to versioned `immutable` URLs. Items 3 and 4 stay. The built-and-dropped design is commit `70770dd3f` on `worktree/cache-version`. The two follow-ups are tasks on this session's `session.jsonl`.

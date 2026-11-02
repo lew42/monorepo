@@ -21,8 +21,9 @@ import { fileURLToPath } from "url";
  *      /Servex/, /Server/, /ask/turn, /push/send) never pass.
  *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
  * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
- * Caching (2026-11-01): a phone kept an old Sheet.js for days, served from its HTTP cache with no request at all (an older reply carried
- * no Cache-Control, so Chrome cached it by heuristic). Two guards: every reply without a Cache-Control gets `no-cache`, and a page load
+ * Caching (2026-11-01, 2026-11-02): a phone kept an old Sheet.js and Recite.js for days, served from its HTTP cache with no request at all.
+ * Three guards: HTML, JS, CSS and JSON (NO_STORE) go out as `Cache-Control: no-store`, so the phone keeps no copy to go stale; every other
+ * reply without a Cache-Control gets `no-cache`; and a page load
  * from a browser whose `lew42_cache_v` cookie is not CACHE_V gets `Clear-Site-Data: "cache"` (only the HTTP cache: cookies, the
  * site key and storage stay) plus the cookie, so it happens once per browser. Bump CACHE_V to clear every browser again. localhost never passes here.
  * A live stream (SSE) gets a comment line after 20 s of silence (the socket gets a ping from Socket.js), so Cloudflare's ~100 s idle cut does not drop it.
@@ -36,7 +37,9 @@ export default class SiteGateway {
     static PUBLIC = "https://monorepo.lew42.com";
     static COOKIE = "lew42_site";
     static CACHE_COOKIE = "lew42_cache_v";
-    static CACHE_V = "1";   // bump to clear every browser's HTTP cache once more, on its next page load
+    static CACHE_V = "2";   // bump (by hand) only if a phone is found holding stale copies; no-store keeps new ones from sticking, this clears ones already stuck
+    static NO_STORE_TYPE = /^(text\/html|(text|application)\/javascript|text\/css|application\/(?:[\w.-]*\+)?json|application\/x-ndjson)\b/i;
+    static NO_STORE_PATH = /\.(m?js|css|html?|jsonl?|webmanifest)$/i;   // by name too: a .jsonl is served as text/plain or octet-stream
     static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(?![\w-])/i;   // a prefix: /mcp, /mcp/x, /mcp;x all match
     static SERVEX = /^\/servex\/(api\/item|api\/page-ai|api\/page-session\/(new|resume)|api\/session\/[\w-]+(\/stream)?|api\/refine(\/live)?|api\/tidy|api\/voice(\/card|\/stream)?|api\/whisper(\/stream)?|api\/hitl|api\/local-chat|log\/prompts)$/;
     static SERVEX_GET = /^\/servex\/(api\/agents|api\/page-agents|api\/page-sessions|api\/sessions|api\/stream|api\/ready-to-merge|waiting)$/;
@@ -135,6 +138,7 @@ export default class SiteGateway {
             const h = { ...r.headers };
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
             h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
+            if (SiteGateway.NO_STORE_PATH.test(p) || SiteGateway.NO_STORE_TYPE.test(String(h["content-type"] ?? ""))) h["cache-control"] = "no-store";   // the phone keeps no copy of code or data
             h["cache-control"] ??= "no-cache";   // never left to a heuristic cache: the browser always asks (a 304 is cheap)
             if (stale && r.statusCode === 200 && /text\/html/i.test(String(r.headers["content-type"]))){   // once per browser per CACHE_V: drop its HTTP cache before this page loads its modules
                 h["clear-site-data"] = '"cache"';
