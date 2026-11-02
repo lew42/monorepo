@@ -48,6 +48,7 @@ export default class Recite extends Part {
 		this.barge = new this.constructor.BargeIn({ recite: this });
 		this.highlight = new this.constructor.Highlight({ recite: this });
 		this.unlock_on_tap();
+		this.trace("loaded", { ua: globalThis.navigator?.userAgent?.slice(0, 80), coarse: !!globalThis.matchMedia?.("(pointer: coarse)").matches, saved_auto: Recite.remember("auto") });   // does Recite even start on this page?
 		Recite.track?.(this);
 	}
 
