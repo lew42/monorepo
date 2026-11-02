@@ -35,6 +35,7 @@ Items, routing and JSONL streaming are part of the page system's mastermind unti
 
 ## Still skills (no role readme yet)
 
+- `single-voice-assistant` (`../single-voice-assistant.md`: its own brief; the one agent of a voice session whose setting is `single`; tier `voice_single`, Sonnet, in `tiers.js`; how it works: [single-voice-assistant](/framework/ux/Dictate/doc/single-voice-assistant.md))
 - ⬜ `assistant`, `page-assistant` (skill `every-prompt`), `voice-assistant`, `master-assistant`, `log-assistant`
 - ⬜ `voter` (skill `research`), `fixer` (`../fixer.md`), `session-fast` / `session-smart` (`../session-fast.md`, `../session-smart.md`: their own briefs, no skill; smart runs on the `voice_smart` tier, Opus 5.5 medium, in `tiers.js`)
 
