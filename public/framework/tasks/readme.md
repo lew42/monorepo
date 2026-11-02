@@ -12,8 +12,9 @@ Until then: one line per task below, and when one gets a real task folder, link 
 ## 2026-11-02 (the owner's dictation in the VS Code tab, session `e00f55c9`; parked to save tokens)
 
 - **Class views: see any class's structure, live.**
-  - **The idea.** Next to `thing.view` (the instance), a `thing.classView` renders the class itself. `Class.render()` (a new static) makes one.
-  - **One shared template.** It prints the class name, its chain (`extends`), its properties and its methods. Each method links to its doc.
+  - **The pattern today:** `Thing.View` is a static class property holding the instance's template (usually `ThingView.js`, imported and attached as `Thing.View`). So `thing.render()` makes `new this.constructor.View`, and a subclass can extend the thing or its View or both.
+  - **The idea.** The class gets a view of its own: a static `Thing.render()` makes a `Thing.ClassView`. There's nothing new on the instance.
+  - **One shared template.** It prints the class name, its chain (`extends`), its properties and its methods, and each method links to its doc.
   - **Method docs already exist** in `doc/method/` folders: `core/App`, `Item`, `List`, `Page`, `Router`, `Session`, `Shell`, `Sidebar`, `View` and `ui`. A per-method page could pull from them.
   - **A rougher first version:** a debug view that loops over any object's properties.
   - **What it's for:** the dictation flow's state (dictating, the floor, Recite playing, a reply queued) shown as live objects you can click through to their classes. The owner: "seeing as much of that structure is important."

@@ -1,5 +1,7 @@
 # core/Session
 
+**The classes on one screen** (Session, Task, Process, Chat, Prompt, as pseudocode; who writes what; completion; the line spellings): [doc/classes.md](doc/classes.md).
+
 A `Session` is one run of an agent or a tab. **It is a Task** (`Session extends Task`, since 2026-10-24): it has Task's states, completion and `tasks` list, and adds a dated folder of its own, `<root>/YYYY/MM/DD/<slug>/`. Its tasks can be plain tasks, projects, processes and child sessions. Decisions: [doc/architecture.md](doc/architecture.md); the move to a Task: [doc/session-is-a-task.md](doc/session-is-a-task.md).
 
 Session is mainly an AI session class (not a web login session), so it probably belongs in the framework/ai module; not moved yet. (The owner, 2026-10-23.) The proposed move and the rest of the dictation/chat/session shape: [ai/system-proposal.md](/framework/ai/system-proposal.md); how the parts fit today: [ai/system-map.md](/framework/ai/system-map.md).
