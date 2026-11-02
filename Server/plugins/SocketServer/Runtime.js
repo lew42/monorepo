@@ -89,7 +89,7 @@ export default class Runtime {
 
        ⚠ THE GUARD IS THE SOCKET, and it is already on. Every rpc in this file arrives
          through the one WebSocket upgrade `SocketServer.js` refuses unless the peer
-         address is loopback AND the `Origin` is a local one (`Server/README.md`).
+         address is loopback AND the `Origin` is a local one (`Server/readme.md`).
          `inside()` below is the SECOND lock, not the first: it refuses a path that
          escapes `public/` even from a caller that is allowed to be here at all.
 

@@ -103,7 +103,7 @@ function status(tab, { visibility, focused, size }){
 /* The dev server's powers as MCP tools, so every Claude session in this repo has
  * them. Hand-rolled streamable HTTP in its simplest legal form: one POST, one
  * application/json answer, no session, no SSE. The tabs come from the `Tab` socket
- * plugin, registered beside this one in server.js. See Server/README.md. */
+ * plugin, registered beside this one in server.js. See Server/readme.md. */
 export default class MCP {
 
     static setup(server){ new MCP(server); }
