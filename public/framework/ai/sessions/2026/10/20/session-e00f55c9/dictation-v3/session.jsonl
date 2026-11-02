@@ -65,3 +65,9 @@
 {"review":{"at":"2026-11-01T19:20:52-06:00","answer":{"n":5,"reply":"noted"}},"by":"append.mjs","ts":"2026-11-02T01:20:52.077Z"}
 {"log":{"at":"2026-11-01T19:22:09-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T01:22:09.215Z"}
 {"log":{"at":"2026-11-01T19:23:30-06:00","msg":"Landed on michael/dev and pushed: worktree/fast-seat-voice (the fast seat defaults to voice; review answered: session-smart.md, Widget.css comment, fast-and-smart quote, findings §2) and worktree/dictation-active-session (one chat.active(); read-aloud follows no session after New session; test/active-session.mjs). Servex restarted 19:22 with no live call (last owner line 18:41). Open: the {place} check on the owner's next line (watcher bz75oxju2), the phone-load watcher (b6n6mb2nu). The qf-3/qf-9 pool worktrees hold only generated files.jsonl noise plus one health line, so they were left for their owner."},"by":"append.mjs","ts":"2026-11-02T01:23:30.477Z"}
+{"log":{"at":"2026-11-01T19:29:08-06:00","heartbeat":"check","msg":"status check sent to mastermind-dictation-v3"}}
+{"log":{"at":"2026-11-01T19:29:11-06:00","heartbeat":"answered","msg":"Both changes are merged and Servex has restarted. I'm waiting for your next dictated line to confirm the voice assistant places it; a watcher is on it, with a fallback check at 20:08."}}
+{"log":{"at":"2026-11-01T19:36:09-06:00","heartbeat":"check","msg":"status check sent to mastermind-dictation-v3"}}
+{"log":{"at":"2026-11-01T19:36:13-06:00","heartbeat":"answered","msg":"Still waiting: no owner line or phone load since the 19:22 restart. Both watchers are armed, and the fallback check is at 20:08."}}
+{"log":{"at":"2026-11-01T19:42:09-06:00","heartbeat":"check","msg":"status check sent to mastermind-dictation-v3"}}
+{"log":{"at":"2026-11-01T19:42:13-06:00","heartbeat":"answered","msg":"Idle on purpose. Two watchers are waiting for your next voice line and your next phone load; I'll report only when one of them fires."}}

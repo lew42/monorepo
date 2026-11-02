@@ -9,3 +9,4 @@
 {"log":{"at":"2026-11-01T18:13:43-06:00","heartbeat":"answered","msg":"The investigation is finished and nothing is running. `answer.md` is committed (3e44e7fdf, on `michael/dev`). It says Whisper made the phone's live transcript, including through the 17:37 restart. The"}}
 {"log":{"at":"2026-11-01T18:13:52-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T00:13:52.361Z"}
 {"log":{"at":"2026-11-01T18:24:06-06:00","heartbeat":"deliberate","msg":"mastermind-whisper-verify its agent is not running: it was stopped on purpose by unknown at 2026-11-01T18:13:51-06:00; not revived."}}
+{"stop":{"at":"2026-11-01T19:27:06-06:00","why":"dropped: owner mastermind-whisper-verify is stopped"}}

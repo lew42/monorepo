@@ -17,3 +17,6 @@
 {"commit":"35dd4be4c85e","by":"append.mjs","ts":"2026-11-01T23:33:39.689Z"}
 {"log":{"at":"2026-11-01T17:37:47-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-01T23:37:47.557Z"}
 {"commit":"394141538be1","by":"append.mjs","ts":"2026-11-01T23:40:43.991Z"}
+{"log":{"at":"2026-11-01T19:00:45-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T01:00:45.476Z"}
+{"log":{"at":"2026-11-01T19:00:45-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T01:00:45.594Z"}
+{"log":{"at":"2026-11-01T19:02:43-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T01:02:43.813Z"}

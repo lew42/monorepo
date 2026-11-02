@@ -37,3 +37,4 @@
 {"log":{"at":"2026-11-01T18:20:09-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T00:20:09.343Z"}
 {"log":{"at":"2026-11-01T18:20:59-06:00","heartbeat":"answered","msg":"I'm done with the voice bridge and idle. The branch `worktree/voice-bridge` at `20cc49221` is ready to merge: all 5 review rounds are answered and I've committed my task records. The remaining changes"}}
 {"log":{"at":"2026-11-01T18:21:05-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T00:21:05.698Z"}
+{"stop":{"at":"2026-11-01T19:27:06-06:00","why":"dropped: owner mastermind-voice-bridge is stopped"}}

@@ -92,3 +92,12 @@
 {"log":{"at":"2026-11-01T16:17:34-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-01T17:17:47-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-01T18:22:44-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"tool_call":{"at":"2026-11-02T01:10:37.322Z","tool":"list_agents","args_hash":"44136fa355b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-02T01:10:45.183Z","tool":"wake_me","args_hash":"dbe1934ff192","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-02T01:10:50.391Z","tool":"wake_me","args_hash":"9f87d51c31a5","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-02T01:10:53.924Z","tool":"cancel_wake","args_hash":"3d58b2ae04b3","caller":"voice-app"}}
+{"tool_call":{"at":"2026-11-02T01:10:54.321Z","tool":"cancel_wake","args_hash":"2f64ffe95b99","caller":"voice-app"}}
+{"log":{"at":"2026-11-01T19:19:53-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-01T19:27:06-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-01T19:32:07-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-01T19:37:07-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}

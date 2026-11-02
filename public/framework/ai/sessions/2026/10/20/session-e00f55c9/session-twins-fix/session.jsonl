@@ -25,3 +25,4 @@
 {"commit":"9bea70cabffa","by":"append.mjs","ts":"2026-11-01T23:30:58.488Z"}
 {"log":{"at":"2026-11-01T17:32:23-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-01T23:32:23.055Z"}
 {"log":{"at":"2026-11-01T17:34:10-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-01T23:34:10.399Z"}
+{"stop":{"at":"2026-11-01T18:37:46-06:00","why":"dropped: owner mastermind-session-twins is dormant and the task is untouched"}}
