@@ -45,6 +45,16 @@ Socket.prototype.jsonl = function(path, lines = [], offset, from, ends){
 			s.jsonl.loaded = true;
 			s.jsonl.read(s.jsonl.parse(fresh.join("\n")));
 			if (!s.first) s.changed?.(s.jsonl);
+		} else if (s.jsonl.skip){
+			// ⚠ A reset's recovery is always exactly ONE read() call (core/Item/doc/reset.md) — even an EMPTY
+			// one. A rewrite that leaves the file empty (or with nothing past byte 0) answers the resubscribe
+			// with zero lines, which skips the branch above, so without this `s.jsonl.skip` (the Store's pending
+			// dedupe copy, set by `reset()`) never got spent and stayed armed: the next ORDINARY append whose
+			// text happened to match an old line was silently swallowed as if it were the same line again
+			// (found in review, 2026-11-02). `read([])` costs nothing when there is nothing to skip past.
+			s.jsonl.loaded = true;
+			s.jsonl.read([]);
+			if (!s.first) s.changed?.(s.jsonl);
 		}
 		if (s.first) settle(s);
 	});

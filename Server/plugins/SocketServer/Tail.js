@@ -2,10 +2,12 @@ import fs from "fs";
 import path from "path";
 
 const PUBLIC = path.resolve("public");
-/* abs file -> Map<socket, offset | null>: ONE OFFSET PER SOCKET. A single offset per file, shared by every socket, lost
- * lines: socket A subscribed, a line was appended, socket B subscribed from 0 before the watcher fired and moved the
- * shared offset to the end, so the change event found nothing new and A never got the line (seat e, race.mjs;
- * Tail.test.mjs). `null`: a reset went out to that socket, and it streams again only after it subscribes again. */
+/* abs file -> Map<socket, {offset, proof} | null>: ONE OFFSET PER SOCKET. A single offset per file, shared by every
+ * socket, lost lines: socket A subscribed, a line was appended, socket B subscribed from 0 before the watcher fired
+ * and moved the shared offset to the end, so the change event found nothing new and A never got the line (seat e,
+ * race.mjs; Tail.test.mjs). `null`: a reset went out to that socket, and it streams again only after it subscribes
+ * again. `proof` (R4, doc/reset.md): the bytes just before `offset`, so a later `changed()` can tell a REWRITE
+ * (the file at that same offset no longer holds what this socket already saw) from an ordinary append. */
 const subs = new Map();
 
 /* ⚠ Browser input reaches fs.read here: a subscribed path must resolve under
@@ -77,6 +79,44 @@ function read(file, from){
  * past its own offset (ext/JSONL/live.js); before, it applied the whole batch again. */
 const send = (socket, file, chunk, from) => socket.rpc("jsonl", url_path(file), chunk.lines, chunk.offset, from, chunk.ends);
 
+/* R4 (doc/reset.md), the gap check: `at` always lands just past a `\n` when nothing has rewritten the file —
+ * `read()`'s own offsets only ever stop there. A byte read here that is anything else means the file no longer has
+ * the same lines up to `at` that it did when this cursor was trusted (a shorter replacement, a longer one, a
+ * rename-over): proof enough on its own, with no stored history needed. `at === 0` is always a boundary (nothing
+ * has been read yet). Node only (dev server). */
+function at_boundary(file, at){
+    if (at <= 0) return true;
+    const byte = Buffer.alloc(1);
+    const fd = fs.openSync(file, "r");
+    try { fs.readSync(fd, byte, 0, 1, at - 1); } finally { fs.closeSync(fd); }
+    return byte[0] === 10;
+}
+
+/* The up-to-256 bytes just before `at`, read fresh from disk — never kept as a growing history, just the one
+ * window a cursor needs to prove the file hasn't changed under it. `at <= 0`: nothing to prove yet. */
+function proof_at(file, at, want = 256){
+    if (at <= 0) return Buffer.alloc(0);
+    const take = Math.min(want, at);
+    const buf = Buffer.alloc(take);
+    const fd = fs.openSync(file, "r");
+    try { fs.readSync(fd, buf, 0, take, at - take); } finally { fs.closeSync(fd); }
+    return buf;
+}
+
+/* True when the file no longer matches what a reader at `from` (with `proof`, its last known window, or `null` the
+ * first time a cursor is trusted — a fresh subscribe has nothing to compare against yet) already saw: the gap
+ * check, then — only when a proof is on hand — the window itself, which catches a same-length replacement the gap
+ * check alone would miss (an early line's text changed, line COUNT and every boundary after it unchanged — exactly
+ * what `Runtime.safe_write` rewriting a url inside an already-read line looks like, doc/reset.md "What is not
+ * caught"). A file now shorter than `from` is left to the existing `read()` → null → reset path, unchanged. */
+function rewritten(file, from, proof){
+    let size;
+    try { size = fs.statSync(file).size; } catch { return false; }
+    if (size < from) return false;
+    if (!at_boundary(file, from)) return true;
+    return !!proof && !proof_at(file, from).equals(proof);
+}
+
 /* Streams appended `.jsonl` lines to the sockets that asked for them, so a log
  * grows in the browser without a reload. Dev server only; see
  * public/framework/dev/Socket/doc/wire.md. */
@@ -91,13 +131,19 @@ export default class Tail {
         const sockets = subs.get(abs);
         if (!sockets?.size) return;
 
-        const chunks = new Map();   // offset -> chunk: sockets at the same offset share one read
-        for (const [socket, from] of sockets){
-            if (from === null) continue;   // a reset already went out to this socket
-            if (!chunks.has(from)) chunks.set(from, read(abs, from));
-            const chunk = chunks.get(from);
-            if (!chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
-            sockets.set(socket, chunk.offset);
+        // "offset:proof" -> chunk | "reset": sockets that agree on BOTH share one read and one rewrite check. Offset
+        // alone is not enough (review, note 8): two sockets can sit at the same offset with different proofs — one
+        // subscribed before a same-size rewrite, one after — and sharing by offset alone would give the second one
+        // the first's verdict (wrongly reset, or wrongly not) depending on Map iteration order.
+        const chunks = new Map();
+        for (const [socket, entry] of sockets){
+            if (entry === null) continue;   // a reset already went out to this socket
+            const { offset: from, proof } = entry;
+            const key = from + ":" + (proof && proof.length ? proof.toString("hex") : "");
+            if (!chunks.has(key)) chunks.set(key, rewritten(abs, from, proof) ? "reset" : read(abs, from));
+            const chunk = chunks.get(key);
+            if (chunk === "reset" || !chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
+            sockets.set(socket, { offset: chunk.offset, proof: proof_at(abs, chunk.offset) });
             if (chunk.lines.length) send(socket, abs, chunk, from);
         }
     }
@@ -122,10 +168,14 @@ export default class Tail {
          * and streams when it appears. Answering `jsonl_reset` here ping-pongs with
          * a client that re-subscribes on reset. */
         const start = Number(from) || 0;
-        const chunk = fs.existsSync(file) ? read(file, start) : { lines: [], ends: [], offset: 0 };
+        const exists = fs.existsSync(file);
+        // A resuming cursor (a reconnect handing back its old offset) gets the one check it can afford with no
+        // history on hand yet — the gap check (R4): the file may have been rewritten while this socket was away.
+        if (exists && start > 0 && !at_boundary(file, start)){ sockets.set(this.socket, null); return this.socket.rpc("jsonl_reset", url_path(file)); }
+        const chunk = exists ? read(file, start) : { lines: [], ends: [], offset: 0 };
         if (!chunk){ sockets.set(this.socket, null); return this.socket.rpc("jsonl_reset", url_path(file)); }
 
-        sockets.set(this.socket, chunk.offset);
+        sockets.set(this.socket, { offset: chunk.offset, proof: proof_at(file, chunk.offset) });
         send(this.socket, file, chunk, start);
     }
 
