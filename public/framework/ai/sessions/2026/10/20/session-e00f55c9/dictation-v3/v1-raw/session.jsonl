@@ -38,3 +38,6 @@
 {"commit":"9c92daa5f merged into michael/dev"}
 {"log":{"at":"2026-11-01T22:25:00-06:00","msg":"Merged worktree/v1-raw into michael/dev (three-way, pushed to origin). node Server/worktree-restart.mjs v1-raw was run first to re-register this worktree's own dev server with Servex's proxy (its port was live but unregistered after Servex's own restart, so v1-raw.localhost 404'd for 2 of MergeTests.gate's 71 tests, Template.test.mjs and ext/Chat/sentence-send.test.mjs -- unrelated to this fix, confirmed by their own content: a Page/Template import and a .chat-v3 selector, nothing this change touches); after that all 71 pass. smoke.mjs on the live site after merge: no FAIL. git log michael/dev..worktree/v1-raw: empty. Reported to mastermind-dictation-v3."}}
 {"finish":{"at":"2026-11-01T22:25:30-06:00"}}
+{"commit":"c7b1253070c9","by":"append.mjs","ts":"2026-11-02T04:29:15.006Z"}
+{"log":{"at":"2026-11-01T22:29:26-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"assign":{"landed_at":"2026-11-01T22:30:21-06:00","outcome":"V1 raw sentences stay visible; Question/Task drawn beside; improve shows a revision pair. Merged 84671a9fb.","links":["/framework/ux/Dictate/test/raw-stays.mjs","shots/"]}}
