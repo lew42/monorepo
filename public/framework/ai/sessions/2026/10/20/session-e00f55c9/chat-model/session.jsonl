@@ -33,3 +33,4 @@
 {"log":{"at":"2026-11-01T22:42:14-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T04:42:14.003Z"}
 {"log":{"at":"2026-11-01T22:42:14-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T04:42:14.950Z"}
 {"log":{"at":"2026-11-01T22:51:16-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T04:51:16.291Z"}
+{"log":{"at":"2026-11-01T22:52:25-06:00","msg":"vscode-mastermind + mastermind-dictation-v3 asks: resurface-by-Ref operation folded into step 2; the sent {fast, smart} and working marks on the Prompt message (views-on-messages step 3) folded into step 6 (builder.md)."}}
