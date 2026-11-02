@@ -52,10 +52,10 @@
 
 	/* The real bubbles come from `ext/Chat/Chat.css` now (`Widget.Thread` draws every
 	 * sentence through `Chat.js`'s own `speak()`), so the rules below only ever fire for
-	 * `ThreadV1`'s own bubbles and the "ask" cards. `--chat-bubble` is `Chat.css`'s own
-	 * sizing variable (`.chatbox-you { width: var(--chat-bubble) }`), normally set by
+	 * `ThreadV1`'s own bubbles and the "ask" cards. `--bubble-max` is `ext/Chat/bubbles.css`'s own
+	 * sizing variable (`.chatbox-you { max-inline-size: var(--bubble-max) }`), normally set by
 	 * `.chatbox-log`; this widget's bubbles container isn't one, so it's repeated here. */
-	.ux-dictate-widget-bubbles { --chat-bubble: min(85%, 34rem); }
+	.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem); }
 
 	/* `.card.pad` is the framework's own boxed-content look — keeps a bubble from
 	 * stretching the full width of the thread. Used by `Widget.ThreadV1` (`v1: true`) and

@@ -123,3 +123,5 @@ ever appeared — no error, no clue why.
 **The owner's direction, 2026-10-20: dictation on the website first** (one assistant, hands-free; a global named voice session with a session manager; the widget cleanup asks that never landed; the font flicker): [doc/owner-2026-10-20-dictation-first.md](doc/owner-2026-10-20-dictation-first.md).
 
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — sentences are written instantly by code; the fast seat is paused as a placer (leaning), the chat is one stored list.
+
+**Bubble layout (2026-11-02):** the Dictate bubbles use the one shared rule set, [`ext/Chat/bubbles.css`](/framework/ext/Chat/readme.md#the-layout-your-words-on-the-right-the-assistants-plain-on-the-left-2026-11-02): your words are a hugging pill on the right, the assistant's plain text on the left. `Widget.css` only sets the width token for them (`.ux-dictate-widget-bubbles { --bubble-max: min(80%, 40rem) }`, 80% on a phone); change the look in `bubbles.css`, not here.

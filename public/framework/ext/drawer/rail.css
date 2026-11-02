@@ -359,8 +359,8 @@
 	/* COMPACT (the owner, 2026-10-09: "make the mobile dictation widget a little more compact"): the sheet's bubbles sit
 	   closer — tighter bubble padding, a thinner gap between bubbles, a smaller head. Only inside the sheet; the
 	   desktop drawer and the Chat page keep their own spacing (ext/Chat/Chat.css). */
-	.drawer-rail-sheet .chatbox-you,
-	.drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.55em; border-radius: 0.8em; }
+	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.55em; border-radius: 0.8em; }
+	.drawer-rail-sheet .chatbox-reply { padding-block: 0.2em; }   /* the assistant's words are plain text (ext/Chat/bubbles.css): no side padding */
 	.drawer-rail-sheet .chatbox { margin-block: 0.1em; }
 	.drawer-rail-sheet .ux-dictate-widget-bubbles { gap: 0.15em; }
 	.drawer-rail-sheet .chatbox-text + .chatbox-text { margin-block-start: 0.3em; }
@@ -416,7 +416,7 @@
 	}
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-composer { padding: 0; gap: 0; }
 	.drawer-rail-sheet .ux-dictate-mic-indicator:not(.compact), .drawer-rail-sheet .chatbox-compose .ux-dictate-level { display: none; }   /* the listening row: the mic is the meter */
-	.drawer-rail-sheet .chatbox-you, .drawer-rail-sheet .chatbox-reply { padding: 0.2em 0.5em; }
+	.drawer-rail-sheet .chatbox-you { padding: 0.2em 0.5em; }
 	.drawer-rail-sheet .drawer-rail-sheet-panel .ux-dictate-widget-thread { padding-inline: 0.6em; }
 }
 @layer site {

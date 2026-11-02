@@ -21,6 +21,8 @@ export default new Page({
 			line(9, { kind: "assistant", id: "fast" }, "I think so. The smart assistant will look.");
 			line(20, { kind: "assistant", id: "smart" }, "It lives in `Composer.js`; I started a task to make it larger on a phone.");
 			line(40, { kind: "owner" }, "great, thanks", "voice");
+			line(70, { kind: "owner" }, "/compact", "text");
+			line(80, { kind: "assistant", id: "fast" }, "Compacted.");
 			entries.push({ chat: { at: at(30), session: "demo", from: { kind: "owner" }, via: "text", text: "why that file?", re: at(20), thread: true } });
 			entries.push({ chat: { at: at(34), session: "demo", from: { kind: "assistant", id: "smart" }, via: "text", text: "It draws the box and the Send button.", re: at(30), thread: true } });
 			entries.push({ react: { at: at(21), re: at(20), emoji: "👍", from: { kind: "owner" } } });
@@ -61,7 +63,7 @@ export default new Page({
 			const talk = chat({ source: () => entries });
 			talk.sync();
 			button("Add a live message 2 s later").click(() => { say("prompt", "owner", "Live, " + entries.length + ".", 2); talk.sync(); });
-		}, "Three owner messages, one reply, and one owner message 30 s later: three bubbles. Every bubble on a side is the same width (`--chat-bubble`).");
+		}, "Three owner messages, one reply, and one owner message 30 s later: three bubbles. Your bubbles hug their words up to 80% of the width (`--bubble-max`); replies are plain text on the left.");
 		p("A curated version: a `refined` line replaces a merged bubble's raw paragraphs with tidy sections. Click a section to open the raw words it came from, right there; click the bubble to open every raw piece in time order. (The line below is made up for this demo.)");
 
 		demo(() => {

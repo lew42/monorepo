@@ -40,12 +40,16 @@ export default class ChatV2 extends ChatV3 {
 		return task ? [...(task._tasks ?? []), ...this.nested_tasks(task)].length > 0 : false;
 	}
 
+	// Dictation mode (no refined text): each sentence row is its own small bubble of yours, with its Reply plain beneath it (bubbles.css),
+	// so the wrapper is a group, not one bubble. With refined text it is the one hugging bubble, as in V3.
+	you_class(p){ return p.text ? "chat-v3-you" : "chat-v3-yours"; }
+
 	// One paragraph, as sentence rows (not one joined string): a Reply with `re.to` naming this sentence is drawn right
 	// beside it, instead of in the trailing list after the whole card (ChatV3.trailing_replies, overridden below).
 	paragraph(group, p){
 		div.c("chat-v3-para", () => group.forEach(s => {
 			div.c("chat-v2-sentence", () => {
-				div.c("chat-v2-sentence-text", p.clean[s.id] ?? s.text);
+				div.c("chat-v2-sentence-text chat-v3-you", p.clean[s.id] ?? s.text);
 				const here = this.replies_of(p).filter(r => r.re?.to === s.id);
 				if (here.length) div.c("chat-v2-beside", () => here.forEach(r => this.reply(r)));
 			}).attr("data-sentence", s.id);

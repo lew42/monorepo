@@ -140,7 +140,7 @@ export default class Recite extends Part {
 		const first = this.chunks.length;
 		if (!continuing) this.reply_id++;
 		const id = this.reply_id;
-		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key });
+		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key, msg: null });
 		if (this.chunks.length === first) return this;
 		this.retime();
 		// `wait_at != null` means a reply is already held for quiet: a second queue() while still idle must NOT
@@ -340,7 +340,7 @@ export default class Recite extends Part {
 		this.done.add(key);
 		const before = this.chunks.length;
 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){
-			this.live.text = text; this.take(text, true); this.tag_live(text); this.live = null;
+			this.live.text = text; this.take(text, true); this.tag_live(text, id); this.live = null;
 			this.mark_when_done(id, before);
 			return;
 		}
@@ -356,6 +356,7 @@ export default class Recite extends Part {
 		this.drop_heard();   // a fresh reply, not a continuation of `this.live`: if the old one sits paused by barge-in, a question just got its answer
 		this.live = null;
 		this.queue(text, false, Recite.bubble_key(text));
+		for (const c of this.chunks.slice(before)) c.msg = id ?? null;
 		this.mark_when_done(id, before);
 	}
 
@@ -383,7 +384,7 @@ export default class Recite extends Part {
 	}
 
 	/** A streamed reply is complete: its sentences (queued one by one as they ended) all carry the bubble's key, so the place it was left at is remembered. */
-	tag_live(text){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []) c.key = key; }
+	tag_live(text, id = null){ const key = Recite.bubble_key(text); for (const c of this.live?.chunks ?? []){ c.key = key; if (id) c.msg = id; } }
 
 	/** `id`'s text added no chunks that still need to be said (nothing was queued, or everything was already
 	 *  covered by `this.live`): mark it played right away. Otherwise remember its last chunk, so `ended()` marks it
