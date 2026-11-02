@@ -1,5 +1,7 @@
 # The settings panel (the gear)
 
+**The `assistant` setting has a fourth value, `single`** (one agent per session instead of the fast + smart pair), at boot (`session-assistant.txt`) or per session (`POST /api/session/settings {session, assistant}`): [single-voice-assistant.md](single-voice-assistant.md).
+
 One panel, the old one: `ComposerMic.settings_panel()` in `ext/Chat/Mic.js`, opened by the composer's gear (`ext/Chat/Composer.js`, "Dictation settings"). On the sheet the composer's row is hidden by the dictation bar, so the bar has its own ⚙ (`DictationBar.js`, `.dictation-bar-gear`) that presses the hidden gear: same panel, never a second one.
 
 ## The knobs that matter

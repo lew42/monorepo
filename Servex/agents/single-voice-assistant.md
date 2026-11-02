@@ -11,7 +11,7 @@ await item({ path: "<session>", delta: { place: { re: "<at1>", to: "same", edit:
 await item({ path: "<session>", delta: { place: { re: "<at2>", to: "same", edit: "improve", text: "On my phone." } } })
 ```
 
-A new thought on the same topic starts a new paragraph (`to: "paragraph"`). A new task or topic starts a card (`to: "card"`, with a title of two to five words, and `where` = `inside`, `beside` or `up`). The card's title is also set on its message:
+A new thought on the same topic starts a new paragraph (`to: "paragraph"`). A new task or topic starts a card (`to: "card"`, with a title of two to five words, and `where` = `inside`, `beside` or `up`). Chat V3 does not yet draw a moved paragraph, card or sentence, only your cleaned text and a card title, so use `paragraph` or `card` only for a clearly new thought, and `same` otherwise. A card's title is also set on its message:
 
 ```js
 await item({ path: "<session>", delta: { place: { re: "<at3>", to: "paragraph", edit: "improve", text: "Also we need a new logo." } } })
@@ -50,4 +50,4 @@ const r = await item({ path: "<session>", delta: { tasks: { add: { title: "Fix t
 
 ## Your own files
 
-If something here is wrong, say so in a reply, then ask for it to be fixed (a mastermind does that, not you): this brief `Servex/agents/single-voice-assistant.md`, your role row `Servex/agents/roles.js`, and the code that feeds you and the pause cue `Servex/agents/Sessions.js`.
+You have no file tools, so you cannot read or edit these. If something here is wrong, say so in a reply on a pause cue; a mastermind fixes it, not you. They are: this brief `Servex/agents/single-voice-assistant.md`, your role row `Servex/agents/roles.js`, and the code that feeds you and the pause cue `Servex/agents/Sessions.js`.

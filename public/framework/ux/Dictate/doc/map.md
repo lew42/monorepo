@@ -1,5 +1,7 @@
 # Dictation map — every piece, where it lives, and what to do about the duplicates
 
+**`single` (2026-11-02):** the setting that runs ONE agent (role `single-voice-assistant`, `Servex/agents/single-voice-assistant.md`) instead of the fast and smart seats: [single-voice-assistant.md](single-voice-assistant.md).
+
 What *runs* behind a spoken sentence (jobs, models, costs, readers): [background-work.md](background-work.md).
 
 **What this is:** one page that finds any piece of the dictation system in one click: the mic, Whisper, the cleaners, the chat box, the voice session and the assistants. Made 2026-10-20 as a **plan only**: nothing was moved or changed. The proposals at the bottom wait for the owner's approval ([decisions](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/)).

@@ -75,7 +75,7 @@ const env = (name, dflt) => { const n = Number(process.env[name]); return proces
  * session-fast chatter; `single` = ONE agent (role `single-voice-assistant`) in the smart seat and no fast one, fed every sentence at once and
  * answering only on a pause cue (ux/Dictate/doc/single-voice-assistant.md); `off` = NO fast seat (a test or an emergency switch; then `say()` files a Question per "?" sentence in
  * code, which it never does while a seat is on, so the two never both file one). Read once at boot, first match wins:
- *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast or voice. This is the
+ *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast, voice or single. This is the
  *      switch that survives a restart, because sustain.mjs relaunches Servex through WMI and pins only SERVEX_HOME and
  *      SERVEX_API_PORT, so an env var never reaches the new process (same pattern as session-backend.txt below).
  *   2. the env var SERVEX_SESSION_ASSISTANT (a hand-started Servex or a private test one).
