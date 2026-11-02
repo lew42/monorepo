@@ -21,7 +21,7 @@ Items 3–5 stay on the Open list for the next agent. The decisions and open que
 - Work in a worktree (`node Server/worktree-up.mjs read-aloud-b`) and commit at every working step.
 - Proof: `Recite.test.mjs` passes with new cases for both items; headless shots at 400 and 1200 px of a paused bubble; `node Server/smoke.mjs` on `/framework/audio/Recite/` and `/framework/ux/Dictate/` shows no FAIL.
 - Review with `node Server/review.mjs <this dir> <worktree>`, answer the findings, then land with `MSYS_NO_PATHCONV=1 node Server/merge.mjs <worktree>`.
-- ⚠ If merge.mjs fails and you land by copying files and committing by path, afterwards run `git diff michael/dev worktree/read-aloud-b -- public/framework/audio/ public/framework/ux/Dictate/` and land every file it shows (except `files.jsonl`). Last time this fallback left Recite.css behind.
+- ⚠ Land only through `merge.mjs`. Never copy files into the main tree and commit them by path: that skips the test gate and the review record, and last time it left Recite.css behind. If merge.mjs or a hook blocks you, stop and tell mastermind-dictation-v3 what blocked it; do not work around it.
 - Update the Recite readme's Open list and `doc/architecture.md` as each item lands. Log in `session.jsonl` in this folder.
 
 ## Never
