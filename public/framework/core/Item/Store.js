@@ -61,7 +61,7 @@ export class Store {
 	   bare id (`{"tasks":{"c3":{…}}}`) and act() saves the bare verb (`{"start":{}}`). true: `#c3` and `start()`. Every reader in
 	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
 	   off until they are updated. */
-	static marked_lines = false;
+	static marked_lines = true;
 	/* TYPING COALESCE (doc/batch.md): how long a data line waits for the next keystroke on the same item. On in a browser; off (null)
 	   in node, so the item tool, scripts and tests keep their one-tick timing. null = every line goes on the next tick. */
 	static coalesce = typeof document !== "undefined" ? { idle: 300, max: 2000 } : null;
