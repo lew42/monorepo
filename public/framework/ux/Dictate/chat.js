@@ -3,7 +3,7 @@ import { menu as popover_menu } from "../Popover/Popover.js";
 import Widget from "./Widget.js";
 import floor from "./floor.js";
 import * as Session from "/framework/ext/Session/Session.js";
-import ChatV2Model from "/framework/ext/Chat/v2/ChatV2Model.js";
+import ChatV2Model from "/framework/ext/Chat/v2/old/ChatV2Model.js";   // V1 still folds tasks with the old model; ChatV2 itself moved on (ChatV2.js, step 2 of views-on-messages.md)
 import DictateHealth from "./DictateHealth.js";
 import Link from "/framework/dev/Socket/Link.js";
 import Recite from "/framework/audio/Recite/Recite.js";
