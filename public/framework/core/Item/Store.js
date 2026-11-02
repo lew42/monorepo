@@ -62,6 +62,31 @@ export class Store {
 	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
 	   off until they are updated. */
 	static marked_lines = false;
+	// What is applying a change right now, for Item.source: "replay" (a load) or "remote" (a line read live); null = local code.
+	static reading = null;
+
+	/* THE FOLD (spec T2, doc/batch.md): the lines one flush sends, with the data lines (only `set` / `unset` at the end of the hops)
+	   that name the same item folded into the first of them, so one action saves one line per item it touched. Order is kept:
+	   a line that is not data (a verb, a list verb) closes every fold, and a line on an item closes the folds on that item's
+	   ancestors and descendants (a parent's `set` may replace the child a later line names). Within one fold the last value of a
+	   key wins, and an unset after a set (or the reverse) leaves only the last. The lines handed in are never changed. */
+	static merge(lines){
+		const out = [], open = new Map();   // hop path (JSON) -> {path, inner}: the folded line's own {set, unset}
+		for (const line of lines){
+			const found = data_line(line);
+			if (!found){ open.clear(); out.push(line); continue; }
+			const key = JSON.stringify(found.path);
+			for (const [k, f] of open) if (k !== key && related(f.path, found.path)) open.delete(k);
+			const into = open.get(key);
+			if (into){ fold(into.inner, found.inner); continue; }
+			const inner = {};
+			fold(inner, found.inner);
+			out.push(wrap(found.path, inner));
+			open.set(key, { path: found.path, inner });
+		}
+		return out;
+	}
+
 	// How many items are muted right now (0 = none). The old global flag, for a reader that has no origin to ask about.
 	static get muted(){ return Store.muting.size; }
 
@@ -210,7 +235,9 @@ export class Store {
 			if (this.host){
 				this.replaying = true;
 				Store.replay_depth++;
-				try { this.host.replay_line(entry); } finally { Store.replay_depth--; this.replaying = false; }
+				const was = Store.reading;
+				Store.reading = this.live ? "remote" : "replay";   // Item.source: a line read after the first load came from another writer
+				try { this.host.replay_line(entry); } finally { Store.reading = was; Store.replay_depth--; this.replaying = false; }
 				replayed.push(entry);
 				this.remember(entry);
 			} else {
@@ -220,7 +247,14 @@ export class Store {
 		}
 		// One "read" event on the host per batch it replayed: a replay may change it without a "delta" (Task.replay_line puts
 		// its fields), so a view or a Ref that must redraw on a live line listens for this (core/Item/Ref.js).
-		if (replayed.length) this.host.emit?.("read", replayed);
+		// The listeners run as part of the read (spec T1): what they change is not saved here (the writer of the line saved its own
+		// consequences, or a replay makes them again), so two open tabs never both write the same reaction.
+		if (replayed.length){
+			const was = Store.reading;
+			Store.replay_depth++;
+			Store.reading = this.live ? "remote" : "replay";
+			try { this.host.emit?.("read", replayed); } finally { Store.reading = was; Store.replay_depth--; }
+		}
 		// The recovery read is always exactly one call (the server's reset answer is the whole file, one frame):
 		// done, whether or not every line in `skip` turned up again (a compaction can drop lines for good).
 		if (recovering){ this.skip = null; this.host?.emit?.("reset"); }
@@ -288,6 +322,7 @@ export class Store {
 
 		const held = this.entries.splice(0);
 		this.read(held);
+		this.live = true;   // from here on a line read is another writer's (Item.source "remote")
 		return this;
 	}
 
@@ -317,14 +352,24 @@ export class Store {
 	// warns, once, that nothing was written to disk.
 	append(line){
 		(this._queue ??= []).push(line);
-		if (this._flushing) return;
+		if (this._flushing || this.holding) return;
 		this._flushing = true;
 		queueMicrotask(() => this.flush());
 	}
 
+	/* BATCH (spec T2, doc/batch.md): while held, lines queue and nothing is sent; the last release() flushes them on the next
+	   microtask, folded (Store.merge). Item.batch(fn) holds its store for as long as fn runs, an async fn until it settles. */
+	hold(){ this.holding = (this.holding ?? 0) + 1; return this; }
+	release(){
+		this.holding = Math.max(0, (this.holding ?? 1) - 1);
+		if (!this.holding && this._queue?.length && !this._flushing){ this._flushing = true; queueMicrotask(() => this.flush()); }
+		return this;
+	}
+
 	async flush(){
-		const lines = this._queue.splice(0);
 		this._flushing = false;
+		if (this.holding) return;   // a batch began after this flush was queued: its release() flushes
+		const lines = Store.merge(this._queue.splice(0));
 		if (!lines.length) return;
 
 		if (!this.writable){
@@ -479,6 +524,38 @@ function hops(node, host, marked = false){
 function list_name(owner, key, list){
 	for (const name of [list.name, key]) if (name && !name.startsWith("_") && owner.get?.(name) === list) return name;
 	return null;
+}
+
+// A data line: hops down to an object whose every key is `set` (a plain object) or `unset` (an array). {path, inner} or null.
+const DATA_VERBS = new Set(["set", "unset", "unset()"]);
+function data_line(line){
+	const path = [];
+	for (let node = line; node && typeof node === "object" && !Array.isArray(node);){
+		const keys = Object.keys(node);
+		if (!keys.length) return null;
+		if (keys.every(k => DATA_VERBS.has(k)))
+			return keys.every(k => k === "set" ? is_plain(node[k]) : Array.isArray(node[k])) ? { path, inner: node } : null;
+		if (keys.length !== 1 || DATA_VERBS.has(keys[0]) || keys[0].endsWith("()")) return null;
+		path.push(keys[0]);
+		node = node[keys[0]];
+	}
+	return null;
+}
+const is_plain = v => !!v && typeof v === "object" && v.constructor === Object;
+// Is one hop path the start of the other (an ancestor or a descendant)?
+const related = (a, b) => { const n = Math.min(a.length, b.length); for (let i = 0; i < n; i++) if (a[i] !== b[i]) return false; return true; };
+// Fold one data line's {set, unset} into `into` (a fresh object the fold owns), the later one winning key by key.
+function fold(into, add){
+	const unset_key = Object.hasOwn(add, "unset()") ? "unset()" : "unset";
+	for (const [k, v] of Object.entries(add.set ?? {})){
+		(into.set ??= {})[k] = v;
+		for (const u of ["unset", "unset()"]) if (into[u]){ into[u] = into[u].filter(x => x !== k); if (!into[u].length) delete into[u]; }
+	}
+	for (const k of add[unset_key] ?? []){
+		if (into.set && Object.hasOwn(into.set, k)){ delete into.set[k]; if (!Object.keys(into.set).length) delete into.set; }
+		const list = into[unset_key] ??= [];
+		if (!list.includes(k)) list.push(k);
+	}
 }
 
 // Nests `payload` one level per step in `path`, innermost (the payload itself)
