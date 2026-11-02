@@ -382,20 +382,22 @@ export class Store {
 		return true;
 	}
 
-	// Send what typing held (on the next microtask, folded).
-	end_typing(){
+	// Send what typing held (on the next microtask, folded; `now`: before this call returns, as on a page hide).
+	end_typing(now = false){
 		const t = this._typing;
 		if (!t) return;
 		clearTimeout(t.timer);
 		this._typing = null;
 		Store.typists.delete(this);
-		if (this._flushing || this.holding) return;
+		if (this.holding) return;
+		if (now) return void this.flush();   // flush takes the queue before its first await
+		if (this._flushing) return;
 		this._flushing = true;
 		queueMicrotask(() => this.flush());
 	}
 
 	// Every store's held typing, now: on blur (focusout) and when the page is hidden or closed.
-	static flush_typing(){ for (const store of [...Store.typists]) store.end_typing(); }
+	static flush_typing(now = false){ for (const store of [...Store.typists]) store.end_typing(now); }
 
 	/* BATCH (spec T2, doc/batch.md): while held, lines queue and nothing is sent; the last release() flushes them on the next
 	   microtask, folded (Store.merge). Item.batch(fn) holds its store for as long as fn runs, an async fn until it settles. */
@@ -421,7 +423,7 @@ export class Store {
 	static listen_for_hide(){
 		if (Store.listening || typeof document === "undefined") return;
 		Store.listening = true;
-		const hide = () => { Store.flush_typing(); Store.send_held(); };
+		const hide = () => { Store.flush_typing(true); Store.send_held(); };   // both before the page goes, on the same path
 		addEventListener("pagehide", hide);
 		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") hide(); });
 		document.addEventListener("focusout", () => Store.flush_typing(), true);   // leaving a field ends its typing

@@ -2,7 +2,7 @@
 // at most every `max` ms, on blur, or before any other line. Node: `node public/framework/core/Item/coalesce.test.mjs`.
 // Store.coalesce is on in a browser ({idle: 300, max: 2000}) and off in node (null), so every other test keeps its one-tick
 // timing; these tests switch it on with short times.
-//  1. Ten keystrokes 5 ms apart save one line, with the last text, after the pause; a replay gives the same text.
+//  1. Eleven keystrokes 5 ms apart save one line, with the last text, after the pause; a replay gives the same text.
 //  2. Typing without a pause is still saved every `max` ms.
 //  3. Any other line (a list add) sends what is held first, in order.
 //  4. Blur (Store.flush_typing, what focusout and pagehide call) sends at once.
@@ -26,7 +26,7 @@ class Note extends Item { constructor(...a){ super(...a); this.tags = new List({
 Item.register(Note, "CoalesceNote");
 const on = async (opts, fn) => { const was = Store.coalesce; Store.coalesce = opts; try { await fn(); } finally { Store.coalesce = was; } };
 
-test("ten keystrokes save one line, after the pause", async t => on({ idle: 40, max: 1000 }, async () => {
+test("eleven keystrokes save one line, after the pause", async t => on({ idle: 40, max: 1000 }, async () => {
 	const note = new Note({ id: "n" }), { sent } = wired(note);
 	let text = "";
 	for (const ch of "hello there"){ text += ch; note.set({ text }); await wait(5); }
