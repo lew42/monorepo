@@ -15,7 +15,7 @@ Budget: $10. Load the `minion` skill first, then `code` and `ui`. You own this o
 - **The alternative,** written in the plan: one class with a `skin` option. Switch to it, and say why in `task.jsonl`, if ChatV2 ends up overriding most of ChatV3's methods.
 - **Owner item 6 ("V2 shows no live Whisper text").** It should come free from ChatV3's live draft; confirm it in a shot.
 
-**Before you build, read `mastermind-chat-model`'s note on upcoming fields.** It owns `core/Session/` and `session.messages`. All of these changes are additive, so read defensively:
+**Before you build, read @mastermind-chat-model's note on upcoming fields.** It owns `core/Session/` and `session.messages`. All of these changes are additive, so read defensively:
 - `Ref` members become Items and need a `RefView`;
 - `Prompt.kind` and `Prompt.items` are added;
 - `Prompt.raw` becomes computed;
@@ -25,7 +25,7 @@ Look in `public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/inb
 
 **Fence.** Yours: `ext/Chat/v2/` and the small hooks in `ext/Chat/v3/ChatV3.js`. Not yours:
 - `ux/Dictate/`;
-- `audio/Recite/`, which `mastermind-read-aloud-next` is building;
+- `audio/Recite/`, which @mastermind-read-aloud-next is building;
 - `core/Session/`.
 
 **Prove it.**
@@ -43,7 +43,7 @@ Look in `public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/inb
 - [ ] Merge: `MSYS_NO_PATHCONV=1 node Server/merge.mjs <full worktree path> --review-dir <this dir>`.
 - [ ] Check: `node Server/smoke.mjs <worktree> framework/ext/Chat/v2/ framework/ext/Chat/v3/` shows no FAIL, and `git log michael/dev..worktree/v2-subclass` is empty.
 
-**Report** once, after the merge, to `mastermind-dictation-v3`, in 3 lines: what changed, the proof, what step 3 needs.
+**Report** once, after the merge, to @mastermind-dictation-v3, in 3 lines: what changed, the proof, what step 3 needs.
 
 **Never:**
 - restart or kill any server or Servex;
