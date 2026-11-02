@@ -35,7 +35,11 @@ export default class ChatV3 extends JSONL {
 		const first = !this.drawn;
 		if (!this.listening){
 			this.listening = true;
-			this.session.on("delta", (line, from) => { const card = this.card_for(this.added_member(line, from)); if (card) this.dirty.add(card); });
+			this.session.on("delta", (line, from) => {
+				const member = this.added_member(line, from);
+				if (member instanceof Reply) { this.partial = null; this.$partial?.el.remove(); }   // its settled Reply landed: stop drawing the partial
+				const card = this.card_for(member); if (card) this.dirty.add(card);
+			});
 		}
 		for (const raw of entries){
 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)

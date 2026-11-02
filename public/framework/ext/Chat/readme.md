@@ -63,3 +63,9 @@ const panel = new ChatPanel({ source: () => entries, deliver: post });
 
 - [`doc/architecture.md`](./doc/architecture.md) (decisions and why)
 - [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — the chat is ONE stored list ("the spine"), Servex appends the chat entry in the same write as the sentence; reverses the Option A recommendation.
+
+## Next
+
+- ⬜ `v3/ChatV3.test.mjs` dropped the old `main_tree`/`served` check: its live checks pass only when `base` serves the same tree that wrote the live fixture copy (the worktree's own server, or the main tree after merge), not `monorepo.localhost` from a worktree. Say this in `v3/readme.md`'s Test line, or bring the check back.
+- ⬜ Every v3 card's muted first-words title repeats the first line of its body right under it (kept as the owner's earlier choice); worth a second look at [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 4 (one view).
+- ⬜ `ChatV3` is a changed class with no page showing its live instances or their state (`dirty`, `partial`, `limit`); the demo page shows only its output.

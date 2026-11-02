@@ -1,4 +1,4 @@
-// node ChatV3.test.mjs — plain node, no browser: ChatV3's two pieces of data logic (placement.js) against a real voice session
+// node placement.test.mjs — plain node, no browser: ChatV3's two pieces of data logic (placement.js) against a real voice session
 // (a range copied from public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl into fixture/messages-session.jsonl, the
 // original untouched), replayed through the real Session: every Reply lands under the Prompt holding its `re.to`, in list order;
 // a pause between two sentences starts a new paragraph.
