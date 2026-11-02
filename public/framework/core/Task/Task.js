@@ -36,6 +36,8 @@ const VERDICTS = new Set(["approve", "improve", "reject"]);
 
 export class Task extends Item {
 
+	static data_keys = FIELDS;   // a line's plain fields (replay_line reads them): never reported as unknown keys (Item.unknown_key)
+
 	/* Running time is SAVED data, so a reload (or another tab) reads it back (D18): `ran_ms` is the time banked by earlier running
 	   spans, and `ran_since` (an ISO time, or null) is when the span that is open right now began. Both are written by the verbs
 	   below in the same set() as the state, so a change line carries them and a verb line makes them again. Old lines have no

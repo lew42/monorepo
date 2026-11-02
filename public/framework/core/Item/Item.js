@@ -268,7 +268,7 @@ export class Item extends Events(Object) {
 		// An OLD line named a method bare (`{"start":{}}`): still called, until the old logs are migrated (Item.bare_calls = false
 		// reads a bare name as data, the D13 rule, and lets a field be named like a method).
 		const here = this[key];
-		if (typeof here === "function" && Item.bare_calls) return void here.apply(this, Item.call_args(value));
+		if (typeof here === "function" && Item.bare_calls) return void this.call_line(key, Item.call_args(value));
 
 		const target = this.get(key);
 		if (routes(target)) return void target.set(value);
@@ -300,6 +300,7 @@ export class Item extends Events(Object) {
 
 		const refused = unsavable(value);
 		if (refused){ warn(`set("${key}") refused: the value is ${refused}, which a saved line cannot hold`, `unsavable:${this.constructor.name}.${key}`); return; }
+		if (target === undefined && Store.replay_depth > 0 && !Item.calling && is_plain(value)) this.unknown_key(key);
 
 		const old = target;
 		value = this.adopt_slot(key, value, old);
@@ -357,7 +358,33 @@ export class Item extends Events(Object) {
 			warn(`a line called ${key}, but ${this.constructor.name} has no method ${name}() — that part of the line is ignored (a "()" name is never stored as data)`, `call:${this.constructor.name}.${name}`);
 			return;
 		}
-		this[name](...Item.call_args(value));
+		this.call_line(name, Item.call_args(value));
+	}
+
+	// A line's call of my method `name`. What the method stores is its own business (and a `set` call's keys are data the writer
+	// named on purpose), so unknown_key stays quiet while it runs.
+	call_line(name, args){
+		Item.calling++;
+		try { return this[name](...args); } finally { Item.calling--; }
+	}
+
+	/* A line being read (replayed, or live from another tab) put an object under a key nothing here knows (spec T6), outside an
+	   explicit `set`: on a List, an id that is no member (a stale edit after a move or a remove); on a list member, a key that is no
+	   method, field, child or data (a newer writer's verb, read by an older checkout). It is still stored as data, exactly as before,
+	   so a replay never changes; this only counts it in `Item.unknown_keys` ("<Class>.<key>" -> lines) and, in node (the item tool,
+	   the tests, the scripts), warns once per key. In a browser a warning would be noise on every page that reads an old log. */
+	unknown_key(key){
+		const list = is_list(this), parent = this.parent;
+		const member = !list && !!parent && (is_list(parent) ? parent.index_of(this) !== -1 : Object.values(parent.lists?.() ?? {}).some(l => l.index_of(this) !== -1));
+		if (!list && !member) return;
+		if ((this.constructor.fields ?? []).includes(key) || (this.constructor.data_keys ?? []).includes(key)) return;
+		const name = `${this.constructor.name}.${key}`;
+		Item.unknown_keys.set(name, (Item.unknown_keys.get(name) ?? 0) + 1);
+		if (typeof document !== "undefined") return;
+		warn(list
+			? `a line named "${key}" under the list "${this.name ?? this.id}", which has no member "${key}" (moved or removed?): kept as data on the list, as before`
+			: `a line gave ${this.constructor.name} "${this.id}" the key "${key}" with an object value, but it has no method, field, child or data of that name (a newer writer's verb?): kept as data, as before`,
+			`unknown:${name}`);
 	}
 
 	// `#id` in a line: the list item with that id (one of my lists, or my own members when I am a List); the value goes to it.
@@ -570,6 +597,9 @@ export class Item extends Events(Object) {
 		for (let i = 1; i < n; i++) id += abc[bytes[i] % 36];
 		return id;
 	}
+
+	// Data keys a line may set bare on this class besides `fields` (Task: its line fields); unknown_key never reports them.
+	static data_keys = [];
 
 	// The methods and getters of this class that only READ. The item tool answers a delta whose keys are all queries (`{"cost":{}}`) and writes no line. A subclass lists its own.
 	static queries = [];
@@ -785,6 +815,8 @@ Item.types = new Map();
 Item._clock = null;
 Item.bare_calls = true;   // D13: a bare key that names a method still calls it (old lines). false = a bare key is always data.
 Item.old_hops = new Map();   // old id-only hops replayed, "<list>.<id>" -> count (set_one); the item tool can report them
+Item.unknown_keys = new Map();   // keys a read line stored as data that nothing knew, "<Class>.<key>" -> count (unknown_key, spec T6)
+Item.calling = 0;   // > 0 while a line's method call runs (call_line): what it stores is not reported by unknown_key
 Item.generation = 0;   // bumped by every List change: find()'s index is rebuilt only after one
 Item.names = new Map();
 Item.warned = new Set();
