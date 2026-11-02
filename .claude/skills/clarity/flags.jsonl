@@ -2070,3 +2070,8 @@
 {"at":"2026-11-02T09:18:38.797Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model","verdict":"spawned","to":"clarity-chat-model"}
 {"at":"2026-11-02T09:18:54.882Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep/requirements.md","verdict":"queued","kind":"proposal"}
 {"at":"2026-11-02T09:30:00-06:00","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model","verdict":"rewrote","what":"outcome lacked step 1 (phase-0 fixes and tests); added it and trimmed. Agent .md files over 500 words (not owner-facing); page not shot","to":"session.jsonl"}
+{"at":"2026-11-02T09:19:55.966Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep/requirements.md","verdict":"spawned","to":"clarity-v1-switch-prep"}
+{"at":"2026-11-02T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep/requirements.md","verdict":"rewrote","what":"title and context: dropped role text from title, defined V1/mirrored, linked results and readme","to":"requirements.md"}
+{"at":"2026-11-02T09:46:00.369Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep","verdict":"queued","kind":"landing"}
+{"at":"2026-11-02T09:46:00.937Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep","verdict":"spawned","to":"clarity-v1-switch-prep-2"}
+{"at":"2026-11-02T03:50:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep","verdict":"rewrote","what":"task.jsonl had no outcome; appended one with four asks ticked with proof","to":"task.jsonl"}

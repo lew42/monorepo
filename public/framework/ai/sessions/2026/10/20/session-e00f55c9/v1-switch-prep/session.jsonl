@@ -19,3 +19,17 @@
 {"commit":"cf92b6433ef9","by":"append.mjs","ts":"2026-11-02T09:45:20.034Z"}
 {"assign":{"landed_at":"2026-11-02T03:45:50-06:00","title":"V1 switch prep: said_at on messages, fill partly mirrored sessions","outcome":"New owner messages carry said_at; ChatToMessages fills partly mirrored sessions (dry by default, no twins); V1 compare is 0 diffs on all 5 sessions. Caveats: measured against a model of V1 (Widget.place splits unmodelled); Servex restart needed for live said_at.","links":["/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep/compare-after.txt","/framework/core/Session/Chat/doc/pseudo-properties.md","/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep/review.md"]}}
 {"commit":"fad8c564bd98","by":"append.mjs","ts":"2026-11-02T09:45:50.492Z"}
+{"commit":"6c8f31984f3e","by":"append.mjs","ts":"2026-11-02T09:45:52.939Z"}
+{"log":{"at":"2026-11-02T03:46:00-06:00","msg":"text-check: review.md: 459 words and no picture"}}
+{"log":{"at":"2026-11-02T03:46:00-06:00","msg":"doc-check: 0 modules — clean"}}
+{"log":{"at":"2026-11-02T09:46:00.369Z","msg":"clarity: queued (once per task)"}}
+{"log":{"at":"2026-11-02T03:46:00-06:00","msg":"owner-check: no owner words found"},"by":"append.mjs","ts":"2026-11-02T09:46:00.424Z"}
+{"log":{"at":"2026-11-02T03:46:03-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:46:03.636Z"}
+{"log":{"at":"2026-11-02T03:46:07-06:00","msg":"worktree-down: kept v1-switch-prep running - branch worktree/v1-switch-prep is not merged into michael/dev yet"}}
+{"log":{"at":"2026-11-02T03:46:12-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"commit":"4e3fa4c7e9db","by":"append.mjs","ts":"2026-11-02T09:46:12.779Z"}
+{"log":{"at":"2026-11-02T03:46:15-06:00","msg":"worktree-close: v1-switch-prep - FAILED  ARCHIVE C:/Code/lew42/worktrees/v1-switch-prep  worktree/v1-switch-prep  ahead 3  diff-empty false  uncommitted 90 regenerated + 2 real  quiet 1 min; 2 uncommitted file(s) that are not regenerated, on worktree/v1-switch-prep  [error: failed to delete 'C:/Code/lew42/worktrees/v1-switch-prep': Directory not empty]"}}
+{"log":{"at":"2026-11-02T03:46:17-06:00","msg":"lifecycle: closed server worktree:v1-switch-prep"}}
+{"log":{"at":"2026-11-02T03:46:17-06:00","msg":"layout-check: skipped — the landing names no site pages"}}
+{"log":{"at":"2026-11-02T03:46:35-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:46:35.939Z"}
+{"log":{"at":"2026-11-02T03:47:43-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:47:43.611Z"}

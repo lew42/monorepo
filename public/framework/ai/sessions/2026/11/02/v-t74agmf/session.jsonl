@@ -1,0 +1,18 @@
+{"session":{"id":"v-t74agmf","home":"/framework/ux/Dictate/","kind":"voice","at":"2026-11-02T03:48:20.170-06:00","project":"throwaway","host":"throwaway.localhost","fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"backing":{"at":"2026-11-02T03:48:20.474-06:00","fast":"4a48f825-eacb-4b9f-bc05-b8d7e593ffba","smart":null,"how":{"fast":"new"}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1793612900591","raw":["throwaway said_at check, reply ok"],"paragraphs":[{"id":"a","text":"throwaway said_at check, reply ok"}]}},"ts":"2026-11-02T09:48:20.591Z","by":"fast"}
+{"chat":{"at":"2026-11-02T03:48:20.593-06:00","session":"v-t74agmf","path":"/framework/ux/Dictate/","from":{"kind":"owner"},"via":"text","text":"throwaway said_at check, reply ok","prompt":"p-1793612900591","said_at":"2026-11-02T09:50:00.000Z"}}
+{"sentences":{"add":{"id":"s-1793612900608","at":"2026-11-02T03:48:20.593-06:00","text":"throwaway said_at check, reply ok","via":"text","said_at":"2026-11-02T09:50:00.000Z"}},"messages":{"add":{"type":"Prompt","id":"m-1793612900608","by":"owner","at":"2026-11-02T03:48:20.593-06:00","sentences":["s-1793612900608"],"prompt":"p-1793612900591"}},"by":"servex","ts":"2026-11-02T09:48:20.608Z"}
+{"sent":{"to":"fast","at":"2026-11-02T03:48:20.680-06:00","re":["2026-11-02T03:48:20.593-06:00"],"delay_ms":0}}
+{"messages":{"m-1793612900608":{"sent":{"fast":{"at":"2026-11-02T03:48:20.680-06:00"}}}},"by":"servex","ts":"2026-11-02T09:48:20.683Z"}
+{"backing":{"at":"2026-11-02T03:48:21.212-06:00","fast":"4a48f825-eacb-4b9f-bc05-b8d7e593ffba","smart":"0aa191ea-9497-4239-9a02-d74aa983b96e","how":{"smart":"new"}}}
+{"sent":{"to":"smart","at":"2026-11-02T03:48:22.197-06:00","re":["2026-11-02T03:48:20.593-06:00"],"delay_ms":0}}
+{"messages":{"m-1793612900608":{"sent":{"smart":{"at":"2026-11-02T03:48:22.197-06:00"}}}},"by":"servex","ts":"2026-11-02T09:48:22.209Z"}
+{"place":{"re":"2026-11-02T03:48:20.593-06:00","to":"same","edit":"improve","text":"Throwaway said_at check, reply ok."},"by":"voice-assistant-v-t74agmf","ts":"2026-11-02T09:48:23.375Z"}
+{"messages":{"m-1793612900608":{"clean":{"s-1793612900608":"Throwaway said_at check, reply ok."}}},"by":"voice-assistant-v-t74agmf","ts":"2026-11-02T09:48:23.377Z"}
+{"sessions":[{"id":"voice-assistant-v-t74agmf","task":"/framework/ai/sessions/2026/11/02/v-t74agmf/"}],"by":"voice-assistant-v-t74agmf","ts":"2026-11-02T09:48:23.378Z"}
+{"chat":{"at":"2026-11-02T03:48:28.326-06:00","session":"v-t74agmf","path":"/framework/ux/Dictate/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-t74agmf"},"via":"text","text":"ok","re":"2026-11-02T03:48:20.593-06:00"}}
+{"messages":{"add":{"id":"m-1793612908329","type":"Reply","by":"smart","at":"2026-11-02T03:48:28.326-06:00","text":"ok","re":{"to":"s-1793612900608"}}},"by":"servex","ts":"2026-11-02T09:48:28.329Z"}
+{"log":{"at":"2026-11-02T03:57:38-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-02T04:02:38-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-02T04:12:37-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
