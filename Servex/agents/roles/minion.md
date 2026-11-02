@@ -104,7 +104,7 @@ A problem you find is yours to fix now, the best way you can, kept easy to chang
 
 ## Landing
 
-Run `finish-task` to land, naming any readme or doc your change made out of date. **Land in your OWN task's `task.jsonl`, never your parent's:** a `landed_at` in the parent's log tells everyone the whole task is finished (2026-09-28: that got a live task's server stopped mid-work). With no task of your own, report to your parent and let it land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
+**Complete your own task, with an outcome, as your last step** (a clean end with the work done but the task still open is closed by the harness from your last words, or woken once; never rely on it). Run `finish-task` to land, naming any readme or doc your change made out of date. **Land in your OWN task's `task.jsonl`, never your parent's:** a `landed_at` in the parent's log tells everyone the whole task is finished (2026-09-28: that got a live task's server stopped mid-work). With no task of your own, report to your parent and let it land. Run `skill-improvement` for any skill that misled you along the way. Your final report is one screen of plain sentences with links to what you built — the numbers belong in the task log, not the report.
 
 **A reviewer's finding is answered, not debated:** reply in `task.jsonl` as `fixed` or `declined: <why>` (`Server/doc/review.md`).
 

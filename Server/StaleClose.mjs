@@ -3,6 +3,7 @@
 //   node Server/StaleClose.mjs --plan     list them (and count by age); appends the plan to ai/stale-closes.jsonl
 //   node Server/StaleClose.mjs --apply    append {"stop":…} to each log through .claude/hooks/append.mjs; appends the closes to the manifest
 //   node Server/StaleClose.mjs --undo     append {"start":…} to every log the manifest closed and nobody undid (the state machine refuses `resume` from stopped)
+// A stale task with real work in its log (WORKED lines) is not "abandoned": it gets {"unclosed":…} instead, which stops it AND flags it, so a sweep (bucket `unclosed`) can finish it. Server/Unclose.mjs does the same for the old abandoned ones.
 // Append-only both ways: no log line is rewritten, the manifest only grows. The registry must answer, or nothing is planned (an empty one makes every running task look abandoned).
 import fs from "node:fs";
 import os from "node:os";
@@ -21,6 +22,7 @@ export default class StaleClose {
 	static BY = "StaleClose";
 	static MANIFEST = path.join(TaskDirs.AI, "stale-closes.jsonl");
 	static APPEND = path.join(TaskDirs.REPO, ".claude", "hooks", "append.mjs");
+	static WORKED = 3;                // a log with this many lines besides stop/unclosed (or any commit line) did real work
 	static AGES = [["1-7 days", 1, 7], ["older", 7, Infinity]];
 
 	constructor({ now = Date.now(), hours = StaleClose.HOURS, state = null } = {}){ this.now = now; this.hours = hours; this.state = state; this.plan = []; this.skipped = {}; }
@@ -55,9 +57,20 @@ export default class StaleClose {
 			// A session nobody registers (the owner's own VS Code tab) is alive while its transcript is being written.
 			const sid = this.session_of(t.dir), wrote = sid ? this.transcript_at(sid) : 0;
 			if (wrote && (this.now - wrote) / 36e5 < this.hours) { skipped.transcript_alive++; continue; }
-			this.plan.push({ dir: t.dir, last, age_days: +(age_h / 24).toFixed(1), agent: t.agent ?? null, agent_state: a?.state ?? (t.agent ? "unknown" : null), reason: `stale: ${t.state}, no agent holds it, last line ${last}${last === t.last ? "" : " (in a child folder)"}` });
+			const lines = AIIndex.read_lines(StaleClose.log_of(t.dir)), worked = StaleClose.worked(lines);
+			this.plan.push({ dir: t.dir, last, worked, lines: lines.length, age_days: +(age_h / 24).toFixed(1), agent: t.agent ?? null, agent_state: a?.state ?? (t.agent ? "unknown" : null), reason: `stale: ${t.state}, no agent holds it, last line ${last}${last === t.last ? "" : " (in a child folder)"}` });
 		}
 		return this.plan;
+	}
+
+	/** True when the log shows real work: a commit line, or WORKED lines that are not the closing line itself. */
+	static worked(lines){ const own = lines.filter(l => !l.stop && !l.unclosed); return own.some(l => l.commit) || own.length >= StaleClose.WORKED; }
+
+	/** The line that closes one planned task: `unclosed` for worked tasks, `stop` (abandoned) for the rest. */
+	static closing_line(r, now, day_text){
+		return r.worked
+			? { unclosed: { at: now, why: `unclosed: ${r.lines} log lines of work, never completed; last line ${r.last}; closed by StaleClose ${day_text}`, by: StaleClose.BY } }
+			: { stop: { at: now, why: `abandoned: no agent since ${r.last}; closed by StaleClose ${day_text}`, by: StaleClose.BY } };
 	}
 
 	/** The session id on a folder's log line 1: {"session":{"id"}} (a VS Code tab, a voice session) or {"assign":{"session_id"}} (a spawn). */
@@ -96,12 +109,12 @@ export default class StaleClose {
 	apply(){
 		const closed = [], refused = [];
 		for (const r of this.plan){
-			const file = StaleClose.log_of(r.dir), why = `abandoned: no agent since ${r.last}; closed by StaleClose ${day()}`;
-			const stop = { stop: { at: "NOW", why, by: StaleClose.BY } };
-			const ends = AIIndex.fold([...AIIndex.read_lines(file), { stop: { at: new Date(this.now).toISOString(), why, by: StaleClose.BY } }], path.join(TaskDirs.REPO, "public")).state;
+			const file = StaleClose.log_of(r.dir), line = StaleClose.closing_line(r, "NOW", day()), why = (line.stop ?? line.unclosed).why;
+			const folded = AIIndex.fold([...AIIndex.read_lines(file), StaleClose.closing_line(r, new Date(this.now).toISOString(), day())], path.join(TaskDirs.REPO, "public"));
+			const ends = r.worked && !folded.unclosed ? "no-unclosed-flag" : folded.state;
 			if (ends !== "stopped") { refused.push({ dir: r.dir, ends }); StaleClose.append(StaleClose.MANIFEST, { op: "refused", at: "NOW", dir: r.dir, ends, by: StaleClose.BY }); continue; }
-			StaleClose.append(file, stop);
-			StaleClose.append(StaleClose.MANIFEST, { op: "close", at: "NOW", ...r, file: path.relative(TaskDirs.REPO, file).split(path.sep).join("/"), why, by: StaleClose.BY });
+			StaleClose.append(file, line);
+			StaleClose.append(StaleClose.MANIFEST, { op: "close", at: "NOW", ...r, closed_as: r.worked ? "unclosed" : "abandoned", file: path.relative(TaskDirs.REPO, file).split(path.sep).join("/"), why, by: StaleClose.BY });
 			closed.push(r.dir);
 		}
 		return { closed, refused };
