@@ -17,6 +17,9 @@ const recorded = (host, url) => {
 	return lines;
 };
 const J = x => JSON.stringify(x);
+// A root that owns one list, made in its constructor, so a replay has the list to walk into.
+class Board extends Item { constructor(...a){ super(...a); this.cards = new List({ owner: this, name: "cards" }); } }
+Item.register(Board, "UnsetBoard");
 
 test("unset saves one line, and a replay (full, or snapshot plus tail) has no value", t => {
 	const a = new Item({ id: "a" }), lines = recorded(a, "/unset/1.jsonl");
@@ -45,13 +48,12 @@ test("set({k: undefined}) is an unset", t => {
 });
 
 test("a list member's unset names its list and id; a Task reads a top-level unset", t => {
-	const root = new Item({ id: "r" });
-	root.cards = new List({ owner: root, name: "cards" });
+	const root = new Board({ id: "r" });
 	const lines = recorded(root, "/unset/3.jsonl");
 	root.cards.add({ id: "c1", data: { title: "One", note: "x" } });
 	root.cards.find("c1").unset("note");
 	t.eq(J(lines.at(-1)), J({ cards: { c1: { unset: ["note"] } } }), "the line hops cards.c1");
-	const back = Item.replay([{ id: "r" }, ...lines]);
+	const back = Board.replay([{ id: "r" }, ...lines]);
 	t.eq(back.cards?.find("c1")?.get("note"), undefined, "replayed: no note");
 	t.eq(back.cards?.find("c1")?.get("title"), "One", "replayed: title kept");
 

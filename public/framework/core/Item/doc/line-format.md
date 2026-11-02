@@ -24,7 +24,12 @@ One switch, **`Item.Store.marked_lines`** (`Store.js`), is `false` today:
 | a change inside a list item (`Store.hops`) | `{"tasks": {"c3": {"set": {…}}}}` | `{"tasks": {"#c3": {"set": {…}}}}` |
 | `Item.as_call` ([call.md](./call.md)) | `{"sort_by()": "title"}` | the same: it is new, so it was never bare |
 | a plain field change (`set_one`) | `{"set": {"title": "x"}}` | the same (the `set` wrapper stays: see below) |
+| `Item.unset("k")`, or `set({k: undefined})` | `{"unset": ["k"]}` | `{"unset()": ["k"]}` |
 | a list verb (`List.announce`) | `{"add": {…}}`, `remove`, `move`, `order`, `clear` | the same (not changed) |
+
+## Clearing a field: `unset`
+
+`item.unset("color")` (several keys, or an array, are fine) deletes the keys from `data` and saves one line, `{"unset":["color"]}`; a replay calls `unset` again. `set({color: undefined})` does the same, because JSON has no `undefined`: before 2026-11-02 it saved `{"set":{}}` and the old value came back on reload (spec T5). A key that is not in `data` is skipped, and if none was there no line is written. Readers: `Item.set_one` (it is a method), `Task.replay_line` (a top-level `unset`, so a session or task record), the item tool (a method, so its key check passes). `Template.unset(name)` (core/Page/Template) keeps its own meaning. A `set_<key>` hook is **not** run by `unset`; a hook that stores `undefined` itself is saved as an unset. Alternative not taken: run the hook with `undefined` (its own save would add a second, empty line). Test: `unset.test.mjs`.
 
 ## Switching it on
 
