@@ -1,5 +1,5 @@
 // node ChatV3.test.mjs [base-url] [shots-dir] — headless: Chat v3 draws a session's tasks list (the v2 fixture, then a copy of a real voice log),
-// raw gray while moving and solid once settled, live append, and that the log is never changed. Needs the global playwright and the dev server.
+// written words solid at once (gray is only the unsent draft), every reply including old-style {chat} lines, live append, and that the log is never changed. Needs the global playwright and the dev server.
 import { browser as get_browser } from "../../../../../Server/Browser.mjs";
 import { copyFileSync, appendFileSync, rmSync, mkdirSync, readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -37,7 +37,7 @@ try {
 	check("raw hidden by default", await page.$(first + " .chat-v3-raw") === null);
 	await tap(first + " .chat-v3-toggle");
 	check("show raw reveals every raw chunk", (await page.$$(first + " .chat-v3-raw-line")).length === 2);
-	check("card has a link to itself", (await page.getAttribute(first + " .chat-v3-link", "href")).endsWith("#p-1761382800000"));
+	check("no unexplained link icon; the card keeps its id, so #<id> still opens it", !(await page.$(first + " .chat-v3-link")) && (await page.getAttribute(first, "id")) === "p-1761382800000");
 	if (shots) {
 		mkdirSync(shots, { recursive: true });
 		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });
@@ -52,22 +52,30 @@ try {
 	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(marked)}`); await ready();
 	check("a marked line ({\"#id\": …}) updates the card like a bare one", (await page.textContent(first + " .chat-v3-title")) === "Marked line", await page.textContent(first + " .chat-v3-title"));
 
-	// 2. live: a Prompt appended after load shows in light gray while it moves, then settles solid; a new word is appended to the same card
+	// 2. live: a Prompt appended after load is solid at once (it is final); a new word is appended to the same card; an old-style {chat} reply lands in it
 	await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(live)}`); await ready();
 	await page.evaluate(() => { window.__no_reload = true; });
 	const id = "p-1761383000000", card = `.chat-v3-prompt[data-id='${id}']`;
 	appendFileSync(served + live, JSON.stringify({ tasks: { add: { type: "Prompt", id, raw: ["this one arrived"], paragraphs: [{ id: "a", text: "This one arrived." }] } } }) + "\n");
 	await page.waitForSelector(card, { timeout: 8000 });
 	check("a live prompt appears without a reload", await page.evaluate(() => window.__no_reload === true));
-	check("while moving it is light gray", await page.$(card + " .chat-v3-text.is-moving") !== null);
-	appendFileSync(served + live, JSON.stringify({ [id]: { raw: "and more words" } }) + "\n");
-	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("and more words"), card, { timeout: 8000 }).catch(() => {});
-	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("and more words"), await page.textContent(card));
+	check("a written sentence is solid at once (gray is only for the unsent draft)", await page.$(card + " .chat-v3-text.is-moving") === null);
+	// what Sessions.assign_prompt writes for a line that continues the Prompt: the raw words, and the paragraph growing with them
+	appendFileSync(served + live, JSON.stringify({ [id]: { raw: "and more words" } }) + "\n" + JSON.stringify({ [id]: { paragraphs: { append: { id: "a", text: " And more words." } } } }) + "\n");
+	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("And more words"), card, { timeout: 8000 }).catch(() => {});
+	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("And more words"), await page.textContent(card));
 	appendFileSync(served + live, JSON.stringify({ [id]: { title: "Arrived live", replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
 	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("Seen, live."), card, { timeout: 8000 });
 	check("its reply lands inside it", true);
-	await page.waitForSelector(card + " .chat-v3-text:not(.is-moving)", { timeout: 15000 });
-	check("after the quiet moment it is solid black and shows its title", (await page.textContent(card + " .chat-v3-title")) === "Arrived live");
+	check("its title shows as soon as it is written", (await page.textContent(card + " .chat-v3-title")) === "Arrived live");
+	const owner_at = "2026-10-25T10:00:00.000-05:00";
+	appendFileSync(served + live, JSON.stringify({ chat: { at: owner_at, from: { kind: "owner" }, text: "this one arrived", prompt: id } }) + "\n");
+	appendFileSync(served + live, JSON.stringify({ chat: { at: "2026-10-25T10:00:05.000-05:00", from: { kind: "assistant", id: "smart" }, re: owner_at, text: "An **old-style** reply." } }) + "\n");
+	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("old-style reply"), card, { timeout: 8000 }).catch(() => {});
+	check("an old-style {chat} reply lands in the Prompt its re names, markdown drawn", !!(await page.$(card + " .chat-v3-reply strong")), await page.textContent(card));
+	appendFileSync(served + live, JSON.stringify({ chat: { at: "2026-10-25T10:00:06.000-05:00", from: { kind: "assistant", id: "smart" }, re: owner_at, text: "Seen, live." } }) + "\n");
+	await page.waitForTimeout(1500);
+	check("a {chat} reply with the same text as a Prompt reply is drawn once", (await page.$$eval(card + " .chat-v3-reply", els => els.filter(e => e.textContent.includes("Seen, live.")).length)) === 1);
 
 	// 3. a copy of a real voice log: the other families of lines are ignored, the tasks are drawn
 	if (real_log) {
@@ -75,6 +83,8 @@ try {
 		const prompts = (await page.$$(".chat-v3-prompt")).length;
 		check("real log: prompts drawn (windowed)", prompts > 0 && prompts <= 40, prompts);
 		check("real log: no card text is a raw {chat}/{place} line", !(await page.textContent(".chat-v3")).includes('"place"'));
+		const replies = (await page.$$(".chat-v3-reply")).length;
+		check("real log: the drawn cards show replies (old-style {chat} ones included)", replies >= prompts / 2, { replies, prompts });
 		const earlier = await page.$eval(".chat-v3-earlier", e => ({ hidden: e.hidden, text: e.textContent }));
 		check("real log: older cards sit behind 'show earlier'", earlier.hidden === false || prompts < 40, earlier);
 		if (shots) { await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" }); await page.setViewportSize({ width: 400, height: 1600 }); await page.screenshot({ path: shots + "/chat-v3-real-400.png" }); }

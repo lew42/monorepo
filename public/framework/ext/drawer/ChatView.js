@@ -2,12 +2,13 @@ import { View, div, button } from "/framework/core/View/View.js";
 import ChatV2 from "/framework/ext/Chat/v2/ChatV2.js";
 import ChatV3 from "/framework/ext/Chat/v3/ChatV3.js";
 import { sticky_scroll } from "/framework/ext/Chat/Chat.js";
+import { menu as popover_menu } from "/framework/ux/Popover/Popover.js";
 
 View.stylesheet(import.meta, "ChatView.css");
 
 /**
- * The "v2" chip and the Chat v2 box it switches on, shared by the phone ✦ sheet (Sheet.js) and the desktop
- * drawer's AI tab (tabs/ai.js). The chip swaps the chat's bubbles for ext/Chat/v2's drawing of the same
+ * The chat version dropdown (V1 / V2 / V3) and the Chat v2 or v3 box it switches on, shared by the phone ✦ sheet (Sheet.js) and the
+ * desktop drawer's AI tab (tabs/ai.js). V2 or V3 swaps the chat's bubbles for ext/Chat/v2's or v3's drawing of the same
  * session file; the composer and mic footer stay. One choice, kept on this device in localStorage, rules both.
  *   slot  -> () => the element the chat mounted in (gets .drawer-rail-sheet-v2-on while v2 shows)
  *   mount -> () => the chat.js mount (its file() is the session record)
@@ -22,19 +23,33 @@ export default class ChatView {
 
 	get on(){ return !!this.mode; }
 
-	// The v2 chip, then the v3 chip beside it (a rough draft, never the default); returns the v2 chip. Each is a toggle; v2 and v3 are exclusive.
-	chip(classes = "drawer-rail-sheet-link"){
-		this.$chip3 = button.c(`${classes} drawer-rail-sheet-v2-chip`, "v3").attr("type", "button")
-			.attr("aria-pressed", String(this.mode === "v3")).attr("title", "Chat v3 (rough draft): this conversation as a plain view over its tasks list")
-			.click(() => this.set(this.mode === "v3" ? null : "v3"));
-		return this.$chip = button.c(`${classes} drawer-rail-sheet-v2-chip`, "v2").attr("type", "button")
-			.attr("aria-pressed", String(this.mode === "v2")).attr("title", "Chat v2: this conversation as Prompts, the raw words one click down")
-			.click(() => this.set(this.mode === "v2" ? null : "v2"));
+	// The version dropdown: ONE button naming the version on screen ("Chat V1 ▾"), opening V1 / V2 / V3. Built like the session
+	// dropdown beside it (ux/Dictate/chat.js session_switcher(): a drawer-ai-switch-btn plus ux/Popover's menu), so both look the same.
+	// V1 is the bubbles chat, always mounted underneath (the mic keeps recording across a switch); V2 and V3 draw over it. Returns the button.
+	static VERSIONS = [
+		{ mode: null, name: "V1", text: "V1: bubbles, live words" },
+		{ mode: "v2", name: "V2", text: "V2: Prompts, raw words one click down" },
+		{ mode: "v3", name: "V3", text: "V3: Prompt cards with every reply" },
+	];
+	chip(){
+		const V = this.constructor.VERSIONS;
+		this.$chip = button.c("drawer-ai-switch-btn drawer-chat-version", "").attr("type", "button")
+			.attr("title", "Which chat view: V1, V2 or V3").attr("aria-haspopup", "menu");
+		this.menu = popover_menu(this.$chip.el, V.map(v => ({ text: v.text, current: v.mode === this.mode, pick: () => this.set(v.mode) })));
+		this.label();
+		return this.$chip;
+	}
+	label(){
+		const V = this.constructor.VERSIONS, i = Math.max(0, V.findIndex(v => v.mode === this.mode));
+		if (this.$chip) this.$chip.el.textContent = `Chat ${V[i].name} ▾`;
+		this.menu?.$box?.el.querySelectorAll(".ux-popover-item").forEach((el, n) => {   // the menu is drawn once: re-mark its current row
+			el.toggleAttribute("aria-current", n === i); el.style.fontWeight = n === i ? "700" : "";
+		});
 	}
 
 	set(mode){
 		this.mode = mode === true ? "v2" : mode || null;
-		this.$chip?.attr("aria-pressed", String(this.mode === "v2")); this.$chip3?.attr("aria-pressed", String(this.mode === "v3"));
+		this.label();
 		try { this.mode ? localStorage.setItem(this.constructor.KEY, this.mode) : localStorage.removeItem(this.constructor.KEY); } catch {}   // storage off: the choice lasts until reload
 		this.sync();
 	}

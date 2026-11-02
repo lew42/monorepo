@@ -13,16 +13,14 @@
 	.chat-v3-head { display: flex; align-items: baseline; gap: .5rem; }
 	.chat-v3-title { margin: 0; font-size: 1rem; flex: 1; min-width: 0; }
 	.chat-v3-head:not(:has(.chat-v3-title)) { justify-content: flex-end; }
-	.chat-v3-link { color: color-mix(in srgb, currentColor 35%, transparent); text-decoration: none; margin-left: auto; line-height: 1; }
-	.chat-v3-link:hover { color: inherit; }
-	.chat-v3-link .icon, .chat-v3-link .material-icons { font-size: 1rem; }
 
-	/* The raw words as they were heard: light gray while moving, solid once the thought is finished. */
+	/* The words still being spoken (the draft at the end): gray, but readable on a phone in daylight (the owner, 2026-11-01: "far too dim").
+	   Everything written to the file is final and solid. */
 	.chat-v3-text { overflow-wrap: anywhere; line-height: 1.45; transition: color .4s; }
-	.chat-v3-text.is-moving { color: color-mix(in srgb, currentColor 40%, transparent); }
+	.chat-v3-text.is-moving { color: color-mix(in srgb, currentColor 75%, transparent); }
 	.chat-v3-text > :first-child { margin-top: 0; }
 	.chat-v3-text > :last-child { margin-bottom: 0; }
-	.chat-v3-guess { color: color-mix(in srgb, currentColor 28%, transparent); }
+	.chat-v3-guess { color: color-mix(in srgb, currentColor 60%, transparent); }
 
 	.chat-v3-toggle { align-self: flex-start; font: inherit; font-size: .78em; background: none; border: 0; padding: 0; cursor: pointer; color: color-mix(in srgb, currentColor 50%, transparent); }
 	.chat-v3-toggle:hover { color: inherit; }

@@ -9,18 +9,19 @@ import Question from "/framework/core/Task/Question.js";
 import TaskView from "/framework/core/Task/TaskView.js";
 import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
+import * as Wire from "/framework/ext/Session/Session.js";
 View.stylesheet(import.meta, "ChatV3.css");
 
 export default class ChatV3 extends JSONL {
 	static SHOW = 40;          // roots drawn at first; "show earlier" adds this many more
-	static MOVING_MS = 8000;   // a Prompt touched this recently is still moving (Servex closes a thought after about 8 s of quiet)
 	static META = new Set(["by", "ts", "at", "origin", "as", "moved_from"]);
 	static ASK_ICON = { open: "help_outline", answered: "mark_chat_unread", complete: "check_box" };
 
 	session = new Session();
 	els = new Map();           // root id -> the View that draws it
-	touched = new Map();       // prompt id -> Date.now() of its latest live line
-	timers = new Map();        // prompt id -> the timeout that settles it
+	said = new Map();          // an owner {chat} line's `at` -> its Prompt id (every owner line carries `prompt`)
+	chat = new Map();          // prompt id -> the assistant replies written as old-style {chat} lines, in order ({at, text})
+	partial = null;            // the reply being written right now, from the session's live wire: {role, text}
 	raw_open = new Set();      // prompt ids whose raw words are open
 	limit = this.constructor.SHOW;
 
@@ -29,6 +30,7 @@ export default class ChatV3 extends JSONL {
 		const first = !this.drawn, hit = new Set();
 		for (const raw of entries){
 			const line = LineKey.deep(raw);   // `start()` and `#c3` read as start and c3 (D13)
+			if (line.chat) { const id = this.chat_line(line.chat); if (id && !first) hit.add(id); continue; }
 			if (!this.wanted(line)) continue;
 			this.session.replay_line(line);
 			if (!first) { const id = this.card_of(line); if (id) hit.add(id); }
@@ -36,9 +38,50 @@ export default class ChatV3 extends JSONL {
 		if (first) this.draw(); else this.update(hit);
 		return this;
 	}
-	reset(){ this.session = new Session(); this.els.clear(); this.touched.clear(); this.drawn = false; return super.reset(); }
-	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); return this; }
-	unsubscribe(){ this.stopped = true; this.listen(false); this.timers.forEach(clearTimeout); return super.unsubscribe(); }
+	reset(){ this.session = new Session(); this.els.clear(); this.said.clear(); this.chat.clear(); this.drawn = false; return super.reset(); }
+	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); this.wire(true); return this; }
+	unsubscribe(){ this.stopped = true; this.listen(false); this.wire(false); return super.unsubscribe(); }
+
+	/* EVERY REPLY, read-only (dictation-v3, 2026-11-01): most smart-seat replies are written as old-style {chat} lines, not into
+	 * the Prompt. An owner line carries `prompt`; a reply carries `re` = the owner line's `at`. So a reply finds its Prompt by
+	 * code; one whose `re` names no owner line goes to the newest Prompt. Returns the Prompt id it landed on. */
+	chat_line(c){
+		if (c.from?.kind === "owner") { if (c.prompt) this.said.set(c.at, c.prompt); return null; }
+		if (c.from?.kind !== "assistant" || !String(c.text ?? "").trim()) return null;
+		const id = this.said.get(c.re) ?? [...this.roots()].reverse().find(r => r instanceof Prompt)?.id;
+		if (!id) return null;
+		const list = this.chat.get(id) ?? [];
+		if (!list.some(r => r.at === c.at)) list.push({ at: c.at, text: c.text, who: c.from?.id });
+		this.chat.set(id, list);
+		if (this.partial) { this.partial = null; this.$partial?.el.remove(); }   // the settled reply replaces the one being written
+		return id;
+	}
+	// The replies of one Prompt: its own `replies` list, then the {chat} ones it does not already hold (same text).
+	replies_of(p){
+		const own = p.replies.map(r => ({ text: r.get_one("text") ?? "" }));
+		const seen = new Set(own.map(r => r.text.trim()));
+		return [...own, ...(this.chat.get(p.id) ?? []).filter(r => !seen.has(String(r.text).trim()))];
+	}
+
+	/* THE REPLY BEING WRITTEN: the session's live wire (ext/Session stream(), the one V1 reads) sends {kind:"stream", role, text}, the whole
+	 * reply so far, and text "" when it ends. Drawn at the end of the newest Prompt card until the settled {chat} line arrives. */
+	session_id(){ return decodeURIComponent(String(this.url ?? "").split("?")[0].split("/").filter(Boolean).at(-2) ?? ""); }
+	wire(on){
+		this.stop_wire?.(); this.stop_wire = null;
+		const id = on && this.session_id();
+		if (id && /^v-|^[\w-]{6,}$/.test(id)) this.stop_wire = Wire.stream(id, ev => { if (ev?.kind === "stream") this.stream(ev.role, ev.text ?? ""); });
+	}
+	stream(role, text){
+		if (!text) { this.partial = null; this.$partial?.el.remove(); return; }
+		this.partial = { role, text };
+		const p = [...this.roots()].reverse().find(r => r instanceof Prompt), card = p && this.els.get(p.id);
+		if (!card) return;
+		if (!this.$partial?.el.isConnected) { this.$partial = div.c("chat-v3-reply chat-v3-partial"); card.el.append(this.$partial.el); }
+		this.$partial.el.replaceChildren();
+		const b = document.createElement("span"); b.className = "chat-v3-brain"; b.textContent = "🧠";
+		const t = document.createElement("div"); t.className = "chat-v3-reply-text md"; md_into(t, text);
+		this.$partial.el.append(b, t);
+	}
 
 	// Only the lines that are task deltas: V3 reads the tasks list and nothing else (no {chat}, {place}, {sent}… lines).
 	wanted(line){
@@ -82,7 +125,6 @@ export default class ChatV3 extends JSONL {
 	update(ids){
 		for (const id of ids) {
 			const node = this.session.find(id), view = this.els.get(id);
-			if (node instanceof Prompt) this.settle_later(node);   // before drawing: a Prompt that just moved draws gray
 			if (view) { view.empty(() => this.fill(node)); }
 			else if (node && this.standalone(node)) {
 				this.$box?.el.querySelector(":scope > .chat-v3-empty")?.remove();
@@ -98,14 +140,6 @@ export default class ChatV3 extends JSONL {
 		return view;
 	}
 
-	// A Prompt is moving while it is the newest and was touched a moment ago by a live line.
-	moving(p){ return Date.now() - (this.touched.get(p.id) ?? 0) < this.constructor.MOVING_MS; }
-	settle_later(p){
-		this.touched.set(p.id, Date.now());
-		clearTimeout(this.timers.get(p.id));
-		this.timers.set(p.id, setTimeout(() => { this.touched.delete(p.id); this.els.get(p.id)?.empty(() => this.fill(p)); }, this.constructor.MOVING_MS + 100));
-	}
-
 	fill(node){
 		if (node instanceof Prompt) return this.prompt(node);
 		if (node instanceof Question) return this.question(node);
@@ -113,18 +147,19 @@ export default class ChatV3 extends JSONL {
 	}
 
 	prompt(p){
-		const moving = this.moving(p), title = p.get_one("title"), open = this.raw_open.has(p.id);
+		const title = p.get_one("title"), open = this.raw_open.has(p.id);
 		div.c("chat-v3-head", () => {
-			if (title && !moving) h3.c("chat-v3-title", title);
-			this.link(p);
+			if (title) h3.c("chat-v3-title", title);
 		});
-		// moving: the words as they were heard, light gray; settled: the cleaned text (the smart seat's, else the fast seat's), solid
-		const body = div.c("chat-v3-text md" + (moving ? " is-moving" : ""));
-		md_into(body.el, moving ? p.raw_text : p.text || p.raw_text);
-		if (p.raw.length && !moving) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
+		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
+		 * only for the whisper finalization"). A sentence in the file is final, so it is solid: the cleaned text, else the words heard. */
+		const body = div.c("chat-v3-text md");
+		md_into(body.el, p.text || p.raw_text);
+		if (p.raw.length) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
 		if (open) div.c("chat-v3-raw", () => p.raw.forEach(line => blockquote.c("chat-v3-raw-line", line)));
-		for (const r of p.replies) div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.get_one("text") ?? ""); });
+		for (const r of this.replies_of(p)) div.c("chat-v3-reply", () => { span.c("chat-v3-brain", "🧠"); md_into(div.c("chat-v3-reply-text md").el, r.text); });
+		if (this.partial && p === [...this.roots()].reverse().find(r => r instanceof Prompt)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
 		const kids = [...(p._tasks ?? []), ...this.nested(p)];
 		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
 	}
@@ -135,18 +170,9 @@ export default class ChatV3 extends JSONL {
 		wrap.append(() => {
 			icon(this.constructor.ASK_ICON[phase] ?? "help_outline").ac("chat-v3-state", "is-" + phase);
 			div.c("chat-v3-ask-body", () => {
-				div.c("chat-v3-ask-head", () => { h4.c("chat-v3-ask-text", q.text ?? q.id); this.link(q); });
+				div.c("chat-v3-ask-head", () => h4.c("chat-v3-ask-text", q.text ?? q.id));
 				if (q.answer) md_into(div.c("chat-v3-answer md").el, q.answer.text ?? "");
 			});
-		});
-	}
-
-	// A task has no page of its own yet: its link is a permalink to its card in this chat.
-	link(node){
-		const href = location.pathname + location.search + "#" + node.id;
-		a.c("chat-v3-link", icon("link")).href(href).attr("title", "Link to this card").click(e => {
-			e.preventDefault(); history.replaceState(history.state, "", href);
-			document.getElementById(node.id)?.scrollIntoView({ block: "center" });
 		});
 	}
 

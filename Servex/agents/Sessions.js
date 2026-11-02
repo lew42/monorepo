@@ -68,20 +68,22 @@ export const LONE_EMOJI = /^\p{Extended_Pictographic}[\uFE0F\u{1F3FB}-\u{1F3FF}]
 const env = (name, dflt) => { const n = Number(process.env[name]); return process.env[name] != null && process.env[name] !== "" && Number.isFinite(n) ? n : dflt; };
 
 /* WHO SITS IN THE FAST SEAT (voice-assistant-plan, 2026-10-17; ux/Dictate/doc/voice-assistant.md): `voice` = the
- * voice-assistant role, woken per sentence to write one {place} line (the default since 2026-10-17: the owner, "drop the
- * fast assistant for now"); `fast` = the old session-fast chatter, kept as the escape hatch. Read once at boot, first match wins:
- *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word fast or voice. This is the
+ * voice-assistant role, woken per sentence to write one {place} line (the default 2026-10-17 to 2026-11-01); `fast` = the old
+ * session-fast chatter; `off` = NO fast seat (the default since 2026-11-01: its {place} lines were read only by Chat V1, it cost
+ * the most of any role, and its one other output, a Question per "?" sentence, is now written by `say()` in code; evidence:
+ * ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/findings.md §2). Read once at boot, first match wins:
+ *   1. %LOCALAPPDATA%\lew42\servex\session-assistant.txt (HOME/session-assistant.txt): the word off, fast or voice. This is the
  *      switch that survives a restart, because sustain.mjs relaunches Servex through WMI and pins only SERVEX_HOME and
  *      SERVEX_API_PORT, so an env var never reaches the new process (same pattern as session-backend.txt below).
  *   2. the env var SERVEX_SESSION_ASSISTANT (a hand-started Servex or a private test one).
- *   3. `voice`.
- * To go back to fast: write `fast` into the file and restart Servex. */
-export const ASSISTANTS = ["fast", "voice"];
+ *   3. `off`.
+ * To bring the voice assistant back: write `voice` into the file and restart Servex (never during a voice call). */
+export const ASSISTANTS = ["fast", "voice", "off"];
 const pick_assistant = v => { const w = String(v ?? "").trim().toLowerCase(); return ASSISTANTS.includes(w) ? w : null; };
 export function session_assistant(home = HOME){
 	let file = null;
 	try { file = pick_assistant(fs.readFileSync(path.join(home, "session-assistant.txt"), "utf8")); } catch {}   // no file yet, or an unreadable one: fall through
-	return file ?? pick_assistant(process.env.SERVEX_SESSION_ASSISTANT) ?? "voice";
+	return file ?? pick_assistant(process.env.SERVEX_SESSION_ASSISTANT) ?? "off";
 }
 
 /* IS A LINE WORTH A MODEL CALL? (review finding 5, 2026-10-03): a real voice session writes
@@ -435,6 +437,8 @@ export default class Sessions {
 
 	/* THE VOICE SEAT: is this session's `fast` agent the voice assistant? */
 	voice_seat(){ return this.assistant === "voice"; }
+	/** No fast seat at all (`session-assistant.txt` = off, the default): `wake`, `send` and `mark_sent` skip the "fast" role. */
+	fast_off(){ return this.assistant === "off"; }
 
 	/* Every owner sentence of the session so far, oldest first, as `{at, text, selection?}` (a refined line is the
 	 * assistant's, so only `from.kind === "owner"` lines count). */
@@ -628,6 +632,7 @@ export default class Sessions {
 	/* A `{sent}` line: these owner lines have just been handed to the `to` seat ("fast" | "smart"). `delay_ms` is the time from the
 	 * words leaving the owner's draft (`said_at`, else arrival) to now. The chat draws it beside each line (ux/Dictate/Widget.js `Thread.sent`). */
 	mark_sent(s, to, lines){
+		if (to === "fast" && this.fast_off()) return;
 		try {
 			const ls = (lines ?? []).filter(l => l?.at);
 			if (!ls.length) return;
@@ -1018,6 +1023,8 @@ export default class Sessions {
 			...(thread && re ? { re: String(re), thread: true } : {}),
 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
 		this.write(s, { chat: line });
+		/* With the fast seat off, code files the Question the voice assistant used to (one per "?" sentence, the same line shape). */
+		if (this.fast_off() && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
 		this.refine(s, line).catch(e => this.servex?.say?.(`sessions: could not refine an utterance: ${e.message || e}`));
 		if (line.thread){
 			(s.threaded ??= []).push(line.at);
@@ -1246,6 +1253,7 @@ export default class Sessions {
 	}
 
 	send(s, role, text){
+		if (role === "fast" && this.fast_off()) return;
 		const notes = s.notes?.[role]?.splice(0) ?? [];
 		if (notes.length){ text = notes.join("\n") + "\n" + text; this.save(); }
 		try { this.servex.agents.send(s[role], text, { from: "owner" }); }
@@ -1346,6 +1354,7 @@ export default class Sessions {
 	 * exactly the case right after a fallback deliberately clears it). A new pair first
 	 * makes room (max_pairs). Each spawn writes a `backing` line (the latest one wins). */
 	wake(s, role){
+		if (role === "fast" && this.fast_off()) return false;
 		if (this.awake(s, role)) return false;
 		if (!this.awake(s, "fast") && !this.awake(s, "smart")) this.room(s);
 		const target_model = this.session_model(s, role);

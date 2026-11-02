@@ -45,7 +45,7 @@ const agents = {
 // reads the same file back in, and a `create()` within the hour would silently RESUME them.
 let n = 0;
 function make(){
-	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`), assistant: "fast" });   // the default is `voice`, and a real session-assistant.txt may exist: pin fast for the tests below that are about the fast seat
+	const s = new Sessions({ repo, file: path.join(repo, `sessions-${++n}.json`), assistant: "fast" });   // the default is `off`, and a real session-assistant.txt may exist: pin fast for the tests below that are about the fast seat
 	s.load();
 	s.servex = { agents };
 	return s;
@@ -256,17 +256,17 @@ check("voice roles run on Claude by default, even with OpenRouter ready; a Claud
 });
 
 // ── the voice seat (voice-assistant-plan, 2026-10-17): SERVEX_SESSION_ASSISTANT=voice ─────────────
-check("the assistant switch: session-assistant.txt, else the env var, else voice (2026-10-17: the default flipped to voice)", () => {
+check("the assistant switch: session-assistant.txt, else the env var, else off (2026-11-01: the default flipped to off)", () => {
 	const home = fs.mkdtempSync(path.join(os.tmpdir(), "servex-home-"));   // a scratch SERVEX_HOME
 	const saved = process.env.SERVEX_SESSION_ASSISTANT;
 	const file = path.join(home, "session-assistant.txt");
 	try {
 		delete process.env.SERVEX_SESSION_ASSISTANT;
-		assert.equal(session_assistant(home), "voice", "no file, no env: voice");
+		assert.equal(session_assistant(home), "off", "no file, no env: off");
 		process.env.SERVEX_SESSION_ASSISTANT = "fast";
 		assert.equal(session_assistant(home), "fast", "no file: the env var");
 		process.env.SERVEX_SESSION_ASSISTANT = "nonsense";
-		assert.equal(session_assistant(home), "voice", "a bad env word falls back to voice");
+		assert.equal(session_assistant(home), "off", "a bad env word falls back to off");
 		fs.writeFileSync(file, " Fast \r\n");
 		process.env.SERVEX_SESSION_ASSISTANT = "voice";
 		assert.equal(session_assistant(home), "fast", "the file (trimmed, any case) beats the env var");
@@ -282,7 +282,27 @@ check("the assistant switch: session-assistant.txt, else the env var, else voice
 	}
 	assert.equal(make().assistant, "fast", "make() pins fast for the fast-seat tests");
 	assert.equal(make().voice_seat(), false);
-	assert.deepEqual(ASSISTANTS, ["fast", "voice"]);
+	assert.deepEqual(ASSISTANTS, ["fast", "voice", "off"]);
+});
+
+check("fast seat off: no fast agent is spawned or sent to, and a \"?\" sentence files its Question in code", () => {
+	const spawned = [];
+	const real = agents.spawn;
+	agents.spawn = spec => { spawned.push(spec); return real(spec); };
+	const s = make(); s.assistant = "off";
+	const made = s.create({ path: "/a/" });
+	s.say({ session: made.session, path: "/a/", text: "Where does the fast seat go?", via: "text" });
+	agents.spawn = real;
+	assert.equal(s.fast_off(), true);
+	assert.ok(!spawned.some(x => x.role === "voice-assistant" || x.role === "session-fast"), "no fast-seat agent spawned");
+	assert.ok(!s.map[made.session].fast, "the session holds no fast agent id");
+	const all = lines(path.join(repo, "public", made.file.replace(/^\//, "")));
+	const q = all.find(l => Object.values(l).some(v => v?.tasks?.add?.type === "Question"));
+	assert.ok(q, "a Question line was written");
+	const [pid] = Object.keys(q).filter(k => k.startsWith("p-"));
+	assert.equal(q[pid].tasks.add.from, pid, "the Question names its Prompt");
+	assert.equal(q[pid].tasks.add.text, "Where does the fast seat go?");
+	assert.ok(!all.some(l => l.sent?.to === "fast"), "no {sent} line to the fast seat");
 });
 
 check("voice seat: the voice-assistant role is spawned (not session-fast) with the skill as its system text", () => {

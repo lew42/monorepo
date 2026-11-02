@@ -89,3 +89,12 @@
 
 	@keyframes audio-recite-pulse { 50% { opacity: 0.35; } }
 }
+@layer theme {
+	/* The karaoke playhead: Recite.Highlight marks the sentence and word in the chat (no DOM change); the bar repeats them on one line. */
+	::highlight(recite-sentence) { background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
+	::highlight(recite-word) { background-color: color-mix(in srgb, var(--prime) 45%, transparent); color: var(--ink); }
+	.audio-recite-now { padding: 0.15em 0.6em 0.3em; font-size: 0.95em; line-height: 1.4; color: var(--subtle); }
+	.audio-recite-now[hidden] { display: none; }
+	.audio-recite-now .is-said { color: var(--ink); }
+	.audio-recite-now .is-now { color: var(--ink); background: color-mix(in srgb, var(--prime) 35%, transparent); border-radius: 0.2em; }
+}

@@ -72,3 +72,13 @@ if (Recite) test("Recite: the first tap unlocks a refused reply", async t => {
 	t.eq(r.audio.src, src, "a later tap never swaps a paused sentence's source");
 	return r;
 });
+
+// Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.
+if (Recite) test("Recite.Highlight: which word is playing", t => {
+	const H = Recite.Highlight, words = H.words("The voice server answers, on the phone.");
+	t.eq(words.length, 7, "punctuation is not a word");
+	t.eq(H.word_at(words, 0), 0, "at the start: the first word");
+	t.eq(H.word_at(words, 0.999), 6, "at the end: the last word");
+	t.ok(H.word_at(words, 0.5) > 1 && H.word_at(words, 0.5) < 5, "halfway: a middle word");
+	t.eq(H.word_at([], 0.5), -1, "no words: none");
+});
