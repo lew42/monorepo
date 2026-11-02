@@ -160,7 +160,7 @@ export default class ChatV3 extends JSONL {
 		const title = p.title, refined = p.text, open = this.raw_open.has(p.id), sentences = p.sentence_items;
 		div.c("chat-v3-head", () => {
 			if (title) h3.c("chat-v3-title", title);
-			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.said));   // no AI title yet: its first words, muted
+			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw));   // no AI title yet: its first words, muted
 			this.marks(p);
 		});
 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved

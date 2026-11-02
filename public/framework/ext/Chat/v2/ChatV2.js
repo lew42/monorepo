@@ -1,9 +1,8 @@
 // ChatV2.js — `class ChatV2 extends ChatV3` (views-on-messages.md, step 2): everything is ChatV3 (session.messages, a card per
 // Prompt, Replies found by `re.to`, pause-based paragraphs, the live draft). V2 adds only: the ✓/🧠 marks beside the newest
 // Prompt's title, a Reply drawn beside the sentence it answers (instead of in the trailing list), and its own CSS.
-// The marks stay on the Prompt TASK this step (sent.fast/sent.smart; step 3 moves them onto the message): Sessions.mark_sent
-// still writes `{sent:{to,at,re:[owner line "at"...]}}` as a broadcast line, matched to a Prompt TASK id through the V1 `{chat}`
-// line's `prompt` field — the same small lookup ChatV2Model used to do, kept here (not the whole old model) until step 3.
+// The marks now read straight off the Prompt MESSAGE (step 3): `Sessions.mark_sent` writes `{messages:{<mid>:{sent:{<to>:{at}}}}}`
+// through `ChatWriter.sent_line`, and `Prompt.sent` on `core/Session/Chat/Prompt.js` reads it back as `{fast?, smart?}` — no lookup needed.
 import View, { span, div } from "/framework/core/View/View.js";
 import ChatV3 from "../v3/ChatV3.js";
 import Prompt from "/framework/core/Session/Chat/Prompt.js";
@@ -12,45 +11,22 @@ View.stylesheet(import.meta, "ChatV2.css");
 View.stylesheet(import.meta, "../cursors.css");
 
 export default class ChatV2 extends ChatV3 {
-	prompt_of = new Map();     // an owner line's `at` -> the Prompt TASK id it belongs to, from V1 `{chat}` lines
-	sent_by_task = new Map();  // Prompt TASK id -> {fast?: {at}, smart?: {at}}, from `{sent}` broadcast lines
-
-	// Track the V1 `{chat}`/`{sent}` broadcast lines ChatV3 skips (they carry no `session.messages` shape of their own) so the
-	// marks below can still find them, same lookup ChatV2Model used to do; everything else replays exactly as ChatV3 does.
 	// The `chat-v3` class goes on `$box` HERE, not in each caller (review finding 1): every caller (the demo page, the
 	// session page's Chat tab, the drawer/✦ sheet) gets ChatV3.css's own column/padding rules, with no fence crossing.
 	read(entries){
 		this.$box?.el.classList.add("chat-v3");
-		const marked = new Set();   // Prompt task ids whose marks changed in this batch
-		for (const raw of entries) {
-			if (raw?.chat?.from?.kind === "owner" && raw.chat.prompt && raw.chat.at) this.prompt_of.set(raw.chat.at, raw.chat.prompt);
-			if (raw?.sent?.to) {
-				for (const at of raw.sent.re ?? []) {
-					const task_id = this.prompt_of.get(at);
-					if (!task_id) continue;
-					const rec = this.sent_by_task.get(task_id) ?? {};
-					rec[raw.sent.to] = { at: raw.sent.at };
-					this.sent_by_task.set(task_id, rec);
-					marked.add(task_id);
-				}
-			}
-		}
-		const out = super.read(entries);
-		// a {sent} line changes no session member, so ChatV3 marks no card dirty for it: redraw the Prompt it belongs to (the ✓/🧠 move live)
-		for (const id of marked){ const p = this.card_roots().find(r => r instanceof Prompt && r.prompt === id), view = p && this.els.get(p.id); if (view) view.empty(() => this.fill(p)); }
-		return out;
+		return super.read(entries);
 	}
-	reset(){ this.prompt_of.clear(); this.sent_by_task.clear(); return super.reset(); }
 
 	// The ✓ (fast)/🧠 (smart) marks, moving: both sit beside the title of the NEWEST Prompt only (never more than one of
-	// each on screen), read through its Prompt TASK (`p.prompt`). ✓ colours once the fast seat has the line (`sent.fast`);
-	// 🧠 colours once an answer actually exists — a Reply after `sent.smart.at`, or the Prompt's own title/text
-	// (views-on-messages.md, "One meaning for the brain icon"). Gray while sent but not yet answered.
+	// each on screen), read straight off the Prompt message's own `sent`. ✓ colours once the fast seat has the line
+	// (`sent.fast`); 🧠 colours once an answer actually exists — a Reply after `sent.smart.at`, or the Prompt's own
+	// title/text (views-on-messages.md, "One meaning for the brain icon"). Gray while sent but not yet answered.
 	marks(p){
 		const newest = this.card_roots().filter(r => r instanceof Prompt).at(-1);
 		if (p !== newest) return null;
-		const sent = p.prompt && this.sent_by_task.get(p.prompt);
-		if (!sent) return null;
+		const sent = p.sent;
+		if (!sent.fast && !sent.smart) return null;
 		const wrap = span.c("chat-v2-marks");
 		if (sent.fast || sent.smart) { const fast = cursor_el(); fast.classList.toggle("done", !!sent.fast); wrap.el.append(fast); }
 		if (sent.smart) { const smart = smart_cursor_el(); smart.classList.toggle("done", this.smart_answered(p, sent.smart.at)); wrap.el.append(smart); }

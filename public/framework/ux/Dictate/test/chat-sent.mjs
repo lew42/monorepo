@@ -48,9 +48,11 @@ ${ev(queue.splice(0))}` });
 			out = { ok: true, at };
 			if (!v2_done.has(at)) setTimeout(() => { const r = { refined: { at: iso(Date.now()), re: at, sentences: [{ n: 1, text: "hello from the proof" }], sections: [], flags: [], cost_usd: 0.0123 } }; queue.push(r, r); }, 2200);
 			if (v2) queue.push(prompt_line("say", at, body.text));
-			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text", ...(v2 ? { prompt: "p-say" } : {}) } });   // V2 reads only this line's prompt id (ChatV2.read, to match {sent} to its Prompt); the words it draws come from the line above
-			setTimeout(() => queue.push({ sent: { to: "fast", at: iso(Date.now()), re: [at], delay_ms: 420 } }), 1500);
-			setTimeout(() => queue.push({ sent: { to: "smart", at: iso(Date.now()), re: [at], delay_ms: 3100 } }), 5000);
+			queue.push({ chat: { at, from: { kind: "owner" }, text: body.text, via: "text" } });   // V1's own line; V2 draws from prompt_line above and ChatV3 skips any {chat} line
+			// V2 (views step 3): the mark lives on the Prompt MESSAGE itself (`Sessions.mark_sent` -> `{messages:{<mid>:{sent:{<to>:{at}}}}}`),
+			// not a `{sent}` broadcast line — V1 still reads the broadcast shape for its own two cursors, so only v2 switches.
+			setTimeout(() => queue.push(v2 ? { messages: { "m-say": { sent: { fast: { at: iso(Date.now()) } } } } } : { sent: { to: "fast", at: iso(Date.now()), re: [at], delay_ms: 420 } }), 1500);
+			setTimeout(() => queue.push(v2 ? { messages: { "m-say": { sent: { smart: { at: iso(Date.now()) } } } } } : { sent: { to: "smart", at: iso(Date.now()), re: [at], delay_ms: 3100 } }), 5000);
 		}
 		await route.fulfill({ status: 200, contentType: "application/json", headers: cors, body: JSON.stringify(out) });
 	});

@@ -34,6 +34,9 @@
 {"p-1793586760764":{"tasks":{"add":{"id":"q-1793586760765","type":"Question","text":"Should I refresh now?","from":"p-1793586760764"}}},"by":"voice-assistant-v-u48msei","ts":"2026-11-02T02:32:43.962Z"}
 {"sentences":{"add":{"id":"s-test-2","at":"2026-11-01T20:27:53.878-06:00","text":"A second thought, no pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-2"}}},"by":"test-fixture","ts":"2026-11-02T02:27:53.880Z"}
 {"sentences":{"add":{"id":"s-test-3","at":"2026-11-01T20:28:01.878-06:00","text":"A third thought, after a long pause.","via":"voice"}},"messages":{"m-1793586471880":{"sentences":{"push":"s-test-3"}}},"by":"test-fixture","ts":"2026-11-02T02:28:01.880Z"}
+{"messages":{"m-1793586471880":{"sent":{"fast":{"at":"2026-11-02T02:27:52.000Z"}}}},"ts":"2026-11-02T02:27:52.000Z","by":"test-fixture"}
+{"messages":{"m-1793586760769":{"sent":{"fast":{"at":"2026-11-02T02:32:41.000Z"}}}},"ts":"2026-11-02T02:32:41.000Z","by":"test-fixture"}
+{"messages":{"m-1793586760769":{"sent":{"smart":{"at":"2026-11-02T02:32:41.200Z"}}}},"ts":"2026-11-02T02:32:41.200Z","by":"test-fixture"}
 {"at":"2026-11-01T22:28:07-06:00","chat":{"from":{"kind":"owner"},"prompt":"p-1793586471873","at":"2026-11-01T20:27:51.878-06:00"},"ts":"2026-11-02T02:27:51.879Z","by":"test-fixture"}
 {"at":"2026-11-01T22:28:07-06:00","sent":{"to":"fast","at":"2026-11-02T02:27:52.000Z","re":["2026-11-01T20:27:51.878-06:00"]},"ts":"2026-11-02T02:27:52.000Z","by":"test-fixture"}
 {"at":"2026-11-01T22:28:07-06:00","chat":{"from":{"kind":"owner"},"prompt":"p-1793586760764","at":"2026-11-01T20:32:40.766-06:00"},"ts":"2026-11-02T02:32:40.800Z","by":"test-fixture"}
