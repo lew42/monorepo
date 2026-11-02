@@ -81,7 +81,7 @@ Every read-aloud step writes one `recite` line to [the Whisper log](/framework/a
 
 ## Files
 
-- [Recite.js](Recite.js), [playback-stutter.test.mjs](playback-stutter.test.mjs), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css), [Recite.css](Recite.css), [page.js](page.js) (the demo)
+- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css), [Recite.css](Recite.css), [page.js](page.js) (the demo), [playback-stutter.test.mjs](playback-stutter.test.mjs) (headless: no repeated start, the words interrupt)
 - [ReciteBubble.test.mjs](ReciteBubble.test.mjs): the headless test of the bubble control in Chat V1, V2 and V3 (`FENCE_SERVEX=1 node ReciteBubble.test.mjs <site-url>`; also on the browser-scripts list).
 - [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
 - [doc/architecture.md](doc/architecture.md), [doc/voice-models.md](doc/voice-models.md) (what Kokoro costs here, and which voices sound better)
