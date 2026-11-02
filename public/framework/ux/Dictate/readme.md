@@ -41,6 +41,8 @@ You speak and Whisper turns the sound into text, one sentence at a time. The pag
 
 **Words vanished and came back?** The flicker, its cause and the fix: your words become the sent piece in the draft's spot the moment they leave it (`ComposerMic.take_out` → `Widget.show_out`), proof `test/flicker.mjs`: [`doc/flicker.md`](doc/flicker.md).
 
+**Every background job on a spoken sentence** (what runs, the model, the cost, who reads it): [doc/background-work.md](doc/background-work.md).
+
 **Map of every dictation piece** (mic, Whisper, cleaners, chat, voice session, assistants; the duplicates and the plan): [doc/map.md](doc/map.md).
 
 **Every voice and chat surface, one page** (screenshots, who answers, the flow, the 30-second first reply): [`surfaces/`](./surfaces/) · [long form](doc/surfaces.md).
