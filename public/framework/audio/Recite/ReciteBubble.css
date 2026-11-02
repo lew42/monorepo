@@ -1,0 +1,29 @@
+@layer base, theme, site, util;
+
+@layer theme {
+	/* Recite.Bubble: the one small play/back control under an assistant reply, the same in V1, V2 and V3 */
+	.recite-bubble-ctl {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		gap: 0.25em;
+		margin-block-start: 0.2em;
+		font-size: 0.8em;
+		flex: none;
+		white-space: nowrap;
+		line-height: 1;
+	}
+	.recite-bubble-ctl button {
+		min-inline-size: 2.2em;
+		min-block-size: 2.2em;
+		padding: 0 0.5em;
+		border: 0;
+		border-radius: 1.1em;
+		background: transparent;
+		color: var(--subtle);
+		font: inherit;
+		cursor: pointer;
+	}
+	.recite-bubble-ctl button:hover { background: var(--wash); color: var(--ink); }
+	.recite-bubble-ctl .recite-bubble-play.is-on { color: var(--prime); }
+}

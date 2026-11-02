@@ -739,3 +739,87 @@ if (Recite) test("Recite.Tap: a drag that leaves a text selection behind does no
 	root.remove();
 	return r;
 });
+
+// Replay any reply (Recite.Bubble): a bubble is named by its first ten spoken words, its last read place is {sentence, seconds}, and
+// a replay starts from it. The rendered text of a reply and its markdown source give the same name.
+if (Recite) test("Recite: a bubble's name, stepping back, and the place it stopped at", async t => {
+	t.eq(Recite.bubble_key("**Done.** I fixed [the bar](/x/) today, ok?"), Recite.bubble_key("Done. I fixed the bar today, ok?"), "the markdown source and the drawn text give the same key");
+	t.eq(Recite.bubble_key("One two three four five six seven eight nine ten eleven twelve"), "one two three four five six seven eight nine ten", "only the first ten words name it");
+	t.eq(Recite.bubble_key(""), "", "an empty reply has no name");
+
+	const c = [{ text: "a".repeat(30), seconds: 3 }, { text: "b".repeat(30), seconds: 3 }, { text: "c".repeat(150) }];   // the third is not rendered: 150 chars / 15 = 10 s
+	t.eq(Recite.step_back(c, 1, 5, 2), { i: 1, t: 3 }, "inside a sentence: just seconds earlier");
+	t.eq(Recite.step_back(c, 1, 1, 2), { i: 0, t: 2 }, "across a sentence boundary: the end of the one before, less what is left");
+	t.eq(Recite.step_back(c, 1, 1, 10), { i: 0, t: 0 }, "past the start of the bubble: its start");
+	t.eq(Recite.step_back(c, 2, 1, 5, 1), { i: 1, t: 0 }, "the floor keeps it inside this bubble's first sentence");
+	t.eq(Recite.step_back(c, 2, 0, 3), { i: 1, t: 0 }, "an exact fit lands at the start of that sentence");
+	t.eq(+Recite.step_back([{ text: "x".repeat(150) }, { text: "y" }], 1, 0, 3).t.toFixed(1), 7, "a sentence not rendered yet counts by the estimate (15 characters a second)");
+
+	const key = "test bubble place " + Math.random();
+	Recite.set_place(key, { i: 2, t: 4.5 }, true);
+	t.eq(Recite.place_of(key), { i: 2, t: 4.5 }, "a place is remembered");
+	t.eq(JSON.parse(localStorage.getItem("lew42.recite.places"))[key], { i: 2, t: 4.5 }, "and written to the browser's storage for a reload");
+	Recite.clear_place(key);
+	t.eq(Recite.place_of(key), null, "it can be cleared (a bubble heard to the end starts from the top next time)");
+	t.eq(JSON.parse(localStorage.getItem("lew42.recite.places"))[key], undefined, "and is gone from storage too");
+});
+
+if (Recite) test("Recite: replay starts a bubble from the sentence and second it stopped at", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.barge.on = false;
+	const played = [];
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ played.push({ src: this.src, at: this.currentTime }); return Promise.resolve(); } };
+
+	const text = "First sentence is here and it is long enough. Second sentence is a bit longer than the first. Third sentence ends it.";
+	const key = Recite.bubble_key(text);
+	Recite.clear_place(key);
+
+	r.replay(text);
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.chunks.length, 3, "the bubble's three sentences are queued");
+	t.eq(r.chunks[0].key, key, "each carries the bubble's key");
+	t.eq(r.at, 0, "no place remembered: it starts at the first sentence");
+	t.eq(played[0].at, 0, "from second 0");
+
+	Recite.set_place(key, { i: 1, t: 1.5 }, true);
+	r.replay(text);
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.at, 1, "with a place remembered it starts at that sentence");
+	t.eq(played.at(-1).at, 1.5, "that many seconds in");
+	t.eq(r.bubble_state().key, key, "and Recite says which bubble is being read");
+
+	r.audio.currentTime = 2;
+	r.back_bubble(text);   // 2 s into sentence 1 (a 3.5 s sentence): back 10 s lands at the bubble's start
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.at, 0, "back 10 s from near the start of the bubble goes to its first sentence");
+	t.eq(played.at(-1).at, 0, "at second 0");
+
+	r.stop();
+	t.eq(Recite.place_of(key) != null, true, "stopping keeps the place");
+	Recite.clear_place(key);
+	return r;
+});
+
+if (Recite) test("Recite: a tap on the bubble being read pauses it; a tap on another one swaps to it", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.barge.on = false;
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	const a = "Alpha reply is the first one to read aloud today.", b = "Bravo reply is another reply with its own words entirely.";
+	Recite.clear_place(Recite.bubble_key(a)); Recite.clear_place(Recite.bubble_key(b));
+
+	r.tap_bubble(a);
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.state, "playing", "a tap starts the bubble");
+	r.tap_bubble(a);
+	t.eq(r.state, "paused", "a second tap pauses it");
+	r.tap_bubble(a);
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.state, "playing", "a third resumes it");
+	r.tap_bubble(b);
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.bubble_state().key, Recite.bubble_key(b), "a tap on another bubble stops the first and reads that one");
+	t.eq(r.chunks.every(c => c.key === Recite.bubble_key(b)), true, "nothing of the first is left in the queue");
+	r.stop();
+	Recite.clear_place(Recite.bubble_key(a)); Recite.clear_place(Recite.bubble_key(b));
+	return r;
+});
