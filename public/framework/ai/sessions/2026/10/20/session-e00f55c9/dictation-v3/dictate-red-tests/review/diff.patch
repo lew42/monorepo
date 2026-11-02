@@ -1,0 +1,134 @@
+diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
+index ea381c57f..96211fc69 100644
+--- a/public/framework/core/Test/browser-scripts.mjs
++++ b/public/framework/core/Test/browser-scripts.mjs
+@@ -19,7 +19,7 @@ export const SCRIPTS = [
+ 	{"file":"public/framework/ux/Dictate/test/in-place.mjs","args":["{site}","{shots}"],"status":"red","why":"4 checks fail (see its output)"},
+ 	{"file":"public/framework/ux/Dictate/test/load.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
+-	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"red","why":"A2: New session does not clear the demo chat"},
++	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},
+@@ -27,7 +27,7 @@ export const SCRIPTS = [
+ 	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"red","why":"delay 0.5 s: 3 prompts sent, wanted 2"},
+ 	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"red","why":"1 check fails after the reload step"},
+-	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"red","why":"page.evaluate: querySelectorAll of undefined"},
++	{"file":"public/framework/ux/Dictate/test/swallow.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/v1-order.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/watch.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/repeat.mjs","args":[],"status":"pass"},
+diff --git a/public/framework/ux/Dictate/chat.js b/public/framework/ux/Dictate/chat.js
+index e86b80a1a..b44926801 100644
+--- a/public/framework/ux/Dictate/chat.js
++++ b/public/framework/ux/Dictate/chat.js
+@@ -44,6 +44,7 @@ function create_controller({ persist }){
+ 	const ctl = {
+ 		session: null,
+ 		file: null,
++		epoch: 0,   // bumped by reset(): a session start that began before it must not land after it
+ 		fresh: false,     // true after New session until the next session starts: Session.start({fresh})
+ 		starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
+ 		nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
+@@ -78,13 +79,14 @@ function create_controller({ persist }){
+ 		if (ctl.session) return;
+ 		if (!ctl.starting && !ctl.fresh){
+ 			// Another tab, a link opened in a new tab, the Recite page: join the voice session in use rather than start a second one.
++			const epoch = ctl.epoch;
+ 			ctl.starting = Session.recent_project({ limit: 5 }).then(rows => {
+ 				const latest = (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
+ 					.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
+ 				if (!latest || Date.now() - Date.parse(latest.last_at ?? latest.at ?? 0) > JOIN_IDLE_MS) return null;
+ 				return Session.resume(latest.session);
+ 			}).catch(() => null).then(made => {
+-				if (!made || ctl.session) return;
++				if (!made || ctl.session || epoch !== ctl.epoch) return;
+ 				ctl.session = made.session; ctl.file = made.file;
+ 				if (persist) write_saved({ session: made.session, file: made.file });
+ 				broadcast();
+@@ -93,8 +95,10 @@ function create_controller({ persist }){
+ 			if (ctl.session) return;
+ 		}
+ 		if (!ctl.starting){
++			const epoch = ctl.epoch;
+ 			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
+ 			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {
++				if (epoch !== ctl.epoch) return;   // New session was pressed while this one was starting
+ 				ctl.session = made.session; ctl.file = made.file; ctl.fresh = false;
+ 				if (persist) write_saved({ session: made.session, file: made.file });
+ 				broadcast();
+@@ -123,6 +127,7 @@ function create_controller({ persist }){
+ 	}
+ 
+ 	function reset(){
++		ctl.epoch++;
+ 		ctl.session = null; ctl.file = null; ctl.starting = null; ctl.fresh = true;
+ 		if (persist) write_saved({ fresh: true });   // a keep:false demo must not overwrite the global key
+ 		broadcast();
+@@ -367,7 +372,7 @@ export default function chat(el, { path = location.pathname, card, placeholder,
+ 		on_link(fn){ on_link.add(fn); fn(link); return () => on_link.delete(fn); },
+ 		/** The Reconnect button: reopen the live wire now (it also retries by itself, 1 s doubling to 15 s). Never throws; false = nothing to do. */
+ 		reconnect(){ try { return !!stop_stream?.reconnect?.(); } catch (e){ console.error("chat reconnect:", e); return false; } },
+-		reset(){ owner.reset(); },
++		reset(){ owner.reset(); if (watching === null) panel.reset(); },   // attach() clears only on a session change; with none yet (first send still starting) the drawn lines go here
+ 		remove(){
+ 			unsubscribe();
+ 			stop_watch?.(); stop_watch = null;
+diff --git a/public/framework/ux/Dictate/doc/chat.md b/public/framework/ux/Dictate/doc/chat.md
+index 3fbd08a0b..c65f2857c 100644
+--- a/public/framework/ux/Dictate/doc/chat.md
++++ b/public/framework/ux/Dictate/doc/chat.md
+@@ -268,7 +268,7 @@ bubble instead of opening a new one each time, and made `Widget.Composer` the sa
+ 
+ ## New session, and the mic indicator
+ 
+-**New session** is one button, `new_session_button()` in `chat.js`; the phone sheet's head (next to More, one tap), the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. **The next session is always new** (fixed 2026-10-13, [walk](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md)): `reset()` marks the tab `fresh` (also in `sessionStorage`, so a reload keeps it) and `ensure()` passes `Session.start({ fresh: true })`; before, Servex's "resume the last hour on this page" rule brought the old conversation straight back on the first sentence. The resume offer is not shown after New session. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
++**New session** is one button, `new_session_button()` in `chat.js`; the phone sheet's head (next to More, one tap), the drawer's AI tab and the Dictate page all call it. Pressing it calls the mount's `reset()`, which clears the one shared voice session (`GLOBAL.reset()`: the saved session id in `sessionStorage` is dropped and the thread is cleared). It is safe to press while the first sentence's session is still starting: `reset()` bumps the controller's `epoch`, so that late start is dropped instead of resurrecting a session, and the lines drawn so far are cleared (`test/new-session.mjs`). Nothing is created at that moment: the next sentence you say or type starts a fresh session through `Session.start()`, which writes that session's own file, and the session then shows on the Sessions page. The url does not change on the press. **The next session is always new** (fixed 2026-10-13, [walk](/framework/ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/voice-e2e-review/review.md)): `reset()` marks the tab `fresh` (also in `sessionStorage`, so a reload keeps it) and `ensure()` passes `Session.start({ fresh: true })`; before, Servex's "resume the last hour on this page" rule brought the old conversation straight back on the first sentence. The resume offer is not shown after New session. Proof (`ai/sessions/2026/10/13/session-730e8a7b/mastermind-repo-slim/dictate-session/proof.mjs`): pressed on the 400 px sheet and on the 1200 px drawer, both go from a session id to none and clear the thread.
+ 
+ **The mic indicator** is one class, `MicIndicator.js`: a red dot, "listening" and a level bar, visible only while a mic is open. `Dictate.js` tells it the state and level, so every instance follows. It sits under the composer (the full variant with the level bar, so in the sheet, the drawer's AI tab and anywhere else `Widget` mounts); the dot-only `compact` variant (no bar: the buttons are too small) sits on the floating mic, the ✦ button of the bottom rail and the ☰, so a collapsed surface still shows the mic is on. Dropped with the duplicate button: `new_session()` in `ext/drawer/tabs/ai.js`, which also asked Servex to recycle a card's assistant; the live sheet never used it. The URL is not created on the press (the alternative, starting the session at once and routing to its page, would pull the reader off the page they are on).
+ 
+diff --git a/public/framework/ux/Dictate/test/settings.mjs b/public/framework/ux/Dictate/test/settings.mjs
+index aa5049957..cc5c576da 100644
+--- a/public/framework/ux/Dictate/test/settings.mjs
++++ b/public/framework/ux/Dictate/test/settings.mjs
+@@ -27,7 +27,7 @@ async function open(ctx, store){
+ 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
+ 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
+ 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
+-		if (verb === "say"){ said.push(body.text); return json(route, { ok: true, at: new Date().toISOString() }); }
++		if (verb === "say"){ if (!body.kind) said.push(body.text);   /* a kind (error, click, context) is a diagnostic or context line, filed as a log line and never a prompt (ext/Chat/v2/report.js) */ return json(route, { ok: true, at: new Date().toISOString() }); }
+ 		if (verb === "settings"){ knobs.push(body); return json(route, { ok: true }); }
+ 		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
+ 	});
+diff --git a/public/framework/ux/Dictate/test/swallow.mjs b/public/framework/ux/Dictate/test/swallow.mjs
+index 70f80dccf..ab6f1a917 100644
+--- a/public/framework/ux/Dictate/test/swallow.mjs
++++ b/public/framework/ux/Dictate/test/swallow.mjs
+@@ -42,11 +42,14 @@ for (const width of [400, 1200]){
+ 		const at = n => `2026-10-17T00:00:0${n}.000-05:00`;
+ 		const words = ["The sheet should open at sixty percent.", "And it should remember the height I drag it to.", "Separately, the inbox labels need a count.",
+ 			"Each label shows how many notes wait.", "The count turns zero when you read them."];
+-		words.forEach((text, i) => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text } }));
++		const say = i => w.say({ chat: { at: at(i), from: { kind: "owner" }, via: "voice", text: words[i] } });
++		// The card is placed while its first line is still the bubble's last: a later placement stays put (Widget.place, "late card placements stay put").
++		[0, 1, 2].forEach(say);
++		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
++		[3, 4].forEach(say);
+ 		const raw_all = document.querySelectorAll(".ux-dictate-raw").length;
+ 		w.say({ place: { re: at(0), to: "same" } });
+ 		const raw_after_place = document.querySelectorAll(".ux-dictate-raw").length;
+-		w.say({ place: { re: at(2), to: "card", where: "up", title: "Inbox labels" } });
+ 		w.say({ place: { re: at(3), to: "same" } }); w.say({ place: { re: at(4), to: "same" } });
+ 		const card = [...document.querySelectorAll(".ux-dictate-placed-card")];
+ 		const before = { visible: card[0].querySelectorAll("[data-re]").length, summary: !!card[0].querySelector(".ux-dictate-summary") };
+@@ -59,7 +62,7 @@ for (const width of [400, 1200]){
+ 			summary: b.querySelector(".ux-dictate-summary-text")?.textContent, toggle: b.querySelector(".ux-dictate-fold-toggle")?.textContent,
+ 			count: b.querySelectorAll("[data-re]").length };
+ 	});
+-	check(t.raw_all === 5 && t.raw_after_place === 4, `${width}: five raw lines, and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
++	check(t.raw_all === 4 && t.raw_after_place === 3, `${width}: four raw lines (the card line is placed), and a placed one loses the look (${t.raw_all} -> ${t.raw_after_place})`);
+ 	check(!t.before.summary && t.before.visible === 3, `${width}: before the summary the card shows its ${t.before.visible} lines`);
+ 	check(t.hidden && t.ms < 1000 && /^Inbox labels show/.test(t.summary ?? ""), `${width}: the summary folded the lines in ${t.ms} ms`);
+ 	check(t.toggle?.startsWith("3 raw lines"), `${width}: the toggle says "${t.toggle}"`);
