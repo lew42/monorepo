@@ -1,0 +1,7 @@
+{"review":{"answer":{"n":1,"reply":"noted: the stale test comment is fixed with the test tidy"}}}
+{"review":{"answer":{"n":2,"reply":"fixed: unused vars removed, the always-true check dropped"}}}
+{"review":{"answer":{"n":3,"reply":"noted: the line is harmless (a read of a field replies never carry)"}}}
+{"review":{"answer":{"n":4,"reply":"noted: the test reads real v-u48msei by design (read-only); it needs a frozen copy if that session grows"}}}
+{"review":{"answer":{"n":5,"reply":"noted: 0 diffs are against V1Bubbles' model of V1; Widget.place() paragraph/card splits must be checked before the step-4 switch (recorded in pseudo-properties.md)"}}}
+{"review":{"answer":{"n":6,"reply":"fixed: ChatToMessages reuses ChatWriter.clean_line, the comment sits above place() again, check count 11"}}}
+{"review":{"answer":{"n":7,"reply":"noted: Servex restart is needed for live said_at; left to the owner's restart (not done here)"}}}
