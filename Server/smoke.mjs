@@ -79,7 +79,7 @@ const usage = msg => { console.error(msg + "\nusage: node Server/smoke.mjs <work
 if (!dir) usage("no worktree dir given");
 
 const norm = p => path.resolve(p).replace(/\\/g, "/").toLowerCase();
-let base = baseOpt || (portOpt && `http://127.0.0.1:${portOpt}`);
+let base = baseOpt || (portOpt && `http://127.0.0.1:${portOpt}`), worktreeName = null;
 if (!base) {
 	// the main repo root is where .worktrees.json lives: the first git worktree entry
 	const here = path.dirname(fileURLToPath(import.meta.url));
@@ -87,8 +87,8 @@ if (!base) {
 	for (const c of candidates) for (const root of [c, "C:/Code/lew42/monorepo"]) {
 		const f = path.join(root, ".worktrees.json");
 		if (!fs.existsSync(f)) continue;
-		const entry = Object.values(JSON.parse(fs.readFileSync(f, "utf8"))).find(e => norm(e.path) === norm(dir));
-		if (entry) { base = `http://127.0.0.1:${entry.port}`; break; }
+		const reg = JSON.parse(fs.readFileSync(f, "utf8")), key = Object.keys(reg).find(k => norm(reg[k].path) === norm(dir)), entry = key && reg[key];
+		if (entry) { base = `http://127.0.0.1:${entry.port}`; worktreeName = entry.name ?? key; break; }
 	}
 	// Not registered (made with plain `git worktree add`): worktree-restart.mjs adopts it, boots its server and registers it.
 	if (!base && path.basename(path.dirname(path.resolve(dir))) === "worktrees") {
@@ -99,6 +99,18 @@ if (!base) {
 		else console.error((r.stdout || "") + (r.stderr || ""));
 	}
 	if (!base) usage("no worktree entry for " + dir + " in .worktrees.json (use --port or --base)");
+}
+/* A registered worktree's own dev server dies on an idle self-stop or a Servex restart. Restart it once, here, instead of failing with
+ * "no server answering" (agents read that as "the main dev server is down" and waited on the owner, 2026-11-02, marked-lines-switch). */
+const restartCmd = worktreeName ? "node Server/worktree-restart.mjs " + worktreeName : null;
+if (worktreeName && !baseOpt && !portOpt) {
+	const answers = async () => { try { return (await fetch(base + "/", { signal: AbortSignal.timeout(2000) })).status > 0; } catch { return false; } };
+	if (!(await answers())) {
+		const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+		const r = spawnSync(process.execPath, [path.join(root, "Server", "worktree-restart.mjs"), worktreeName], { cwd: root, encoding: "utf8", windowsHide: true });
+		if (await answers()) console.log("smoke: this worktree's own server (" + worktreeName + ") was down; restarted it");
+		else console.error("smoke: this worktree's own server (" + worktreeName + ") is down and restarting it failed; run: " + restartCmd + " " + (r.stdout || "") + (r.stderr || ""));
+	}
 }
 base = base.replace(/\/$/, "");
 
@@ -448,7 +460,7 @@ for (let qi = 0; qi < queue.length && loadedCount < CAP; qi++) {
 		if (loadError) errors.push("Page Load Error (core/App's error screen is showing)");
 		if (follow) links = await links_on(page);
 	} catch (e) {
-		if (/ERR_CONNECTION_REFUSED/.test(e.message)) { console.error("no server answering at " + base); await browser.close(); process.exit(2); }
+		if (/ERR_CONNECTION_REFUSED/.test(e.message)) { console.error("no server answering at " + base + (restartCmd ? " — this is the worktree's OWN server (" + worktreeName + "), not the main site; run: " + restartCmd : "")); await browser.close(); process.exit(2); }
 		errors.push("load failed: " + e.message.split("\n")[0]);
 	}
 	closing = true;
