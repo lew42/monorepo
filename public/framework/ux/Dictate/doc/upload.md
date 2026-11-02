@@ -16,12 +16,22 @@ Scripts, rerunnable on the real logs: [measure.mjs](/framework/ai/sessions/2026/
 - **The time is spent before the request reaches whisper-server.** Pairing each page request with whisper-server's own "processing" line (same sample count) puts the extra 1.2–1.5 s between "sent" and "received".
 - **The cause is the link, not the code.** Request counts were unchanged, and Kokoro (Recite) running at the same time adds nothing (measured).
 
+## Each hop, before and after
+
+| Hop | Before | After |
+|---|---|---|
+| 1. Whisper answer in the page (`ai/whisper/bucket.jsonl` `ms`) | 0.3 s, then 2.2–2.6 s on the slow uplink | half the bytes; a final no longer waits behind a guess (0.33 s, not 3.15 s, with a 3 s guess in flight) |
+| 2. Final to the `{chat}` line in `session.jsonl` (`Sessions.say`) | p50 0.5–4 s | unchanged: the composer sends on a pause, by design (`Mic.js` `auto_check`) |
+| 3. Line to screen in V1, V2, V3 | not timed per view; all three draw from a live tail | the problem here was ink, not time: the guess read at 2.1:1 (V1) and 2.9:1 (V3), now 6.4:1 |
+
 ## The fix
 
 | Change | Where | Effect |
 |---|---|---|
 | WAV as 8-bit mu-law (WAVE format 7), not 16-bit PCM | `Capture.wav()`, [capture.js](../capture.js); `Capture.prototype.encoding = "pcm16"` switches back | 16 KB a second of audio, not 32; same text on three clips, including a quiet, hissy copy |
 | A guess in flight is aborted when the segment closes | `Dictate.close_segment()` / `transcribe()`, [Dictate.js](../Dictate.js) | a final behind a 3 s guess answers in 0.33 s, not 3.15 s |
+
+**V1** (`variants/v1/Dictate.js`) sends through the same `Capture.wav()`, so it gets the smaller bytes too, but not the dropped guess; V1 is kept as it was.
 
 Proof: `node public/framework/ai/sessions/2026/10/20/session-e00f55c9/whisper-path/check-fix.mjs <base url>` (PASS on the branch, FAIL on the old code).
 

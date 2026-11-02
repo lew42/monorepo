@@ -14,8 +14,8 @@
 	.chat-v3-title { margin: 0; font-size: 1rem; flex: 1; min-width: 0; }
 	.chat-v3-head:not(:has(.chat-v3-title)) { justify-content: flex-end; }
 
-	/* The words still being spoken (the draft at the end): gray, but readable on a phone in daylight (the owner, 2026-11-01: "far too dim").
-	   Everything written to the file is final and solid. */
+	/* The words still being spoken (the guess at the end) are draft ink, dimmed but readable on a phone in daylight (the owner, 2026-11-01: "far too dim").
+	   Everything written to the file is final ink. The pair --draft-ink / --final-ink lives in framework.css. */
 	.chat-v3-text { overflow-wrap: anywhere; line-height: 1.45; transition: color .4s; }
 	.chat-v3-text.is-moving { color: var(--final-ink); }   /* what is already written stays solid; only the guess below is dim */
 	.chat-v3-text > :first-child { margin-top: 0; }

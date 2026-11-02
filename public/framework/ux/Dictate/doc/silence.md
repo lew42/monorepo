@@ -70,7 +70,7 @@ Worth writing down, because the obvious suspects were all checked and all innoce
   over 48000Hz samples plays back three times too slow.
 - The `AudioWorklet` runs even though `capture.js` never connects it to a destination:
   314 chunks of 128 samples in 2.5s = 2.512s of audio at 16kHz, none of them empty.
-- Every posted WAV is a correct 16000Hz mono 16-bit RIFF whose header byte count agrees
+- Every posted WAV is a correct 16000Hz mono RIFF (16-bit then; 8-bit mu-law since 2026-11-01, [upload.md](upload.md)) whose header byte count agrees
   exactly with the file's real length.
 
 ## Capturing the bytes yourself

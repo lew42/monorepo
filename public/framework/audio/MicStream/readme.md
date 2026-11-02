@@ -7,7 +7,7 @@ else the system default) and gives everything else in `audio/` out to anyone who
   `<audio>` element.
 - **The raw samples** — 16kHz mono `Float32Array` chunks off `pcm-worklet.js`, buffered in
   `mic.chunks`. `mic.snapshot()` copies everything since `start()` or the last `cut()`;
-  `mic.wav(samples)` turns a snapshot into a 16-bit WAV `Blob`, the shape whisper-server reads.
+  `mic.wav(samples)` turns a snapshot into a WAV `Blob` whisper-server reads: 8-bit mu-law by default, half the bytes of 16-bit PCM ([why](../../ux/Dictate/doc/upload.md)).
 - **`mic.on_level(fn)`** — a live 0..1 level, smoothed, fired on every audio frame. Returns an
   unsubscribe function. `Transcriber.Whisper` and `MicStream.Controls`' own level bar both
   subscribe to this instead of reading the microphone themselves.
