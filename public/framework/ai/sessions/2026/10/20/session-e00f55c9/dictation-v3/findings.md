@@ -16,6 +16,8 @@ Your three asks, in your own words from that session, checked against V3 today:
 
 ## 2. Can the fast seat pause?
 
+> **Reversed the same day (2026-11-01):** the owner kept the fast seat on ("turning it off isn't going to fix anything… put them to work", prompt `qrct21sx` in [session.jsonl](session.jsonl)). The default is `voice` again; `off` stays as a switch. What follows is the reasoning for the one-day pause, kept as a record.
+
 **Yes. Nothing that matters still depends on it.** It is the `voice-assistant` role (Haiku), woken once per sentence. What it writes, and who reads each:
 
 | It writes | Read by | If it stops |
@@ -33,4 +35,15 @@ Your three asks, in your own words from that session, checked against V3 today:
 
 ## 3. What changed
 
-*(Filled in as the build lands.)*
+**On michael/dev already** (for the owner's walk):
+- **A tap unlocks read-aloud** (057f98333): a phone refuses sound that starts without a tap, and a reply starts from the network. The first tap anywhere now unlocks Recite's audio. Review: [tap-unlock/](tap-unlock/).
+- **V1 reads every new reply aloud**, whether it came on the live wire or the file poll, and Recite logs one `recite` line per step to [the Whisper log](/framework/audio/Whisper/log/). Review: [recite-trace/](recite-trace/).
+
+**On worktree/dictation-v3** (merged with this review):
+- **One version dropdown**, `Chat V1 ▾` (V1, V2, V3), built like the session dropdown; V1 stays mounted, so dictation never stops on a switch ([shot](shots/sheet-dropdown-400-menu.png)).
+- **V3 shows every reply** (old-style `{chat}` replies placed by their `re`), the reply as it is written, solid text once written, a brighter draft, and no link icon. 23 checks pass.
+- **The karaoke playhead**: `Recite.Highlight` lights the sentence and the word being read in the chat, and the bar shows them on its own line.
+- **The fast seat was off by default for a day, then back on** (`voice`, the owner's ruling); code files a Question for each "?" sentence only when the seat is `off`.
+- **Replies fit to be read aloud**: the smart seat is told no tables and no bare paths.
+
+**Not built yet** (queued in [plan.md](plan.md), in the owner's order): voice and speed in the settings with a Sample button, "switch your voice", the echo guard, speech from the first words, Chatterbox and one-engine supervision, V3 paragraphs, the send outbox.
