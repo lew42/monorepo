@@ -19540,3 +19540,17 @@
 {"file":"public/framework/ux/Content/Object/list-view.test.mjs","ok":true,"ms":5482,"at":"2026-11-02T06:22:34.120Z","trigger":"manual"}
 {"file":"public/framework/core/Item/transport.test.mjs","ok":true,"ms":11572,"at":"2026-11-02T06:22:40.042Z","trigger":"manual"}
 {"file":"Servex/agents/chat-messages.test.mjs","ok":true,"ms":601,"at":"2026-11-02T06:22:43.416Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":262,"at":"2026-11-02T08:27:22.658Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/Prompt.raw.test.mjs","ok":true,"ms":176,"at":"2026-11-02T08:27:22.719Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Process.test.mjs","ok":true,"ms":71,"at":"2026-11-02T08:27:22.730Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":192,"at":"2026-11-02T08:27:22.740Z","trigger":"manual"}
+{"file":"public/framework/core/Session/session-task.test.mjs","ok":true,"ms":92,"at":"2026-11-02T08:27:22.745Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Project.test.mjs","ok":true,"ms":61,"at":"2026-11-02T08:27:22.781Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Prompt.test.mjs","ok":true,"ms":74,"at":"2026-11-02T08:27:22.804Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Task.steps.test.mjs","ok":true,"ms":66,"at":"2026-11-02T08:27:22.811Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Question.test.mjs","ok":true,"ms":75,"at":"2026-11-02T08:27:22.815Z","trigger":"manual"}
+{"file":"public/framework/core/Task/TaskQueue.test.mjs","ok":true,"ms":46,"at":"2026-11-02T08:27:22.850Z","trigger":"manual"}
+{"file":"public/framework/core/Task/Task.test.mjs","ok":true,"ms":72,"at":"2026-11-02T08:27:22.853Z","trigger":"manual"}
+{"file":"public/framework/core/Task/child-verb.test.mjs","ok":true,"ms":56,"at":"2026-11-02T08:27:22.872Z","trigger":"manual"}
+{"file":"public/framework/core/Task/TasksPage.test.mjs","ok":true,"ms":27522,"at":"2026-11-02T08:27:50.333Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":227,"at":"2026-11-02T08:43:18.556Z","trigger":"manual"}

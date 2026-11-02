@@ -110,3 +110,4 @@
 {"file":"failures.jsonl"}
 {"file":"Server/"}
 {"file":"Server/","gone":true}
+{"file":"failures.jsonl","gone":true}

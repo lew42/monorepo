@@ -39,3 +39,4 @@
 {"file":"timeouts.json"}
 {"file":"run-all.mjs"}
 {"file":"run-all.jsonl"}
+{"file":"save-results.jsonl","gone":true}
