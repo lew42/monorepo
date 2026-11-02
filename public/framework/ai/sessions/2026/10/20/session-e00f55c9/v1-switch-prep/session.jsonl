@@ -15,3 +15,4 @@
 {"review":{"at":"2026-11-02T03:31:54-06:00","answer":{"n":6,"reply":"fixed: ChatToMessages reuses ChatWriter.clean_line, the comment sits above place() again, check count 11"}}}
 {"review":{"at":"2026-11-02T03:31:54-06:00","answer":{"n":7,"reply":"noted: Servex restart is needed for live said_at; left to the owner's restart (not done here)"}}}
 {"commit":"d624f2a24598","by":"append.mjs","ts":"2026-11-02T09:45:07.749Z"}
+{"commit":"e8333863fed5","by":"append.mjs","ts":"2026-11-02T09:45:08.189Z"}

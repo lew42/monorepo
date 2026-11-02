@@ -1,8 +1,10 @@
-# Get V1 to draw the same from `session.messages` (you are a mastermind, on Sonnet)
+# Make the old chat (V1) draw the same bubbles from the new `session.messages` data
 
-**Context:** `mastermind-chat-model` landed steps 1–8 (`../chat-model/plan.md`). Step 8's read-only compare (`Server/ChatV1Compare.mjs`, `V1Bubbles.js`; results in `../chat-model/s8/compare.txt`) found:
-- **V1 sorts by `said_at`, and nobody copies that into `session.messages`.** With `said_at` stripped, the diffs drop from 1183 to 2 and from 716 to 0.
-- **No session is fully mirrored,** and `Server/ChatToMessages.mjs` can't fill in a partly mirrored file yet. Both are ⬜ in `core/Session/Chat/readme.md`.
+You are a mastermind, on Sonnet.
+
+**Context:** `mastermind-chat-model` landed steps 1–8 ([plan](../chat-model/plan.md)). Step 8's read-only compare (`Server/ChatV1Compare.mjs`; [results](../chat-model/s8/compare.txt)) drew V1's bubbles from the old log and from the new `session.messages` copy, and counted differences. It found two causes:
+- **V1 sorts by `said_at`, but new messages don't carry it.** Ignoring `said_at`, the diffs drop from 1183 to 2 and from 716 to 0.
+- **No session has a complete copy,** and `Server/ChatToMessages.mjs` can't fill a partly copied one yet. Both are ⬜ in [Chat readme](/framework/core/Session/Chat/readme.md).
 
 The owner's direction ([../night-2026-11-01/requirements.md](../night-2026-11-01/requirements.md), point 1): V1 must keep working; it will learn the new structure once the same data flows. **This task does not switch V1.**
 
