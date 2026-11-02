@@ -23,6 +23,15 @@
 - A one-off cleanup with no cause found is a finding, not a fix: write the cause down, or open the task that will find it.
 - Examples from 2026-11-01/02: leaked worktree dev servers (fixed with an idle self-stop, not just a kill); stray staged files blocking `merge.mjs` (the merge is fixed to commit only its own paths, not unstaged by hand each time); a phone running stale code (cache-busting by design, not one manual clear).
 
+## The primary objective: tasks made right, finished right, every session to 100% (the owner, 2026-11-02)
+
+This is the main goal of all agent work:
+- **Create the proper tasks.** Each ask becomes exactly one task, filed where it belongs. Never too many tasks, never too few.
+- **Complete them properly,** with a landing that proves what was asked.
+- **Each session strives for 100% completion before it is left behind.** A session is not abandoned with open tasks; finish each one, hand it off, or close it with a reason.
+
+How well this holds today is being measured; the audit is at [task-system-audit](../sessions/2026/10/20/session-e00f55c9/task-system-audit/requirements.md).
+
 ## Open a task for each piece of work (the owner, 2026-10-24)
 
 A task is a bucket: every token a session spends between its `start` and `complete` is counted against it, and tokens with no task open show as untracked. **Every agent opens a task for each piece of real work and closes it; a tab files each owner ask as a task on its own session.** Work that fits the task you are on needs no new one; unrelated work opens a sibling or child first. A spawned agent is handed its task; an agent given a prompt with no task opens one as its first act. After a hand-off only the agent that holds a task writes to it until it hands it back, and the hand-back starts the review. The full rule, the table of who may write what and the proposed enforcement hook: [task-buckets.md](task-buckets.md). How a task is added and where it shows: [core/Task/readme.md](/framework/core/Task/readme.md) and [core/Session/readme.md](/framework/core/Session/readme.md). The monitor: [/framework/ai/tracking/](/framework/ai/tracking/).
