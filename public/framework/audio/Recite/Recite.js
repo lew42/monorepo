@@ -47,7 +47,7 @@ export default class Recite extends Part {
 	cue_repeat_ms = 2000;   // thinking cue: how long to wait for the reply before the second, and last, cue
 	cue_timer = null;       // thinking cue: expect_reply()'s own pending timeout for the second cue
 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
-	pending_updates = [];   // no-flood: agent updates (a reply from any assistant id but "smart") held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
+	pending_updates = [];   // no-flood: agent updates (a reply whose from.id matches AGENT_ID — not "smart", and not "fast"/"revise"/"card" either) held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
 	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
 	update_hold_ms = 4000;   // no-flood: how long an agent update waits for the direct answer before it is queued anyway
 
@@ -161,7 +161,7 @@ export default class Recite extends Part {
 		if (this.wait_at == null) return;
 		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
 		this.quiet_since_wait ??= performance.now();
-		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 1500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 2500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
 		const i = this.wait_at;
 		this.wait_at = this.quiet_since_wait = null;
 		this.play(i, 0);
@@ -352,8 +352,8 @@ export default class Recite extends Part {
 		this.pending_ids = this.pending_ids.filter(p => { if (p.last !== i) return true; Recite.mark_played(p.id); return false; });
 	}
 
-	/** No-flood (dictation-v3, 2026-11-02): a reply from any assistant id OTHER than "smart" — a mastermind or
-	 *  another agent reporting into the chat — is never read in full; it collapses into one short spoken line, so
+	/** No-flood (dictation-v3, 2026-11-02): a reply from a tracked agent role (`Recite.AGENT_ID` — a mastermind or
+	 *  another agent reporting into the chat, never "smart", "fast", "revise" or "card") is never read in full; it collapses into one short spoken line, so
 	 *  a long status update never floods the queue ahead of (or instead of) the direct answer the owner is waiting
 	 *  for. If the owner's own line is still awaiting that direct answer (`cue_pending`), the update is held in
 	 *  `pending_updates` rather than queued — `flush_updates()` releases it (behind the direct answer) once that

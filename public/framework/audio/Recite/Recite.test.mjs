@@ -566,8 +566,9 @@ if (Recite) test("Recite.Highlight: a mention chip's own icon word does not brea
 	return r;
 });
 
-// No-flood (dictation-v3, 2026-11-02): a reply from any assistant id but "smart" is an agent update, never read in
-// full — it collapses to one short line, and if the owner's own line is still awaiting the direct answer
+// No-flood (dictation-v3, 2026-11-02): a reply from a tracked agent role (Recite.AGENT_ID — never "smart", "fast",
+// "revise" or "card") is an agent update, never read in full — it collapses to one short line, and if the owner's
+// own line is still awaiting the direct answer
 // (cue_pending), it waits behind that answer rather than flooding ahead of or instead of it.
 if (Recite) test("Recite: an agent update collapses to one line and queues behind the direct answer, not ahead of it", async t => {
 	const r = new Recite({ voice: fake_voice });
