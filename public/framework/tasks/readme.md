@@ -24,6 +24,12 @@ Until then: one line per task below, and when one gets a real task folder, link 
   - **Today:** node stamps `by` and `ts` on every item-tool line, and Servex writes the cost.
   - **Another idea:** a server-side instance adds each new line's cost in memory instead of recomputing.
 - **Fewer Servex tools: mostly the item tool.** The owner has asked several times for the tool list to shrink. The item tool already reaches any property, list or method of a task or session, so most single-purpose tools could become item deltas. Audit which tools still need to exist.
+- **Leaked headless browsers.**
+  - **What happened (2026-11-02, 22:41Z):** free RAM was down to 1.1 GB, and a spawn was held. Two Playwright Chrome trees started on 2026-11-01 at 12:10 and 12:12 were still running, holding gigabytes. They were stopped by hand, and free RAM rose to 5.4 GB.
+  - **The fix to build:** every headless browser is closed by whoever opened it, in a `finally`. Plus a sweep that stops a Playwright Chrome whose parent is gone, or that's older than a few hours. `Servex/Lifecycle.js` already knows them by their path (`ms-playwright`, `chrome-for-testing`).
+- **Chat V1 and V1.2: one template** (the owner, via voice, 16:41; thoughts, not decisions).
+  - The two use different data sources and templates. V1's message order looks broken, and V1.2's looks better.
+  - Maybe share the same template functions, or let V1.2 replace V1 once its layout bug is fixed.
 - **A live test runner for each worktree, feeding the builder.**
   - **What it does.** When a mastermind makes a worktree, a runner watches it. It reruns a module's tests when a file in that module changes.
   - **How it picks tests:** the module folder, or a hand-written watch list per test file. Static dependency analysis can come later.
