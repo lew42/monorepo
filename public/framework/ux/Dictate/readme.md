@@ -4,6 +4,8 @@
 
 **The green check and the brain icon look out of sync?** What triggers each one, by file:line, and the one real mismatch between V1 and v2 (not just timing): [`doc/status-icons.md`](doc/status-icons.md).
 
+**Where the dictation work stands** (what landed on 2026-11-01/02, what's open, the owner's next decisions): [dictation-v3 handover](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/handover.md).
+
 **The whole stack on one page** (dictation, sheet, chat v1/v2/v3, session, task, prompt, the session page): [ai/system-map.md](/framework/ai/system-map.md); the proposed shape (Sheet and Chat as classes, the global voice session as a class, raw then refined prompts): [ai/system-proposal.md](/framework/ai/system-proposal.md). Note: the global voice session is not a class today; it is a controller (`create_controller` in `chat.js`) kept in sessionStorage `lew42-voice-session`.
 
 - ⬜ **Goal:** the owner calls the whole experience "chat", so it is one thing under that name (no renames yet): the first view and [Chat v2](/framework/ext/Chat/v2/readme.md) become one chat. Matching line in [Chat v2's readme](/framework/ext/Chat/v2/readme.md).
