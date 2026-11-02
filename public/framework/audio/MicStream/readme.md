@@ -47,6 +47,7 @@ quiet instant instead of mid-word — see `../doc/decisions.md`, "Seams".
 
 ## Watch out
 
+- **Every mic this class opens asks for `echoCancellation` and `noiseSuppression`** (`constraint()`, dictation-v3 echo, 2026-11-01) — Dictate's own mic and push-to-talk included, not only Recite's barge-in mic, since `constraint()` is the one `getUserMedia` call site everything shares. No setting turns it off yet; if a caller ever needs the raw, unprocessed signal, that is a constructor option to add then, not before it is actually needed.
 - **This is a copy of `ux/Dictate/capture.js`, not an import of it.** `Dictate.js` and
   `capture.js` were another minion's fence while this was built (2026-09-29) — see
   `../doc/decisions.md`. If a caller only needs the SAME thing `capture.js` already does, this

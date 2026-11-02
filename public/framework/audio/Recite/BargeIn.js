@@ -29,6 +29,9 @@ export default class BargeIn extends Part {
 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
 	quiet_ms = 1500;      // real speech heard: once this much quiet passes, pick the interrupted reply back up
 	resume_timer = null;   // the schedule_resume() timer waiting for quiet
+	echo_threshold_mult = 1.6;   // echo: while recite.echo_active(), the fast barge-in trigger and speaking() need this much more level before they fire, so the read-aloud voice leaking into the mic (and a cough right after) don't pause or hold a reply
+	near_silent = 0.045;   // echo: a Whisper final heard with the mic at or below this level is treated as hallucinated text on near-silence, not real speech
+	recent_peak = 1;   // echo: a decaying max of hear()'s own-mic/dictate-mic level, read by owner_spoke()'s near-silent check; starts high ("no mic info yet") so a line arriving before any frames is never mistaken for silence
 	whisper_url = Whisper.default_url();   // the same URL rule as Dictate: 127.0.0.1:8178 here, <origin>/whisper elsewhere
 
 	constructor(...args){
@@ -72,11 +75,21 @@ export default class BargeIn extends Part {
 	dictating(){ return ["listening", "transcribing"].includes(this.dictate?.state); }
 
 	/** The owner's words reached the chat (a line on the session wire): that is speech, so reading stays paused.
-	 *  Also runs while already paused by an earlier barge-in (`recite.state === "heard"`) — a SECOND line ("wait…
-	 *  / what about the other one?") must still get its own question check, or it would otherwise resume and talk
-	 *  over the new answer; `heard_speech` just pushes the quiet window out when it isn't a question. */
+	 *  First checked against three things that are NOT the owner talking, so a reply keeps playing through them: a
+	 *  known Whisper phantom phrase ("Thank you.", "you", heard with nothing actually said); a fuzzy match against
+	 *  the sentence Recite just read or is reading while `recite.echo_active()` (its own voice leaking into the
+	 *  chat's mic); and a Whisper final heard while `recent_peak` (hear()'s own decaying max, review finding 1,
+	 *  2026-11-01) never rose above `near_silent` — the same hallucination guard `trigger()` runs for its own mic,
+	 *  now covering the chat-mic path too, since that is the normal one on a phone. Each is logged and dropped,
+	 *  never acted on. Otherwise, also runs while already paused by an earlier barge-in (`recite.state ===
+	 *  "heard"`) — a SECOND line ("wait… / what about the other one?") must still get its own question check, or it
+	 *  would otherwise resume and talk over the new answer; `heard_speech` just pushes the quiet window out when it
+	 *  isn't a question. */
 	owner_spoke(text){
 		this.spoke?.(text);
+		if (BargeIn.noise(text)){ this.recite.trace("barge: phantom phrase dropped", { text: String(text).slice(0, 80) }); return; }
+		if (this.recite.echo_active() && this.echo(text)){ this.recite.trace("barge: echo dropped", { text: String(text).slice(0, 80) }); return; }
+		if (text && this.recent_peak < this.near_silent){ this.recite.trace("barge: near-silent dropped", { text: String(text).slice(0, 80), peak: this.recent_peak }); return; }
 		if (this.recite.state === "playing" || this.recite.state === "loading") this.recite.pause("heard");
 		else if (this.recite.state !== "heard") return;
 		this.heard_speech(text);
@@ -85,7 +98,15 @@ export default class BargeIn extends Part {
 	/** True while the owner is making sound loud enough to count as talking, by the same threshold the fast barge-in
 	 *  check uses. Recite asks this before it starts a freshly queued reply, so it never talks over the owner
 	 *  (turn-taking, dictation-v3 2026-11-01): it waits for quiet instead of starting, or interrupting. */
-	speaking(){ return this.on && this.level > Math.max(this.threshold, this.noise_floor * 1.15); }
+	speaking(){ return this.on && this.level > this.effective_threshold(); }
+
+	/** The loudness floor a sound must clear to count as the owner talking: raised by `echo_threshold_mult` while
+	 *  `recite.echo_active()` (playing, or just stopped), so the read-aloud voice itself and a cough right after it
+	 *  don't hold a reply back or fire a barge-in (item 22, dictation-v3 2026-11-01). */
+	effective_threshold(){
+		const base = Math.max(this.threshold, this.noise_floor * 1.15);
+		return this.recite.echo_active() ? base * this.echo_threshold_mult : base;
+	}
 
 	/** Real speech was heard (this mic's own check, or the chat's own line): note it, and decide what happens to the
 	 *  paused reply. A question ("...?") means a new answer is coming, so the paused reply is dropped outright
@@ -136,6 +157,7 @@ export default class BargeIn extends Part {
 		this.mic = null;
 		this.state = "off";
 		this.level = 0;   // a stale loud reading, with no more hear() frames coming to refresh it, would make speaking() stick true forever (the next held reply never starts)
+		this.recent_peak = 1;   // back to "no mic info yet", so a line arriving after the mic closes is never mistaken for near-silence
 		this.loud_since = this.quiet_since = null;
 		clearTimeout(this.resume_timer); this.resume_timer = null;
 		this.recite.changed();
@@ -144,16 +166,17 @@ export default class BargeIn extends Part {
 	/** One level frame (about every 8 ms). */
 	hear(shown){
 		this.level = shown;
+		this.recent_peak = Math.max(shown, this.recent_peak * 0.995);   // a decaying max, not a point sample: owner_spoke() reads it well after the loud instant has passed
 		this.noise_floor *= 0.9993;
 		if (this.state === "checking") this.peak = Math.max(this.peak, shown);
 		if (this.state === "heard"){
 			if (this.recite.state !== "heard"){ this.state = "off"; this.sync(); }   // resumed or dropped some other way: go back to listening for the next interruption
-			else if (shown > Math.max(this.threshold, this.noise_floor * 1.15)) this.schedule_resume();   // still talking: push the quiet window out
+			else if (shown > this.effective_threshold()) this.schedule_resume();   // still talking: push the quiet window out
 			return;
 		}
 		if (this.state !== "listening" || this.recite.state !== "playing") return;
 		const now = performance.now();
-		if (shown > Math.max(this.threshold, this.noise_floor * 1.15)){
+		if (shown > this.effective_threshold()){
 			this.quiet_since = null;
 			this.loud_since ??= now;
 			if (now - this.loud_since >= this.hold_ms) this.trigger();
@@ -176,9 +199,15 @@ export default class BargeIn extends Part {
 		try { text = this.dictating() ? await this.await_line() : await this.listen_and_transcribe(); }
 		catch (e){ this.state = "heard"; this.note = "Whisper did not answer (" + e.message + "): press play to go on"; this.recite.changed(); return; }
 		const echo = this.echo(text);
+		// Whisper can hallucinate a phrase ("Thank you.", "you") out of near-silent audio; `this.peak` already
+		// measured how loud the mic actually got while listening, so a text with almost nothing behind it is
+		// treated the same as real noise, not real speech (dictation-v3 echo, 2026-11-01).
+		const silent = !echo && text && this.peak < this.near_silent;
 		this.heard = text;
-		if (!text || echo){
-			this.note = echo ? "my own voice — resumed" : "noise — resumed";
+		if (!text || echo || silent){
+			this.note = echo ? "my own voice — resumed" : silent ? "near-silent mic, likely a phantom — resumed" : "noise — resumed";
+			if (echo) this.recite.trace("barge: echo dropped", { text: text.slice(0, 80) });
+			else if (silent) this.recite.trace("barge: near-silent dropped", { text: text.slice(0, 80), peak: this.peak });
 			if (!echo) this.noise_floor = Math.max(this.noise_floor, this.peak);
 			this.state = "listening";
 			if (this.recite.state === "heard") this.recite.resume();
@@ -215,7 +244,9 @@ export default class BargeIn extends Part {
 		return BargeIn.noise(text) ? "" : text;
 	}
 
-	/** True when most of what Whisper heard is words of the sentence being read (the speaker leaking into the mic). */
+	/** True when most of what was heard is words of the sentence Recite is reading or just read (its own voice
+	 *  leaking into the mic). Checked from two places: the own-mic Whisper check (`trigger()`), and every line
+	 *  the chat's own mic sends while `recite.echo_active()` (`owner_spoke()`) — the same fuzzy match either way. */
 	echo(text){
 		const words = s => String(s).toLowerCase().match(/[a-z']+/g) ?? [];
 		const heard = words(text);
@@ -230,6 +261,10 @@ export default class BargeIn extends Part {
 	/** Recite.remember, reached through the instance: Recite imports this file, not the other way. */
 	remember(key, value){ return this.recite.constructor.remember(key, value); }
 
-	/** Whisper's own non-speech marks ("[BLANK_AUDIO]", "(wind blowing)", "♪") count as noise. */
-	static noise(text){ return !text || /^[\[(♪*].*[\])♪*]$/.test(text) || /^(thank you\.?|you)$/i.test(text); }
+	/** Common Whisper hallucinations, heard alone (not as part of a longer real line) — a plain array, so a new one
+	 *  found later is one line to add, not a regex to edit (review note, 2026-11-01). */
+	static PHANTOM_PHRASES = ["thank you.", "thank you", "thanks for watching.", "thanks for watching", "you"];
+
+	/** Whisper's own non-speech marks ("[BLANK_AUDIO]", "(wind blowing)", "♪") count as noise, and so do the phrases above. */
+	static noise(text){ return !text || /^[\[(♪*].*[\])♪*]$/.test(text) || BargeIn.PHANTOM_PHRASES.includes(String(text).toLowerCase()); }
 }
