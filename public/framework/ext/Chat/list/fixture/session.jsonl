@@ -1,0 +1,29 @@
+{"session":{"id":"v-lozodaa","home":"/a/","kind":"voice","at":"2026-11-01T18:50:37.380-06:00","project":"chat-messages-test-5CaBfn","host":null,"fast":null,"smart":null,"backing":{"fast":null,"smart":null}}}
+{"tasks":{"add":{"type":"Prompt","id":"p-1793580637383","raw":["The tab bar is broken."],"paragraphs":[{"id":"a","text":"The tab bar is broken."}]}},"ts":"2026-11-02T00:50:37.383Z","by":"fast"}
+{"chat":{"at":"2026-11-01T18:50:37.384-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"The tab bar is broken.","prompt":"p-1793580637383","floor":"speaking"}}
+{"sentences":{"add":{"id":"s-1793580637385","at":"2026-11-01T18:50:37.384-06:00","text":"The tab bar is broken.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793580637385","by":"owner","at":"2026-11-01T18:50:37.384-06:00","sentences":["s-1793580637385"],"prompt":"p-1793580637383"}},"by":"servex","ts":"2026-11-02T00:50:37.385Z"}
+{"backing":{"at":"2026-11-01T18:50:37.387-06:00","fast":null,"smart":null,"how":{"smart":"new"}}}
+{"chat":{"at":"2026-11-01T18:50:37.389-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lozodaa"},"via":"text","text":"Which phone?","re":"2026-11-01T18:50:37.384-06:00"}}
+{"p-1793580637383":{"raw":{"push":"On my phone."}},"ts":"2026-11-02T00:50:37.390Z","by":"fast"}
+{"p-1793580637383":{"paragraphs":{"append":{"id":"a","text":" On my phone."}}},"ts":"2026-11-02T00:50:37.391Z","by":"fast"}
+{"chat":{"at":"2026-11-01T18:50:37.392-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"On my phone.","prompt":"p-1793580637383","floor":"speaking"}}
+{"sentences":{"add":{"id":"s-1793580637392","at":"2026-11-01T18:50:37.392-06:00","text":"On my phone.","via":"voice"}},"messages":{"m-1793580637385":{"sentences":{"push":"s-1793580637392"}}},"by":"servex","ts":"2026-11-02T00:50:37.392Z"}
+{"quiet":{"at":"2026-11-01T18:50:37.393-06:00","ms":3000,"path":"/a/"}}
+{"sent":{"to":"smart","at":"2026-11-01T18:50:37.395-06:00","re":["2026-11-01T18:50:37.384-06:00","2026-11-01T18:50:37.392-06:00"],"delay_ms":3}}
+{"messages":{"add":{"id":"m-1793580637396","type":"Reply","by":"smart","at":"2026-11-01T18:50:37.389-06:00","text":"Which phone?","re":{"to":"s-1793580637385"}}},"by":"servex","ts":"2026-11-02T00:50:37.396Z"}
+{"p-1793580637383":{"raw":{"push":"An iPhone."}},"ts":"2026-11-02T00:50:37.397Z","by":"fast"}
+{"p-1793580637383":{"paragraphs":{"append":{"id":"a","text":" An iPhone."}}},"ts":"2026-11-02T00:50:37.397Z","by":"fast"}
+{"chat":{"at":"2026-11-01T18:50:37.398-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"voice","text":"An iPhone.","prompt":"p-1793580637383","floor":"done"}}
+{"sentences":{"add":{"id":"s-1793580637399","at":"2026-11-01T18:50:37.398-06:00","text":"An iPhone.","via":"voice"}},"messages":{"add":{"type":"Prompt","id":"m-1793580637399","by":"owner","at":"2026-11-01T18:50:37.398-06:00","sentences":["s-1793580637399"],"prompt":"p-1793580637383"}},"by":"servex","ts":"2026-11-02T00:50:37.399Z"}
+{"sent":{"to":"smart","at":"2026-11-01T18:50:37.400-06:00","re":["2026-11-01T18:50:37.398-06:00"],"delay_ms":2}}
+{"chat":{"at":"2026-11-01T18:50:37.402-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lozodaa"},"via":"text","text":"You said: an iPhone.","re":"2026-11-01T18:50:37.398-06:00","level":"clean"}}
+{"messages":{"add":{"id":"m-1793580637403","type":"Reply","by":"smart","at":"2026-11-01T18:50:37.402-06:00","text":"You said: an iPhone.","re":{"to":"s-1793580637399"},"level":"clean"}},"by":"servex","ts":"2026-11-02T00:50:37.403Z"}
+{"p-1793580637383":{"raw":{"push":"Fix it today, please."}},"ts":"2026-11-02T00:50:37.404Z","by":"fast"}
+{"p-1793580637383":{"paragraphs":{"append":{"id":"a","text":" Fix it today, please."}}},"ts":"2026-11-02T00:50:37.405Z","by":"fast"}
+{"chat":{"at":"2026-11-01T18:50:37.405-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"owner"},"via":"text","text":"Fix it today, please.","prompt":"p-1793580637383"}}
+{"sentences":{"add":{"id":"s-1793580637406","at":"2026-11-01T18:50:37.405-06:00","text":"Fix it today, please.","via":"text"}},"messages":{"add":{"type":"Prompt","id":"m-1793580637406","by":"owner","at":"2026-11-01T18:50:37.405-06:00","sentences":["s-1793580637406"],"prompt":"p-1793580637383"}},"by":"servex","ts":"2026-11-02T00:50:37.406Z"}
+{"sent":{"to":"smart","at":"2026-11-01T18:50:37.407-06:00","re":["2026-11-01T18:50:37.405-06:00"],"delay_ms":2}}
+{"chat":{"at":"2026-11-01T19:00:00.000-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"system","id":"servex"},"via":"text","text":"The smart assistant could not be reached."}}
+{"messages":{"add":{"id":"m-1793580637409","type":"Message","by":"system","at":"2026-11-01T19:00:00.000-06:00","text":"The smart assistant could not be reached."}},"by":"servex","ts":"2026-11-02T00:50:37.409Z"}
+{"chat":{"at":"2026-11-01T18:50:37.416-06:00","session":"v-lozodaa","path":"/a/","from":{"kind":"assistant","id":"smart","agent":"session-smart-v-lozodaa"},"via":"text","text":"Fixed.","re":"2026-11-01T18:50:37.398-06:00"}}
+{"messages":{"add":{"id":"m-1793580637417","type":"Reply","by":"smart","at":"2026-11-01T18:50:37.416-06:00","text":"Fixed.","re":{"to":"s-1793580637399"}}},"by":"servex","ts":"2026-11-02T00:50:37.417Z"}

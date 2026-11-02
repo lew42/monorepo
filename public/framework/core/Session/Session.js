@@ -11,6 +11,9 @@ import "../Task/Project.js";   // registers "Project": a proposal can be made on
 import "../Task/Prompt.js";    // registers "Prompt": a dictation, its paragraphs, replies and the asks made from it
 import "../Task/Question.js";  // registers "Question": open, answered, complete
 import "../Task/Process.js";   // registers "Process": a task added with {type: "Process"} replays as one
+import List from "../List/List.js";
+import Chat from "./Chat/Chat.js";
+import Sentence from "./Chat/Sentence.js";
 
 /* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed
    children: Task, Process, Project, Session), queries and cost. What a session adds: its dated folder, its record's line shape (replay_line
@@ -26,6 +29,24 @@ export default class Session extends Task {
 	constructor(id){ if (id && typeof id === "object") super(id); else { super(); if (id !== undefined) this.id = id; } }
 
 	// Its tasks are Task's own list (made on first use); its progress is counted from them on read, never stored.
+
+	/* THE CHAT (Chat/readme.md): `messages` is the conversation in order (a Chat of Prompt, Reply and Message), `sentences` the owner's
+	   raw words that a Prompt holds by id. Both are made on first use and written as list deltas ({"messages":{"add":…}}). Not `chat`:
+	   that key is V1's own line ({"chat":{at,from,text}}), which about twenty readers draw as a bubble. */
+	get messages(){
+		if (!this._messages){ this._messages = new Chat({ owner: this, name: "messages" }); this.watch(this._messages); }
+		return this._messages;
+	}
+	set messages(_plain){ void this.messages; }   // Item.hydrate hands over a plain List; the typed one stays
+	get sentences(){
+		if (!this._sentences){ this._sentences = new List({ owner: this, name: "sentences" }); this._sentences.of = Sentence; this.watch(this._sentences); }
+		return this._sentences;
+	}
+	set sentences(_plain){ void this.sentences; }
+	lists(){
+		const { _messages, _sentences, ...rest } = super.lists();
+		return { ...rest, ...(_sentences?.length ? { sentences: _sentences } : {}), ...(_messages?.length ? { messages: _messages } : {}) };
+	}
 
 	/* THE SESSION MENU (the owner, 2026-10-22; doc/menu.md): a session DECLARES what its menu holds, as a template a subclass
 	   extends (`static MENU = [...Session.MENU, {…}]`). An entry is a sub-page (`page: true`, routed at <session url>/<name>/)
@@ -108,6 +129,10 @@ export default class Session extends Task {
 			for (const kid of this._tasks) if (!had.has(kid)) kid._created_at ??= Task.clock;   // the line's time, in memory only (never data: a move compares data): Task.created_at
 		}
 		delete delta.tasks;
+		// The chat: sentences first, so a Prompt added on the same line finds the sentence it names (one act, one line).
+		if (delta.sentences && typeof delta.sentences === "object") this.sentences.set(delta.sentences);
+		if (delta.messages && typeof delta.messages === "object") this.messages.set(delta.messages);
+		delete delta.sentences; delete delta.messages;
 		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
 		// The browser Store's own change line for a field on the session ({"set":{"title":…}}), read as Task.replay_line reads it.
 		// Before, it was kept as one field named "set" (the persistence matrix found it).
