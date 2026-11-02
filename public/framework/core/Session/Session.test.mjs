@@ -73,6 +73,17 @@ check("replay: a bare child id walks to a nested task, two levels down (process-
 	return top instanceof Task && kid instanceof Task && kid.state === "complete" && kid2.state === "complete" && top.progress().done === 2 && top.progress().total === 2 && !("kid2" in s.data);
 });
 
+check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 1 open, nested subtasks not counted", () => {
+	const s = new Session("s7");
+	for (const id of ["a", "b", "c", "d", "e"]) s.tasks.add(new Task({ id }));
+	const [a, b, c, d, e] = ["a", "b", "c", "d", "e"].map(id => s.tasks.find(id));
+	a.complete(EV); b.complete(EV); c.complete(EV);
+	d.stop({ why: "duplicate" });   // dropped: not counted in either done or total
+	e.tasks.add(new Task({ id: "nested" })); e.tasks.find("nested").complete(EV);   // a nested subtask under an open root task
+	const p = s.progress();
+	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.75;
+});
+
 process.exit(results.every(Boolean) ? 0 : 1);
 
 import Day from "./Day.js";

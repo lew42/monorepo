@@ -22,6 +22,8 @@ export default class ReciteHighlight {
 		this.key = null;       // which sentence the ranges below belong to
 		this.ranges = null;    // one Range per word of that sentence on the page, or null when it is not on the page
 		this.frame = 0;
+		this.retry_at = 0;     // dropout fix: performance.now() of the next allowed find() retry while the sentence is not found
+		this.logged_key = null;   // dropout fix: the key already traced "not found" for, so a stuck sentence logs once, not every retry
 		recite.on(() => this.tick());
 	}
 
@@ -63,36 +65,78 @@ export default class ReciteHighlight {
 		if (now && this.recite.state === "playing" && typeof requestAnimationFrame === "function") this.frame = requestAnimationFrame(() => this.tick());
 	}
 
+	/** Dropout fix (2026-11-02): a sentence that fails to find() is retried every `RETRY_MS` instead of being stuck
+	 *  until the NEXT sentence's key arrives — the old code only re-ran find() on a key change or a disconnected
+	 *  node, so a genuine miss (markdown noise, below) stayed dark for the rest of the sentence. A disconnected
+	 *  node (the bubble re-rendered) still retries on the very next tick, same as before — unthrottled, since that
+	 *  case is cheap and usually resolves in one frame. "highlight: not found" traces once per distinct miss, not
+	 *  once per retry, so a genuinely absent sentence (the demo's text box) does not spam the log. */
+	static RETRY_MS = 300;
+
 	draw(now){
 		if (!ReciteHighlight.supported()) return;
 		if (!now){ this.clear(); return; }
 		const key = this.recite.at + "|" + now.text;
-		if (key !== this.key || (this.ranges && !this.ranges[0]?.startContainer.isConnected)){ this.key = key; this.ranges = this.find(now.words); }
+		const stale = this.ranges && !this.ranges[0]?.startContainer.isConnected;
+		const due = !this.ranges && performance.now() >= this.retry_at;
+		if (key !== this.key || stale || due){
+			this.key = key;
+			this.ranges = this.find(now.words);
+			if (!this.ranges){
+				this.retry_at = performance.now() + ReciteHighlight.RETRY_MS;
+				if (this.logged_key !== key){ this.logged_key = key; this.recite.trace("highlight: not found", { spoken: now.text.slice(0, 120) }); }
+			} else this.logged_key = null;
+		}
 		if (!this.ranges){ this.clear(); return; }
-		CSS.highlights.set("recite-sentence", new Highlight(...this.ranges));
-		const w = this.ranges[Math.min(now.word, this.ranges.length - 1)];
+		const word = Math.min(now.word, this.ranges.length - 1);
+		// Lit words (item 24, 2026-11-02): unread words stay muted, the current word is the brightest, and every word
+		// already said stays lit (not re-muted) — three disjoint highlights instead of one "the whole sentence" wash.
+		CSS.highlights.set("recite-read", new Highlight(...this.ranges.slice(0, word)));
+		CSS.highlights.set("recite-unread", new Highlight(...this.ranges.slice(word + 1)));
+		const w = this.ranges[word];
 		if (w) CSS.highlights.set("recite-word", new Highlight(w)); else CSS.highlights.delete("recite-word");
 	}
 
-	clear(){ if (ReciteHighlight.supported()){ CSS.highlights.delete("recite-sentence"); CSS.highlights.delete("recite-word"); } }
+	clear(){ if (ReciteHighlight.supported()) for (const name of ["recite-read", "recite-unread", "recite-word"]) CSS.highlights.delete(name); }
 
-	/** One Range per word of `words` where they appear in a chat on the page, newest match first; null when they are not there.
-	 *  It matches on the first few words in a row (case and punctuation ignored), then takes the sentence's length from there. */
+	/** One Range per word of `words` where they appear in a chat on the page, newest match first; null when they are
+	 *  not there. Anchors on the first word, then matches the rest as a SUBSEQUENCE (below) rather than a
+	 *  contiguous block: raw, not-yet-rendered markdown in the DOM (a link's bracket text followed by its literal
+	 *  URL, before the bubble finishes rendering it) interposes extra words the spoken text never had, which broke
+	 *  a strict positional match outright (dropout fix, 2026-11-02). */
 	find(words){
 		if (!words.length || typeof document === "undefined") return null;
 		const want = words.map(w => w.toLowerCase());
 		const roots = [...document.querySelectorAll(ReciteHighlight.ROOTS)].filter(el => el.offsetParent !== null || el.getClientRects().length);
 		for (const root of (roots.length ? roots : [document.body]).reverse()){
 			const found = this.scan(root);
-			const head = Math.min(4, want.length);
-			for (let i = found.length - want.length; i >= 0; i--){
-				let ok = true;
-				for (let k = 0; k < head && ok; k++) ok = found[i + k]?.word === want[k];
-				if (!ok) continue;
-				return found.slice(i, i + want.length).map(f => { const r = document.createRange(); r.setStart(f.node, f.start); r.setEnd(f.node, f.end); return r; });
+			for (let i = found.length - 1; i >= 0; i--){
+				if (found[i].word !== want[0]) continue;
+				// The first word alone is too common ("the", "so") to anchor a match: the second word (when there
+				// is one) must sit right next to it, so a scattered coincidence elsewhere can't be picked over the
+				// real sentence (review finding 3, 2026-11-02). Markdown noise is still tolerated AFTER this point —
+				// find() only tightens where a candidate is allowed to START.
+				if (want.length > 1 && found[i + 1]?.word !== want[1]) continue;
+				const matched = ReciteHighlight.subsequence(found, i, want);
+				if (matched) return matched.map(f => { const r = document.createRange(); r.setStart(f.node, f.start); r.setEnd(f.node, f.end); return r; });
 			}
 		}
 		return null;
+	}
+
+	/** `want`'s words, in order, starting the search at `found[start]` (already matched to `want[0]`) — skipping any
+	 *  DOM words in between that are not part of the sentence (a stray URL, a `(`-wrapped link target). Bounded by
+	 *  `want.length` extra skips so this never drifts into matching some unrelated later block of text. */
+	static subsequence(found, start, want){
+		const limit = start + want.length * 2 + 20;
+		const out = [];
+		let j = start;
+		for (let k = 0; k < want.length; k++){
+			while (j < found.length && j <= limit && found[j].word !== want[k]) j++;
+			if (j >= found.length || j > limit) return null;
+			out.push(found[j]); j++;
+		}
+		return out;
 	}
 
 	/** Every word under `root`, in reading order: {word, node, start, end}. */

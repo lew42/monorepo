@@ -116,7 +116,11 @@ export default class TestRunner {
 			const main = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: this.root, windowsHide: true, encoding: "utf8" }).split(String.fromCharCode(10))[0].replace(/^worktree /, "").trim();
 			const reg = JSON.parse(fs.readFileSync(path.join(main, ".worktrees.json"), "utf8"));
 			const hit = Object.values(reg).find(e => e.path && path.resolve(e.path).toLowerCase() === path.resolve(this.root).toLowerCase());
-			if (hit) this._site = `http://${hit.name}.localhost`;
+			if (hit) {
+				// Servex's proxy answers "No route" for a worktree's name now and then (2026-11-02, list-view.test refused three merges for it); its own port always answers while the server lives.
+				let alive = false; try { alive = !!hit.port && !!hit.pid && process.kill(hit.pid, 0); } catch {}
+				this._site = alive ? `http://127.0.0.1:${hit.port}` : `http://${hit.name}.localhost`;
+			}
 		} catch {}
 		return this._site;
 	}
