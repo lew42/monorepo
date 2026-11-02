@@ -2,7 +2,7 @@
 import { View, div, span, button, a, img } from "/framework/core/View/View.js";
 import grip from "/framework/ext/grip/grip.js";
 import MicIndicator from "/framework/ux/Dictate/MicIndicator.js";
-import chat, { session_switcher as chat_session_switcher } from "/framework/ux/Dictate/chat.js";
+import chat, { session_switcher as chat_session_switcher, JOIN_IDLE_MS } from "/framework/ux/Dictate/chat.js";
 import Inbox from "./inbox.js";
 import tabs from "./tabs.js";
 import drawer from "./drawer.js";
@@ -57,17 +57,17 @@ export default class Sheet extends View {
 			recite.trace("sheet follows", { session, why });
 			if (session) stop = Wire.stream(session, ev => recite.from_wire(ev));
 		};
-		// No session on this page (a fresh tab, the Recite demo): follow the voice session used most recently, if it was active in the
-		// last 2 hours, so a reply is still read (the owner, 2026-11-01). The page's own session, once it has one, takes over.
+		// No session on this page (a fresh tab, the Recite demo): follow the voice session used most recently, if it had a line within
+		// JOIN_IDLE_MS (the same rule chat.js uses to join it), so a reply is still read (the owner, 2026-11-01). The page's own session, once it has one, takes over.
 		const follow = async () => {
 			const own = chat.current?.() ?? null;
 			if (own) return listen(own, "this page's session");
 			let rows = [];
 			try { rows = await Wire.recent_project({ limit: 5 }); } catch (e){ recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
 			if (chat.current?.()) return listen(chat.current(), "this page's session");
-			const recent = rows.filter(r => /^v-/.test(r.session ?? "") && Date.now() - Date.parse(r.last_at ?? r.at ?? 0) < 2 * 3600e3)
+			const recent = rows.filter(r => /^v-/.test(r.session ?? "") && Date.now() - Date.parse(r.last_at ?? r.at ?? 0) < JOIN_IDLE_MS)
 				.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
-			listen(recent?.session ?? null, recent ? "the most recent voice session" : "no voice session in the last 2 hours");
+			listen(recent?.session ?? null, recent ? "the most recent voice session" : "no voice session within JOIN_IDLE_MS");
 		};
 		this.follow_session = () => follow().catch(e => recite.trace("sheet: follow failed", { error: String(e?.message ?? e) }));
 		chat.on_change?.(this.follow_session);   // every session change: Switch session, New session, a session started by the first sentence

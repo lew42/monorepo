@@ -11,7 +11,7 @@ import { mentions } from "/framework/ext/Mention/Mention.js";
    running). An agent often writes a full https link to the public host; it becomes "/path" here, and core/Router opens it in place. */
 const SITE_HOSTS = new Set(["monorepo.lew42.com", "monorepo.localhost", "localhost", "127.0.0.1"]);
 export function site_path(href){
-	if (!/^https?:/i.test(href)) return href.startsWith("/") ? href : null;   // already a path (or #, mailto: which stay as they are)
+	if (!/^https?:/i.test(href)) return href.startsWith("/") && !href.startsWith("//") ? href : null;   // already a path (or #, mailto: which stay as they are)
 	try {
 		const u = new URL(href);
 		if (u.origin !== location.origin && !SITE_HOSTS.has(u.hostname)) return null;
