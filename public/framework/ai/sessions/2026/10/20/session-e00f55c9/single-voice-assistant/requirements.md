@@ -1,5 +1,15 @@
 # Voice Chat: one voice assistant that does it all, behind a single/dual switch
 
+**In short:** today two voice agents handle your dictation (a fast Haiku seat that files each sentence, a Sonnet seat that answers). This adds a third role that does both, chosen by a setting.
+
+```
+setting: dual (default)   fast seat (Haiku) ─ files ┐
+                          smart seat (Sonnet) ─ answers ┘
+setting: single (new)     single-voice-assistant (Sonnet) ─ files, then speaks only on a pause
+```
+
+Findings so far: [investigation.md](investigation.md).
+
 Run as a **build process**: Haiku investigates → plan → Sonnet improves the plan → vscode-mastermind approves → build test-first → index → review → merge.
 
 **The owner (2026-11-02, about 16:00, a long dictation; verbatim in the tab's prompt log).** The essence, in the owner's order.
@@ -62,3 +72,30 @@ Run as a **build process**: Haiku investigates → plan → Sonnet improves the 
 - Servex restarts are vscode-mastermind's.
 
 **Budget:** about $20 across all steps.
+
+## Added by the owner, 16:10
+
+**The brief and its own files.**
+- The single voice assistant's brief is short but clear.
+- It names the brief's own files, so the assistant can read them and improve them for the next agent.
+
+**Answer questions silently, while the owner keeps talking.**
+- A question gets a quick, digestible answer on screen first: a short line, or a small set of options. A wall of text, or a thumbs-up to a real question, is wrong.
+- Reading aloud is optional. Silent feedback is often the most useful.
+
+**Delegate everything heavy.**
+- It doesn't read files or investigate itself. Every question that needs digging, and every task, goes to a spawned agent.
+- It reads the mastermind readme so it knows the spawn tools, but it doesn't manage tasks.
+- The handoff is programmatic: file the task on the session with the item tool, then `spawn_agent` with `task: {from: <session url>, id: <task id>}`, which moves that task into the child's folder.
+- A standing helper spawned automatically for each session (an Opus one, say) is *later*, not now.
+
+**Context cards built step by step.**
+- **Does `add` answer with the new id?** It does today: the item tool's reply has `ids`. Make sure every `add`, at any depth, returns its id, so the agent can chain edits: add a card, then add to that card by id.
+- **Does the agent's own write come back to it as an update?** If so, it's a wasted turn. A writer shouldn't get its own write back; other agents following the session should.
+- **The smallest set of verbs:**
+  - add a card;
+  - add a paragraph or a string to a card;
+  - add a Ref to a task, a child session or a page;
+  - move a sentence.
+- **An idea to weigh: a `context()` view on every object.** `thing.context()` would render a context card of itself, and the agent then appends content to it by id.
+- **No `eval`.** No JavaScript passed through the tool.
