@@ -80,3 +80,4 @@
 {"read_upto":79,"at":"2026-11-02T01:34:11-06:00","by":"servex-task-loop"}
 {"at":"2026-11-02T02:19:11-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"The full browser run is still going (about 10 minutes). When the watcher fires I'll read the results, then merge `earlier` and `chat-sent` as batch 3."}
 {"read_upto":81,"at":"2026-11-02T02:19:18-06:00","by":"servex-task-loop"}
+{"at":"2026-11-02T02:24:48-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"Seven of the 12 scripts are green (swallow, new-session, deltas, in-place, settings, earlier and chat-sent). Batch 2 is merged, and `earlier` and `chat-sent` are committed on the worktree but not merged yet.\n\nI'm waiting on the full fenced browser run, which has to pass before I merge those two as batch 3. After that I'll work on debug-tab, reconnect, stall, dictation-bar and refresh."}
