@@ -7,7 +7,7 @@ export const SCRIPTS = [
 	{"file":"public/framework/ux/Dictate/test/active-session.mjs","args":["{site}","{repo}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/chat-gray.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/chat-sent.mjs","args":["{site}","{shots}"],"status":"pass"},
-	{"file":"public/framework/ux/Dictate/test/debug-tab.mjs","args":["{site}","{shots}"],"status":"red","why":"Debug view shows llm=wait, not all eight lights green"},
+	{"file":"public/framework/ux/Dictate/test/debug-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/deltas.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/dictation-bar.mjs","args":["{site}"],"status":"red","why":"flaky under load: passed in 19 s once, failed in later runs"},
 	{"file":"public/framework/ux/Dictate/test/docs-tab.mjs","args":["{site}","{shots}"],"status":"pass"},
