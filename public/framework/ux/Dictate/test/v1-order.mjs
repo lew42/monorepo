@@ -1,12 +1,14 @@
 // V1 chat: what is shown never jumps; new things go below (the owner, 2026-11-01).
 //   node public/framework/ux/Dictate/test/v1-order.mjs <base-url> [shots-folder]
 // Headless, phone sheet at 400x860, every Servex call stubbed. After EVERY step the chat is read, and no two pieces already on screen
-// may ever swap places. Two runs:
+// may ever swap places. Three runs:
 //  1. the incident, replayed: test/v1-order-fixture.jsonl is session v-u48msei lines 1562-1640 (a smart reply, owner lines spoken while it
-//     was read aloud, then the reply to the 21:05:44 line). The chat must end in arrival order, the last reply below every owner line.
+//     was read aloud, then the reply to the 21:05:44 line). The whole chat must be in arrival order, the last reply below every owner line.
+//     (This run alone also passes on the old code: replaying finished lines never had the open-bubble state; run 2 is the one that fails there.)
 //  2. the cause, live: an owner bubble is open (its draft piece grows inside it), a reply lands below it, the owner goes on talking.
 //     Before: the next sentence merged into the owner bubble and pulled it DOWN past the reply, so the reply seemed to jump above it.
 //     Now: the reply closes the owner bubble; the next words are a new bubble below the reply (ext/Chat/doc/notes.md#bubble-order).
+//  3. a Task card (the assistant's, not hung under a bubble) lands below the open owner bubble: it counts as an arrival too.
 // A shots folder (2nd argument) gets incident-400x860.png and live-400x860.png.
 import fs from "fs";
 import path from "path";
@@ -76,6 +78,11 @@ const final = await page.evaluate(async lines => {
 }, lines);
 console.log("       incident replayed, final chat:\n         " + final.map(s => JSON.stringify(s)).join("\n         "));
 const incident_swaps = await page.evaluate(() => [...globalThis.$v1.swaps]);
+// the whole order, not only the end: the chat lines in the file (the arrival order; `fix` lines only reword) are the expected order
+const want = lines.filter(l => l.chat && !l.chat.fix && !(l.chat.text ?? "").startsWith("recite:"))
+	.map(l => (l.chat.from?.kind === "owner" ? "OWNER " : "REPLY ") + l.chat.text.replace(/^#+\s*/, "").slice(0, 10));
+check(final.length === want.length && final.every((s, i) => s.startsWith(want[i])),
+	"incident: the whole chat is in arrival order (" + want.map(s => s.split(" ")[0][0]).join("") + ")" + (final.length === want.length ? "" : ` — drew ${final.length} pieces, the file has ${want.length}`));
 const last_reply = final.findLastIndex(s => s.startsWith("REPLY")), last_owner = final.findLastIndex(s => s.startsWith("OWNER"));
 check(final.length > 2 && last_reply === final.length - 1 && last_owner === final.length - 2,
 	"incident: the 21:05:48 reply (it arrived after the owner's 21:05:44 line) is the last bubble, below every owner line");
@@ -108,7 +115,24 @@ check(live.c.length === 3 && live.c[0].startsWith("OWNER First") && live.c[1].st
 	"live: the owner goes on talking after the reply: a new owner bubble BELOW the reply; the first bubble does not move down past it");
 check(live.d.length === 4 && live.d[3].startsWith("REPLY A second"), "live: the next reply goes to the bottom, below the newest owner line");
 check(!live.swaps.length, "live: no piece on screen ever swapped places with another" + (live.swaps.length ? " — " + live.swaps.join("; ") : ""));
-if (shots) await page.screenshot({ path: path.join(shots, "live-400x860.png") });
+if (shots) await page.screenshot({ path: path.join(shots, "live-400x860.png"), clip: { x: 0, y: 140, width: 400, height: 720 } });
+
+// 3. a Task card (not hung under a bubble) lands below the open owner bubble: the next sentence starts below it too
+await page.evaluate(() => globalThis.$v1.reset());
+const task = await page.evaluate(async () => {
+	const { w, wait } = globalThis.$v1, t = w.$thread, iso = ms => new Date(Date.now() + ms).toISOString();
+	const rows = () => [...t.$bubbles.el.children].filter(b => b.classList.contains("chatbox") && !b.classList.contains("chatbox-live"))
+		.map(b => (b.classList.contains("chatbox-task") ? "TASK " : b.classList.contains("chatbox-you") ? "OWNER " : "REPLY ") + (b.querySelector(".chatbox-text")?.textContent ?? "").trim().slice(0, 30));
+	w.say({ chat: { at: iso(0), from: { kind: "owner" }, via: "voice", text: "First thing I said." } });
+	await wait(50);
+	t.show_task({ id: "t-1", label: "A task from the assistant", phase: "open" });
+	await wait(50);
+	w.say({ chat: { at: iso(300), from: { kind: "owner" }, via: "voice", text: "And another sentence." } });
+	await wait(80);
+	return rows();
+});
+check(task.length === 3 && task[0].startsWith("OWNER First") && task[1].startsWith("TASK") && task[2].startsWith("OWNER And another"),
+	"task card: it lands below the open owner bubble and stays there; the next sentence is a new bubble below it — " + task.map(s => JSON.stringify(s)).join(" | "));
 
 check(!errors.length, "no page error" + (errors.length ? " — " + errors[0] : ""));
 await ctx.close();
