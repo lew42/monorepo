@@ -1,6 +1,6 @@
 # Recite — reads the AI's replies aloud
 
-Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking. [The live demo](/framework/audio/Recite/).
+Recite is text to speech, the reverse of transcription. It reads a reply out loud with a local voice, so you can use the site on a walk without looking at the screen. It has a playhead (pause, back 10 s, restart), and it pauses when you start talking — then picks back up once you go quiet, from the start of the sentence it cut off; a new question instead drops the rest, since a new answer is coming. A reply that arrives while another is already playing queues behind it, and a reply never starts over your own voice. [The live demo](/framework/audio/Recite/).
 
 ## Use
 

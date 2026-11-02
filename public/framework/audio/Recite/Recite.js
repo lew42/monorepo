@@ -94,18 +94,43 @@ export default class Recite extends Part {
 
 	/* ── reading ─────────────────────────────────────────────────────── */
 
-	/** Read `text` from the start, dropping whatever was being read. */
+	/** Read `text` from the start, dropping whatever was being read. Public API (the readme's `recite.read(...)`); a reply
+	 *  arriving from a chat session never calls this any more — it queues (below), so a new reply never cuts off the one
+	 *  being read (dictation-v3, 2026-11-01, "a new reply cut off the one being read"). */
 	read(text){ this.stop(); return this.queue(text); }
 
-	/** Add `text` after what is already queued; starts reading if idle. */
+	/** Add `text` after what is already queued; starts reading if idle, UNLESS the owner is talking right now — then it
+	 *  waits for about `turn_wait_ms` of quiet (turn-taking: never start a reply over the owner's own words). */
 	queue(text){
 		const first = this.chunks.length;
 		for (const piece of Recite.split(text)) this.chunks.push({ text: piece, start: null, seconds: null, src: null, pending: null });
 		if (this.chunks.length === first) return this;
 		this.retime();
-		if (this.state === "idle") this.play(first, 0);
+		if (this.state === "idle") this.start_or_hold(first);
 		else this.prefetch(this.at);
 		return this;
+	}
+
+	/** Chunk `i` is freshly queued and nothing is playing: start now, or hold until the owner falls quiet. */
+	start_or_hold(i){
+		clearTimeout(this.wait_timer);
+		if (!this.barge?.on || !this.barge.speaking()){ this.wait_at = null; this.play(i, 0); return; }
+		this.wait_at = i;
+		this.quiet_since_wait = null;
+		this.trace("holding: the owner is talking", { sentence: i });
+		this.changed();
+		this.wait_timer = setTimeout(() => this.check_wait(), 80);
+	}
+
+	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `turn_wait_ms`. */
+	check_wait(){
+		if (this.wait_at == null) return;
+		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+		this.quiet_since_wait ??= performance.now();
+		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 1500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+		const i = this.wait_at;
+		this.wait_at = this.quiet_since_wait = null;
+		this.play(i, 0);
 	}
 
 	/** Play chunk `i` from `offset` seconds into it. */
@@ -192,7 +217,8 @@ export default class Recite extends Part {
 		this.take(text, false);
 	}
 
-	/** A settled reply. Read whole, unless its stream was already read. The newest reply replaces what was playing. */
+	/** A settled reply. Read whole, unless its stream was already read. It QUEUES behind whatever is already being
+	 *  read — never replaces it (dictation-v3, 2026-11-01): only a real barge-in with a new question drops the rest. */
 	final(text){
 		if (!text) return;
 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: text.slice(0, 40) }); return; }
@@ -201,17 +227,18 @@ export default class Recite extends Part {
 		this.done.add(key);
 		if (this.live && key.startsWith(Recite.norm(this.live.text.slice(0, this.live.queued)).slice(0, 30))){ this.live.text = text; this.take(text, true); this.live = null; return; }
 		this.live = null;
-		this.read(text);
+		this.queue(text);
 	}
 
-	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`). */
+	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
+	 *  whatever is already playing, never replacing it (dictation-v3, 2026-11-01). */
 	take(text, all){
 		const live = this.live, rest = text.slice(live.queued);
 		const cut = all ? rest.length : Recite.complete(rest);
 		if (cut <= 0 || !/\w/.test(rest.slice(0, cut))) return;
 		live.queued += cut;
-		if (live.fresh){ live.fresh = false; this.read(rest.slice(0, cut)); }
-		else this.queue(rest.slice(0, cut));
+		live.fresh = false;
+		this.queue(rest.slice(0, cut));
 	}
 
 	set_auto(on){ this.auto = !!on; Recite.remember("auto", this.auto); this.changed(); }
@@ -243,8 +270,11 @@ export default class Recite extends Part {
 		this.set(why === "heard" ? "heard" : "paused");
 	}
 
-	resume(){
+	/** `from_start`: true for an automatic barge-in resume — the owner talked over part of the sentence, so it is said
+	 *  again from its start, not from where the mic cut it off; false (manual: the Play button, a tap) continues where it paused. */
+	resume(from_start = false){
 		if (!["paused", "heard"].includes(this.state)) return;
+		if (from_start) return this.play(this.at, 0);
 		const same = this.audio?.src && this.audio.src === this.chunks[this.at]?.src;
 		if (this.engine === "browser" || !same) return this.play(this.at, 0);
 		const token = ++this.token;
@@ -269,6 +299,8 @@ export default class Recite extends Part {
 
 	stop(){
 		this.token++;
+		clearTimeout(this.wait_timer);
+		this.wait_at = this.quiet_since_wait = null;
 		this.audio?.pause();
 		globalThis.speechSynthesis?.cancel();
 		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);

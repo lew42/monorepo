@@ -73,6 +73,59 @@ if (Recite) test("Recite: the first tap unlocks a refused reply", async t => {
 	return r;
 });
 
+// Turn-taking (dictation-v3, 2026-11-01): a reply queues behind what is playing, never replaces it; a real barge-in
+// pauses and auto-resumes from the START of the cut sentence once things go quiet; a question drops the rest instead.
+if (Recite) test("Recite + BargeIn: queueing, resume from the sentence's start, a question drops the rest", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;   // heard_speech() is driven directly below; `on` only gates whether sync() opens a real mic
+
+	r.queue("First reply, sentence one. First reply, sentence two.");
+	await new Promise(res => setTimeout(res, 20));   // the queue's own auto-play settles
+	t.eq(r.state, "playing", "nothing is talking: the first reply started on its own");
+
+	r.queue("Second reply arrives while the first still plays.");
+	t.eq(r.chunks.length, 3, "it queued behind the first reply — nothing already there was dropped");
+	t.eq(r.chunks[0].text, "First reply, sentence one.", "the first reply's own first sentence is unchanged");
+
+	await r.play(1, 1.5);   // simulate: partway into reply one's second sentence
+	r.pause("heard");
+	t.eq(r.state, "heard", "barge-in paused it");
+	r.barge.quiet_ms = 15;   // fast for the test
+	r.barge.heard_speech("wait, hold on");   // real speech, not a question
+	t.eq(r.state, "heard", "still paused, giving the owner a moment to keep talking");
+	await new Promise(res => setTimeout(res, 50));
+	t.eq(r.state, "playing", "resumed by itself once the owner went quiet");
+	t.eq(r.audio.currentTime, 0, "it started the cut sentence over, not mid-word");
+	t.eq(r.chunks.length, 3, "the queued second reply is still waiting its turn, untouched");
+
+	r.pause("heard");
+	r.barge.heard_speech("but what about the other one?");   // a question: a new answer is coming
+	t.eq(r.state, "idle", "the old reply, and whatever was still queued behind it, is dropped");
+	t.eq(r.chunks.length, 0, "nothing left queued — talking over the new answer would make no sense");
+	return r;
+});
+
+// Never start a fresh reply while the owner is talking; wait for a moment of quiet (the owner, 2026-11-01, "turn-taking").
+if (Recite) test("Recite: a reply waits for the owner to stop talking before it starts", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = true;
+	r.turn_wait_ms = 15;
+	let talking = true;
+	r.barge.speaking = () => talking;
+
+	r.queue("A reply arriving while you are still talking.");
+	t.eq(r.state, "idle", "it does not start over you");
+	t.eq(r.wait_at, 0, "it is waiting for a moment of quiet");
+	await new Promise(res => setTimeout(res, 40));
+	t.eq(r.state, "idle", "still waiting — you are still talking");
+	talking = false;
+	await new Promise(res => setTimeout(res, 150));
+	t.eq(r.state, "playing", "started once you had been quiet for a moment");
+	return r;
+});
+
 // Recite.Highlight's word timing: each word gets a share of the sentence's seconds by its length.
 if (Recite) test("Recite.Highlight: which word is playing", t => {
 	const H = Recite.Highlight, words = H.words("The voice server answers, on the phone.");
