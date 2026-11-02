@@ -45,6 +45,7 @@ export default class LabTape {
 // The real Store (replay, attach, the nesting of each line) with only the disk and the network cut out: it opens from a
 // LabTape instead of fetch(), and flushes into one instead of FsFile.
 LabTape.Store = class LabStore extends Store {
+	static coalesce = null;   // the lab shows every line the moment it is made: no typing hold (Store.coalesce, doc/batch.md)
 	open(){
 		return this.opening ??= Promise.resolve().then(() => {
 			const { tape, tab, write } = LabTape.sources.get(this.url);

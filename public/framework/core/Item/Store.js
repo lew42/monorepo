@@ -62,6 +62,10 @@ export class Store {
 	   core/ reads BOTH always; the node tools and dashboards listed in the doc read only the bare spelling yet, so the switch stays
 	   off until they are updated. */
 	static marked_lines = false;
+	/* TYPING COALESCE (doc/batch.md): how long a data line waits for the next keystroke on the same item. On in a browser; off (null)
+	   in node, so the item tool, scripts and tests keep their one-tick timing. null = every line goes on the next tick. */
+	static coalesce = typeof document !== "undefined" ? { idle: 300, max: 2000 } : null;
+	static typists = new Set();   // the stores holding typing right now
 	static holders = new Set();   // the stores a batch is holding right now (Store.send_held)
 
 	// What is applying a change right now, for Item.source: "replay" (a load) or "remote" (a line read live); null = local code.
@@ -354,10 +358,46 @@ export class Store {
 	// warns, once, that nothing was written to disk.
 	append(line){
 		(this._queue ??= []).push(line);
-		if (this._flushing || this.holding) return;
+		if (this.holding) return;
+		if (this.constructor.coalesce && this.typing(line)) return;   // per Store class: a subclass may turn it off (LabTape.Store)
+		if (this._typing) return this.end_typing();   // any other line: what typing held goes first, in order, with it
+		if (this._flushing) return;
 		this._flushing = true;
 		queueMicrotask(() => this.flush());
 	}
+
+	/* TYPING (phase-1 design §11, doc/batch.md): a data line is held instead of sent, and the next data line on the same item joins
+	   it (the fold makes them one line), until a pause of `idle` ms, at most `max` ms after the first, a blur or a page hide
+	   (Store.flush_typing), or any other line. The item itself changes at once; only the save waits. Answers true when `line` is held. */
+	typing(line){
+		const found = data_line(line);
+		if (!found || (this._flushing && !this._typing)) return false;   // not data, or a flush already queued for other lines
+		const key = JSON.stringify(found.path), now = Date.now();
+		if (this._typing && this._typing.key !== key) return false;   // another item: append() ends the held group
+		const t = this._typing ??= { key, since: now, timer: null };
+		Store.typists.add(this);
+		Store.listen_for_hide();
+		clearTimeout(t.timer);
+		t.timer = setTimeout(() => this.end_typing(), Math.max(0, Math.min(this.constructor.coalesce.idle, t.since + this.constructor.coalesce.max - now)));
+		return true;
+	}
+
+	// Send what typing held (on the next microtask, folded; `now`: before this call returns, as on a page hide).
+	end_typing(now = false){
+		const t = this._typing;
+		if (!t) return;
+		clearTimeout(t.timer);
+		this._typing = null;
+		Store.typists.delete(this);
+		if (this.holding) return;
+		if (now) return void this.flush();   // flush takes the queue before its first await
+		if (this._flushing) return;
+		this._flushing = true;
+		queueMicrotask(() => this.flush());
+	}
+
+	// Every store's held typing, now: on blur (focusout) and when the page is hidden or closed.
+	static flush_typing(now = false){ for (const store of [...Store.typists]) store.end_typing(now); }
 
 	/* BATCH (spec T2, doc/batch.md): while held, lines queue and nothing is sent; the last release() flushes them on the next
 	   microtask, folded (Store.merge). Item.batch(fn) holds its store for as long as fn runs, an async fn until it settles. */
@@ -383,8 +423,10 @@ export class Store {
 	static listen_for_hide(){
 		if (Store.listening || typeof document === "undefined") return;
 		Store.listening = true;
-		addEventListener("pagehide", () => Store.send_held());
-		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") Store.send_held(); });
+		const hide = () => { Store.flush_typing(true); Store.send_held(); };   // both before the page goes, on the same path
+		addEventListener("pagehide", hide);
+		document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") hide(); });
+		document.addEventListener("focusout", () => Store.flush_typing(), true);   // leaving a field ends its typing
 	}
 
 	async flush(){

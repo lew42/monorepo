@@ -1,4 +1,4 @@
-# One action, one line: the fold, `batch()`, and where a change came from
+# One action, one line: the fold, `batch()`, typing, and where a change came from
 
 **In one line:** a click that changes three fields of one card saves one line, not three, and every `change` event says whether it came from this tab, from loading the log, or from another writer.
 
@@ -26,6 +26,19 @@ await card.batch(async () => {
 ```
 
 A batch that throws still releases the store. No store (node, a detached item): `fn` just runs. Held lines live only in memory until they reach the Outbox (which keeps them through a reload), so when the page is hidden or closed (`pagehide`, `visibilitychange`) everything a batch holds is sent at once (`Store.send_held`); the batch goes on, and its later lines are sent at its end.
+
+## Typing: many keystrokes, one line
+
+Typing in a field calls `set({text})` on every key, and each one used to be a saved line. In a browser the store now **holds** a data line instead of sending it, and the next data line on the same item joins it (the fold makes them one line). It is sent:
+
+- after a **pause** of `idle` ms (300) since the last keystroke;
+- at the latest `max` ms (2000) after the first, so a long burst is still saved every 2 seconds;
+- on **blur** (any `focusout` in the page) and when the page is **hidden or closed** (`pagehide`, `visibilitychange`): `Store.flush_typing()`;
+- **before any other line**: a verb, a list change, or a change to another item sends what is held first, in order.
+
+The item changes at once (the screen updates on every key); only the save waits. `store.pending` counts held lines, so a "saving…" sign stays honest. The setting is `Store.coalesce = {idle, max}`, read per Store class (`this.constructor.coalesce`), so a subclass can turn it off: the Replay Lab's `LabTape.Store` does, because it shows every line the moment it is made. It is `null` in node (the item tool, scripts and tests keep their one-tick timing), and `null` in a browser turns it off. Measured in `coalesce.test.mjs`: 11 keystrokes 5 ms apart save one line with the last text, and it replays.
+
+**Caveat:** every lone data line is held, not only typing: a click that sets one field reaches the file up to 300 ms later, so code that sets a field and at once asks Servex or an agent to read that file could read the old value (nothing does today; a verb, such as Approve through `act()`, is never held). **Caveat:** a held line lives only in memory for up to 2 seconds. A crash of the tab (not a close: `pagehide` sends it) in that window loses it. Alternative not taken: send the first keystroke at once and hold only the ones after it (no delay for a lone change, but two lines per burst instead of one).
 
 ## `source` on every change (spec T1)
 
