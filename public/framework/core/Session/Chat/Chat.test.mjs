@@ -48,4 +48,4 @@ assert.equal(resurfaced_ref.path, "messages.m-1", "the Ref names the original's 
 assert.equal(chat[0].get_one("resurfaced"), resurfaced_ref.id, "the original is marked with the new Ref's id");
 assert.equal(s.messages.find("m-1"), chat[0], "and the original never moved — it is still m-1, in its own place");
 
-console.log("PASS Chat: sentences and messages added, grown, refined, replayed, snapshotted, heard, Ref member, resurfaced (15 checks)");
+console.log("PASS Chat: sentences and messages added, grown, refined, replayed, snapshotted, heard, Ref member, resurfaced (17 checks)");

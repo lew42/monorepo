@@ -28,26 +28,6 @@ import Item from "../Item/Item.js";
 import Ref from "../Item/Ref.js";
 
 const is_plain = value => !!value && typeof value === "object" && value.constructor === Object;
-const is_list = node => !!node && Array.isArray(node.items) && typeof node.find === "function";
-
-// The list `x` currently sits in, by walking its parent's own lists for it (Item.remove does the same walk to release it);
-// an ownerless list's member has that list itself as its `parent` (List.adopt). null when `x` belongs nowhere.
-function owning_list(x){
-	if (!x?.parent) return null;
-	if (is_list(x.parent)) return x.parent;
-	for (const list of Object.values(x.parent.lists?.() ?? {})) if (list.index_of(x) !== -1) return list;
-	return null;
-}
-
-// F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent"): `dest.add(x)` of an `x` some OTHER
-// list already holds must never silently re-parent it (the old behaviour: the last list to add it won, but the first
-// still listed it too — gap 8). It links instead: a Ref, same file → {path}, another file → {url, path}. The actual move
-// stays one explicit call, `item.move_to(dest)` (Item.js), which leaves a `moved_to` forward behind for any Ref to follow.
-function foreign_ref(x, dest){
-	const dest_root = (dest.owner ?? dest).root(), src_root = x.root();
-	const path = Item.Store.address(x, src_root);
-	return new Ref(src_root === dest_root ? { path } : { url: src_root.store?.url, path });
-}
 
 // Would `node.get(id)` answer something OTHER than a list-scan — i.e. would an
 // id of `id` be permanently unreachable by name? A real OWN property (a List
@@ -296,13 +276,6 @@ export class List extends Item {
 	// or, on replay, inside `x` itself. The options form wins when both are given.
 	add(x, opts = {}){
 		if (Array.isArray(x)) return x.map(each => this.add(each, opts)).at(-1);   // {"add":[a, b]} is two adds, in order
-
-		// F7: `x` is a live Item some OTHER list already holds — link it, don't steal it (foreign_ref above).
-		if (x instanceof Item){
-			const current = owning_list(x);
-			if (current && current !== this) x = foreign_ref(x, this);
-		}
-
 		const after = "after" in opts ? opts.after : (is_plain(x) ? x.after : undefined);
 		const before = this.length;
 		const made = this.insert(x, { after });
@@ -332,6 +305,17 @@ export class List extends Item {
 			...(json ? JSON.parse(JSON.stringify(child_lists)) : (made?.data ?? {})),
 		});
 		return made;
+	}
+
+	/* F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent"): `dest.ref(x)` LINKS an item some
+	   list already owns — a Ref, same file → {path}, another file → {url, path} — instead of re-parenting it the way
+	   `add(x)` still does (D13, 2026-11-02: switching `add()`'s own default is a later, separate merge, only once a census
+	   shows no caller relies on the move; see plan.md's decision 2). The real move stays one explicit call,
+	   `item.move_to(dest)` (Item.js), which leaves a `moved_to` forward behind for any Ref to follow. */
+	ref(x){
+		const dest_root = (this.owner ?? this).root(), src_root = x.root();
+		const path = Item.Store.address(x, src_root);
+		return this.add(src_root === dest_root ? { type: "Ref", path } : { type: "Ref", url: src_root.store?.url, path });
 	}
 
 	// Quiet removal — the counterpart to insert()/replace(). `remove()` below is this
