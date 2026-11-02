@@ -10,3 +10,4 @@
 {"file":"placement.test.mjs"}
 {"file":"public/"}
 {"file":"public/","gone":true}
+{"file":"failures.jsonl"}

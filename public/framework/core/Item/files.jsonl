@@ -48,3 +48,8 @@
 {"file":"Ref.test.mjs"}
 {"file":"RefView.css"}
 {"file":"RefView.js"}
+{"file":"unset.test.mjs"}
+{"file":"unknown-key.test.mjs"}
+{"file":"reset.test.mjs"}
+{"file":"failures.jsonl"}
+{"file":"batch.test.mjs"}
