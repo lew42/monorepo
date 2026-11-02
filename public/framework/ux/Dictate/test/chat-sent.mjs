@@ -102,7 +102,7 @@ ${ev(queue.splice(0))}` });
 		console.log(tag, "real Question sits:", JSON.stringify(where));
 		check(!!where && /So, The words/.test(where.before ?? "") && /And then if I start/.test(where.after ?? "") && where.pieces === 1,
 			tag + ": the real Question sits right under its own Prompt's bubble; a later, different Prompt gets its OWN, separate bubble (never merged across the boundary)");
-		// V1 is the raw log (the owner, 2026-11-01, ux/Dictate/tasks/v1-raw): the Prompt's own bubble must stay
+		// V1 is the raw log (the owner, 2026-11-01, dictation-v3/v1-raw): the Prompt's own bubble must stay
 		// visible once it has a Question — it used to be hidden here, swallowing the owner's own words.
 		check(!!where?.before_visible, tag + ": the Prompt's own bubble stays visible once it has a Question (never hidden)");
 	}
