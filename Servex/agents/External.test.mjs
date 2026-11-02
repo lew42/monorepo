@@ -87,6 +87,26 @@ check("Agents.send() to a registered external id delivers to its inbox instead o
 	assert.ok(Date.parse(lines[0].at) >= before, "timestamped, and recent");
 });
 
+check("the answer to a send says it was delivered to the tab's inbox (not that the tab is not a live agent)", () => {
+	external.register({ id: "vscode-card", session_id: "card-session" });
+	const card = agents.send("vscode-card", "second hello", { from: "mastermind-servex" }).card();
+	assert.equal(card.ok, true);
+	assert.match(card.delivered_to, /inbox of the VS Code tab vscode-card/);
+	assert.match(card.note, /Delivered/);
+	assert.equal(lines_of("vscode-card").pop().text, "second hello");
+});
+
+check("a registered tab that shares a session id with a spawned agent is NOT followed to that agent", () => {
+	const rows = agents.reg().read();
+	rows["worker-sharing"] = { id: "worker-sharing", role: "minion", state: "stopped", session_id: "shared-session", started_at: "2099-01-01T00:00:00Z" };
+	agents.reg().save(rows);
+	external.register({ id: "vscode-shared", session_id: "shared-session" });
+	assert.equal(agents.holder("vscode-shared"), "vscode-shared");
+	assert.equal(agents.send("vscode-shared", "to the tab", { from: "mastermind-servex" }).card().kind, "external");
+	assert.equal(lines_of("vscode-shared").length, 1);
+	assert.equal(agents.holder("worker-sharing"), "worker-sharing");
+});
+
 check("an id nobody registered still goes through wake() and throws, unchanged", () => {
 	assert.throws(() => agents.send("nobody-here", "hi"), /No agent "nobody-here"/);
 });

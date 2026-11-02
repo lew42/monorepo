@@ -107,7 +107,8 @@ export default class External {
 		const line = { from: note.from ?? null, text, reply_to: note.reply_to ?? null, at: stamp() };
 		fs.appendFileSync(this.file(id), JSON.stringify(line) + "\n");
 		this.touch(id);
-		return { id, state: "external", delivered: line, card: () => ({ id, kind: "external", state: "external", delivered: line }) };
+		const card = { id, kind: "external", state: "external", ok: true, delivered_to: `the inbox of the VS Code tab ${id} (logs/inbox/${id}.jsonl)`, note: "Delivered. A tab is not a running agent, so it will not answer in this call: it reads its inbox on its next turn.", delivered: line };
+		return { id, state: "external", delivered: line, card: () => card };
 	}
 
 	/* Make `id` addressable if it is not yet (the remote door's caller, "voice-app", has no tab to register itself). */
