@@ -17,6 +17,7 @@
 - **The title isn't read.** It's a visual anchor, and it usually repeats the first sentence.
 - **A question being answered isn't read back.** Its own card shows it.
 - **An answer goes on the question's own card:** the owner's prompt becomes a question card, and the answer is added to it (V1 already does something like this). No duplicate quote of the question.
+- **Spoken text and shown text can differ** (the owner, via voice, 16:45). A reply can show full ids and paths but speak a short version, with an alt-text tag; one idea is to reuse the mention processor. Filed as task `g0484a1p` on session `v-qfzrnhh`.
 - **An optional mode:** words appear as they're read, a little ahead of the voice, instead of lighting up words already on screen.
 
 ## Conversation mode
