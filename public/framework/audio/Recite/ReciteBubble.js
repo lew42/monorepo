@@ -25,6 +25,7 @@ export default class ReciteBubble {
 		if (!host || typeof document === "undefined") return null;
 		this.texts.set(host, text);
 		this.keys.delete(host);
+		this.sig = null;
 		host.classList.add("audio-recite-bubble");
 		let ctl = host.querySelector(":scope > .audio-recite-bubble-ctl");
 		if (!ctl){
@@ -80,7 +81,9 @@ export default class ReciteBubble {
 	static sync(){
 		const r = this.recite;
 		if (!r || typeof document === "undefined") return;
-		const now = r.bubble_state();
+		const now = r.bubble_state(), sig = `${now.key}|${now.playing}`;
+		if (sig === this.sig) return;   // Recite fires about 4 times a second while playing; nothing to redraw unless the playing bubble or its state changed
+		this.sig = sig;
 		for (const host of document.querySelectorAll(this.HOST)){
 			const play = host.querySelector(":scope > .audio-recite-bubble-ctl > .audio-recite-bubble-play");
 			if (!play) continue;

@@ -13,6 +13,10 @@
 		white-space: nowrap;
 		line-height: 1;
 	}
+	/* V2 and V3 draw a reply as a flex row (brain, text): wrap, so the control gets its own row under the text instead of a third column */
+	.audio-recite-bubble.chat-v3-reply { flex-wrap: wrap; }
+	.audio-recite-bubble.chat-v3-reply > .chat-v3-reply-text { flex: 1 1 0; }
+	.audio-recite-bubble > .audio-recite-bubble-ctl { flex-basis: 100%; }
 	.audio-recite-bubble-ctl button {
 		min-inline-size: 2.2em;
 		min-block-size: 2.2em;
