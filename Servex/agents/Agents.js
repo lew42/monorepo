@@ -448,7 +448,10 @@ export class Agents {
 		for (const row of reg.list()){
 			/* A DORMANT row had no process to lose: it stays dormant, and the first
 			 * message reopens it (send -> wake -> reopen), never the boot. */
-			if (this.live.has(row.id) || row.state === "stopped" || row.state === "dormant") continue;
+			/* A STOPPED row is skipped (stopped on purpose) unless the dying Servex itself stopped it: Servex.shutdown() writes a
+			 * snapshot (`how` set) BEFORE its stops, so a row listed there was alive until the process ended. */
+			if (this.live.has(row.id) || row.state === "dormant") continue;
+			if (row.state === "stopped" && !(snap?.how && listed(row.id) && !row.stopped_by)) continue;
 			if (self_restarted(row.id)){
 				if (row.state !== "gone") out.gone.push(row.id);
 				continue;
@@ -463,8 +466,13 @@ export class Agents {
 			 * never recorded system/sdk/in-process servers either; the agents that
 			 * had them are the SELF_RESTARTED ones, already skipped above. */
 			const legacy = !row.boot && !row.pid;
+			/* NO SNAPSHOT = the previous Servex died without a word (a native fast-fail, a kill). Beyond the 30-minute window, a row it
+			 * left working or idle with a task still open and a session to resume comes back too (2026-11-02: agents idle a while
+			 * were lost to a crash). */
+			const crashed = !snap && !!prev?.boot && row.boot === prev.boot && ["working", "idle"].includes(row.state) && row.revivable && !!row.session_id
+				&& (() => { const dir = this.task_dir_for(row); return !!dir && !task_landed(dir); })();
 			const ours = legacy ? this.recent_log(row.id, window_min)
-				: !!prev?.boot && row.boot === prev.boot && (listed(row.id) || Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000);
+				: !!prev?.boot && row.boot === prev.boot && (listed(row.id) || crashed || Date.now() - Date.parse(row.last_at ?? 0) < window_min * 60000);
 			let agent = null;
 			const no = ours && this.blocked(row, { landed: false });
 			if (no){ out.refused = [...(out.refused ?? []), { id: row.id, why: no.why }]; reasons[row.id] = `servex restarted; not revived: ${no.text}`; if (row.state !== "gone") out.gone.push(row.id); continue; }
@@ -501,10 +509,13 @@ export class Agents {
 			if (legacy) out.legacy.push(id);
 			/* Every agent that comes back is told (the owner, 2026-10-22). One that was mid-turn checks its last tool call; an idle
 			 * one learns its session was resumed, and that a background shell or sleep it started is gone (wake_me survives). */
-			const when = snap ? ` at ${snap.at.slice(11, 16)}${snap.by ? ` (asked by ${snap.by})` : ""}` : "";
-			agent.send(row.state === "working"
-				? `Servex restarted${when} mid-turn; your last tool call may not have finished. Check and continue.`
-				: `Servex restarted${when}. Your session was resumed and nothing was lost; any background shell or sleep you had running is gone, so set it again with wake_me if you were waiting on something. If you were idle, there is nothing to do: answer in one line.`,
+			const lost = !snap || snap.how === "crash";   // an uncaught error, a native crash or a kill: not a planned restart
+			const when = snap ? ` at ${snap.at.slice(11, 16)}${snap.by && !snap.how ? ` (asked by ${snap.by})` : ""}` : ` at about ${stamp(boot_at).slice(11, 16)}`;
+			const what = lost ? "crashed" : "restarted";
+			const was = snap?.agents?.find(x => x.id === id)?.state ?? row.state;   // a row stopped by the dying Servex still says what it was doing
+			agent.send(was === "working"
+				? `Servex ${what}${when} mid-turn; resume. Your last tool call may not have finished. Check and continue.`
+				: `Servex ${what}${when}; resume. Your session was resumed and nothing was lost; any background shell or sleep you had running is gone, so set it again with wake_me if you were waiting on something. If you were idle, there is nothing to do: answer in one line.`,
 				{ from: "servex" });
 			out.told.push(id);
 		}
@@ -521,14 +532,14 @@ export class Agents {
 	 * wake-up (Wakeups.js, so a dormant agent waiting on one is listed too). Kept as restart-snapshot.json beside the registry
 	 * and logged once to servex.jsonl. `sustain.mjs --restart` asks for it (POST /api/before-restart) before it kills anything;
 	 * the next boot's revive() resumes exactly these agents and tells each one. Doc: Servex/doc/restart.md. */
-	snapshot({ by = null } = {}){
+	snapshot({ by = null, how = null } = {}){
 		const wakes = this.wakeups?.list() ?? [], rows = this.reg().read();
 		const agents = [...this.live.values()].filter(a => a.state !== "stopped")
 			.map(a => ({ id: a.id, state: a.state, session_id: a.session_id ?? null, parent: a.parent ?? null }));
 		for (const w of wakes) if (!agents.some(a => a.id === w.agent))
 			agents.push({ id: w.agent, state: rows[w.agent]?.state ?? "unknown", session_id: rows[w.agent]?.session_id ?? null, parent: rows[w.agent]?.parent ?? null });
 		for (const a of agents) a.wakeups = wakes.filter(w => w.agent === a.id).map(w => ({ id: w.id, due: w.due, why: w.why }));
-		const snap = { boot: this.boot, at: stamp(), by, agents };
+		const snap = { boot: this.boot, at: stamp(), by, ...(how ? { how } : {}), agents };
 		fs.writeFileSync(this.reg().file("restart-snapshot.json"), JSON.stringify(snap, null, 2));
 		this.store().append("servex", { type: "restart-snapshot", boot: this.boot, by,
 			agents: agents.map(a => `${a.id}: ${a.state}${a.wakeups.length ? ` + ${a.wakeups.length} wake-up` : ""}`) }).catch(() => {});

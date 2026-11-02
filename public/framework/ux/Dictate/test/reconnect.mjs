@@ -29,7 +29,7 @@ await page.route(/\/api\/session\/[^/]+\/stream/, r => {
 	hits++;
 	if (phase === "blip") return r.fulfill({ status: 200, contentType: "text/event-stream", headers: { "access-control-allow-origin": "*" }, body: "retry: 1000\n\n" });
 	if (phase === "down") return r.fulfill({ status: 502, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: '{"error":"Servex unreachable"}' });
-	return r.continue();
+	return r.fallback();   // not continue(): that goes to the live Servex; the fence answers
 });
 const logged = [];
 page.on("websocket", ws => ws.on("framesent", f => { const s = String(f.payload ?? ""); if (s.includes('"connection"')) logged.push(s); }));

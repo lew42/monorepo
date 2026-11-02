@@ -51,6 +51,10 @@ class Servex {
 
 Inside the repo Servex writes only the AI records ([ai/](/framework/ai/)). Its own state is outside git, one folder per machine, `%LOCALAPPDATA%/lew42/servex/` (move it with `SERVEX_HOME`): `ports.json` (name → port) · `logs/<name>.jsonl` (one per supervised thing; `servex.jsonl` is Servex's own; `agent-<id>.jsonl` is one agent's) · `procs/<name>.json` (pid of each dev server, so the next Servex adopts it) · `logs/<name>.out/.err` · `logs/reports/` (crash reports) · `logs/windows.jsonl` (popup windows, `Server/window-watch.mjs`).
 
+## Crash and revive
+
+A planned restart and a crash both bring every working or idle agent back: `Servex.shutdown()` writes the snapshot before it stops anyone, and a boot with no snapshot rebuilds the list from the registry and tells each agent "Servex crashed at <time>; resume". The two crash kinds (a JavaScript error, a native fast-fail), the cause found for the 00:31 one, and what to watch for the other: [doc/restart.md](doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02). Browser tests are fenced off the live Servex ([Server/ServexFence.mjs](../Server/ServexFence.mjs)).
+
 ## Overlaps
 
 The local `servex` MCP and the remote door share one tool registry; the remote adds `ask_mastermind`, `call` and `cloud_voice_log` ([MCP](/framework/ai/doc/agents/mcp.md)); every tool, grouped, with a compacted set: [doc/tools-map.md](doc/tools-map.md); what each role loads: [agent-context](/framework/ai/doc/agent-context.md). A task folder is opened by `open_task` here; counted by `Server/AIIndex.mjs` ([ai/tasks](/framework/ai/tasks/)).

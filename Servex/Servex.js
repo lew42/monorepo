@@ -1577,7 +1577,13 @@ export default class Servex extends Events {
     }
 
     shutdown(){
-        const down = () => {
+        let went = false;
+        const down = how => {
+            if (went) return; went = true;
+            /* Write who is alive BEFORE the stops below: they turn every live row into "stopped", and the next boot's revive() skips
+             * a stopped row. This snapshot is how an exit that did run the handler (an uncaught exception, 2026-11-02 00:31) still
+             * brings everyone back. `how` tells the agents what happened. */
+            try { this.agents.snapshot({ by: "shutdown", how: typeof how === "string" ? how : "crash" }); } catch {}
             this.agents.closing = true;   // wake_parent writes the inbox but revives nobody while everything stops
             try { this.monitor?.stop(); } catch {}
             try { this.procmon?.stop(); } catch {}
@@ -1590,9 +1596,12 @@ export default class Servex extends Events {
             for (const runner of this.processes.values()) runner.detach ? runner.release() : runner.terminate();   // a detached dev server outlives Servex on purpose
             this.log.close();
         };
-        process.on("SIGINT", () => { down(); process.exit(0); });
-        process.on("SIGTERM", () => { down(); process.exit(0); });
-        process.on("exit", down);
+        process.on("SIGINT", () => { down("signal"); process.exit(0); });
+        process.on("SIGTERM", () => { down("signal"); process.exit(0); });
+        process.on("exit", code => down(code ? "crash" : "exit"));
+        /* A promise nobody held rejecting is a bug in ONE feature, not a reason to end every agent: log it (stack in servex.jsonl)
+         * and keep running. An uncaught exception is still fatal: its state is unknown. doc/restart.md "Crash". */
+        process.on("unhandledRejection", e => { try { this.say(`unhandled rejection (Servex kept running): ${e?.stack ?? e}`, { event: "unhandled_rejection" }); } catch {} });
     }
 }
 
