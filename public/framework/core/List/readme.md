@@ -49,6 +49,7 @@ list.toJSON()       //  a bare array
 - **Old way (deprecated 2026-10-28):** `List#each(fn)` and `List#children` are the pre-rename aliases; use `forEach(fn)` and `items`. The mark is in `List.js`; `node Server/Deprecated.mjs` counts what still calls them.
 - A member is named in a line by its id, bare or as `#id`; `list.member(id)` is `find(id)` (an Item's `member` searches its lists), and `{"add()": …}` calls the verb by the D13 spelling: [core/Item/doc/line-format.md](../Item/doc/line-format.md).
 - **`add` writes an envelope** (fix 5, `/framework/research/2026/10/29/persistence-sync/design/fixes.md`): an Item member's own fields ride under `data`, and its child lists ride as their own top-level keys (`made.toJSON()`'s own shape) — never spread flat into the add payload, where a data field named `after` or `type` would collide with the list's own metadata and a child list would be lost silently.
+- **`add` of an item ANOTHER list already owns makes a Ref, never a silent re-parent** (F7, built 2026-11-01, chat-model step 2): `add()` answers the Ref it made, not the item you passed in. A caller that meant to MOVE the item, not link it, must call `item.move_to(dest)` instead: [`../Item/doc/ref.md`](../Item/doc/ref.md#made-automatically-f7-and-resurface).
 - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
 - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
 
@@ -58,4 +59,4 @@ list.toJSON()       //  a bare array
 - [Overview](/framework/core/List/) · [`doc/adoption.md`](./doc/adoption.md) (why `owner` exists) · [`doc/decisions.md`](./doc/decisions.md) (the Array dissent, what was cut, who calls it)
 - [Live list](/framework/core/Item/live/) — a List, live, on a real page, saved to a real file.
 - Files that matter: `List.js` (the class — the array plus Events plus the four verbs), `List.examples.js` (the examples that are also the tests), `page.js` (live demo), `../Item/` (the default caller), `../Page/` (`pages`/`content`, named for what they hold).
-- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — `add` adopts an unowned item, writes a ref for an owned one; the chat is one stored list (decided or leaning; not built).
+- [Design decisions 2026-10-27](/framework/ai/design-decisions-2026-10-27.md) — `add` adopts an unowned item, writes a ref for an owned one (built 2026-11-01, chat-model step 2); the chat is one stored list (decided or leaning; not built).

@@ -14,15 +14,17 @@ class Sentence extends Item { text, via: "voice"|"text", at, raw? }             
 class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text }      // ./Message.js
 class Prompt   extends Message { sentences: [ids], clean: {<sentence id>: text}, title?, text?, state, prompt?, said, cleaned }  // ./Prompt.js
 class Reply    extends Message { re?: {to: <sentence id>}, level?, thread? }       // ./Reply.js
-class Chat     extends List { messages, last }                                      // ./Chat.js
+class Chat     extends List { messages, last, resurface(message) }                 // ./Chat.js
 ```
+
+A **Ref** (`core/Item/Ref.js`, not its own file here) can be a member too: `{"messages":{"add":{"type":"Ref","path"|"url",…}}}` hydrates as the real core Ref (`Chat.js` imports `Ref.js` so `Message.hydrate`'s fallback to `Item.hydrate` finds it registered) — a line, or a task, shown here without copying it. `Chat.resurface(message)` makes one: a Ref to `message` at the bottom of the list, plus `resurfaced: <ref id>` set on `message` itself so a view can dim the original or draw an arrow to where it resurfaced. Doc: [`../../Item/doc/ref.md`](../../Item/doc/ref.md#made-automatically-f7-and-resurface).
 
 - **A Prompt** is what the owner said in one go. It holds its sentences **by id** and grows while the owner keeps talking. `said` is the words joined (the full dictation); `clean` holds the fast seat's cleaned text per sentence and `cleaned` is the words with those in place (what a view shows by default); `title` and `text` are a refined version, once someone writes one (then `state` is `"refined"`). `prompt` links today's Prompt *task* in `session.tasks` (Chat V2/V3).
 - **A Reply** is an assistant's answer, anchored to the sentence it answers (`re.to`). `level` marks a refined restatement (`Sessions.line` with a level).
 - **A plain Message** is a note, e.g. Servex saying an assistant could not be reached.
 - **Order is the list's order.** Nothing is sorted by time. A message's text may change in place; its position never does.
 
-This is the class map of the data-shapes synthesis ([synthesis.md](/framework/core/Session/tasks/data-shapes/synthesis.md) §2): Prompt and Question are messages, not tasks (§6 decision 2, the plan's fork F3); sentences live in their own list and a Prompt holds their ids (§3 [A], fork F4); the chat owns its messages (§3 [B]). Built so far: Message, Prompt, Reply, Sentence. Question, Card and Ref as messages come when something writes them.
+This is the class map of the data-shapes synthesis ([synthesis.md](/framework/core/Session/tasks/data-shapes/synthesis.md) §2): Prompt and Question are messages, not tasks (§6 decision 2, the plan's fork F3); sentences live in their own list and a Prompt holds their ids (§3 [A], fork F4); the chat owns its messages (§3 [B]). Built so far: Message, Prompt, Reply, Sentence, Ref (2026-11-01, chat-model step 2). Question and Card as messages come when something writes them.
 
 **Two names, on purpose:**
 - **`messages`, not `chat`.** A line's key is the property it changes, and `{"chat":…}` is V1's own line: about twenty readers (`ext/Chat/Chat.js`, `ux/Dictate/chat.js`, `Widget.js`, `ext/Session/Session.js`, Recite, `SessionIndex`…) draw any line with a `chat` key as a bubble. The owner said either name is fine.
@@ -76,5 +78,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 ## Next
 
 - ✅ Chat V3 reads this list instead of re-reading `{chat}` lines ([ext/Chat/v3](/framework/ext/Chat/v3/readme.md), 2026-11-01; the views belong to `mastermind-dictation-v3`, this list is the contract). Chat V2 next ([views-on-messages.md](doc/views-on-messages.md) step 2).
-- ⬜ Question, Card and Ref as messages, when a writer needs them.
+- ✅ Ref as a message, and `resurface()` (2026-11-01, chat-model step 2): `core/List/List.js`'s F7 (`add()` of an item another list owns makes a Ref) plus `Chat.resurface(message)`.
+- ⬜ Question and Card as messages, when a writer needs them.
+- ⬜ Tasks and child sessions written as Refs in `session.messages` by Servex (chat-model step 3).
 - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").

@@ -101,6 +101,38 @@ try {
 		t.eq(add_line?.notes?.[0]?.data?.text, "before", "add: a child-list member's data is a snapshot too — a same-tick set() on IT does not rewrite the add line either");
 	}
 
+	// F7 (persistence-sync/design/fixes.md, "Adding an item that already has a parent"): add() of an item ANOTHER list already
+	// holds links it (a Ref), never re-parents it — move_to() stays the only move. Same file -> {path}; another file -> {url, path}.
+	{
+		const { default: RefClass } = await import("../Item/Ref.js");
+		const two = Item.hydrate({ id: "two-lists", kids: [{ id: "k1", title: "K1" }], box: [] });
+		const k1 = two.kids.find("k1");
+		const ref = two.box.add(k1);
+		t.ok(ref instanceof RefClass, "F7: add() of an item owned by ANOTHER list on the same root makes a Ref, not a move");
+		t.eq(ref.path, "kids.k1", "F7: the Ref's path is the item's own dotted address");
+		t.eq(two.kids.find("k1"), k1, "F7: the item itself never left its first list");
+		t.eq(two.box.length, 1, "F7: the Ref landed in the second list");
+		t.eq(two.kids.add(k1), k1, "F7: re-adding to the SAME list it is already in is still the old no-op, not a Ref of itself");
+
+		const DIR3 = fs.mkdtempSync(path.join(os.tmpdir(), "list-test-f7-"));
+		try {
+			const rootA = Item.hydrate({ id: "a-root", kids: [{ id: "shared", title: "Shared" }] });
+			const storeA = new Store({ url: "/a/a.jsonl" });
+			storeA.append = line => fs.appendFileSync(path.join(DIR3, "a.jsonl"), JSON.stringify(line) + "\n");
+			storeA.attach(rootA);
+			const rootB = Item.hydrate({ id: "b-root", box: [] });
+			const storeB = new Store({ url: "/b/b.jsonl" });
+			storeB.append = line => fs.appendFileSync(path.join(DIR3, "b.jsonl"), JSON.stringify(line) + "\n");
+			storeB.attach(rootB);
+
+			const shared = rootA.kids.find("shared");
+			const fref = rootB.box.add(shared);
+			t.ok(fref instanceof RefClass, "F7: add() across files also makes a Ref");
+			t.eq([fref.url, fref.path], ["/a/a.jsonl", "kids.shared"], "F7: the Ref names the other file's url and the item's path there");
+			t.eq(rootA.kids.find("shared"), shared, "F7: and the item stayed in its own file");
+		} finally { fs.rmSync(DIR3, { recursive: true, force: true }); }
+	}
+
 	// render(): nothing until the browser wires List.View; then that view, given the list, open one level (build B's default view)
 	const { default: ListClass } = await import("./List.js");
 	t.eq(pair.kids.render(), undefined, "render() with no List.View draws nothing (node, or before the view is wired)");

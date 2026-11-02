@@ -31,6 +31,12 @@ A move to another file leaves `{moved_to: {url, path}}` at the old place: `item.
 
 `Server/TaskDirs.mjs` already leaves a `moved.json` stub `{moved_to}` in a folder whose record moved; a Ref to such a folder does not read that stub yet (a folder ref opens the folder's record, and a moved folder has none). Small to add when a moved folder is first referenced.
 
+## Made automatically: F7, and resurface
+
+**F7 (`core/List/List.js`, chat-model step 2, `persistence-sync/design/fixes.md` "Adding an item that already has a parent"): `list.add(x)` of an `x` some OTHER list already holds makes a Ref to it instead of re-parenting it.** Before, the last list to `add()` an item silently won — its `parent` pointer moved, but the first list still listed it too (a line each save would re-write, and only one of the two files would end up with it). Now `add()` checks who already owns `x` (`List.js`'s `owning_list`); if that is a different list, it builds a Ref in `x`'s place — same file: `{path}` (`Item.Store.address(x, x.root())`); another file: `{url: x.root().store.url, path}` — and adds *that*. `add()` answers the Ref, not `x`. The one way to really move an item is still `item.move_to(dest)` (above): callers that meant a move, not a link, must say so.
+
+**`Chat.resurface(message)`** (`core/Session/Chat/Chat.js`, the owner, 2026-11-01): reading an old message again should put it back at the bottom of the conversation, but the log itself is never rewritten — the original line stays exactly where it was said. `resurface` adds a same-file Ref to the message at the bottom of `session.messages` and sets `resurfaced: <the new Ref's id>` on the original, so a view can dim the original or draw an arrow from it to the Ref. Two lines, same as any other Ref-then-mark: the Ref's `add`, the original's `set`.
+
 ## Where it shows
 
 The session page's Chat tab (the tasks box, `core/Session/SessionTasks.js`) lists each child session's open tasks as "child › task" through Refs, eight at first, then "+ N more". One heading per child session ("child ›"), its tasks under it, so a long child title is said once. It redraws when a child's record reads a line, so a child's change shows in the parent within a frame; a Ref emits `"target"` only when its target, title or state changed, so a read that touched nothing shown redraws nothing.
