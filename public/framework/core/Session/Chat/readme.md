@@ -10,7 +10,7 @@ Why: the chat used to live in pseudo lines (`{chat}`, `{place}`) that each view 
 session.sentences: List<Sentence>     // the raw words, append-only, never moved
 session.messages:  Chat               // the conversation, in order (class Chat extends List)
 
-class Sentence extends Item { text, via: "voice"|"text", at, raw? }                // ./Sentence.js
+class Sentence extends Item { text, via: "voice"|"text", at, said_at?, raw? }                // ./Sentence.js
 class Message  extends Item { by: "owner"|"smart"|"fast"|"system", at, text }      // ./Message.js
 class Prompt   extends Message { sentences: [ids], clean: {<sentence id>: text}, title?, text?, state, prompt?, raw, cleaned,
                                   kind?: "task"|"request"|"question", items: List<PromptItem|Ref>, sent: {fast?, smart?}, working? }  // ./Prompt.js
@@ -77,7 +77,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 
 ## Migration (written, not run)
 
-`node Server/ChatToMessages.mjs <session.jsonl …>` prints the lines an older session would have had, made by the same `ChatWriter`; `--apply` appends them (never rewrites) and records each file in `ai/sessions/chat-messages-moves.jsonl`. Not run: the owner wants the list to prove itself first. It cannot know when the owner was mid-thought, so old replies keep V1's positions.
+`node Server/ChatToMessages.mjs <session.jsonl …>` prints the lines an older session would have had, made by the same `ChatWriter`; `--apply` appends them (never rewrites; a partly mirrored file gets only what is missing, with `after` to place it) and records each file in `ai/sessions/chat-messages-moves.jsonl`. Not run on real sessions: the owner wants the list to prove itself first. It cannot know when the owner was mid-thought, so old replies keep V1's positions. Test: `node Server/ChatToMessages.test.mjs`.
 
 ## More
 
@@ -94,6 +94,6 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 - ✅ V1 side by side, read-only (2026-11-02, chat-model step 8): `V1Bubbles.js` turns `session.messages` into the bubble list V1 draws (merge, `place()`'s time-reordering, and a `fix`'s in-place correction, all mirrored as plain data); `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way for real sessions and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. Found: none of the 5 are fully mirrored (2 `none`, 1 `partial`, and `said_at` — mirrored nowhere today — is the main reason the two others' bubble lists drift once `{chat}`'s `said_at` differs from its `at`). The switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
 - ⬜ Question and Card as messages, when a writer needs them.
 - ⬜ remove the old `said` alias once Chat V3 reads `sent.smart` (and `raw`) directly, instead of `ext/Chat/v3/ChatV3.js:163`'s `p.cleaned || p.said`.
-- ⬜ Mirror `said_at` onto the Sentence/Message (`ChatWriter`): without it V1 and the adapter sort by different clocks (with it stripped, the compare drops to 2 and 0 differing bubbles; [pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8) step 3).
-- ⬜ Teach `Server/ChatToMessages.mjs` to fill a `partial` file (only the unmirrored `{chat}` lines); today it skips any file that already has `messages` lines.
+- ✅ `said_at` is mirrored onto the Sentence by `ChatWriter` and read by `V1Bubbles` (2026-11-02, v1-switch-prep).
+- ✅ `Server/ChatToMessages.mjs` fills a partly mirrored session (missing messages only, in place, no twins; `{place}` improves into `clean`; `said_at` set in place): `node Server/ChatToMessages.test.mjs` (11 checks). The compare, each of the 5 largest sessions filled in memory: 0 differing bubbles.
 - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").

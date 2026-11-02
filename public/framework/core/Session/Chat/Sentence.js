@@ -8,6 +8,8 @@ export class Sentence extends Item {
 	/** "voice" | "text" (typed). */
 	get via(){ return this.get_one("via") ?? null; }
 	get at(){ return this.get_one("at") ?? null; }
+	/** When the words left the owner's draft (the V1 line's `said_at`), if it differs from `at`; V1 orders its bubbles by this. */
+	get said_at(){ return this.get_one("said_at") ?? null; }
 	get raw(){ return this.get_one("raw") ?? null; }
 }
 

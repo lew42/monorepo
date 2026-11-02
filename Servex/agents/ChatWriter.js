@@ -55,7 +55,7 @@ export default class ChatWriter {
 		const st = this.state(key), sid = this.id("s");
 		st.by_at.set(chat.at, sid);
 		if (st.by_at.size > ChatWriter.KEEP) st.by_at.delete(st.by_at.keys().next().value);
-		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.raw ? { raw: chat.raw } : {}) };
+		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.said_at ? { said_at: chat.said_at } : {}), ...(chat.raw ? { raw: chat.raw } : {}) };
 		const prompt = chat.prompt ?? null;
 		if (st.open && st.last === st.open && st.open_prompt === prompt){
 			st.msg_at.set(chat.at, st.open);
@@ -112,6 +112,9 @@ export default class ChatWriter {
 		return { messages: { [mid]: { sent: { [to]: { at } } } }, by: "servex", ts: now_iso() };
 	}
 
+	/** The line that sets one sentence's cleaned text on its Prompt, in place (used live by `place()` and by the migration). */
+	static clean_line(mid, sid, text){ return { messages: { [mid]: { clean: { [sid]: String(text) } } } }; }
+
 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
 	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
 	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
@@ -120,6 +123,6 @@ export default class ChatWriter {
 		if (!place || !["improve", "both"].includes(place.edit) || !String(place.text ?? "").trim() || !place.re) return null;
 		const s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
 		const p = s && session._messages?.messages.find(m => m.sentences?.includes?.(s.id));
-		return p ? { messages: { [p.id]: { clean: { [s.id]: String(place.text) } } } } : null;
+		return p ? ChatWriter.clean_line(p.id, s.id, place.text) : null;
 	}
 }

@@ -28,9 +28,9 @@ export class V1Bubbles {
 		for (const m of session.messages.messages){
 			if (m instanceof Prompt){
 				const clean = m.clean;
-				for (const s of m.sentence_items) out.push({ id: s.id, sender: "owner", text: clean[s.id] ?? s.text, at: V1Bubbles.ms(s.at) });
+				for (const s of m.sentence_items) out.push({ id: s.id, sender: "owner", text: clean[s.id] ?? s.text, at: V1Bubbles.ms(s.said_at ?? s.at) });
 			} else if (m instanceof Message){   // Reply or a plain Message; a Ref is not a Message — V1 never draws one as a chat bubble
-				out.push({ id: m.id, sender: m.by, text: m.text, at: V1Bubbles.ms(m.at) });
+				out.push({ id: m.id, sender: m.by === "system" ? "servex" : m.by, text: m.text, at: V1Bubbles.ms(m.said_at ?? m.at), re: m.re?.to ?? null, level: m.level ?? null });
 			}
 		}
 		return out;
@@ -38,12 +38,16 @@ export class V1Bubbles {
 
 	/** The same shape, read straight from the session's own `{chat}` lines, plus the `fix`/`re`/`level` flags `bubbles()` needs. */
 	static chat_events(lines){
-		const out = [];
+		const out = [], by_id = new Map();
 		for (const line of lines){
+			const p = line?.place;   // a fast-seat improve rewrites that line's text in place (ext/Chat/Chat.js's fix); the latest wins
+			if (p && ["improve", "both"].includes(p.edit) && String(p.text ?? "").trim() && p.re){ const hit = by_id.get(p.re); if (hit) hit.text = String(p.text); continue; }
 			const c = line?.chat;
 			if (!c) continue;
 			const sender = (c.from?.kind ?? "") === "owner" ? "owner" : (c.from?.id || c.from?.kind || "");
-			out.push({ id: c.at, sender, text: c.text, at: V1Bubbles.ms(c.said_at ?? c.at), fix: !!c.fix, re: c.re ?? null, level: c.level ?? null });
+			const e = { id: c.at, sender, text: c.text, at: V1Bubbles.ms(c.said_at ?? c.at), fix: !!c.fix, re: c.re ?? null, level: c.level ?? null };
+			by_id.set(c.at, e);
+			out.push(e);
 		}
 		return out;
 	}

@@ -68,12 +68,10 @@ function compare_one(file){
 	const lines = read_lines(file);
 	const now = coverage(lines, Session.replay(lines));
 	let replay_lines = lines, note = ` — ${now.status} mirror (${now.mirrored}/${now.total} {chat} lines)`;
-	if (now.status === "none"){
-		const planned = ChatToMessages.plan(lines) ?? [];
+	if (now.status !== "full"){
+		const planned = ChatToMessages.plan(lines);
 		replay_lines = [...lines, ...planned];
 		note += `, ${planned.length} lines built in memory by ChatToMessages.plan() (never --apply'd) to compare against`;
-	} else if (now.status === "partial"){
-		note += " — plan() refuses a file that already has messages lines, so the adapter side below is genuinely short, not a bug";
 	}
 	const session = Session.replay(replay_lines);
 	const v1 = V1Bubbles.from_chat_lines(lines);
