@@ -2,6 +2,10 @@
 
 A saved line tells three things apart by how a key is spelled. The owner decided this on 2026-10-30 (research `design/decisions.json` D13). Tests: `line-format.test.mjs` (Item reads and writes both), `line-readers.test.mjs` (every other reader).
 
+**Marked keys are real properties, not pseudo properties.** The key's spelling picks the namespace: bare is a data field, `name()` is a method call, `#id` is a list member. So a method and a data field of the same name never clash.
+
+**Backward compatibility.** Old files keep their bare lines forever, and every reader reads both spellings, so nothing on disk changes. Only the tools outside core needed a fix, and they now share one helper, `LineKey` (`Item/LineKey.js`).
+
 | Key | Means | Example |
 |---|---|---|
 | `name` | data, or a step into a child Item | `{"title": "Hi"}` |
@@ -42,7 +46,7 @@ It is still stored as data, exactly as before, so every record replays the same 
 
 ## Switching it on
 
-**Why it is still off.** Nothing blocks it any more: every reader below now reads both spellings, and the test runs the main flows with the switch on. It stays off by default so that today's logs keep one spelling until the owner decides.
+**Why it is still off (2026-11-02).** Every reader reads both spellings (`line-readers.test.mjs`, including a with-it-on test) and `ReplayCompare` is 4068/4068 identical with it on. What blocks it: 10 core test files assert the bare spelling (`Item.test`, `Item.steps.test`, `Ref.test`, `act.test`, `call.test`, `item-core.test`, `replay.test`, `persistence.test`, `unset.test`, `Task.steps.test`) and fail with the switch on only because their expectations say `start`, not `start()`. Update those expectations, then switch.
 
 **To switch on:** set `Item.Store.marked_lines = true` (`Store.js`, one line). Check first: `node public/framework/core/Item/line-readers.test.mjs` (all PASS, including its "with Store.marked_lines ON" test), `node Servex/agents/item_tool.test.mjs`, and `node public/framework/core/Test/TestRunner.mjs public/framework/core`. Then open a session page and a task page in the browser, press Start on a task, and check the new line in its `.jsonl` reads `{"tasks": {"#c3": {"start()": {}}}}` and the board still shows it running.
 
