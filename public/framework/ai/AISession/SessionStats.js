@@ -45,7 +45,7 @@ export default class SessionStats extends View {
 		const base = work.id ? AICost.session_url(work.id) : work.dir;
 		AICost.summary(base).then(({ summary }) => {
 			const p = summary?.progress;
-			$v.text(p && p.total ? `${p.done} of ${p.total} tasks done` : "no root tasks");
+			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
 		}).catch(() => $v.text("—"));
 	}
 
