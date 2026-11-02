@@ -27,6 +27,6 @@ A short conversation sits at the bottom of a tall log, next to the box you type 
 
 ## Merged bubbles
 
-Messages from the same sender less than `MERGE_GAP_MS` (8 s, in `Chat.js`) apart draw as one bubble with one paragraph each, even if another speaker landed in between (the bubble re-anchors below it instead of splitting — the owner, 2026-10-25, [notes.md#bubble-order](./notes.md#bubble-order)); `mergeable()` is the whole rule. The log keeps every message separate. Every bubble is `--chat-bubble` wide (85% of the column, at most 34rem).
+Messages from the same sender less than `MERGE_GAP_MS` (8 s, in `Chat.js`) apart draw as one bubble with one paragraph each, unless another speaker landed below the bubble in between (then it is closed and the next message starts a new bubble below that speaker — the owner, 2026-11-01, [notes.md#bubble-order](./notes.md#bubble-order)); `mergeable()` is the whole rule. The log keeps every message separate. Every bubble is `--chat-bubble` wide (85% of the column, at most 34rem).
 
 A `refined` line (`refine()` in `Chat.js`) replaces the raw paragraphs of the bubble holding its `of` ids; sections open in place to their `from` pieces, and clicking the bubble shows all raw pieces in time order. The card log is never rewritten.

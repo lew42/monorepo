@@ -6,8 +6,9 @@
 // with that `at`; chat.js retags the bubble piece to it, and Chat.js retag_piece moves the piece's `at` too. The next sentence,
 // drawn with the phone's stamp, is then "earlier" than the one before it, and speak() splices it in front.
 // Four runs: skew 0 (the control, both clocks agree), skew SKEW_MS (the PC ahead of the phone), skew SKEW_MS with the assistant's
-// reply between the two sentences (the still-open bubble: the reply lands mid-dictation, so the owner's bubble re-anchors below
-// it and stays ONE bubble holding both sentences — the owner, 2026-10-25; it never splits into two owner bubbles around the reply),
+// reply between the two sentences (the owner's bubble is closed by the reply that lands below it: the next sentence starts a new
+// owner bubble below the reply, and nothing already shown moves — the owner, 2026-11-01, which replaced the 2026-10-25 rule that
+// pulled the open bubble down past the reply; the full replay of the incident is test/v1-order.mjs),
 // and a reload from a session file whose lines are out of order but carry `said_at` (Chat.js orders by said_at ?? at). Any run out of
 // order fails the script (exit 1).
 import path from "path";
@@ -62,7 +63,7 @@ async function run(skew, { reply = false, reload = false } = {}){
 		await (await import("/framework/ux/Dictate/chat.js")).resume("stub-session");
 		await new Promise(r => setTimeout(r, 2500));
 		const pieces = [...globalThis.$dictate_widget.$thread.el.querySelectorAll(".chatbox-you [data-re], .chatbox-reply [data-re]")]
-			.map(n => ({ text: n.querySelector(".chatbox-text")?.textContent.trim() ?? n.textContent.trim(), re: n.dataset.re }));
+			.map(n => ({ text: n.querySelector(".chatbox-text")?.textContent.trim() ?? n.textContent.trim(), re: n.dataset.re })).filter(p => !p.text.startsWith("recite:"));   // Recite's own trace line, drawn as a reply bubble on session change: not part of the conversation
 		return [{ step: "reloaded", pieces }];
 	}) : await page.evaluate(async ({ SAID, SAY_MS, REPLY, reply, skew }) => {
 		const m = globalThis.$dictate_widget.dictate, wait = ms => new Promise(r => setTimeout(r, ms));
@@ -77,7 +78,7 @@ async function run(skew, { reply = false, reload = false } = {}){
 		};
 		// every piece in the bubbles (the owner's, and the reply's in the third run), in DOM order, with the `at` it is ordered by
 		const pieces = () => [...globalThis.$dictate_widget.$thread.el.querySelectorAll(".chatbox-you [data-re], .chatbox-reply [data-re]")]
-			.map(n => ({ text: n.querySelector(".chatbox-text")?.textContent.trim() ?? n.textContent.trim(), re: n.dataset.re }));
+			.map(n => ({ text: n.querySelector(".chatbox-text")?.textContent.trim() ?? n.textContent.trim(), re: n.dataset.re })).filter(p => !p.text.startsWith("recite:"));   // Recite's own trace line, drawn as a reply bubble on session change: not part of the conversation
 		const out = [];
 		await wait(300);
 		await say(SAID[0]);
@@ -98,11 +99,10 @@ async function run(skew, { reply = false, reload = false } = {}){
 
 	const got = trace.at(-1).pieces.map(p => p.text);
 	const norm = t => String(t).toLowerCase().replace(/[^a-z ]+/g, "").trim();
-	// reply: true re-plays the still-open-bubble case — the reply lands between the two owner sentences, so the owner's
-	// bubble re-anchors below it once the second sentence arrives, and the pieces read reply, then both sentences in order.
-	const want = reply ? [REPLY, SAID[0], SAID[1]] : SAID;
+	// reply: true — the reply lands between the two owner sentences and stays where it landed: sentence, reply, sentence.
+	const want = reply ? [SAID[0], REPLY, SAID[1]] : SAID;
 	const ok = got.length === want.length && got.every((t, i) => norm(t).endsWith(norm(want[i])));
-	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${reload ? "lines carry said_at" : skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; the open bubble re-anchors below it" : ""})`;
+	const label = (ok ? "ok  " : "FAIL") + ` skew ${skew} ms (${reload ? "lines carry said_at" : skew ? "PC clock ahead of the phone" : "clocks agree"}${reply ? ", a reply between; it stays between" : ""})`;
 	console.log(`${label}: ${reload ? "reload from a file out of order: " : ""}the chat reads ${got.map(t => JSON.stringify(t)).join(" then ")}; want ${want.map(t => JSON.stringify(t)).join(" then ")}`);
 	for (const s of trace) console.log(`       ${s.step}: ${s.pieces.map(p => `${JSON.stringify(p.text)} @${p.re}`).join(" | ")}`);
 	console.log(`       Servex wrote: ${lines.map(l => `${JSON.stringify(l.chat.text)} @${l.chat.at}`).join(" | ")}`);

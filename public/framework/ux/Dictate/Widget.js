@@ -5,7 +5,8 @@ import { pg } from "./playground/Playground.js";
 import { marks as fetch_marks } from "../Understand/Understand.js";
 import { md_into } from "../../ext/Chat/md.js";
 import { who_label } from "../../ext/Chat/roles.js";
-import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable, GUESS_TITLE } from "../../ext/Chat/Chat.js";
+import { speak, patch_piece, retag_piece, split_bubble, sticky_scroll, mergeable, answered_below, GUESS_TITLE } from "../../ext/Chat/Chat.js";
+import { clock } from "../../ext/Session/Session.js";
 import { composer } from "../../ext/Chat/Composer.js";
 import TaskView from "../../core/Task/TaskView.js";
 
@@ -534,9 +535,10 @@ Widget.Thread = class WidgetThread extends View {
 	live({ text = "", settled = text, guess = "" } = {}){
 		if (!text) return this.drop_draft();   // sent (the settled piece already took its spot) or cancelled
 		this.$empty.hide();
+		if (this.draft?.host && answered_below(this.draft.host)) this.drop_draft();   // a reply landed below the bubble this draft grows in: the words go on below the reply, not above it
 		let d = this.draft;
 		if (!d){
-			const host = this.widget.join ? this.follow(() => mergeable(this.$bubbles, "owner", Date.now())) : null;
+			const host = this.widget.join ? this.follow(() => mergeable(this.$bubbles, "owner", Date.now() + clock.offset)) : null;
 			let el, text_el;
 			if (host){
 				el = document.createElement("div");
@@ -563,7 +565,7 @@ Widget.Thread = class WidgetThread extends View {
 	settle_draft(){
 		const d = this.draft;
 		if (!d) return;
-		if (d.host) d.host.dataset.at = String(Date.now());   // still talking: the 10 s merge gap counts from now, not from the last piece
+		if (d.host) d.host.dataset.at = String(Date.now() + clock.offset);   // still talking: the 10 s merge gap counts from now, not from the last piece
 		this.drop_draft();
 	}
 
