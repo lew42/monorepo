@@ -93,6 +93,19 @@ try {
 	check("stop() removes the ✓ and the dimming, the bubble stays plain V1.2", s.cursors === 0 && s.unsent.length === 0 && s.bubbles === 2, s);
 	await page.evaluate(() => window.c.send_cursor.start());
 	check("start() brings it back", (await state()).cursors === 1);
+	const cv = await page.evaluate(async () => {
+		const { default: ChatView } = await import("/framework/ext/drawer/ChatView.js");
+		const { div } = await import("/framework/core/View/View.js");
+		localStorage.setItem(ChatView.KEY, "v1-2");
+		const slot = div.c("slot"); document.body.append(slot.el);
+		const view = new ChatView({ slot: () => slot.el, mount: () => ({ file: () => new URL("/framework/ext/Chat/v1-2/fixture/session.jsonl", location.href).href }) });
+		const label = view.chip().el.textContent; view.sync();
+		await new Promise(r => setTimeout(r, 1500));
+		const out = { mode: view.mode, label, versions: ChatView.VERSIONS.map(v => v.name).join(), box: !!slot.el.querySelector(".chat-v1-2"), cursors: slot.el.querySelectorAll(".chat-cursor").length, bubbles: slot.el.querySelectorAll(".chatbox").length };
+		view.release(); localStorage.removeItem(ChatView.KEY); slot.el.remove();
+		return out;
+	});
+	check("the ✦ sheet / drawer dropdown lists V1.2 and mounts it with its ✓", cv.mode === "v1-2" && cv.label.startsWith("Chat V1.2") && cv.versions === "V1,V1.2,V2,V3" && cv.box && cv.cursors === 1 && cv.bubbles >= 2, cv);
 	check("no page errors", errors.length === 0, errors);
 } catch (e) { fail++; console.log("FAIL threw", e); }
 console.log(`${pass} passed, ${fail} failed`);

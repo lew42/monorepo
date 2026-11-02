@@ -2,7 +2,7 @@
 
 V1.2 is V1 (`../Chat.js`, the bubbles you already know) fed from `session.messages` ([core/Session/Chat](/framework/core/Session/Chat/readme.md)) instead of `{chat}` lines, with one ✓ that shows how much of what you said the assistant has. The owner asked for it as "an additional version, add it to the list so we can try it out", to replace V1 once it works (2026-11-02). V1 itself is untouched.
 
-Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live. On a session page, the Chat tab has a **Chat V1.2** chip (`?tab=chat&chat_view=v1-2`).
+Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/session.jsonl](fixture/session.jsonl); `?src=<url of any session.jsonl>` draws that session, live. Live, with the mic: **V1.2** in the version dropdown of the ✦ sheet and the drawer's AI tab (`ext/drawer/ChatView.js`). On a session page, the Chat tab has a **Chat V1.2** chip (`?tab=chat&chat_view=v1-2`).
 
 ## What you see
 
@@ -22,7 +22,7 @@ Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/se
 
 ## Test
 
-`FENCE_SERVEX=1 node ChatV1Dot2.test.mjs [base-url] [shots-dir]` (default base `http://monorepo.localhost`; the fence keeps it off the live Servex). It drives `ChatV1Dot2.read()` at 360×740 with the phone UA: one bubble growing sentence by sentence, a live draft after the ✓, the ✓ after each `sent` mark, dimmed then lit green, no 🧠, a `clean` edit in place, a Reply as its own bubble, `stop()`/`start()`, no page errors. 17 checks, including the live draft bubble after the ✓.
+`FENCE_SERVEX=1 node ChatV1Dot2.test.mjs [base-url] [shots-dir]` (default base `http://monorepo.localhost`; the fence keeps it off the live Servex). It drives `ChatV1Dot2.read()` at 360×740 with the phone UA: one bubble growing sentence by sentence, a live draft after the ✓, the ✓ after each `sent` mark, dimmed then lit green, no 🧠, a `clean` edit in place, a Reply as its own bubble, `stop()`/`start()`, no page errors. 18 checks, including the live draft bubble after the ✓ and the sheet/drawer dropdown mounting V1.2.
 
 ## Decisions
 
