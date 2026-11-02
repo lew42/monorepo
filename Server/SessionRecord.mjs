@@ -117,9 +117,10 @@ export default class SessionRecord {
 		if (this.is_chat_ref_target(log)) try { fs.appendFileSync(log, JSON.stringify(ChatWriter.ref_line({ url })) + "\n"); } catch {}
 		return log;
 	}
-	/** Is `log` a session's own session.jsonl (its folder sits directly under a day, per is_session_dir), as opposed to some
-	 *  task folder's task.jsonl beneath it? Only then does a {"task":url} reference also get a chat Ref (add_ref, above). */
-	static is_chat_ref_target(log){ return path.basename(log) === this.NEW && this.is_session_dir(path.dirname(log)); }
+	/** Is `log` a session's own session.jsonl, at any depth of the sessions store (a top-level session, or one nested in
+	 *  another, like a spawned minion's folder), as opposed to some task folder's task.jsonl? A folder gets session.jsonl only
+	 *  when it is a session (start_file, above). Only then does a {"task":url} reference also get a chat Ref (add_ref, above). */
+	static is_chat_ref_target(log){ return path.basename(log) === this.NEW && /[\\/]sessions[\\/]\d{4}[\\/]/.test(path.resolve(log)); }
 	/** The reference line add_ref writes: a plain {"task":url,"as"} line, or a Session entry nested under its cause. */
 	static entry_line(log, url, by, as, entry){
 		const ts = new Date().toISOString();

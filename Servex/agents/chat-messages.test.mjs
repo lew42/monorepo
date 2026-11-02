@@ -182,6 +182,13 @@ try {
 			assert.equal(ref.path, undefined);
 			assert.equal(ref.get_one("by"), "servex");
 		});
+		check("a nested session's own session.jsonl also gets Refs; a task's task.jsonl never does", () => {
+			const day = path.join("public", "framework", "ai", "sessions", "2026", "10", "20");
+			assert.ok(SessionRecord.is_chat_ref_target(path.join(day, "session-x", "session.jsonl")));
+			assert.ok(SessionRecord.is_chat_ref_target(path.join(day, "session-x", "chat-model", "session.jsonl")), "a session nested in a session");
+			assert.ok(!SessionRecord.is_chat_ref_target(path.join(day, "session-x", "some-task", "task.jsonl")));
+			assert.ok(!SessionRecord.is_chat_ref_target(path.join("public", "framework", "core", "session.jsonl")), "outside the sessions store");
+		});
 	}
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
