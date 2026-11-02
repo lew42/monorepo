@@ -10,3 +10,10 @@
 {"assign":{"closed_by":"owner","closed_at":"2026-11-01T17:21:42-06:00","closed_why":null}}
 {"log":{"at":"2026-11-01T17:21:50-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-11-01T17:21:50-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-01T23:21:50.659Z"}
+{"log":{"at":"2026-11-01T17:23:31-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-01T23:23:31.487Z"}
+{"commit":"d7e85061a068","by":"append.mjs","ts":"2026-11-01T23:31:06.011Z"}
+{"commit":"89a3989dcce2","by":"append.mjs","ts":"2026-11-01T23:31:06.526Z"}
+{"commit":"fa3a03513c39","by":"append.mjs","ts":"2026-11-01T23:33:30.688Z"}
+{"commit":"35dd4be4c85e","by":"append.mjs","ts":"2026-11-01T23:33:39.689Z"}
+{"log":{"at":"2026-11-01T17:37:47-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-01T23:37:47.557Z"}
+{"commit":"394141538be1","by":"append.mjs","ts":"2026-11-01T23:40:43.991Z"}

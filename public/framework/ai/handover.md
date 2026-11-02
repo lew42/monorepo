@@ -5,28 +5,29 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-01 00:02 UTC, last 24 h)
+## NOW (computed 2026-11-02 00:02 UTC, last 24 h)
 
-**Pace:** Week: 25% used · 41% gone · 61% of pace (room to spend, 4 days 2 hours left)
+**Pace:** Week: 34% used · 55% gone · 61% of pace (room to spend, 3 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (0):**
-- none
+**Landed (2):**
+- [You're following up on an earlier fan-check investigation. Its full log is at public/framework/ai/sessions/202](/framework/ai/sessions/2026/11/01/spawned/minion-proc-trace/) (minion-proc-trace)
+- [The owner's computer fans are running louder than normal. Find out why. We've had problems before with zombie/](/framework/ai/sessions/2026/11/01/spawned/minion-fan-check/) (minion-fan-check)
 
 **Open, touched in the window (0):**
 - none
 
 **Latest commits on this branch:**
 ```
-db3c0b8f1 servex: log sweep (3 files)
-c3007851d servex: log sweep (1 files)
-2bcdbb9ed servex: log sweep (3 files)
-28bd1e66e servex: log sweep (1 files)
-fc48d46f6 servex: log sweep (4 files)
-d5635f019 servex: log sweep (1 files)
-21caaf661 servex: log sweep (5 files)
-61e8f49ee servex: log sweep (1 files)
+677adb312 site-socket-append: log the one-banner follow-up
+b84408322 Merge branch 'worktree/site-socket-append' into michael/dev
+3c19e82ab One connection state and one top banner: Link.js replaces the slim dev strip and the sheet's reconnect row
+6f82d581f dictation-v3: what landed for the walk, and the owner's queue in order
+d4055fc40 Merge branch 'worktree/qf-9' into michael/dev
+ee466d254 V1 chat reads every new assistant reply aloud, from the wire or the file poll (Recite dedupes); Recite traces auto-off on settled replies and each speak asked; readme says where to look
+36216b79c Recite: one Whisper-log line per read-aloud step (reply heard, auto off, speak asked or failed, play refused, unlocked), so a silent phone says why
+ac20fa78d Merge branch 'worktree/site-socket-append' into michael/dev
 ```
 
 The dated sections below are written by hand and go stale; this block does not.
