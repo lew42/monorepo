@@ -39,6 +39,16 @@ export default class SessionStats extends View {
 		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
 	}
 
+	/** Root tasks done ÷ total (chat-model s7): the session's OWN `tasks` list only (Session.completion / Task.progress_of),
+	 *  never the nested task-folder tree `draw()` already shows below as "Task folders done". Same item-tool `summary` ask as `cost`. */
+	static tasks($v, work){
+		const base = work.id ? AICost.session_url(work.id) : work.dir;
+		AICost.summary(base).then(({ summary }) => {
+			const p = summary?.progress;
+			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
+		}).catch(() => $v.text("—"));
+	}
+
 	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
 	static running($run, work, root){
 		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
@@ -69,6 +79,7 @@ export default class SessionStats extends View {
 					small.c("sov-k", "Running for"); SessionStats.running(strong.c("sov-v", "…"), work, root);
 				});
 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
+				div.c("sov-stat", () => { small.c("sov-k", "Session tasks done"); SessionStats.tasks(strong.c("sov-v", "…").attr("title", "The session's own tasks (its log), dropped ones left out; Task folders done counts the folders on disk instead"), work); });
 			});
 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
