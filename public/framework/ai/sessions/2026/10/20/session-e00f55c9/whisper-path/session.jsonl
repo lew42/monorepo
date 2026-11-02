@@ -25,3 +25,5 @@
 {"review":{"at":"2026-11-01T18:55:41-06:00","answer":{"n":7,"reply":"declined: --final-ink is kept on purpose, so each view names which state it draws and the written state can be retuned in one place"}}}
 {"commit":"405e5038cc29","by":"append.mjs","ts":"2026-11-02T00:57:58.760Z"}
 {"commit":"54c9570258f6","by":"append.mjs","ts":"2026-11-02T00:58:26.747Z"}
+{"commit":"0e94b4e7e9e5","by":"append.mjs","ts":"2026-11-02T00:58:50.996Z"}
+{"finish":{"at":"2026-11-01T18:59:00-06:00","outcome":"Raw Whisper text: the phone's uplink got 14 times slower per byte from 18:12 (whisper-server unchanged at 0.12 s). The page now sends 8-bit mu-law WAVs (half the bytes, same text) and drops a guess still uploading when the segment ends: with a 3 s guess in flight, the final answers in 0.33 s, not 3.15 s. Dim to strong: --draft-ink / --final-ink in framework.css, used by V1, V2 and V3; guess 6.4:1, written 17.4:1. Write-up: /framework/ux/Dictate/doc/upload.md. Left: Opus audio (a tenth of the bytes) needs ffmpeg on the PC; V1 gets the smaller bytes but not the dropped guess."}}
