@@ -15,9 +15,11 @@ const now_iso = () => new Date().toISOString();
 export default class ChatWriter {
 	static KEEP = 500;   // sentence `at`s remembered per session, for a reply's anchor; older ones are found by `find_sentence`
 
-	/* `find_sentence(key, at)`: the id of the sentence with that `at`, read from the session's file (used after a restart, when memory is empty). */
-	constructor({ find_sentence = () => null } = {}){
+	/* `find_sentence(key, at)`: the id of the sentence with that `at`, read from the session's file (used after a restart, when memory
+	 * is empty). `find_message(key, at)`: the id of the Prompt MESSAGE that sentence was filed under, same source, same reason. */
+	constructor({ find_sentence = () => null, find_message = () => null } = {}){
 		this.find_sentence = find_sentence;
+		this.find_message = find_message;
 		this.sessions = new Map();   // key -> {open, open_prompt, last, held: [lines], by_at: Map(at -> sentence id)}
 		this.last_ms = new Map();    // id prefix -> last ms used
 	}
@@ -35,9 +37,9 @@ export default class ChatWriter {
 		return st;
 	}
 
-	/** The Prompt message id an owner sentence with this `at` was filed under, or null (not tracked — e.g. before a restart;
-	 * `msg_at` is memory only, like `by_at`, since `mark_sent` always runs right after the sentence was just mirrored). */
-	message_for(key, at){ return this.state(key).msg_at.get(at) ?? null; }
+	/** The Prompt message id an owner sentence with this `at` was filed under: tried from memory first (`msg_at`, like `by_at`),
+	 * then from the file itself (`find_message`, same durability as `find_sentence` — survives a Servex restart). */
+	message_for(key, at){ return this.state(key).msg_at.get(at) ?? this.find_message(key, at) ?? null; }
 
 	/** The lines to write for one V1 chat line (`chat` = the object under the `chat` key). `hold`: the owner is mid-thought. */
 	mirror(key, chat, { hold = false } = {}){

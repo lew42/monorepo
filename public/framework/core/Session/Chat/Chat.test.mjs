@@ -61,6 +61,15 @@ item.set({ sentences: { push: "s-2" } });
 assert.deepEqual(item.sentences, ["s-1", "s-2"], "an item's own sentences grow the same way a Prompt's do");
 chat[0].set({ items: { add: { type: "Ref", path: "tasks.p-1" } } });
 assert.ok(chat[0].items.items[1] instanceof Ref, "an item can be a Ref instead, to something filed elsewhere");
+
+// PromptItem must be a REGISTERED type (review finding 1): an unregistered one round-trips as a plain Item on a save+reload,
+// which has no push_sentences, so a later {sentences:{push}} would REPLACE the array (set_one's default put) instead of growing it.
+const reloaded = Session.hydrate(JSON.parse(JSON.stringify(s.toJSON()))).messages.find(chat[0].id);
+const reloaded_item = reloaded.items.items[0];
+assert.equal(reloaded_item.constructor.name, "PromptItem", "a save+reload keeps the real class, not a plain Item");
+reloaded_item.set({ sentences: { push: "s-3" } });
+assert.deepEqual(reloaded_item.sentences, ["s-1", "s-2", "s-3"], "it still GROWS (2 held sentences plus the new one), never replaced");
+
 assert.equal(chat[0].sent.fast, undefined, "sent starts empty");
 chat[0].set({ sent: { fast: { at: "a1" } } });
 chat[0].set({ sent: { smart: { at: "a2" } } });
@@ -71,4 +80,4 @@ assert.deepEqual(chat[0].working, { by: "smart", at: "a3" });
 chat[0].set({ working: null });
 assert.equal(chat[0].working, null, "{working: null} clears it, same as the Prompt TASK's own field");
 
-console.log("PASS Chat: sentences and messages added, grown, refined, replayed, snapshotted, heard, Ref member, resurfaced, Prompt-as-a-card (24 checks)");
+console.log("PASS Chat: sentences and messages added, grown, refined, replayed, snapshotted, heard, Ref member, resurfaced, Prompt-as-a-card (26 checks)");

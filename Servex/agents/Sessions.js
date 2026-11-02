@@ -260,7 +260,8 @@ export default class Sessions {
 	/* THE ONE REAL CHAT LIST (core/Session/Chat/readme.md): every V1 {chat} line written here is also written as a line on
 	 * `session.messages` and `session.sentences`, right after it (`write()` below). V1's own lines stay exactly as they were. */
 	get chat_writer(){
-		return this._chat_writer ??= new ChatWriter({ find_sentence: (id, at) => this.find_sentence(this.map[id], at) });
+		return this._chat_writer ??= new ChatWriter({ find_sentence: (id, at) => this.find_sentence(this.map[id], at),
+			find_message: (id, at) => this.find_message(this.map[id], at) });
 	}
 	// The owner is mid-thought: a reply now would land between the sentences of one message, so it waits (ChatWriter.flush).
 	mid_thought(s){ return this.speaking(s) || !!this.thoughts.get(s.id)?.lines.length; }
@@ -279,6 +280,27 @@ export default class Sessions {
 			for (let i = lines.length - 1; i >= 0; i--){
 				if (!lines[i].includes(at) || !lines[i].includes('"sentences"')) continue;
 				try { const a = JSON.parse(lines[i]).sentences?.add; if (a?.at === at) return a.id; } catch {}
+			}
+		} catch {}
+		return null;
+	}
+
+	/* The id of the Prompt MESSAGE a sentence with this `at` was filed under, read back from the session's file (mark_sent's fallback
+	 * when ChatWriter's own memory of it was lost — a Servex restart, builder.md step 6). The same line that adds a sentence always
+	 * either adds its Prompt (`messages.add.sentences` includes the new sentence) or grows an already-open one (`messages.<mid>.sentences.push`
+	 * is that sentence's id) — ChatWriter.owner() always writes both facts in one line (data-shapes synthesis §1 #7). */
+	find_message(s, at){
+		if (!s || !at) return null;
+		try {
+			const lines = fs.readFileSync(this.disk(s.file), "utf8").split("\n");
+			for (let i = lines.length - 1; i >= 0; i--){
+				if (!lines[i].includes(at) || !lines[i].includes('"sentences"') || !lines[i].includes('"messages"')) continue;
+				let l; try { l = JSON.parse(lines[i]); } catch { continue; }
+				const sid = l.sentences?.add?.at === at ? l.sentences.add.id : null;
+				if (!sid || !l.messages) continue;
+				if (l.messages.add?.sentences?.includes(sid)) return l.messages.add.id;
+				const grown = Object.entries(l.messages).find(([, v]) => v?.sentences?.push === sid);
+				if (grown) return grown[0];
 			}
 		} catch {}
 		return null;

@@ -25,3 +25,8 @@ export class PromptItem extends Item {
 }
 
 export default PromptItem;
+
+// Registered globally (review finding 1, 2026-11-02): `toJSON()` already wrote "PromptItem" as its wire type (Item.wire()'s
+// fallback to the constructor name), but hydrate() only resolves a KNOWN type — unregistered, a snapshot round trip warned
+// "unknown type" and came back as a plain Item, losing push_sentences (a later {sentences:{push}} would replace the array).
+Item.register(PromptItem, "PromptItem");

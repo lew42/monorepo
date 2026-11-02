@@ -200,13 +200,18 @@ try {
 
 		// ── step 5/6: marks on the Prompt MESSAGE, and a Prompt as a card (kind + items) ────────────────────────────────
 		{
-			const at0 = owner_v1[0].chat.at;
-			check("Sessions.mark_sent also marks the Prompt MESSAGE that owns the sentence (views-on-messages.md step 3), not only the task broadcast", () => {
+			const at0 = owner_v1[0].chat.at, sid0 = chat[0].sentences[0];
+			check("Sessions.mark_sent also marks the Prompt MESSAGE that owns the sentence (views-on-messages.md step 3), not only the task broadcast — for both seats, even after a restart wiped ChatWriter's own memory (an earlier check in this file already set `S._chat_writer = null`)", () => {
 				S.mark_sent(s, "smart", [{ at: at0 }]);
-				const replayed = Session.replay(read()).messages.messages;
-				const p0 = replayed.find(m => m.sentences?.includes?.(chat[0].sentences[0]));
-				assert.ok(p0.sent.smart?.at, "the Prompt message's sent.smart is set");
-				assert.equal(p0.sent.fast, undefined, "the fast seat's mark is untouched (this harness runs with assistant: \"off\")");
+				const p0 = Session.replay(read()).messages.messages.find(m => m.sentences?.includes?.(sid0));
+				assert.ok(p0.sent.smart?.at, "message_for fell back to reading the file (ChatWriter.find_message, Sessions.find_message) and found the mark's home");
+				assert.equal(p0.sent.fast, undefined, "the fast seat's mark is untouched so far (this harness runs with assistant: \"off\", which gates mark_sent(\"fast\") at the top)");
+				const was = S.assistant;
+				S.assistant = "voice";   // fast_off() reads this; flipped only for this one call, to prove the fast seat's mark goes through the same path
+				try { S.mark_sent(s, "fast", [{ at: at0 }]); } finally { S.assistant = was; }
+				const p0_again = Session.replay(read()).messages.messages.find(m => m.sentences?.includes?.(sid0));
+				assert.ok(p0_again.sent.fast?.at, "the fast seat's mark reaches the message too, through the same ChatWriter.sent_line path");
+				assert.ok(p0_again.sent.smart?.at, "and the earlier smart mark is still there (merged, not overwritten)");
 			});
 			let r = await run_item({ path: URL_, delta: { messages: { [chat[0].id]: { kind: "task", title: "Fix the mobile tab bar" } } } }, { caller: "t" });
 			check("the item tool sets a Prompt's kind and title", () => {
