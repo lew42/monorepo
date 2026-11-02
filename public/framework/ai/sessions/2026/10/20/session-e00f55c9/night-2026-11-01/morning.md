@@ -56,3 +56,5 @@ The plan was [requirements.md](requirements.md). Every item below was merged to 
 - **Servex's native crashes** (`0xC0000409`): four tonight, cause unknown. They need Windows crash dumps (admin). See `Servex/doc/restart.md`.
 - **Parked, as you asked:** paced word streaming, heard-only context, the fast seat's comma feed (a step after V1 switches), and Chatterbox.
 - **Read-aloud follow-ups** are filed in `audio/Recite/improvements.jsonl`. For example, "tap to hear it" doesn't do what it says yet.
+
+**Dictation and read-aloud detail** (13 landings with commits, open items): [../dictation-v3/handover.md](../dictation-v3/handover.md).
