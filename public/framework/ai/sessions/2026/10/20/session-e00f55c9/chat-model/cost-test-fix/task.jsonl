@@ -3,3 +3,4 @@
 {"log":{"at":"2026-11-02T03:20:00-06:00","msg":"Branch worktree/aisession-cost-test, commit 5c79d37b2. Ran node public/framework/core/Test/TestRunner.mjs public/framework/ai/AISession/AISessionCost.test.mjs in the worktree: FAIL before the fix (overlap total 1.3386 vs once 2.4181 on a 572-line log), PASS after (1 passed, 0 failed)."}}
 {"review":{"at":"2026-11-02T03:20:00-06:00","answer":{"n":1,"reply":"fixed: this task.jsonl records the branch, the commit and the test run (FAIL before, PASS after); the task is filed on chat-model's record."}}}
 {"review":{"at":"2026-11-02T03:20:00-06:00","answer":{"n":2,"reply":"noted: the main tree keeps the old line until merge.mjs lands the branch; that is the point of the merge."}}}
+{"review":{"at":"2026-11-02T03:22:00-06:00","answer":{"n":3,"reply":"noted: agreed, a short log overlaps the whole first half and still exercises the replay dedupe."}}}
