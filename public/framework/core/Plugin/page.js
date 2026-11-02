@@ -55,11 +55,11 @@ const control = (row, f) => {
 	const value = row.get("config")[f.key];
 	const push = v => row.set({ config: { [f.key]: v } });
 	return label.c("flex v-center split gap", () => {
-		span(f.label ?? f.key);
+		span(f.label ?? f.key).style("whiteSpace", "nowrap");
 		if (f.kind === "slider") input().attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step).attr("value", value).el.addEventListener("input", e => push(+e.target.value));
 		else if (f.kind === "number") scrub(value, f, push);
 		else input().attr("type", "text").attr("value", value).el.addEventListener("input", e => push(e.target.value));
-	}).style("min-height", "2.75em");
+	}).style("minHeight", "2.75em");
 };
 
 const panel = (rerender) => div.c("surface flex v", () => {
@@ -71,14 +71,14 @@ const panel = (rerender) => div.c("surface flex v", () => {
 				box.el.addEventListener("click", e => e.stopPropagation());
 				box.el.addEventListener("change", e => { row.set({ enabled: e.target.checked }); rerender(); });
 				span(row.get("name"));
-			});
+			}).style("border", "0").style("background", "none").style("boxShadow", "none").style("width", "100%").style("minHeight", "2.75em").style("cursor", "pointer");
 			const sections = Object.groupBy(row.fields, f => f.section ?? "Settings");
 			for (const [name, fields] of Object.entries(sections)) {
 				div.c("flex v pad", () => { span.c("muted h4", name); fields.forEach(f => control(row, f)); });
 			}
 		});
 	}
-});
+}).style("flex", "1 1 20em");
 
 export default new Page({
 	meta: import.meta,
@@ -103,8 +103,8 @@ Badge.plugins.set({ Glow: { enabled: false } });   // off: new Badges are not`);
 			panel(draw);
 			div.c("flex v gap", () => {
 				span.c("muted h4", "Live result: a new Badge, made after your last change");
-				stage = div.c("surface pad").style("minWidth", "12em").style("minHeight", "8em");
-			});
+				stage = div.c("surface pad").style("minHeight", "8em");
+			}).style("flex", "1 1 16em");
 		});
 		for (const row of Badge.plugins) row.on("change", draw);
 		draw();
