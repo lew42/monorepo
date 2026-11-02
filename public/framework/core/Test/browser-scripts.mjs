@@ -19,7 +19,7 @@ export const SCRIPTS = [
 	{"file":"public/framework/ux/Dictate/test/in-place.mjs","args":["{site}","{shots}"],"status":"red","why":"4 checks fail (see its output)"},
 	{"file":"public/framework/ux/Dictate/test/load.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/marks.mjs","args":["{site}"],"status":"pass"},
-	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"red","why":"A2: New session does not clear the demo chat"},
+	{"file":"public/framework/ux/Dictate/test/new-session.mjs","args":["{site}","{repo}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"red","why":"5 s outage should stay hidden (8 s grace); log lines not written"},

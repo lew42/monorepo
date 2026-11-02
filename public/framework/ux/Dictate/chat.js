@@ -44,6 +44,7 @@ function create_controller({ persist }){
 	const ctl = {
 		session: null,
 		file: null,
+		epoch: 0,   // bumped by reset(): a session start that began before it must not land after it
 		fresh: false,     // true after New session until the next session starts: Session.start({fresh})
 		starting: null,   // a pending Session.start() promise — two mounts' first sentence at once share ONE session
 		nav_path: null,   // the path last actually reported to the session (report_nav's own dedupe)
@@ -78,13 +79,14 @@ function create_controller({ persist }){
 		if (ctl.session) return;
 		if (!ctl.starting && !ctl.fresh){
 			// Another tab, a link opened in a new tab, the Recite page: join the voice session in use rather than start a second one.
+			const epoch = ctl.epoch;
 			ctl.starting = Session.recent_project({ limit: 5 }).then(rows => {
 				const latest = (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
 					.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
 				if (!latest || Date.now() - Date.parse(latest.last_at ?? latest.at ?? 0) > JOIN_IDLE_MS) return null;
 				return Session.resume(latest.session);
 			}).catch(() => null).then(made => {
-				if (!made || ctl.session) return;
+				if (!made || ctl.session || epoch !== ctl.epoch) return;
 				ctl.session = made.session; ctl.file = made.file;
 				if (persist) write_saved({ session: made.session, file: made.file });
 				broadcast();
@@ -93,8 +95,10 @@ function create_controller({ persist }){
 			if (ctl.session) return;
 		}
 		if (!ctl.starting){
+			const epoch = ctl.epoch;
 			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
 			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {
+				if (epoch !== ctl.epoch) return;   // New session was pressed while this one was starting
 				ctl.session = made.session; ctl.file = made.file; ctl.fresh = false;
 				if (persist) write_saved({ session: made.session, file: made.file });
 				broadcast();
@@ -123,6 +127,7 @@ function create_controller({ persist }){
 	}
 
 	function reset(){
+		ctl.epoch++;
 		ctl.session = null; ctl.file = null; ctl.starting = null; ctl.fresh = true;
 		if (persist) write_saved({ fresh: true });   // a keep:false demo must not overwrite the global key
 		broadcast();
@@ -367,7 +372,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		on_link(fn){ on_link.add(fn); fn(link); return () => on_link.delete(fn); },
 		/** The Reconnect button: reopen the live wire now (it also retries by itself, 1 s doubling to 15 s). Never throws; false = nothing to do. */
 		reconnect(){ try { return !!stop_stream?.reconnect?.(); } catch (e){ console.error("chat reconnect:", e); return false; } },
-		reset(){ owner.reset(); },
+		reset(){ owner.reset(); if (watching === null) panel.reset(); },   // attach() clears only on a session change; with none yet (first send still starting) the drawn lines go here
 		remove(){
 			unsubscribe();
 			stop_watch?.(); stop_watch = null;
