@@ -54,3 +54,12 @@ The owner likes the word-by-word highlight. The bug: it sometimes vanishes for w
 - The likely causes, to confirm from that trace: text-prep or markdown (links, icons, mention chips) changes the spoken text so it no longer matches the DOM; or the bubble re-renders while the reply streams and drops the highlight's node.
 - Fix the cause: match on normalized text (or map the prepared text back to DOM offsets), and re-find the node after a re-render instead of holding a stale one.
 Prove it with a test reply holding a link, a mention chip and markdown, re-rendered mid-read: every sentence stays highlighted, no `not found` traces.
+
+## Turn-taking, one playback model with (a) resume (2026-11-01 20:48)
+
+The owner's notes, items 11–12: [owner-notes-2026-11-01-2040.md](../owner-notes-2026-11-01-2040.md). Build (a) resume, queueing and turn-taking as **one change, one merge**:
+- a new reply QUEUES behind the one being read and never replaces it; only an owner barge-in stops playback;
+- never START a reply while the owner is speaking: hold it until about 1.5 s of quiet;
+- if the owner speaks mid-reply: stop, keep the rest queued, resume after quiet (unless their line asks something new, which drops the rest).
+Echo matching (above) is what makes "the owner is speaking" trustworthy, so do echo in the same change or the merge right after. The order is now: (a)+queue+turn-taking → echo → highlight dropout → (c) karaoke with phrase streaming → (b) tap to pause.
+Prove it with a test: two replies arriving back to back play in order; a reply arriving mid-speech waits for quiet; a barge-in stops, then resumes the rest.
