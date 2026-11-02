@@ -853,3 +853,11 @@
 {"run":"2026-10-25T06:39:07.440Z","kind":"links","count":0}
 {"run":"2026-10-25T06:46:15.414Z","kind":"links","count":0}
 {"run":"2026-10-25T06:58:20.001Z","kind":"links","count":0}
+{"run":"2026-11-02T04:38:46.546Z","kind":"links","count":6}
+{"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/join-and-follow","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+{"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/recite-trace","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+{"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/sheet-reads","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+{"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/tap-unlock","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+{"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-wall","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+{"run":"2026-11-02T04:38:46.546Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/views-fix","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/session.jsonl"}
+{"run":"2026-11-02T04:55:11.681Z","kind":"links","count":0}

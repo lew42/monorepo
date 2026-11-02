@@ -28,3 +28,7 @@
 {"file":"dropped.json"}
 {"file":"failures.jsonl"}
 {"file":"tasks/"}
+{"file":"tasks/","gone":true}
+{"file":"done-check.json","gone":true}
+{"file":"dropped.json","gone":true}
+{"file":"failures.jsonl","gone":true}

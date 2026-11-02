@@ -100,3 +100,8 @@
 {"file":"failures.jsonl"}
 {"file":"failures.jsonl","gone":true}
 {"file":"failures.jsonl"}
+{"file":"data/","gone":true}
+{"file":"failures.jsonl","gone":true}
+{"file":"data/"}
+{"file":"data/","gone":true}
+{"file":"data/"}
