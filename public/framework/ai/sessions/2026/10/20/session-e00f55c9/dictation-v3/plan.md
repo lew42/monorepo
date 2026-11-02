@@ -40,6 +40,7 @@ Each new class gets its readme line and class doc in the same commit (the owner,
 
 ## Queued, in the owner's order (after the voice works on the phone)
 
+-1. ⏳ **Always one active session** (the owner's concern, 2026-11-01): after a first load, a switch, a new session or a reload, the send, the view and read-aloud all point at the same session. Brief [active-session/requirements.md](active-session/requirements.md), `mastermind-active-session` (Sonnet, queued on RAM).
 0. ⬜ **V3 reads the real chat list** once worktree/chat-messages merges: replay into a Session, draw `session.messages.messages` (Prompt / Reply / Message), live from the Session "delta" event; drop V3's own `{chat}` reading. Contract: [chat-structure.md](chat-structure.md), the branch's core/Session/Chat/readme.md.
 1. ⬜ **Merge worktree/dictation-v3:** the version dropdown, V3 every reply + live reply + brighter draft + no link icon, the karaoke playhead, fast seat off.
 2. ⬜ **V3 paragraphs:** a long dictated Prompt shows as one 50–75 line paragraph; break it at pauses, sentence groups and topic shifts (the gap the mic already measures before each segment, `on_level`).
