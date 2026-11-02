@@ -19,7 +19,7 @@ const lines = [
 ];
 const s = Session.replay(lines), chat = s.messages.messages;
 assert.deepEqual(chat.map(m => m.constructor), [Prompt, Reply, Message], "one class per type, in the list's order");
-assert.equal(chat[0].said, "Fix the tab bar. On my phone.", "a Prompt holds its sentences by id and grows");
+assert.equal(chat[0].raw, "Fix the tab bar. On my phone.", "a Prompt holds its sentences by id and grows");
 assert.equal(chat[0].state, "refined", "a title and text refine it in place");
 assert.ok(s.tasks.find("p-1") instanceof TaskPrompt, "\"Prompt\" in tasks is still the Prompt task");
 assert.equal(chat[1].re.to, "s-2", "a Reply anchors to a sentence");
@@ -48,4 +48,27 @@ assert.equal(resurfaced_ref.path, "messages.m-1", "the Ref names the original's 
 assert.equal(chat[0].get_one("resurfaced"), resurfaced_ref.id, "the original is marked with the new Ref's id");
 assert.equal(s.messages.find("m-1"), chat[0], "and the original never moved — it is still m-1, in its own place");
 
-console.log("PASS Chat: sentences and messages added, grown, refined, replayed, snapshotted, heard, Ref member, resurfaced (17 checks)");
+// Prompt as a card (chat-model step 6, plan.md decision 4): kind, items, and the sent/working marks on the message itself.
+assert.equal(chat[0].kind, null, "a plain dictation has no kind");
+chat[0].set({ kind: "task", title: "Fix the mobile tab bar" });
+assert.equal(chat[0].kind, "task", "kind is set like any other data field");
+chat[0].set({ items: { add: { title: "Call the owner", sentences: ["s-1"] } } });
+assert.equal(chat[0].items.length, 1, "items is a List, made on first use");
+const item = chat[0].items.items[0];
+assert.equal(item.constructor.name, "PromptItem", "an untyped item hydrates as PromptItem");
+assert.deepEqual(item.sentences, ["s-1"]);
+item.set({ sentences: { push: "s-2" } });
+assert.deepEqual(item.sentences, ["s-1", "s-2"], "an item's own sentences grow the same way a Prompt's do");
+chat[0].set({ items: { add: { type: "Ref", path: "tasks.p-1" } } });
+assert.ok(chat[0].items.items[1] instanceof Ref, "an item can be a Ref instead, to something filed elsewhere");
+assert.equal(chat[0].sent.fast, undefined, "sent starts empty");
+chat[0].set({ sent: { fast: { at: "a1" } } });
+chat[0].set({ sent: { smart: { at: "a2" } } });
+assert.deepEqual(chat[0].sent, { fast: { at: "a1" }, smart: { at: "a2" } }, "fast and smart merge; neither mark overwrites the other");
+assert.equal(chat[0].working, null, "no one is writing yet");
+chat[0].set({ working: { by: "smart", at: "a3" } });
+assert.deepEqual(chat[0].working, { by: "smart", at: "a3" });
+chat[0].set({ working: null });
+assert.equal(chat[0].working, null, "{working: null} clears it, same as the Prompt TASK's own field");
+
+console.log("PASS Chat: sentences and messages added, grown, refined, replayed, snapshotted, heard, Ref member, resurfaced, Prompt-as-a-card (24 checks)");

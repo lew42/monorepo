@@ -668,6 +668,9 @@ export default class Sessions {
 			if (!ls.length) return;
 			const last = ls[ls.length - 1], at = now_ms(), from = Date.parse(last.said_at ?? last.at);
 			this.write(s, { sent: { to, at, re: ls.map(l => l.at), ...(Number.isNaN(from) ? {} : { delay_ms: Math.max(0, Date.parse(at) - from) }) } });
+			// views-on-messages.md step 3: the same mark, on the Prompt MESSAGE that owns the last line's sentence (if it is tracked).
+			const mid = this.chat_writer.message_for(s.id, last.at);
+			if (mid) this.write(s, ChatWriter.sent_line(mid, to, at));
 		} catch (e){ console.error(`sessions: could not mark a line sent: ${e.message}`); }
 	}
 

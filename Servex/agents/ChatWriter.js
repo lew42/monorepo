@@ -31,9 +31,13 @@ export default class ChatWriter {
 
 	state(key){
 		let st = this.sessions.get(key);
-		if (!st) this.sessions.set(key, st = { open: null, open_prompt: null, last: null, held: [], by_at: new Map() });
+		if (!st) this.sessions.set(key, st = { open: null, open_prompt: null, last: null, held: [], by_at: new Map(), msg_at: new Map() });
 		return st;
 	}
+
+	/** The Prompt message id an owner sentence with this `at` was filed under, or null (not tracked — e.g. before a restart;
+	 * `msg_at` is memory only, like `by_at`, since `mark_sent` always runs right after the sentence was just mirrored). */
+	message_for(key, at){ return this.state(key).msg_at.get(at) ?? null; }
 
 	/** The lines to write for one V1 chat line (`chat` = the object under the `chat` key). `hold`: the owner is mid-thought. */
 	mirror(key, chat, { hold = false } = {}){
@@ -51,10 +55,15 @@ export default class ChatWriter {
 		if (st.by_at.size > ChatWriter.KEEP) st.by_at.delete(st.by_at.keys().next().value);
 		const sentence = { id: sid, at: chat.at, text: chat.text, via: chat.via ?? "text", ...(chat.raw ? { raw: chat.raw } : {}) };
 		const prompt = chat.prompt ?? null;
-		if (st.open && st.last === st.open && st.open_prompt === prompt)
+		if (st.open && st.last === st.open && st.open_prompt === prompt){
+			st.msg_at.set(chat.at, st.open);
+			if (st.msg_at.size > ChatWriter.KEEP) st.msg_at.delete(st.msg_at.keys().next().value);
 			return { sentences: { add: sentence }, messages: { [st.open]: { sentences: { push: sid } } }, by: "servex", ts: now_iso() };
+		}
 		const mid = this.id("m");
 		Object.assign(st, { open: mid, open_prompt: prompt, last: mid });
+		st.msg_at.set(chat.at, mid);
+		if (st.msg_at.size > ChatWriter.KEEP) st.msg_at.delete(st.msg_at.keys().next().value);
 		return { sentences: { add: sentence }, messages: { add: { type: "Prompt", id: mid, by: "owner", at: chat.at, sentences: [sid], ...(prompt ? { prompt } : {}) } }, by: "servex", ts: now_iso() };
 	}
 
@@ -91,6 +100,14 @@ export default class ChatWriter {
 	static ref_line({ path, url } = {}){
 		const at = now_iso();
 		return { messages: { add: { type: "Ref", ...(url !== undefined ? { url } : { path }), by: "servex", at } }, by: "servex", ts: at };
+	}
+
+	/* The sent mark on the MESSAGE, not just the task (builder.md step 6): `sent.fast` / `sent.smart` land on the Prompt
+	 * message that owns the owner line's sentence, so a view that never reads the Prompt TASK can still draw them (✓/🧠).
+	 * `working` stays task-only for now — it is written directly by the smart seat through the item tool, on whichever
+	 * Prompt (task or message) a future instruction names; Prompt.js (core/Session/Chat) already carries the field. */
+	static sent_line(mid, to, at){
+		return { messages: { [mid]: { sent: { [to]: { at } } } }, by: "servex", ts: now_iso() };
 	}
 
 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
