@@ -154,6 +154,21 @@ test.node("Dropped.read, DatedFiles and TaskMigrate read marked lines like bare 
 	} finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test.node("CloseLoop.finished and StaleClose.worked read marked lines like bare ones", async t => {
+	const { default: CloseLoop } = await import("../../../../Servex/CloseLoop.js");
+	const { default: AIIndex } = await import("../../../../Server/AIIndex.mjs"), AIIndex_read = f => AIIndex.read_lines(f);
+	const { default: StaleClose } = await import("../../../../Server/StaleClose.mjs");
+	const { default: fs } = await import("node:fs"), { default: os } = await import("node:os"), { default: path } = await import("node:path");
+	const dir = fs.mkdtempSync(path.join(os.tmpdir(), "line-readers-cl-"));
+	try {
+		const bare = [{ assign: { title: "T" } }, { start: {} }, { complete: finish }];
+		const file = lines => { const f = path.join(dir, Math.random() + ".jsonl"); fs.writeFileSync(f, lines.map(show).join(String.fromCharCode(10)) + String.fromCharCode(10)); return f; };
+		t.ok(CloseLoop.finished(CloseLoop.lines(file(bare.map(mark))), "minion"), "CloseLoop sees a marked complete() outcome");
+		const log = [{ assign: { title: "T" } }, { start: {} }, { start: {} }, { start: {} }, { start: {} }, { start: {} }, { start: {} }, { start: {} }, { start: {} }];
+		t.eq(StaleClose.worked(AIIndex_read(file(log.map(mark)))), StaleClose.worked(AIIndex_read(file(log))), "StaleClose.worked ignores start() lines like start lines");
+	} finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 // ---- the switch on: the main flows with Store.marked_lines = true ---------------------------------------------------------
 
 test.node("with Store.marked_lines ON: a browser-style write, the item tool, a Task's verbs and a replay all agree", async t => {
