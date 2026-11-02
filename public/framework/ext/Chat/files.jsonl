@@ -47,3 +47,5 @@
 {"file":"sentence-send.test.mjs"}
 {"file":"ink-dim.test.mjs"}
 {"file":"person-icon.test.mjs"}
+{"file":"improvements.jsonl"}
+{"file":"failures.jsonl","gone":true}

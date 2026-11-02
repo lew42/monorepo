@@ -13,3 +13,4 @@
 {"file":"failures.jsonl"}
 {"file":"resurface.test.mjs"}
 {"file":"live-guess.test.mjs"}
+{"file":"failures.jsonl","gone":true}
