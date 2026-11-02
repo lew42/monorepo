@@ -1,0 +1,3 @@
+{"start":{"at":"2026-11-01T23:50:23-06:00"}}
+{"log":{"at":"2026-11-01T23:50:23-06:00","msg":"s4: List view hooks — wiring List.View (DefaultView) keyed reconcile for add/remove/move/order, Ref members via RefView, ChatList, shots at 400/1200."}}
+{"log":{"at":"2026-11-01T23:52:42-06:00","msg":"s4: wired List.View = DefaultView (reconcile() already keyed add/remove/move/order; child() now Ref-aware -> RefView). Writing a headless browser test (list-view.test.mjs, Browser.mjs pattern) for DOM order + Ref rendering, before touching ChatList."}}

@@ -8,6 +8,8 @@ import Session from "/framework/core/Session/Session.js";
 import Message from "/framework/core/Session/Chat/Message.js";
 import Prompt from "/framework/core/Session/Chat/Prompt.js";
 import Reply from "/framework/core/Session/Chat/Reply.js";
+import Ref from "/framework/core/Item/Ref.js";
+import RefView from "/framework/core/Item/RefView.js";
 import { md_into } from "../md.js";
 View.stylesheet(import.meta, "ChatList.css");
 
@@ -37,8 +39,14 @@ export default class ChatList extends JSONL {
 		let prev = null;
 		for (const m of list){
 			let el = this.els.get(m);
-			if (!el){ el = document.createElement("div"); this.els.set(m, el); this.fill(el, m); }
-			else if (this.dirty.has(m)) this.fill(el, m);
+			if (!el){
+				// A Ref (a root task or a spawned child session, step 3) is drawn by its own RefView — the
+				// target's own state, live — never by `fill()`'s prompt/reply bubble, which has nothing to say
+				// about an item it does not hold the data of.
+				el = m instanceof Ref ? new RefView({ ref: m, where: false }).ac("chatlist-msg", "is-ref").el : document.createElement("div");
+				this.els.set(m, el);
+				if (!(m instanceof Ref)) this.fill(el, m);
+			} else if (this.dirty.has(m) && !(m instanceof Ref)) this.fill(el, m);
 			if (el.previousElementSibling !== prev || el.parentNode !== box) prev ? prev.after(el) : box.prepend(el);
 			prev = el;
 		}

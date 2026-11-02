@@ -17,7 +17,7 @@ class List extends Events(Object) {   // ✅ core/List/List.js — Events built 
   set(delta)                          // routes a nested {"add": {...}} etc. — Item.set_one()'s recursion target
   get(key)                            // a property, else a member by id: the next hop of a line or a dotted path
   index()                             // ✅ 2026-10-28: the id-to-member Map find() reads; kept in step by every verb
-  render()                            // draws through List.View, wired from the browser (the default view); else nothing
+  render()                            // draws through List.View — DefaultView wires itself in (ux/Content/Object/DefaultView.js); else nothing in node
 }
 ```
 
@@ -50,6 +50,7 @@ list.toJSON()       //  a bare array
 - A member is named in a line by its id, bare or as `#id`; `list.member(id)` is `find(id)` (an Item's `member` searches its lists), and `{"add()": …}` calls the verb by the D13 spelling: [core/Item/doc/line-format.md](../Item/doc/line-format.md).
 - **`add` writes an envelope** (fix 5, `/framework/research/2026/10/29/persistence-sync/design/fixes.md`): an Item member's own fields ride under `data`, and its child lists ride as their own top-level keys (`made.toJSON()`'s own shape) — never spread flat into the add payload, where a data field named `after` or `type` would collide with the list's own metadata and a child list would be lost silently.
 - **`list.ref(item)` links an item ANOTHER list already owns** (F7, built 2026-11-01, reworded 2026-11-02, chat-model step 2): makes a Ref to it — same file `{path}`, another file `{url, path}` — and `add()`s that. **`add()`'s own default is unchanged** (still a silent re-parent, exactly as on `michael/dev`): switching it is a separate, later, owner-approved merge, pending the census in [plan.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/plan.md) decision 2 finding no caller relies on the move. A caller that means to MOVE an owned item must call `item.move_to(dest)`, never `add()` or `ref()`: [`../Item/doc/ref.md`](../Item/doc/ref.md#made-by-listref-and-chatresurface).
+- **`List.View = DefaultView`** (2026-11-02, chat-model step 4, [ux/Content/Object/DefaultView.js](/framework/ux/Content/Object/DefaultView.js)): a bare List drawn with `view(list)` or `list.render()` updates on `add`/`remove`/`move`/`order`/`clear` keyed by member id — only the changed rows redraw, the rest just move. A Ref member (above) draws as `RefView`, never a nested DefaultView. Test: `ux/Content/Object/list-view.test.mjs`. Demo: [ext/Chat/list](/framework/ext/Chat/list/readme.md) draws `session.messages` through the same `DefaultView.reconcile()`.
 - A saved `move` line replays: `move({id, after, from})` (the whole payload, as `set()` hands it) is the line form, and a cross-list `from` path is resolved from the Store's host.
 - No reactive or derived lists — they leaked a listener per row; derive with `[...list].filter(…)`: [doc/decisions.md](./doc/decisions.md)
 

@@ -1,4 +1,7 @@
 import View, { div, span, a, summary, icon } from "../../../core/View/View.js";
+import List from "../../../core/List/List.js";
+import Ref from "../../../core/Item/Ref.js";
+import RefView from "../../../core/Item/RefView.js";
 
 View.stylesheet(import.meta, "DefaultView.css");
 
@@ -221,9 +224,13 @@ export default class DefaultView extends View {
 		});
 	}
 
-	// A nested object: its own default view, one level less open, with this object added to the path.
-	child(value, key){
-		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject) });
+	// A nested object: its own default view, one level less open, with this object added to the path. A Ref
+	// (a list member standing in for an item elsewhere, core/Item/Ref.js) draws as RefView, never a nested
+	// DefaultView of its own near-empty data — `opts` carries `capture: false` for a view built outside a
+	// capturing context (reconcile(), below).
+	child(value, key, opts = {}){
+		if (value instanceof Ref) return new RefView({ ref: value, where: false, ...opts });
+		return new this.constructor({ subject: value, key, open: this.levels - 1, path: new Set(this.path).add(this.subject), ...opts });
 	}
 
 	// A class: its listed properties (names only, it has no values), then its own methods.
@@ -316,7 +323,7 @@ export default class DefaultView extends View {
 		let prev = null;
 		for (const m of want){
 			let v = this.kids.get(m);
-			if (!v){ v = new this.constructor({ subject: m, capture: false, open: this.levels - 1, path: new Set(this.path).add(this.subject) }); this.kids.set(m, v); DefaultView.flash(v.$head?.el ?? v.el); }
+			if (!v){ v = this.child(m, undefined, { capture: false }); this.kids.set(m, v); DefaultView.flash(v.$head?.el ?? v.el); }
 			const at = prev ? prev.nextSibling : this.$body.el.firstChild;
 			if (at !== v.el) this.$body.el.insertBefore(v.el, at);
 			prev = v.el;
@@ -356,6 +363,11 @@ export default class DefaultView extends View {
 }
 
 DefaultView.prototype.tag = "details";
+
+// `List.render()` (core/List/List.js) checks `Object.hasOwn(List, "View")` before building one, so a bare
+// `List` draws through the default view too — its keyed `reconcile()` (above) already does the right thing
+// for add/remove/move/order, same as a List nested inside another object's row.
+List.View = DefaultView;
 
 /* `view(thing, opts)` — the one call. It picks `thing.constructor.View` when that class (or one it extends)
  * declares a View, else the default view above. `opts` go to the view: `open`, `properties`.
