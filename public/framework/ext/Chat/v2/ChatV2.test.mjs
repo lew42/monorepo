@@ -1,191 +1,95 @@
-// node ChatV2.test.mjs [base-url] [shots-dir] — headless: order, nesting, show raw, live append, in-place patching. Needs the global playwright and the dev server.
+// node ChatV2.test.mjs [base-url] [shots-dir] — headless: ChatV2 is now a ChatV3 subclass (views-on-messages.md step 2),
+// drawn from the SAME fixture as V3 (session.messages, fixture/messages-session.jsonl, a copy of V3's own plus a few
+// {chat}/{sent} broadcast lines so the ✓/🧠 marks have something to read). Proves what V2 adds on top of V3: the marks
+// (only on the newest Prompt), a Reply drawn beside the sentence it answers, and live append. Needs the global playwright
+// and the dev server.
 import { browser as get_browser, close as close_browser } from "../../../../../Server/Browser.mjs";
 import { copyFileSync, appendFileSync, rmSync, mkdirSync } from "node:fs";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];   // base: the main site; pass a worktree url to test a branch
-// The live copy goes in the tree the site at `base` serves: with no url that is the main tree (first in `git worktree list`), even when
-// this file runs from a worktree or merge.mjs's .merge-base checkout; with a url, this checkout. One name per run, so two runs never share a file.
-const here = fileURLToPath(new URL(".", import.meta.url)), rel = "public/framework/ext/Chat/v2/fixture/";
-const main_tree = (() => { try { return execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: here, windowsHide: true, encoding: "utf8" }).split("\n")[0].replace(/^worktree /, "").trim(); } catch { return null; } })();
-const served = process.argv[2] || process.env.SITE_URL || !main_tree ? here + "fixture/" : `${main_tree}/${rel}`;
-const dir = here + "fixture/", name = `live-${process.pid}.jsonl`, copy = served + name, src = `/framework/ext/Chat/v2/fixture/${name}`;
+const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost", shots = process.argv[3];
+const here = fileURLToPath(new URL(".", import.meta.url));
+const fixture = here + "fixture/messages-session.jsonl", live = `live-v2-${process.pid}.jsonl`;
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
 
-copyFileSync(dir + "session.jsonl", copy);
-const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1920, height: 1000 } });
+copyFileSync(fixture, here + "fixture/" + live);
+const browser = await get_browser(), page = await browser.newPage({ viewport: { width: 1920, height: 1200 } });
 const errors = []; page.on("pageerror", e => errors.push(String(e)));
 const ids = sel => page.$$eval(sel, els => els.map(e => e.dataset.id));
-const tap = sel => page.$eval(sel, e => e.click());   // the dev drawer overlays the page at 1920: click the element itself
-const on_chat = () => page.waitForSelector(".chat-v2-prompt", { timeout: 15000 });
+const tap = sel => page.$eval(sel, e => e.click());
+const ready = () => page.waitForSelector(".chat-v3-prompt", { timeout: 15000 });
+const src = `/framework/ext/Chat/v2/fixture/${live}`;
+const first = ".chat-v3-prompt[data-id='m-1793586471880']", newest = ".chat-v3-prompt[data-id='m-1793586760769']";
 
 try {
-	// 1. the fixture page: prompts in file order, replies and cards under their prompt
-	await page.goto(`${base}/framework/ext/Chat/v2/`); await on_chat();
-	check("three prompts, in file order", JSON.stringify(await ids(".chat-v2 > .chat-v2-prompt")) === JSON.stringify(["p-1761382800000", "p-1761382900000", "p-1761382950000"]), await ids(".chat-v2 > .chat-v2-prompt"));
-	const first = ".chat-v2-prompt[data-id='p-1761382800000']";
-	check("refined title shown", (await page.textContent(first + " .chat-v2-title")).includes("refined prompt first"));
-	check("plain reply sits under its prompt", await page.$(first + " .chat-v2-nest [data-id='r-1761382840000']") !== null);
-	check("anchored reply is in the prompt, with its quote and marked words", (await page.textContent(first + " .chat-v2-nest [data-id='r-1761382830000'] .chat-v2-mark")) === "The raw words");
-	// Both questions under the first prompt are already answered in the fixture (one inline, one by a later root
-	// line) — resurface (review round 2) surfaces an answered Question to the ROOT, so only the 2 tasks nest here.
-	check("children: 2 tasks under the first prompt (both questions already answered, surfaced at the root)", (await page.$$(first + " .chat-v2-nest > .chat-v2-child")).length === 2);
-	check("answered question phase", await page.getAttribute("[data-id='q-1761382835000']", "data-phase") === "answered");
-	check("question answered by a later line", await page.getAttribute("[data-id='q-1761382836000']", "data-phase") === "answered");
-	check("both surfaced at the root, in the order they were answered", JSON.stringify(await page.$$eval(".chat-v2 > [data-phase='answered']", els => els.map(e => e.dataset.id))) === JSON.stringify(["q-1761382835000", "q-1761382836000"]));
-	check("a surfaced question keeps the hint back to its prompt (data-from)", await page.getAttribute("[data-id='q-1761382835000']", "data-from") === "p-1761382800000");
-	check("done task", await page.getAttribute(first + " [data-id='t-1761382837000']", "data-phase") === "complete");
-	check("open task (running)", await page.getAttribute(first + " [data-id='t-1761382838000']", "data-phase") === "running");
-	const second = ".chat-v2-prompt[data-id='p-1761382900000']";
-	check("paragraph-only prompt shows its paragraphs as sentences", (await page.$$(second + " .chat-v2-sentence")).length === 2);
-	check("root Question with `from` sits under its prompt, open", await page.getAttribute(second + " [data-id='q-1761382910000']", "data-phase") === "open");
-	const third = ".chat-v2-prompt[data-id='p-1761382950000']";
-	check("a `subject` with no `title` reads as the title (Prompt.label's order)", (await page.textContent(third + " .chat-v2-title")) === "A quick aside about naming");
-	check("an anchor given as {from,to} marks the same words as {words}", (await page.textContent(third + " .chat-v2-nest [data-id='r-1761382955000'] .chat-v2-mark")) === "Call it");
-	check("raw hidden by default", (await page.$(first + " .chat-v2-raw")) === null);
-	await tap(first + " .chat-v2-toggle");
-	check("show raw reveals the whisper text", (await page.textContent(first + " .chat-v2-raw")).includes("yeah so I think the chat"));
-	check("show raw moves the anchored reply beside its sentence, drawn once", (await page.$$("[data-id='r-1761382830000']")).length === 1 && await page.$(first + " .chat-v2-beside [data-id='r-1761382830000']") !== null);
-	check("raw open: anchored reply now sits beside its sentence", await page.$(first + " .chat-v2-sentence[data-sentence='a2'] .chat-v2-beside [data-id='r-1761382830000']") !== null);
+	// 1. the fixture, read-only: card order and nesting are exactly ChatV3's own (no bubbles, Replies/Tasks inside their Prompt).
+	await page.goto(`${base}/framework/ext/Chat/v2/`); await ready();
+	check("six prompts, in the chat list's own order (same as V3)", JSON.stringify(await ids(".chat-v3 > .chat-v3-card")) === JSON.stringify([
+		"m-1793586471880", "m-1793586544363", "m-1793586591861", "m-1793586626953", "m-1793586755261", "m-1793586760769",
+	]), await ids(".chat-v3 > .chat-v3-card"));
+	check("a Question still nests under its Prompt (through the task link), not at the root", await page.$(first + " .chat-v3-nest [data-id='q-1793586471874']") !== null);
+
+	// every Reply in the fixture (9, placement.test.mjs's own count) lands beside the sentence holding its re.to, none left in a trailing list
+	const EXPECTED_BESIDE = [
+		["s-1793586471880", "Your words are arriving"], ["s-1793586471880", "there's no voice"],
+		["s-1793586544363", "Not really. Chrome on Android"],
+		["s-1793586591861", "I asked"], ["s-1793586591861", "The plan avoids query strings"],
+		["s-1793586626953", "I asked"], ["s-1793586626953", "it's still the old code"],
+		["s-1793586755261", "I'll tell you as soon as"],
+		["s-1793586760769", "Yes, refresh now"],
+	];
+	let beside_ok = true, beside_got = [];
+	for (const [sid, snippet] of EXPECTED_BESIDE) {
+		const found = await page.$eval(`[data-sentence='${sid}'] .chat-v2-beside`, (el, s) => el.textContent.includes(s), snippet).catch(() => false);
+		if (!found) { beside_ok = false; beside_got.push([sid, snippet]); }
+	}
+	check("every Reply in the fixture (9) lands beside the sentence holding its re.to", beside_ok, beside_got);
+	const trailing_total = await page.$$eval(".chat-v3-card > .chat-v3-reply", els => els.length);
+	check("no Reply is left in the trailing list (every Prompt here is still in dictation mode)", trailing_total === 0, trailing_total);
+
+	// 2. the marks: only the NEWEST Prompt carries them, even when an older one has sent/answered data too.
+	check("the oldest prompt has sent/answered data in the fixture but shows no marks (not the newest)", await page.$(first + " .chat-v2-marks") === null);
+	check("the newest prompt shows both marks", await page.$(newest + " .chat-v2-marks .chat-cursor") !== null && await page.$(newest + " .chat-v2-marks .chat-smart-cursor") !== null);
+	check("✓ is done (fast has the line)", await page.$eval(newest + " .chat-cursor", e => e.classList.contains("done")));
+	check("🧠 is done (a reply already answers it)", await page.$eval(newest + " .chat-smart-cursor", e => e.classList.contains("done")));
+
+	// 3. replies drawn beside the sentence they answer (re.to), not in the trailing list — the first prompt has two
+	// replies, both anchored to its first sentence, plus two more sentences pushed later with no reply.
+	check("three sentence rows (the original plus two pushed live in the fixture)", (await page.$$(first + " .chat-v2-sentence")).length === 3);
+	check("both replies sit beside the sentence they answer", (await page.$$(first + " [data-sentence='s-1793586471880'] .chat-v2-beside .chat-v3-reply")).length === 2);
+	check("a reply drawn beside its sentence is not ALSO drawn in the trailing list", (await page.$$(first + " .chat-v3-reply")).length === 2);
+	check("a sentence with no reply has no beside box", await page.$(first + " [data-sentence='s-test-2'] .chat-v2-beside") === null);
+
+	// 4. once a Prompt gets refined text, sentence rows (and marks' data source aside) are gone: it draws like plain V3 —
+	// a card with no `title`/`text` but an existing `clean` override still shows "show raw" (ChatV3's own feature).
+	check("a prompt with per-sentence clean overrides has 'show raw' (ChatV3's own feature, unchanged)", await page.$(first + " .chat-v3-toggle") !== null);
+
 	if (shots) {
 		mkdirSync(shots, { recursive: true });
-		// The dev drawer covers the page in a headless profile and the page scrolls inside its own frame: hide the drawer, make the window tall.
 		await page.addStyleTag({ content: ".drawer, .sheet { display: none !important; }" });
-		await page.setViewportSize({ width: 1920, height: 1500 });
-		await page.screenshot({ path: shots + "/chat-v2-1920.png" });
-		await page.setViewportSize({ width: 390, height: 2400 });
-		await page.screenshot({ path: shots + "/chat-v2-390.png" });
-		await tap(first + " .chat-v2-toggle");   // raw closed again for the live check
-		await page.setViewportSize({ width: 1920, height: 1000 });
-	} else await tap(first + " .chat-v2-toggle");
+		await page.screenshot({ path: shots + "/chat-v2-1920.png", fullPage: true });
+		await page.setViewportSize({ width: 400, height: 2200 });
+		await page.screenshot({ path: shots + "/chat-v2-400.png", fullPage: true });
+		await page.setViewportSize({ width: 1920, height: 1200 });
+	}
 
-	// 2. live: ?src= a copy of the fixture, append a Prompt, it appears without a reload; raw state survives the redraw
-	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
-	check("?src= draws the copy", (await page.$$(".chat-v2 > .chat-v2-prompt")).length === 3);
-	await tap(first + " .chat-v2-toggle");
+	// 5. live: ?src= a copy of the fixture, append a Prompt with a Reply beside its sentence, no reload.
+	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await ready();
 	await page.evaluate(() => { window.__no_reload = true; });
-	appendFileSync(copy, JSON.stringify({ tasks: { add: { type: "Prompt", id: "p-1761383000000", title: "Appended live", text: "This one arrived after the page loaded.", raw: ["this one arrived"] } } }) + "\n");
-	appendFileSync(copy, JSON.stringify({ "p-1761383000000": { replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
-	await page.waitForSelector(".chat-v2-prompt[data-id='p-1761383000000']", { timeout: 15000 });
-	check("appended prompt appears, last, without a reload", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === "p-1761383000000" && await page.evaluate(() => window.__no_reload === true), await ids(".chat-v2 > .chat-v2-prompt"));
-	await page.waitForSelector("[data-id='p-1761383000000'] [data-id='r-1761383010000']", { timeout: 15000 });
-	check("a reply appended to it nests under it", true);
-	check("an open 'show raw' survives the live redraw", await page.$(first + " .chat-v2-raw") !== null);
-
-	// 3. in-place updates: each append patches only what it touched. Every element not named by that
-	// line keeps its exact DOM object (never recreated) and stays connected; the scroll position holds.
-	await page.goto(`${base}/framework/ext/Chat/v2/?src=${src}`); await on_chat();
-	// The page scrolls inside its own frame, not the window: find the chat's scrolling ancestor and scroll it mid-page.
-	await page.setViewportSize({ width: 1920, height: 600 });
-	await page.evaluate(() => {
-		let el = document.querySelector(".chat-v2");
-		while (el && !(el.scrollHeight > el.clientHeight + 50 && /auto|scroll/.test(getComputedStyle(el).overflowY))) el = el.parentElement;
-		window.__scroller = el ?? document.scrollingElement;
-		window.__scroller.scrollTop = 300;
-	});
-	check("the chat's scroller is scrolled mid-page, so a jump would show", await page.evaluate(() => window.__scroller.scrollTop > 0), await page.evaluate(() => [window.__scroller.className, window.__scroller.scrollTop]));
-	await page.evaluate(() => {
-		window.__refs = new Map([...document.querySelectorAll("[data-id]")].map(el => [el.dataset.id, el]));
-		window.__scroll = [window.scrollY, window.__scroller.scrollTop];
-	});
-	const untouched = (...skip) => page.evaluate(skip => {
-		for (const [id, el] of window.__refs) {
-			if (skip.includes(id)) continue;
-			if (document.querySelector(`[data-id="${id}"]`) !== el || !document.body.contains(el)) return id;
-		}
-		return null;
-	}, skip);
-	const scroll_held = () => page.evaluate(() => window.scrollY === window.__scroll[0] && window.__scroller.scrollTop === window.__scroll[1]);
-	const live_append = line => appendFileSync(copy, JSON.stringify(line) + "\n");
-
-	live_append({ "p-1761382900000": { paragraphs: { append: { id: "c", text: " And scroll to the newest one." } } } });
-	await page.waitForFunction(() => [...document.querySelectorAll(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-sentence-text")].at(-1)?.textContent.includes("scroll to the newest"), { timeout: 15000 });
-	check("paragraph append: every other element keeps its DOM object", await untouched() === null, await untouched());
-	check("paragraph append: scroll position holds", await scroll_held());
-
-	live_append({ "p-1761382800000": { replies: { add: { id: "r-1761383100000", text: "One more note.", by: "smart" } } } });
-	await page.waitForSelector("[data-id='r-1761383100000']", { timeout: 15000 });
-	check("reply add: every other element keeps its DOM object", await untouched() === null, await untouched());
-	check("reply add: scroll position holds", await scroll_held());
-
-	live_append({ "t-1761382838000": { complete: {} } });
-	await page.waitForFunction(() => document.querySelector("[data-id='t-1761382838000']")?.getAttribute("data-phase") === "complete", { timeout: 15000 });
-	check("child task state change: other elements keep their DOM object", await untouched("t-1761382838000") === null, await untouched("t-1761382838000"));
-	check("child task state change: the touched element shows the new phase", await page.getAttribute("[data-id='t-1761382838000']", "data-phase") === "complete");
-	check("child task state change: scroll position holds", await scroll_held());
-
-	// The same change addressed through the task's prompt, the way the item tool writes it ({"<prompt>":{"<task>":{…}}}).
-	live_append({ "p-1761382800000": { "t-1761382837000": { start: {} } } });
-	await page.waitForFunction(() => document.querySelector("[data-id='t-1761382837000']")?.getAttribute("data-phase") === "running", { timeout: 15000 });
-	check("task changed through its prompt: the task shows the new phase", await page.getAttribute("[data-id='t-1761382837000']", "data-phase") === "running");
-
-	live_append({ "q-1761382910000": { answer: { text: "Yes, every time.", by: "smart", at: "2026-10-25T09:03:00Z" } } });
-	await page.waitForFunction(() => document.querySelector("[data-id='q-1761382910000']")?.getAttribute("data-phase") === "answered", { timeout: 15000 });
-	check("question answer: other elements keep their DOM object", await untouched("q-1761382910000") === null, await untouched("q-1761382910000"));
-	check("question answer: the touched element shows the answer", (await page.textContent("[data-id='q-1761382910000'] .chat-v2-answer")).includes("every time"));
-	check("question answer: scroll position holds", await scroll_held());
-
-	live_append({ "p-1761382900000": { title: "One more thing" } });
-	await page.waitForFunction(() => document.querySelector(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-title")?.textContent === "One more thing", { timeout: 15000 });
-	check("title set: other elements (its own children included) keep their DOM object", await untouched("p-1761382900000") === null, await untouched("p-1761382900000"));
-	check("title set: scroll position holds", await scroll_held());
-
-	live_append({ "p-1761382800000": { tasks: { add: { type: "Task", id: "t-1761383200000", title: "A task added live", state: "running" } } } });
-	await page.waitForSelector("[data-id='t-1761383200000']", { timeout: 15000 });
-	check("new child task: every other element keeps its DOM object", await untouched() === null, await untouched());
-	check("new child task: scroll position holds", await scroll_held());
-
-	live_append({ tasks: { add: { type: "Prompt", id: "p-1761383300000", title: "One more after that", text: "Said once everything above had already landed." } } });
-	await page.waitForSelector(".chat-v2-prompt[data-id='p-1761383300000']", { timeout: 15000 });
-	check("new root prompt: appended last", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === "p-1761383300000");
-	check("new root prompt: every other element keeps its DOM object", await untouched() === null, await untouched());
-	check("new root prompt: scroll position holds", await scroll_held());
-
-	// Most root adds in a real session are plain Tasks, and a Question filed at the root names its prompt in `from`.
-	live_append({ tasks: { add: { type: "Task", id: "t-1761383400000", title: "A root task added live", state: "idle" } } });
-	await page.waitForSelector(".chat-v2 > [data-id='t-1761383400000']", { timeout: 15000 });
-	check("new root task: drawn at the root, other elements keep their DOM object", await untouched() === null, await untouched());
-	live_append({ tasks: { add: { type: "Question", id: "q-1761383500000", text: "Asked at the root, about the first prompt?", from: "p-1761382800000" } } });
-	await page.waitForSelector("[data-id='p-1761382800000'] .chat-v2-nest > [data-id='q-1761383500000']", { timeout: 15000 });
-	check("root question with from: nests under its prompt, other elements keep their DOM object", await untouched() === null, await untouched());
-	check("root adds: scroll position holds", await scroll_held());
-
-	// paragraphs.replace, duplicate paragraphs.add (core's one-paragraph-per-id no-op rule), and raw.push with an array (ChatV2Model fixes, mastermind-dictation-2)
-	// p-1761382900000 got a title above, so it reads "refined" now; its paragraphs only draw under "show raw".
-	await tap(second + " .chat-v2-toggle");
-	const raw_lines_before = (await page.$$(second + " .chat-v2-raw-line")).length;
-	live_append({ "p-1761382900000": { paragraphs: { replace: { id: "c", text: "Replaced paragraph text entirely." } } } });
-	await page.waitForFunction(() => [...document.querySelectorAll(".chat-v2-prompt[data-id='p-1761382900000'] .chat-v2-sentence-text")].some(e => e.textContent.includes("Replaced paragraph")), { timeout: 15000 });
-	check("paragraphs.replace: rewrites the paragraph in place", true);
-	live_append({ "p-1761382900000": { paragraphs: { add: { id: "c", text: "A duplicate id must be ignored." } } } });
-	await page.waitForTimeout(300);
-	const sentence_texts = await page.$$eval(second + " .chat-v2-sentence-text", els => els.map(e => e.textContent));
-	check("paragraphs.add with an id already present is a no-op, same as core's List.insert", sentence_texts.some(t => t.includes("Replaced paragraph")) && !sentence_texts.some(t => t.includes("must be ignored")), sentence_texts);
-	live_append({ "p-1761382900000": { raw: { push: ["one more raw line", "and another"] } } });
-	await page.waitForFunction(({ sel, n }) => document.querySelectorAll(sel).length === n, { sel: second + " .chat-v2-raw-line", n: raw_lines_before + 2 }, { timeout: 15000 });
-	check("raw.push with an array appends every string", true);
-
-	// 4. The open bubble stays last (the owner, 2026-10-25): a root item that lands between two chunks of the same
-	// still-growing (last) Prompt must not leave the Prompt stranded above it — the Prompt re-anchors below the
-	// new item, as the SAME DOM node (never split, never recreated).
-	const last_prompt_id = "p-1761383300000";
-	check("setup: the appended prompt is the last root item", (await ids(".chat-v2 > .chat-v2-prompt")).at(-1) === last_prompt_id);
-	await page.evaluate(id => { window.__prompt_ref = document.querySelector(`[data-id="${id}"]`); }, last_prompt_id);
-	live_append({ tasks: { add: { type: "Task", id: "t-open-bubble-1", title: "An update that lands mid-dictation", state: "idle" } } });
-	await page.waitForSelector(".chat-v2 > [data-id='t-open-bubble-1']", { timeout: 15000 });
-	check("the new root task lands after the open prompt", (await page.evaluate(() => [...document.querySelectorAll(".chat-v2 > [data-id]")].at(-1).dataset.id)) === "t-open-bubble-1");
-	live_append({ [last_prompt_id]: { paragraphs: { append: { id: "x", text: " More, after the update landed." } } } });
-	await page.waitForFunction(id => [...document.querySelectorAll(".chat-v2 > [data-id]")].at(-1)?.dataset.id === id, last_prompt_id, { timeout: 15000 });
-	check("the still-open prompt re-anchors below the new item, as the same node (never split)",
-		await page.evaluate(id => document.querySelector(`[data-id="${id}"]`) === window.__prompt_ref, last_prompt_id));
-	check("exactly one element for the prompt", (await page.$$(`[data-id="${last_prompt_id}"]`)).length === 1);
+	const at = "2026-11-01T20:40:00.000-06:00", sid = "s-live-1";
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: sid, at, text: "A live sentence." } }, messages: { add: { type: "Prompt", id: "m-live-1", by: "owner", at, sentences: [sid] } } }) + "\n");
+	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-1']", { timeout: 15000 });
+	check("appended prompt appears, last, without a reload", (await ids(".chat-v3 > .chat-v3-card")).at(-1) === "m-live-1" && await page.evaluate(() => window.__no_reload === true));
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-2", type: "Reply", by: "smart", at, text: "Seen, live.", re: { to: sid } } } }) + "\n");
+	await page.waitForFunction(sid => document.querySelector(`[data-sentence="${sid}"] .chat-v2-beside`)?.textContent.includes("Seen, live."), sid, { timeout: 15000 });
+	const live_card_replies = await page.$$eval("[data-id='m-live-1'] .chat-v3-reply", els => els.length);
+	check("a live reply lands beside its sentence, drawn exactly once (not also in the trailing list)", live_card_replies === 1, live_card_replies);
 
 	check("no page errors", errors.length === 0, errors);
 } finally {
 	await close_browser();
-	rmSync(copy, { force: true });
+	rmSync(here + "fixture/" + live, { force: true });
 }
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

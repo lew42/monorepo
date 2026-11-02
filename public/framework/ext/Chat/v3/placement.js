@@ -13,17 +13,24 @@ export function owning_prompt(list, reply){
 	return prompts.at(-1) ?? null;
 }
 
-/** One paragraph per run of sentences with no long pause between them: a gap to the previous sentence's `at` of `gap_ms` or more starts
- *  a new paragraph. `clean` prefers the fast seat's cleaned text per sentence id (Prompt.clean), else the sentence's own raw words. */
-export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
+/** Sentence items grouped by the same pause rule as `paragraphs()`, kept as sentence objects (not joined into text): a gap to the
+ *  previous sentence's `at` of `gap_ms` or more starts a new group. ChatV2 draws one row per sentence, so a Reply can sit beside
+ *  the one it answers (`re.to`); `paragraphs()` below is this grouping, joined into one string per paragraph. */
+export function paragraph_groups(sentence_items, gap_ms = PARAGRAPH_GAP_MS){
 	const out = [];
 	let cur = [], prev_at = null;
 	for (const s of sentence_items) {
 		const gap = prev_at && s.at ? Date.parse(s.at) - Date.parse(prev_at) : 0;
-		if (cur.length && gap >= gap_ms) { out.push(cur.join(" ")); cur = []; }
-		cur.push(clean[s.id] ?? s.text);
+		if (cur.length && gap >= gap_ms) { out.push(cur); cur = []; }
+		cur.push(s);
 		if (s.at) prev_at = s.at;
 	}
-	if (cur.length) out.push(cur.join(" "));
+	if (cur.length) out.push(cur);
 	return out;
+}
+
+/** One paragraph per run of sentences with no long pause between them (`paragraph_groups`), each joined into one string.
+ *  `clean` prefers the fast seat's cleaned text per sentence id (Prompt.clean), else the sentence's own raw words. */
+export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
+	return paragraph_groups(sentence_items, gap_ms).map(group => group.map(s => clean[s.id] ?? s.text).join(" "));
 }

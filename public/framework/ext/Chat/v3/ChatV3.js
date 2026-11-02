@@ -15,7 +15,7 @@ import TaskView from "/framework/core/Task/TaskView.js";
 import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
 import * as Wire from "/framework/ext/Session/Session.js";
-import { owning_prompt, paragraphs } from "./placement.js";
+import { owning_prompt, paragraphs, paragraph_groups } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
 
 export default class ChatV3 extends JSONL {
@@ -92,6 +92,8 @@ export default class ChatV3 extends JSONL {
 
 	// The Replies that answer one Prompt, in the chat list's own order.
 	replies_of(p){ return this.session.messages.messages.filter(m => m instanceof Reply && this.owning_prompt(m) === p); }
+	// Replies drawn after the body, in the trailing list: all of them (V2 overrides to drop any it already drew beside a sentence).
+	trailing_replies(p){ return this.replies_of(p); }
 
 	/* THE REPLY BEING WRITTEN: the session's live wire (ext/Session stream(), the one V1 reads) sends {kind:"stream", role, text}, the whole
 	 * reply so far, and text "" when it ends. Drawn at the end of the newest Prompt card until the settled Reply message arrives. */
@@ -171,7 +173,7 @@ export default class ChatV3 extends JSONL {
 		if (has_clean) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
 		if (open) div.c("chat-v3-raw", () => sentences.forEach(s => blockquote.c("chat-v3-raw-line", s.text)));
-		for (const r of this.replies_of(p)) this.reply(r);
+		for (const r of this.trailing_replies(p)) this.reply(r);
 		if (this.partial && p === this.card_roots().filter(r => r instanceof Prompt).at(-1)) queueMicrotask(() => this.stream(this.partial?.role, this.partial?.text ?? ""));
 		const task = this.task_for(p), kids = task ? [...(task._tasks ?? []), ...this.nested_tasks(task)] : [];
 		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
@@ -186,9 +188,17 @@ export default class ChatV3 extends JSONL {
 	/** The words as dictated, when no AI text exists yet: one paragraph per run of sentences with no long pause between them, clamped to
 	 *  a few lines with "show all (N words)". Replaces the old "one paragraph per sent chunk, cut every 3 sentences" (views-on-messages.md). */
 	dictation(p){
-		const paras = this.constructor.paragraphs(p.sentence_items, p.clean);
-		const words = paras.join(" ").split(/\s+/).filter(Boolean).length, long = words > 80, all = this.all_open?.has(p.id);
-		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), () => paras.forEach(s => div.c("chat-v3-para", s)));
+		const groups = this.constructor.paragraph_groups(p.sentence_items);
+		const words = groups.flat().map(s => p.clean[s.id] ?? s.text).join(" ").split(/\s+/).filter(Boolean).length;
+		return this.clamped_text(p, words, () => groups.forEach(g => this.paragraph(g, p)));
+	}
+	// One paragraph: its sentences' cleaned (or raw) text, joined into one string. Small and overridable: V2 draws one row per
+	// sentence instead, with a Reply beside the one it answers (`re.to`), step 2 of views-on-messages.md.
+	paragraph(group, p){ div.c("chat-v3-para", group.map(s => p.clean[s.id] ?? s.text).join(" ")); }
+	// The clamp-to-a-few-lines wrapper with "show all (N words)", shared by `dictation()` (and V2's sentence rows, same words count).
+	clamped_text(p, words, fill){
+		const long = words > 80, all = this.all_open?.has(p.id);
+		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), fill);
 		if (long) button.c("chat-v3-toggle", all ? "show less" : `show all (${words} words)`).attr("type", "button").click(() => {
 			(this.all_open ??= new Set())[all ? "delete" : "add"](p.id); this.els.get(p.id)?.empty(() => this.prompt(p));
 		});
@@ -196,6 +206,7 @@ export default class ChatV3 extends JSONL {
 	}
 	// Delegates to placement.js (DOM-free, node-testable): a new paragraph where the gap to the previous sentence's `at` is a long pause.
 	static paragraphs(sentence_items, clean = {}){ return paragraphs(sentence_items, clean); }
+	static paragraph_groups(sentence_items){ return paragraph_groups(sentence_items); }
 	static first_words(text, n = 8){ const w = String(text ?? "").split(/\s+/).filter(Boolean); return w.slice(0, n).join(" ") + (w.length > n ? "…" : ""); }
 
 	// A Question is a few words; its answer is one or two short sentences.

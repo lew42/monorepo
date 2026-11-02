@@ -40,7 +40,7 @@ test("LineKey.deep takes the marks off at every depth and leaves a clean line al
 // ---- the browser readers -------------------------------------------------------------------------------------------------
 
 test("ChatV2Model folds a marked line like the bare one", async t => {
-	const { default: Model } = await import("../../ext/Chat/v2/ChatV2Model.js");
+	const { default: Model } = await import("../../ext/Chat/v2/old/ChatV2Model.js");   // moved aside, views-on-messages.md step 2: ChatV2 itself no longer reads it
 	const add = { tasks: { add: { id: "p1", type: "Prompt", title: "P", tasks: [{ id: "c3", type: "Task", title: "T" }] } } };
 	const bare = [add, { p1: { c3: { start: {} } } }, { p1: { c3: { complete: finish } } }];
 	const marked = [add, { "#p1": { "#c3": { "start()": {} } } }, { "#p1": { "#c3": { "complete()": finish } } }];

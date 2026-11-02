@@ -1,7 +1,11 @@
 // node resurface.test.mjs — plain node, no browser: a Question with an answer sorts after a newer
 // Prompt/Task row, by WHEN it was answered (answer.at), not where it was asked — and (review round 2,
 // 2026-10-25) it surfaces at the ROOT of the chat, not just the end of its own prompt's nest.
-import ChatV2Model from "./ChatV2Model.js";
+// ChatV2Model moved to old/ (views-on-messages.md step 2, 2026-11-01): ChatV2 is now a ChatV3 subclass and
+// no longer reads this model or the old task-shaped fixture. This test keeps proving the OLD model's own
+// logic, for the record, against the file it was moved with — the resurface behaviour has no equivalent
+// in ChatV3 (it never surfaces a task to the chat's root; everything nests under its Prompt card).
+import ChatV2Model from "./old/ChatV2Model.js";
 
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
