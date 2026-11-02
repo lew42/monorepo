@@ -62,7 +62,7 @@ export class V1Bubbles {
 			out.splice(at, 0, bubble);
 		};
 		for (const e of events){
-			if (e.fix){ const hit = by_id.get(e.id); if (hit) hit.text = e.text; continue; }
+			if (e.fix){ const hit = by_id.get(e.id); if (hit){ hit.text = e.text; continue; } insert({ sender: "", at: e.at, pieces: [{ ...e }] }); continue; }   // a correction for a line not here: its own bubble, as V1 draws it
 			if (e.re && e.level){
 				const hit = by_id.get(e.re);
 				if (hit){ hit.revision = { text: e.text, level: e.level }; continue; }
