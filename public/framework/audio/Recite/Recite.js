@@ -47,8 +47,9 @@ export default class Recite extends Part {
 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
 	thinking_cue = true;    // a short, subtle tone fired by start_thinking() (the voice agent's long-lookup signal), repeated every cue_repeat_ms until the reply starts; false turns it off
 	cue_repeat_ms = 2000;   // thinking cue: the gap between repeats while the agent is still working
-	cue_timer = null;       // thinking cue: expect_reply()'s own pending timeout for the second cue
-	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
+	cue_max_ms = 60000;     // thinking cue: gives up this long after the thinking line, if no reply ever arrives
+	cue_timer = null;       // thinking cue: the timer for the next repeat
+	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts, the cue gives up, or a fresh line replaces it
 	pending_updates = [];   // no-flood: agent updates (a reply whose from.id matches AGENT_ID — not "smart", and not "fast"/"revise"/"card" either) held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
 	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
 	focus_el = null;        // replay: the bubble element a tapped replay reads, so the highlight lights that bubble's words first
@@ -289,7 +290,12 @@ export default class Recite extends Part {
 		this.cue_pending = true;
 		if (!this.thinking_cue) return;
 		this.play_cue();
-		const again = () => { if (!this.cue_pending) return; this.play_cue(); this.cue_timer = setTimeout(again, this.cue_repeat_ms); };
+		const until = Date.now() + this.cue_max_ms;
+		const again = () => {
+			if (!this.cue_pending) return;
+			if (Date.now() >= until){ this.cancel_cue(); return; }   // a silent or failed turn never gets a reply: stop beeping
+			this.play_cue(); this.cue_timer = setTimeout(again, this.cue_repeat_ms);
+		};
 		this.cue_timer = setTimeout(again, this.cue_repeat_ms);
 	}
 

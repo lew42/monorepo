@@ -374,8 +374,8 @@ if (Recite) test("Recite + BargeIn: owner_spoke() drops a Whisper final heard ou
 	return r;
 });
 
-// The thinking cue (dictation-v3, 2026-11-02): a short tone once the owner's line lands, again cue_repeat_ms later
-// if the reply still has not started, then quiet. cue_repeat_ms is shortened here — the logic is the same at any
+// The thinking cue (2026-11-02): fired only by the voice agent's explicit {thinking:{by:"smart"}} line, repeating
+// every cue_repeat_ms until the reply starts or cue_max_ms passes. cue_repeat_ms is shortened here — the logic is the same at any
 // interval, and the real 2 s default would make this test needlessly slow.
 if (Recite) test("Recite: a thinking cue needs the explicit thinking line, repeats, and stops on the reply", async t => {
 	const r = new Recite({ voice: fake_voice });
@@ -416,6 +416,23 @@ if (Recite) test("Recite: a thinking cue stops the moment the reply starts", asy
 	r.from_wire({ kind: "stream", role: "smart", text: "It is sunny" });   // the reply starts arriving
 	await new Promise(res => setTimeout(res, 35));
 	t.eq(cues.length, 1, "no second cue — the reply already started");
+	return r;
+});
+
+// A turn that never answers must not beep forever: the cue gives up after cue_max_ms.
+if (Recite) test("Recite: a thinking cue gives up after cue_max_ms when no reply ever comes", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_repeat_ms = 20; r.cue_max_ms = 70;
+	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
+	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
+	await new Promise(res => setTimeout(res, 200));
+	const n = cues.length;
+	t.ok(n >= 2 && n <= 6, "it beeped a few times (" + n + ")");
+	await new Promise(res => setTimeout(res, 100));
+	t.eq(cues.length, n, "then went quiet with no reply");
+	t.ok(!r.cue_pending, "and stopped waiting");
 	return r;
 });
 
