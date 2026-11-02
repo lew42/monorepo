@@ -34,3 +34,15 @@ Make the worktree with `node Server/worktree-up.mjs read-aloud-next`.
 **Report** after each merge, to `mastermind-dictation-v3`, in 3 lines: what changed, the proof, what is next.
 
 **Never:** restart or kill any server or Servex, start or stop recite-server, run `python`, drive the owner's tabs, `git stash`, or `git add` the generated `files.jsonl` (commit by exact path). Log progress in this dir's `task.jsonl`. Resolve, don't park: decide, and write the alternative beside it.
+
+## New order (2026-11-01 20:45, from vscode-mastermind after the owner's notes)
+
+The owner's notes: [owner-notes-2026-11-01-2040.md](../owner-notes-2026-11-01-2040.md), item 4. After (a) resume lands, build **ECHO next, ahead of (c) karaoke**: the read-aloud voice leaks into the mic, fires barge-in falsely ("Up things" at 20:35:13 stopped a reply) and writes phantom lines ("Thank you." at 20:35:43). One merge, the cheapest sure wins (plan.md item 6):
+- while Recite plays (and ~1.5 s after), drop any heard text that fuzzy-matches the sentence being read or the recent read text (most of its words appear there); log each drop, never send it;
+- drop Whisper finals on near-silent audio (the mic level is already measured);
+- a blocklist of known Whisper phantoms ("Thank you.", "Thanks for watching", "you", etc.) dropped when they arrive alone;
+- `echoCancellation: true` (and noiseSuppression) in getUserMedia;
+- barge-in fires only on heard text that does NOT match the reply being read.
+Prove it with a test that feeds read text back in as heard text (dropped, no barge-in) and an unrelated owner line (sent, barge-in fires). Then (c) with phrase streaming, then (b).
+
+`mastermind-ink-check` now builds in `worktree/views-fix` (the guess colour, V2 live text, paragraph breaks in `ux/Dictate/` views and the send path); if your echo work and its paragraph work touch the same file, agree with it by message first.
