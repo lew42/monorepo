@@ -1192,6 +1192,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		else if (delta !== undefined) return { ok: false, why: `"${url}" has no session record to answer ${Object.keys(delta).join(", ")}, and these keys are never written to its page. Nothing was written.` };
 	}
 
+	// Task verbs (a `tasks` key) on a session route belong to the session record, not its page: a `tasks.add` written to page.jsonl is an unknown field there and no process ever runs (2026-11-02). The dated folder already resolved this way (resolve_file).
+	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && is_plain(delta) && "tasks" in expand_dots(delta) && fs.existsSync(path.join(path.dirname(at.file), "session.jsonl")))
+		at = { file: path.join(path.dirname(at.file), "session.jsonl"), target: [] };
+
 	// ONE LIVE ROOT PER FILE, for any class Item.types registers (a page, a task, a session, an improvements file): the class named on
 	// line 1, else the one its file name implies. A Task-family root (tasky) also gets the task steps below; every root gets the same write.
 	let kind = class_of(at.file), Class = await class_for(kind);
@@ -1360,7 +1364,8 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
 	}
-	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias ? await extra() : {}) };
+	// A write answers small, whatever the file size: never the page's whole text (753,132 characters once). A read (item with no delta) is how you get the picture.
+	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
 }
 
 /* ---------- the six tools ---------- */
