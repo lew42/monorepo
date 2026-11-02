@@ -144,6 +144,52 @@ try {
 		assert.equal(raw.filter(l => l.messages && Object.values(l.messages).some(v => v?.clean)).length, 2, "an edit with no text (\"nothing\"), or one naming no sentence, adds no chat line");
 		assert.ok(no_match.ok, "a {place} naming no sentence is still written for V1");
 	});
+
+	// ── step 3: a root task, or a spawned child session, becomes a Ref at the bottom of session.messages ──────────────
+	const replay_msgs = () => Session.replay(fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l))).messages.messages;
+	{
+		const before_count = replay_msgs().length;
+		const added = await run_item({ path: URL_, delta: { tasks: { add: "Fix the thing" } } }, { caller: "t" });
+		check("tasks.add on a session's own root is written (as before)", () => assert.ok(added.ok && added.ids?.length === 1, added.why));
+		const msgs = replay_msgs();
+		check("…and also adds a Ref, at the bottom of session.messages, right after it", () => {
+			assert.equal(msgs.length, before_count + 1);
+			const ref = msgs.at(-1);
+			assert.equal(ref.constructor.name, "Ref", "hydrates as the core Ref, not a chat Message subclass");
+			assert.equal(ref.path, `tasks.${added.ids[0]}`, "same file: a dotted path, like F7's list.ref(x)");
+			assert.equal(ref.url, undefined);
+			assert.equal(ref.get_one("by"), "servex");
+			assert.ok(ref.get_one("at"), "carries its own `at`, as data (plan.md decision 1), not Message's by/at getters");
+		});
+	}
+	{
+		const SessionRecord = (await import("../../Server/SessionRecord.mjs")).default;
+		const before_count = replay_msgs().length, before_lines = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean).length;
+		const child_url = "/framework/ai/sessions/2026/10/16/.chat-messages-test-child/";   // a folder outside this file: a spawned child session
+		SessionRecord.add_ref(FILE, child_url, "ChildLinks");
+		SessionRecord.add_ref(FILE, child_url, "ChildLinks");   // a retried link_parent/ChildLinks.link call: never a twin reference, never a twin Ref
+		const lines = fs.readFileSync(FILE, "utf8").split("\n").filter(Boolean);
+		check("add_ref on a SESSION's own record writes one {task:url} line and one chat Ref, never twice", () => {
+			assert.equal(lines.length, before_lines + 2);
+			assert.equal(lines.filter(l => l.includes(`"task":"${child_url}"`)).length, 1);
+		});
+		const msgs = replay_msgs();
+		check("the child session's Ref resolves by url (another file), carrying by/at as data", () => {
+			assert.equal(msgs.length, before_count + 1);
+			const ref = msgs.at(-1);
+			assert.equal(ref.constructor.name, "Ref");
+			assert.equal(ref.url, child_url);
+			assert.equal(ref.path, undefined);
+			assert.equal(ref.get_one("by"), "servex");
+		});
+		check("a nested session's own session.jsonl also gets Refs; a task's task.jsonl never does", () => {
+			const day = path.join("public", "framework", "ai", "sessions", "2026", "10", "20");
+			assert.ok(SessionRecord.is_chat_ref_target(path.join(day, "session-x", "session.jsonl")));
+			assert.ok(SessionRecord.is_chat_ref_target(path.join(day, "session-x", "chat-model", "session.jsonl")), "a session nested in a session");
+			assert.ok(!SessionRecord.is_chat_ref_target(path.join(day, "session-x", "some-task", "task.jsonl")));
+			assert.ok(!SessionRecord.is_chat_ref_target(path.join("public", "framework", "core", "session.jsonl")), "outside the sessions store");
+		});
+	}
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 console.log(`chat-messages.test.mjs: ${checks} checks passed`);

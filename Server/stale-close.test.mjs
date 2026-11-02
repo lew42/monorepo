@@ -42,7 +42,8 @@ try {
 	const lines = f => fs.readFileSync(f, "utf8").trim().split("\n").map(l => JSON.parse(l));
 	ok(SessionRecord.link_parent(SESS) === null, "a session folder itself has no parent to link");
 	const log = SessionRecord.link_parent(path.join(SESS, "child"));
-	ok(log === path.join(SESS, "session.jsonl") && lines(log).at(-1).task === url(path.join(SESS, "child")), "a child folder is referenced on the session's log");
+	ok(log === path.join(SESS, "session.jsonl") && lines(log).at(-2).task === url(path.join(SESS, "child")), "a child folder is referenced on the session's log");
+	ok(lines(log).at(-1).messages?.add?.url === url(path.join(SESS, "child")), "…followed by its Ref in session.messages (chat-model step 3)");
 	SessionRecord.link_parent(path.join(SESS, "child"));
 	ok(lines(log).filter(l => l.task).length === 1, "never twice");
 	fs.writeFileSync(path.join(SESS, "child", "task.jsonl"), JSON.stringify({ assign: { title: "child" } }) + "\n");

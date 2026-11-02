@@ -84,6 +84,15 @@ export default class ChatWriter {
 
 	held(key){ return this.sessions.get(key)?.held.length ?? 0; }
 
+	/* A Ref added to `session.messages` for a root task or child session (builder.md step 3): an inline subtask (no folder of its
+	 * own) passes `path` ("tasks.<id>", the same file); a task with its own folder, or a spawned child session, passes `url` (its
+	 * folder) and no `path` (the Ref then points at that file's root — Ref.js, "another file"). `by`/`at` are data ON the Ref
+	 * (step 2: a chat Ref carries `by`/`at` the way a resurfaced one does), never only on the outer line. */
+	static ref_line({ path, url } = {}){
+		const at = now_iso();
+		return { messages: { add: { type: "Ref", ...(url !== undefined ? { url } : { path }), by: "servex", at } }, by: "servex", ts: at };
+	}
+
 	/* A `{place}` line from the fast seat (ux/Dictate/doc/voice-assistant.md), as the line that updates the chat list: its cleaned
 	 * `text` (edit "improve" or "both") becomes that sentence's cleaned text on the Prompt that holds it, IN PLACE: the Prompt keeps its
 	 * position and its raw words. `session` is the replayed Session; null when there is no text, or no sentence with that `at`.
