@@ -72,4 +72,10 @@ The owner's notes, items 13–18: [owner-notes-2026-11-01-2040.md](../owner-note
 - **Resumable bubbles:** tap an old bubble to continue reading from its last spoken word.
 - **Parked (back burner, do not build):** paced word streaming (phrase-level start in (c)) and heard-only context. Karaoke follow and the highlight stay; Chatterbox waits, Kokoro is fine.
 
+## Folded in (2026-11-01 21:08): owner items 20–22, no new merges
+
+- **Played flag (item 20), in the queue merge:** each reply carries played/unplayed, kept across a reload (e.g. a localStorage set of message ids, or a `played` line), so a reload never re-reads a played reply and never skips an unplayed one.
+- **Tap a bubble to play, tap to pause/resume (item 21), in the (b) merge, with resumable bubbles:** links inside the bubble keep working. The tap ignores clicks on `a`, mention chips and buttons.
+- **Raise the mic threshold while read-aloud plays (item 22), in the echo merge:** a higher level gates send/barge-in while playing and ~1.5 s after, so coughs and the leaking voice don't fire. Name the factor as a setting.
+
 **Order now:** (a)+queue+turn-taking (+ no flood if small) → no flood + prioritise (if not folded in) → echo → highlight dropout → (b) tap to pause → resumable bubbles → (c) karaoke follow, without phrase streaming.
