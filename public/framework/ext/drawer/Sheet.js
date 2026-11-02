@@ -492,9 +492,7 @@ export class SheetPanel extends View {
 		this.panel = this.mount.panel;
 		Sheet.follow_session?.();   // the chat just mounted: it may have attached a session
 		DictationBar.mount(this.panel);   // the sheet's mic footer (doc: ux/Dictate/doc/refine-dictate-tasks.md#the-bar)
-		const bar = Recite.shared.bar.el;   // the read-aloud bar: DictationBar puts it above the mic; if it found no composer, it goes at the panel's foot
-		if (!bar.isConnected) this.$slot.el.append(bar);
-		requestAnimationFrame(() => { const r = bar.getBoundingClientRect(); Recite.shared.trace("sheet: bar", { placed: bar.isConnected, height: Math.round(r.height), top: Math.round(r.top), screen: innerHeight }); });
+		this.place_bar();
 		const heard = this.panel.on_text;
 		this.panel.on_text = text => { heard?.(text); this.said(text); };   // the strip's last line said
 		this.feed = AIFeed.on(this.$slot.el, drawer.page());   // this page's events among the bubbles (step 7)
@@ -503,11 +501,21 @@ export class SheetPanel extends View {
 		return this.mount;
 	}
 
+	// The read-aloud bar, directly above the sheet's mic, every time the sheet opens (the owner never saw it on the phone, 2026-11-01).
+	// `Recite.shared.bar` builds a NEW bar on each read, so the sheet keeps the one it took and moves it back if anything moved it.
+	place_bar(){
+		const bar = this.recite_bar ??= this.$slot.el.querySelector(".audio-recite-wrap") ?? Recite.shared.bar.el;
+		const compose = this.$slot.el.querySelector(".chatbox-compose");
+		compose ? (compose.previousElementSibling === bar || compose.before(bar)) : this.$slot.el.append(bar);
+		requestAnimationFrame(() => { const r = bar.getBoundingClientRect(); Recite.shared.trace("sheet: bar", { placed: this.$slot.el.contains(bar), height: Math.round(r.height), top: Math.round(r.top), screen: innerHeight }); });
+	}
+
 	show({ listen = true } = {}){
 		this.quiet = !listen;
 		this.ac("on");
 		this.update_path();
 		this.ensure_mount();
+		this.place_bar();
 		this.sync_card();
 		this.start_mic();
 		return this;
