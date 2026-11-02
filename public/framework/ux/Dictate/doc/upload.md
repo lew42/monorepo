@@ -40,3 +40,15 @@ Proof: `node public/framework/ai/sessions/2026/10/20/session-e00f55c9/whisper-pa
 - **4-bit IMA ADPCM** (a quarter of the bytes): tested, and it garbled quiet speech ("Festing, festing"). Not used.
 - **Opus** (about a tenth of the bytes): needs whisper-server's `--convert` (ffmpeg on the PC) and an Ogg writer in the page. Worth doing if the phone is often on mobile data.
 - **Send only the new audio for guesses**: the bytes no longer grow with the segment, but the guess text then has to be stitched together. A bigger change.
+
+## A sentence goes out when it ends, not when you pause
+
+Whisper closes a segment only on a pause, so a long run of speech used to leave as one line, after the pause. Now (2026-11-02):
+
+- **From the live guess.** Each guess re-hears the growing segment. When it holds a finished sentence (ends in `.` `?` `!`, with more words after it), `ComposerMic.early_from_guess()` (`ext/Chat/Mic.js`) sends that sentence at once, one line each, in order. `SETTINGS.early_sentences = false` turns it off.
+- **The final loses what was sent.** `drop_early()` removes those sentences from the segment's final, so there is never a second copy. If the final heard an early sentence differently, the early wording stays (no server-side in-place correction exists) and the difference is logged as a `sentence` health event.
+- **A final or a pause-send with several sentences** leaves as several lines, in order (`send_screen()` splits it; `send_sentences()` runs again for words that arrived while it was busy), with `raw` on the first.
+- It only runs when nothing else is held, nothing is sending and the typed `base` is empty, so ordering is never at risk.
+- **The mic light.** Stop (or pause) ends every `MediaStreamTrack` at once, not after the final upload, and a stop that lands while `getUserMedia` is still opening releases the late stream (`capture.js`, `Dictate.stop()`).
+
+Tests: `test/mic-release.mjs`, `test/sentences.mjs`.

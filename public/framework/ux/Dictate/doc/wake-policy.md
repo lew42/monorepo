@@ -62,3 +62,7 @@ Cost: about half a day of Sonnet, plus a review. It is a shape change, so the pl
 - The browser's mic sends after 2 s of quiet (`pause_send_ms` and `paragraph_pause_ms` in [`ext/Chat/Mic.js`](../../../ext/Chat/Mic.js)).
 - The 12 s here is the smart seat's batch gap, a separate wait.
 - Lowering it to about 4 s is one setting (POST `/api/session/settings {session, gap_ms: 4000}`), with no restart. Each wake is an Opus turn, so the cost grows with it.
+
+## A sentence goes out when it ends, not when you pause
+
+The fast assistant gets each finished sentence as it ends (from the live guess), not at the pause that closes the Whisper segment. The smart assistant's rules above are unchanged. Detail: [upload.md](upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause).
