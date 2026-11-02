@@ -1,3 +1,4 @@
+import track from "../../core/track/track.js";
 import ReciteHighlight from "./ReciteHighlight.js";
 
 /**
@@ -11,7 +12,7 @@ import ReciteHighlight from "./ReciteHighlight.js";
  */
 export default class ReciteTap {
 
-	/** Never toggle on a tap here: the bar's own copy, or anything with its own job to do on a tap. */
+	/** Never toggle on a tap here — every one of these has its own job to do on a tap. */
 	static IGNORE = "a, button, input, textarea, select, [role=button], [contenteditable]";
 
 	constructor({ recite }){
@@ -19,14 +20,19 @@ export default class ReciteTap {
 		if (typeof document === "undefined") return;   // node (the core test): no DOM to listen on
 		this.handler = e => this.click(e);
 		document.addEventListener("click", this.handler);
+		this.constructor.track(this);
 	}
 
 	click(e){
 		if (e.target.closest(ReciteTap.IGNORE)) return;
-		if (e.target.closest(ReciteHighlight.SKIP)) return;   // never the bar's own copy
-		if (!e.target.closest(ReciteHighlight.ROOTS)) return;   // only inside a chat bubble
-		if (globalThis.getSelection?.()?.toString()) return;   // a drag to select text still fires `click` on mouseup — never a tap
+		if (e.target.closest(ReciteHighlight.SKIP)) return;   // the bar's own copy (ReciteHighlight.SKIP), not this class's IGNORE list above
+		const root = e.target.closest(ReciteHighlight.ROOTS);
+		if (!root) return;   // only inside a chat bubble
+		const sel = globalThis.getSelection?.();
+		if (sel && sel.toString() && root.contains(sel.anchorNode)) return;   // a drag to select text INSIDE THIS bubble still fires `click` on mouseup — never a tap; a selection left over elsewhere on the page must not block every bubble (review finding, read-aloud-b 2026-11-02)
 		if (!this.recite.chunks.length) return;   // nothing to play or pause
 		this.recite.toggle();
 	}
 }
+
+track(ReciteTap);
