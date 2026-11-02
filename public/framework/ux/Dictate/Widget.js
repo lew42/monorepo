@@ -571,6 +571,7 @@ Widget.Thread = class WidgetThread extends View {
 	}
 
 	drop_draft(){
+		if (this.draft?.host) this.draft.host.dataset.at = String(Date.now() + clock.offset);   // the draft counted as its host bubble being talked in: the words that follow join it however long the sentence took (an empty `live()` can drop the draft before settle_draft() runs)
 		this.draft?.el.remove();
 		this.draft = null;
 	}
