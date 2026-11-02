@@ -247,8 +247,15 @@ known limit, not a defended-against case.
 (via OpenRouter) — the strongest version of fresh eyes, since it never trained alongside the
 author. Not wired up yet.
 
-**A merge never leaves a new file untracked** (2026-10-18). Every landed path is staged with `git add -A -- <paths>`
-whether or not `merge.mjs` commits, and after landing `git status` must show no `??` among those paths, or the merge
+**A merge commits exactly its landed paths and never leaves anything staged** (2026-11-02, replacing the 2026-10-18 "stage with `git add -A`" rule).
+The old code, when other agents' files were already staged, skipped its own commit and left its landed paths staged; the next merge then saw
+those as "prior staged files": a self-feeding loop (212 stray staged files on 2026-11-02). Now `commitLanded()` builds the commit in a
+temporary index (`GIT_INDEX_FILE`: `read-tree`, `add -A -f` on the landed paths, `write-tree`, `commit-tree -p <old> -p <branch>`, then `update-ref`
+with the old value as a compare-and-swap, retried 3 times), then runs `git reset -q HEAD -- <landed paths>` so only those paths in the real
+index match the new commit. Files someone else staged are never touched: the merge prints `note: N file(s) were already staged in the main tree
+(not this merge's); they stay staged, untouched: ...` and carries on. A refused merge (conflict, locks, failed gate) leaves the index, HEAD
+and MERGE_HEAD exactly as found. (`git commit --only` is not usable here: git refuses it while a merge is in progress, and the second
+parent is needed so later `BASE...branch` diffs stay right.) After landing `git status` must show no `??` among the landed paths, or the merge
 exits 5 naming them. `LandingCheck.verify` also checks every file the branch ADDED against `michael/dev`'s tree even when
 `.merge-landed.json` vouches for the head (the ledger is written before the commit), and reports it as "new file not on dev".
 Tests: `node Server/merge.test.mjs`.

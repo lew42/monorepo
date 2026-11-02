@@ -22,6 +22,7 @@
 
 - Every sweep takes only paths that match its allowlist (`LogSweeper.ALLOW`) and never one that matches `DENY` (code, markdown, `index.json`).
 - It commits with `git commit --only --pathspec-from-file`, so another agent's staged work stays staged and uncommitted. Message: `servex: log sweep (N files)`.
+- `Server/merge.mjs` follows the same rule (2026-11-02): it commits only its landed paths through a temporary index and never leaves anything staged; files other agents staged are named in a warning and stay staged ([review.md](../../../../../Server/doc/review.md)).
 - It skips while git is busy (`index.lock`, a merge, a rebase) or when the main tree is not on `michael/dev`.
 - At most 400 files per commit; the rest wait. Nothing changed means no commit. It never deletes.
 - Each sweep writes one line to Servex's `sweeper` log.
