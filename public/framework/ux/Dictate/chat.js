@@ -209,6 +209,8 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 				: Promise.reject(new Error("no voice session yet, so the reaction is not saved")),
 		});
 	});
+	// Recite's milestones also go to the session file (a log line each), the one record a phone is sure to reach (dictation-v3, 2026-11-01).
+	Recite.on_trace ??= (kind, f) => { if (/^(loaded|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
@@ -243,6 +245,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		}
 		if (!line?.chat) return void draw_task(line);
 		if (line.chat.prompt && line.chat.from?.kind === "owner") prompt_at.set(line.chat.prompt, line.chat.at);
+		if (line.chat.from?.kind === "assistant") Recite.shared.trace("reply seen", { from: line.chat.from.id, at: line.chat.at, new: Date.parse(line.chat.at) > (watching_since ?? 0), watching_since: watching_since && new Date(watching_since).toISOString() });   // before any filter
 		if (line.chat.from?.kind === "assistant" && Date.parse(line.chat.at) > (watching_since ?? 0)) { health_answer(line); Recite.shared.from_wire({ kind: "line", line }); }   // read aloud from whichever path drew it (the wire OR the 1.5 s file poll); Recite skips a reply it already read   // as times, never as text: Servex writes "…-05:00", the browser "…Z"
 		const echo = line.chat.from?.kind === "owner" && sending.find(m => m.text === flat(line.chat.text) && panel.$thread?.lines?.has(m.at));
 		if (echo){

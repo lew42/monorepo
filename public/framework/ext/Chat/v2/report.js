@@ -33,3 +33,5 @@ export function click(label){ post(current_session, "click", label); }
 
 /** Opt-in: any other page context worth a mention ("the drawer is now open", a page's own state). */
 export function context(text){ post(current_session, "context", text); }
+/** A diagnostic line filed in the session record as a `log` line (the error path), never read as speech: "recite: loaded …". */
+export function diag(text){ post(current_session, "error", text); }

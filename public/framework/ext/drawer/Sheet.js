@@ -11,6 +11,9 @@ import AIFeed from "./AIFeed.js";
 import DictationBar from "/framework/ux/Dictate/DictationBar.js";
 import Socket from "/framework/dev/Socket/Socket.js";
 import ChatView from "./ChatView.js";
+import Recite from "/framework/audio/Recite/Recite.js";
+import * as Wire from "/framework/ext/Session/Session.js";
+import * as report from "/framework/ext/Chat/v2/report.js";
 
 View.stylesheet(import.meta, "rail.css");
 
@@ -33,6 +36,30 @@ export default class Sheet extends View {
 		this.watch_nav();
 		this.restore();
 		this.keep_on_reload();
+		this.read_aloud();
+	}
+
+	/* READ-ALOUD ON EVERY PAGE (dictation-v3, 2026-11-01): the owner's phone never constructed Recite, whichever chat view drew the
+	 * sheet. So the Sheet, which every page has, makes Recite and follows the current voice session's live wire itself: each new
+	 * smart-seat reply is read, from the stream as it is written. Recite drops a reply it already read, so the chat's own hook
+	 * (ux/Dictate/chat.js) reading the same reply does no harm. */
+	read_aloud(){
+		// Recite's milestones go to the session file too (a log line each): the one record a phone is sure to reach.
+		Recite.on_trace ??= (kind, f) => { if (/^(loaded|sheet|reply|not read|speak failed|play refused|unlocked|unlock refused|playing)/.test(kind) && !(kind === "playing" && f.sentence > 0) && !(kind === "reply seen" && !f.new)) report.diag(`recite: ${kind} ${JSON.stringify(f).slice(0, 300)}`); };
+		const first = chat.current?.() ?? null;
+		if (first) report.init(first);   // before Recite starts, so its "loaded" line has a session to go to
+		const recite = Recite.shared;
+		let followed = null, stop = null;
+		const follow = () => {
+			const session = chat.current?.() ?? null;
+			if (session === followed) return;
+			followed = session; stop?.(); stop = null;
+			if (session) report.init(session);
+			recite.trace("sheet follows", { session });
+			if (session) stop = Wire.stream(session, ev => recite.from_wire(ev));
+		};
+		chat.on_change?.(follow);
+		follow();
 	}
 
 	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
