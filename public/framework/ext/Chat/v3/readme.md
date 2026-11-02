@@ -1,6 +1,6 @@
 # Chat v3: a session's chat as a card per Prompt, with every reply inside it
 
-Chat v3 draws `session.messages` (`core/Session/Chat/readme.md`): one card per Prompt, in the chat list's own order, with the Replies that answer it (found by `re.to`, a sentence id of that Prompt) drawn inside. It never writes and never reshapes a message. It is the one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; step 2 makes Chat v2 its subclass). Pick it as **V3** in the chat version dropdown; V1 stays the default.
+Chat v3 draws `session.messages` (`core/Session/Chat/readme.md`): one card per Prompt, in the chat list's own order, with the Replies that answer it (found by `re.to`, a sentence id of that Prompt) drawn inside. It never writes and never reshapes a message. It is the one chat view ([views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 1 of 6; **step 2 landed, 2026-11-01:** [`../v2/`](../v2/readme.md) is now `class ChatV2 extends ChatV3`). Pick it as **V3** in the chat version dropdown; V1 stays the default.
 
 Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messages-session.jsonl](fixture/messages-session.jsonl) (a copy of a real voice session, `session.messages`-shaped); `?src=<url of any session.jsonl>` draws that session, live.
 
@@ -16,7 +16,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
 - **Windowed:** the newest 40 cards, with "show earlier (N)".
 - **Live, in place:** a list `add` bubbles with `from` = the list itself (`List extends Item` now, so `get_one` can't tell them apart — `ChatV3.added_member()` resolves the actual member from the line's own `add` payload); a changed Prompt/Reply/Task redraws only the card it touched (`card_for()`).
 - **Per-card link:** each card carries its id, so `#<id>` on the chat's url scrolls to it.
-- **Small, overridable methods** (step 2 will subclass this): `prompt()`, `reply()`, `marks()` (a no-op hook for V2's ✓/🧠 marks, which live on the Prompt TASK until [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 3).
+- **Small, overridable methods**, the seam `ChatV2` (its subclass, step 2) builds on: `prompt()`, `reply()`, `marks()` (a no-op hook here — ChatV2 fills it with the ✓/🧠 marks, which live on the Prompt TASK until [views-on-messages.md](/framework/core/Session/Chat/doc/views-on-messages.md) step 3), `paragraph(group, p)` (one paragraph's sentences, joined — ChatV2 draws sentence rows instead, with a Reply beside the one it answers), `trailing_replies(p)` (the Replies drawn after the body, default `replies_of(p)` — ChatV2 drops any it already drew beside a sentence), `clamped_text(p, words, fill)` (the "show all (N words)" clamp wrapper, shared by `dictation()` and ChatV2's sentence rows).
 
 ## Where it shows
 
@@ -31,7 +31,7 @@ Try it: [/framework/ext/Chat/v3/](/framework/ext/Chat/v3/) draws [fixture/messag
 
 ## Test
 
-- `placement.test.mjs` (plain node, 18 checks, no browser: `owning_prompt`/`paragraphs` against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read): `node placement.test.mjs`.
+- `placement.test.mjs` (plain node, 18 checks, no browser: `owning_prompt`/`paragraphs` — which now delegates to `paragraph_groups`, exercised through it — against a copy of a real voice session — every Reply lands under the Prompt holding its `re.to`, in list order; a pause starts a paragraph; the fixture file is only ever read): `node placement.test.mjs`.
 - `ChatV3.test.mjs` (headless Playwright, 16 checks: card order, nesting, raw toggle, paragraph breaks, live append of a Prompt and a Reply found by `re.to`, no page errors): `node ChatV3.test.mjs [base-url] [shots-dir]`. It copies `fixture/messages-session.jsonl` to `fixture/live-v3-*.jsonl` (gitignored) and deletes the copy when done.
 
 `failures.jsonl` here is the page-error log the test run wrote while the draft was built (a since-fixed `scrollIntoView` error); it is a record, kept.

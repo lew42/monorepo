@@ -10,7 +10,7 @@ export default new Page({
 	content(){
 		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/messages-session.jsonl", import.meta.url).href;
 		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "This is a demo of Chat v2, drawn from the same fixture as Chat v3 (session.messages). Pass ?src=<url of any session.jsonl> to draw a real one.");
-		const $box = div.c("chat-v3 chat-v2");   // ChatV2 extends ChatV3 and draws its markup: the v3 class gets ChatV3.css's layout, v2 is this page's own hooks
+		const $box = div.c("chat-v2");   // ChatV2.read() adds "chat-v3" itself (ChatV3.css's column/padding), so every caller gets it for free
 		new ChatV2({ url, $box }).live();
 	},
 });

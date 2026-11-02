@@ -17,7 +17,10 @@ export default class ChatV2 extends ChatV3 {
 
 	// Track the V1 `{chat}`/`{sent}` broadcast lines ChatV3 skips (they carry no `session.messages` shape of their own) so the
 	// marks below can still find them, same lookup ChatV2Model used to do; everything else replays exactly as ChatV3 does.
+	// The `chat-v3` class goes on `$box` HERE, not in each caller (review finding 1): every caller (the demo page, the
+	// session page's Chat tab, the drawer/✦ sheet) gets ChatV3.css's own column/padding rules, with no fence crossing.
 	read(entries){
+		this.$box?.el.classList.add("chat-v3");
 		for (const raw of entries) {
 			if (raw?.chat?.from?.kind === "owner" && raw.chat.prompt && raw.chat.at) this.prompt_of.set(raw.chat.at, raw.chat.prompt);
 			if (raw?.sent?.to) {

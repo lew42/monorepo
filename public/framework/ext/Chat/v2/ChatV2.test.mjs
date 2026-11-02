@@ -30,6 +30,24 @@ try {
 	]), await ids(".chat-v3 > .chat-v3-card"));
 	check("a Question still nests under its Prompt (through the task link), not at the root", await page.$(first + " .chat-v3-nest [data-id='q-1793586471874']") !== null);
 
+	// every Reply in the fixture (9, placement.test.mjs's own count) lands beside the sentence holding its re.to, none left in a trailing list
+	const EXPECTED_BESIDE = [
+		["s-1793586471880", "Your words are arriving"], ["s-1793586471880", "there's no voice"],
+		["s-1793586544363", "Not really. Chrome on Android"],
+		["s-1793586591861", "I asked"], ["s-1793586591861", "The plan avoids query strings"],
+		["s-1793586626953", "I asked"], ["s-1793586626953", "it's still the old code"],
+		["s-1793586755261", "I'll tell you as soon as"],
+		["s-1793586760769", "Yes, refresh now"],
+	];
+	let beside_ok = true, beside_got = [];
+	for (const [sid, snippet] of EXPECTED_BESIDE) {
+		const found = await page.$eval(`[data-sentence='${sid}'] .chat-v2-beside`, (el, s) => el.textContent.includes(s), snippet).catch(() => false);
+		if (!found) { beside_ok = false; beside_got.push([sid, snippet]); }
+	}
+	check("every Reply in the fixture (9) lands beside the sentence holding its re.to", beside_ok, beside_got);
+	const trailing_total = await page.$$eval(".chat-v3-card > .chat-v3-reply", els => els.length);
+	check("no Reply is left in the trailing list (every Prompt here is still in dictation mode)", trailing_total === 0, trailing_total);
+
 	// 2. the marks: only the NEWEST Prompt carries them, even when an older one has sent/answered data too.
 	check("the oldest prompt has sent/answered data in the fixture but shows no marks (not the newest)", await page.$(first + " .chat-v2-marks") === null);
 	check("the newest prompt shows both marks", await page.$(newest + " .chat-v2-marks .chat-cursor") !== null && await page.$(newest + " .chat-v2-marks .chat-smart-cursor") !== null);
