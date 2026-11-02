@@ -65,7 +65,7 @@ await check("one session can choose `single` through settings(); the boot word s
 	assert.equal(s.single_seat(s.map[b.session]), false, "the other session is not");
 	assert.equal(s.voice_seat(s.map[b.session]), true, "the other session is still dual");
 	assert.throws(() => s.settings({ session: a.session, assistant: "bogus" }), /assistant must be/);
-	assert.equal(s.settings({ session: a.session, assistant: null }).assistant ?? "voice", "voice", "null drops it back to the boot word");
+	assert.equal(s.settings({ session: a.session, assistant: null }).assistant, undefined, "null drops it back to the boot word");
 	const t = make({ assistant: "single" }), c = t.create({ path: "/a/", fresh: true });
 	t.settings({ session: c.session, assistant: "voice" });
 	assert.equal(t.single_seat(t.map[c.session]), false, "a session can also step back to dual");

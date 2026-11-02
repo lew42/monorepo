@@ -369,7 +369,7 @@ export default class Sessions {
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
 		this.save();
-		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), assistant: this.assistant_of(s) };
+		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), ...(s.assistant ? { assistant: s.assistant } : {}) };
 	}
 
 	install(){
