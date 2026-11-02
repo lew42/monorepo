@@ -1,6 +1,9 @@
 # Document V1's "pseudo properties", and plan V2 and V3 on one list (you are a mastermind, on Sonnet)
 
-**The owner (2026-11-01, 21:18, relayed by the web voice session):** the biggest item is to unify V2 and V3 and make chat and messages coherent: data structures, transcript streaming and how often each part runs. They want a real list (messages, prompts, sentences by id), not V1's "pseudo properties". "Please DOCUMENT the pseudo-property system so everyone knows the term." Source: [../dictation-v3/owner-notes-2026-11-01-2040.md](../dictation-v3/owner-notes-2026-11-01-2040.md), items 28–29.
+**The owner's ask (2026-11-01, 21:18):**
+- Make V2 and V3 and chat coherent: one real list of messages, prompts and sentences by id.
+- Stop relying on V1's "pseudo properties", and document the term so everyone knows it.
+- Source: [owner notes, items 28–29](../dictation-v3/owner-notes-2026-11-01-2040.md).
 
 ## 1. The doc (first, small)
 Write `public/framework/core/Session/Chat/doc/pseudo-properties.md`. A pseudo property is a `{chat}` or `{place}` line in a voice session's `session.jsonl` that replays as a set on a field the Session class doesn't really have. Cover, verified against the code with file:line:

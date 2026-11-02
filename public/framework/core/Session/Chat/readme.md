@@ -68,6 +68,11 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 
 `node Server/ChatToMessages.mjs <session.jsonl …>` prints the lines an older session would have had, made by the same `ChatWriter`; `--apply` appends them (never rewrites) and records each file in `ai/sessions/chat-messages-moves.jsonl`. Not run: the owner wants the list to prove itself first. It cannot know when the owner was mid-thought, so old replies keep V1's positions.
 
+## More
+
+- [doc/pseudo-properties.md](doc/pseudo-properties.md): what V1's `{chat}` / `{place}` "pseudo properties" are, who writes and reads them, and how V1 switches over.
+- [doc/views-on-messages.md](doc/views-on-messages.md): the plan to put Chat V2 and V3 on this list (plan only).
+
 ## Next
 
 - ⬜ Chat V3 reads this list instead of re-reading `{chat}` lines (the views belong to `mastermind-dictation-v3`; this list is the contract).

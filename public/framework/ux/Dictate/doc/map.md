@@ -176,6 +176,12 @@ Each line: what a newcomer would understand from the page.
 
 ---
 
+## 5b. The `{chat}` and `{place}` lines
+
+V1 draws a voice session from two "pseudo property" lines, `{chat}` and `{place}`; what they are, who writes and reads them, and the plan to move V1 onto `session.messages`: [core/Session/Chat/doc/pseudo-properties.md](/framework/core/Session/Chat/doc/pseudo-properties.md).
+
+---
+
 ## 6. Why it got this way
 
 On 2026-09-29 the owner asked for three named layers (audio, transcription, refinement at levels) and said "ux/Dictate can stay where it is, **rebuilt on the audio/ parts**" ([the 09-29 brief](/framework/ai/sessions/2026/09/29/audio/audio/requirements.md), points 2–3). The task built `audio/Transcriber` and `ux/Revise` (merge `b1b82d33a`) but fenced `Dictate.js` as read-only, so it *copied* Dictate's Whisper code instead of moving it, and Dictate was never rebuilt on the new parts. A week later `ext/Refine` (`8dbc5dd10`, `c7233feb8`) built its own cleaner and its own `Whisper` class for a different job (prompt → cards) under the same word. Each task added a new module beside the old one and none retired the old one, so every layer now exists twice. Proposed skill line: [skill-proposal.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-map/skill-proposal.md).
