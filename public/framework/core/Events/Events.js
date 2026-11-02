@@ -1,4 +1,4 @@
-// A small mixin — `on` / `off` / `emit`, nothing else — so ANY class can announce
+// A small mixin — `on` / `off` / `once` / `clear` / `emit`, nothing else — so ANY class can announce
 // its own changes without inheriting a bigger base class. `Events(Object)` is a
 // plain emitter; `List` (core/List/List.js) extends `Events(Object)` directly, so
 // every List announces its own changes. Listeners live in `this._on`, made lazily,
@@ -12,7 +12,7 @@ export const Events = (Base = Object) => class extends Base {
 	}
 
 	off(event, fn){
-		if (this._on?.[event]) this._on[event] = this._on[event].filter(listener => listener !== fn);
+		if (this._on?.[event]) this._on[event] = this._on[event].filter(listener => listener !== fn && listener.fn !== fn);
 		return this;
 	}
 
@@ -23,6 +23,19 @@ export const Events = (Base = Object) => class extends Base {
 	emit(event, ...args){
 		this._on?.[event]?.slice().forEach(fn => fn.call(this, ...args));
 		if (this.bubbles(event)) this.parent?.emit(event, ...args);
+		return this;
+	}
+
+	// Runs once, then removes itself; off(event, fn) with the original fn still finds it.
+	once(event, fn){
+		const wrapper = (...args) => { this.off(event, wrapper); return fn.apply(this, args); };
+		wrapper.fn = fn;
+		return this.on(event, wrapper);
+	}
+
+	clear(event){
+		if (event === undefined) this._on = undefined;
+		else if (this._on?.[event]) this._on[event] = [];
 		return this;
 	}
 

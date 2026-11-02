@@ -78,21 +78,21 @@ test("A.plugins is lazy: nothing is built until it is read, then one entry per p
 	t.ok(!Object.hasOwn(H5, "_list"), "reading nothing built nothing");
 	const list = H5.plugins;
 	t.eq(list.length, 1, "one entry");
-	t.eq(list.find("Spy").get("on"), true, "the entry is on");
+	t.eq(list.find("Spy").get("enabled"), true, "the entry is on");
 	H5.use(Other);
 	t.eq(list.length, 2, "a plugin used after the list exists appears in it");
 	H5.unuse(Other);
-	t.eq(list.find("Other").get("on"), false, "unuse switches the row off");
+	t.eq(list.find("Other").get("enabled"), false, "unuse switches the row off");
 });
 
 test("available() lists a plugin switched off and installs nothing", t => {
 	calls.length = 0;
 	class H6 extends Plugin {}
 	H6.available(Spy);
-	t.eq(H6.plugins.find("Spy").get("on"), false, "shown off");
+	t.eq(H6.plugins.find("Spy").get("enabled"), false, "shown off");
 	new H6({ tag: "a" });
 	t.eq(calls.length, 0, "not attached while off");
-	H6.plugins.find("Spy").set({ on: true });
+	H6.plugins.find("Spy").set({ enabled: true });
 	new H6({ tag: "b" });
 	t.eq(calls, [["attach", "Spy", "b"]], "switching on installs it");
 });
@@ -101,10 +101,10 @@ test("toggling a row (what the item tool sends) moves the hook with it", t => {
 	calls.length = 0;
 	class H7 extends Plugin {}
 	H7.use(Spy);
-	H7.plugins.set({ Spy: { on: false } });
+	H7.plugins.set({ Spy: { enabled: false } });
 	new H7({ tag: "off" });
 	t.eq(calls.length, 0, "off: the hook is gone");
-	H7.plugins.set({ Spy: { on: true } });
+	H7.plugins.set({ Spy: { enabled: true } });
 	new H7({ tag: "on" });
 	t.eq(calls, [["attach", "Spy", "on"]], "on: the hook is back");
 });
@@ -132,12 +132,12 @@ test("a sub-plugin follows its parent: parent off means the sub-plugin never run
 	const row = H9.plugins.find("Parent"), sub = row.plugins.find("Sub");
 	new H9({ tag: "p1" });
 	t.eq(calls, [["attach", "Sub", "p1"]], "on: the sub-plugin runs for the parent's instance");
-	row.set({ on: false });
+	row.set({ enabled: false });
 	t.eq(sub.active, false, "the sub row reads inactive while the parent is off");
 	calls.length = 0;
 	new H9({ tag: "p2" });
 	t.eq(calls.length, 0, "off: the sub-plugin does not run");
-	row.set({ on: true });
+	row.set({ enabled: true });
 	t.eq(sub.active, true, "back on: active again");
 });
 
