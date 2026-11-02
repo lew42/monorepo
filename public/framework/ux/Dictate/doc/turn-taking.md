@@ -26,3 +26,8 @@ These are the owner's design notes from 2026-11-01, 20:55, relayed by the web vo
 3. **Hold the display of new replies while the owner talks (idea 1).** UI only: the same "owner is speaking" signal the turn-taking change already needs.
 4. **Heard-only context (idea 4).** Moderate. Recite already knows the word it's on (the karaoke highlight), so the page appends one `{heard: {re, upto}}` line. The smart seat's next prompt then cuts the reply at `upto` and marks it interrupted.
 5. **Paced streaming (idea 3).** This is the karaoke follow plus phrase-level streaming, already queued in read-aloud-next. It's the largest of the five, so it goes last.
+
+## Wake rules (the owner, 21:18)
+
+- **The fast seat** is woken on pieces shorter than a sentence: at a comma, full stop or question mark.
+- **The smart seat** is woken on whole sentences, because there's no better trigger than a sentence's end.
