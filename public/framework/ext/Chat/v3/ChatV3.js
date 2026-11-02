@@ -69,7 +69,7 @@ export default class ChatV3 extends JSONL {
 	wire(on){
 		this.stop_wire?.(); this.stop_wire = null;
 		const id = on && this.session_id();
-		if (id && /^v-|^[w-]{6,}$/.test(id)) this.stop_wire = Wire.stream(id, ev => { if (ev?.kind === "stream") this.stream(ev.role, ev.text ?? ""); });
+		if (id && /^v-|^[\w-]{6,}$/.test(id)) this.stop_wire = Wire.stream(id, ev => { if (ev?.kind === "stream") this.stream(ev.role, ev.text ?? ""); });
 	}
 	stream(role, text){
 		if (!text) { this.partial = null; this.$partial?.el.remove(); return; }

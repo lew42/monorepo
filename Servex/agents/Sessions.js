@@ -1024,7 +1024,7 @@ export default class Sessions {
 			...(selection && typeof selection === "object" ? { selection: trim_sel(selection) } : {}) };
 		this.write(s, { chat: line });
 		/* With the fast seat off, code files the Question the voice assistant used to (one per "?" sentence, the same line shape). */
-		if (this.fast_off() && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now(), text: String(text).trim() }, "servex"));
+		if (this.fast_off() && /\?["'”’)]*$/.test(String(text).trim())) this.write(s, PromptLines.add_question(prompt, { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), text: String(text).trim() }, "servex"));
 		this.refine(s, line).catch(e => this.servex?.say?.(`sessions: could not refine an utterance: ${e.message || e}`));
 		if (line.thread){
 			(s.threaded ??= []).push(line.at);
