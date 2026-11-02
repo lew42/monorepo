@@ -165,7 +165,7 @@ export class Task extends Item {
 		return this._ran_ms + (this._ran_since != null ? this.ms() - this._ran_since : 0);
 	}
 
-	// `{done, total}` from the subtasks' own states — never a stored number
+	// FOR COUNTS ONLY (completion is the average in `get completion`). `{done, total}` from the subtasks' own states — never a stored number
 	// (CLAUDE.md law 7: compute, don't recall). No subtasks yet is reported as
 	// 0/1 (or 1/1 once complete), so a progress bar still means something before
 	// the first subtask exists.
