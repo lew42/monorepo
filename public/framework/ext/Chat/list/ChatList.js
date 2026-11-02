@@ -1,6 +1,7 @@
 // ChatList.js — the simplest live view of a session's real chat list, `session.messages` (core/Session/Chat/readme.md): one bubble per
-// message, in the list's order. It reads ONLY the list lines ({"messages":…}, {"sentences":…}), never V1's {chat} lines, and redraws
-// from the Session's own "delta" events, so a message added or grown in the file shows here without a reload (ext/JSONL live()).
+// message, in the list's order. It reads the list lines ({"messages":…}, {"sentences":…}) and {"tasks":…} (so a same-file Ref,
+// step 3, can resolve its target), never V1's {chat} lines, and redraws from the Session's own "delta" event, so a message
+// added or grown in the file shows here without a reload (ext/JSONL live()).
 // Chat V3 (../v3/) is the designed view; this one is the proof that the list alone is enough to draw the chat.
 import View, { div } from "/framework/core/View/View.js";
 import JSONL from "/framework/ext/JSONL/JSONL.js";
@@ -9,7 +10,7 @@ import Message from "/framework/core/Session/Chat/Message.js";
 import Prompt from "/framework/core/Session/Chat/Prompt.js";
 import Reply from "/framework/core/Session/Chat/Reply.js";
 import Ref from "/framework/core/Item/Ref.js";
-import RefView from "/framework/core/Item/RefView.js";
+import { DefaultView } from "/framework/ux/Content/Object/DefaultView.js";
 import { md_into } from "../md.js";
 View.stylesheet(import.meta, "ChatList.css");
 
@@ -22,35 +23,35 @@ export default class ChatList extends JSONL {
 	// { url: the session.jsonl url, $box: the View to draw into }
 	read(entries){
 		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { if (from instanceof Message) this.dirty.add(from); }); }
-		for (const line of entries) if (line && typeof line === "object" && (line.messages || line.sentences || line.session)) this.session.replay_line(line);
-		this.draw();
+		for (const line of entries) if (line && typeof line === "object" && (line.messages || line.sentences || line.session || line.tasks)) this.session.replay_line(line);
+		this.paint();
 		return this;
 	}
 	live(){ super.live(() => {}); return this; }
 	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.$box?.el.replaceChildren(); return super.reset?.() ?? this; }
 
-	// Every message in list order: a new one gets a bubble at its place, a changed one is refilled. Positions never change.
-	draw(){
+	// Every message in list order: a new one gets a bubble at its place, a changed one is refilled, and one no
+	// longer in the list drops out — the keyed loop is `DefaultView.place()` (ux/Content/Object/DefaultView.js),
+	// the same one a bare `view(list)` uses, so there is ONE placement loop, not two (Law 6).
+	paint(){
 		const box = this.$box?.el;
 		if (!box) return;
 		const list = this.session._messages?.messages ?? [];
 		box.querySelector(":scope > .chatlist-empty")?.remove();
 		if (!list.length){ box.append(Object.assign(document.createElement("div"), { className: "chatlist-empty", textContent: "No messages in this session's chat list yet." })); return; }
-		let prev = null;
-		for (const m of list){
-			let el = this.els.get(m);
-			if (!el){
-				// A Ref (a root task or a spawned child session, step 3) is drawn by its own RefView — the
-				// target's own state, live — never by `fill()`'s prompt/reply bubble, which has nothing to say
-				// about an item it does not hold the data of.
-				el = m instanceof Ref ? new RefView({ ref: m, where: false }).ac("chatlist-msg", "is-ref").el : document.createElement("div");
-				this.els.set(m, el);
-				if (!(m instanceof Ref)) this.fill(el, m);
-			} else if (this.dirty.has(m) && !(m instanceof Ref)) this.fill(el, m);
-			if (el.previousElementSibling !== prev || el.parentNode !== box) prev ? prev.after(el) : box.prepend(el);
-			prev = el;
-		}
+		DefaultView.place(box, list, this.els, m => this.make(m), (el, m) => this.dirty.has(m) && !(m instanceof Ref) && this.fill(el, m));
 		this.dirty.clear();
+	}
+
+	// A Ref (a root task or a spawned child session, step 3) is drawn by DefaultView.ref_view() — the target's
+	// own state, live, through RefView — never by fill()'s prompt/reply bubble, which has nothing to say about
+	// an item it does not hold the data of. `DefaultView.child()` builds the same Ref row, so this branch
+	// exists once, not twice.
+	make(m){
+		if (m instanceof Ref) return DefaultView.ref_view(m, { capture: false }).ac("chatlist-msg", "is-ref").el;
+		const el = document.createElement("div");
+		this.fill(el, m);
+		return el;
 	}
 
 	fill(el, m){

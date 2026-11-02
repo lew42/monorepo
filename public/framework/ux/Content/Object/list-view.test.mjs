@@ -1,9 +1,9 @@
 // node list-view.test.mjs [base-url] — headless: proves List.View (DefaultView.js, wired by List.render()) updates on a List's
 // add/remove/move/order keyed by member id, without redrawing the members that did not change (chat-model plan.md step 4), and
 // that a Ref member (core/Item/Ref.js, added to a chat list in step 2/3) draws through RefView, not a nested DefaultView.
-import Browser from "file:///C:/Code/lew42/monorepo/Server/Browser.mjs";
+import Browser from "../../../../../Server/Browser.mjs";
 
-const base = process.argv[2] ?? process.env.SITE_URL ?? "http://chat-model.localhost";
+const base = process.argv[2] ?? process.env.SITE_URL ?? "http://monorepo.localhost";
 let pass = 0, fail = 0;
 const check = (name, ok, got) => { ok ? pass++ : fail++; console.log(`${ok ? "PASS" : "FAIL"} ${name}${ok ? "" : "  got: " + JSON.stringify(got)}`); };
 

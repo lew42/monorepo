@@ -9,8 +9,8 @@ import ChatList from "/framework/ext/Chat/list/ChatList.js";
 new ChatList({ url: "<a session.jsonl url>", $box: div.c("chatlist") }).live();
 ```
 
-- It replays only the list lines (`messages`, `sentences`) into a `Session`, never V1's `{chat}` lines.
-- A `Ref` member (a root task, or a spawned child session, step 3) draws as `RefView` (`core/Item/RefView.js`), not a chat bubble — a `.chatlist-msg.is-ref` row showing the target's own live state, since `ChatList` holds none of its data.
+- It replays the list lines (`messages`, `sentences`) plus `tasks` (so a same-file Ref can find its target) into a `Session`, never V1's `{chat}` lines.
+- A `Ref` member (a root task, or a spawned child session, step 3) draws as `RefView` (`DefaultView.ref_view()`, `ux/Content/Object/DefaultView.js`), not a chat bubble — a `.chatlist-msg.is-ref` row showing the target's own live state, since `ChatList` holds none of its data. `paint()` keys every row, Ref included, through the shared `DefaultView.place()` loop (one placement loop, Law 6) — see [core/List/readme.md](/framework/core/List/readme.md#watch-out).
 - Live: `ext/JSONL`'s `live()` streams new lines; the Session's `"delta"` event names the Message that changed, and only that bubble is refilled. A new message appears without a reload (29 ms in the headless check).
-- Demo: [/framework/ext/Chat/list/](/framework/ext/Chat/list/) draws `fixture/session.jsonl`, a session written by Servex's real writer (`CHAT_FIXTURE=<path> node Servex/agents/chat-messages.test.mjs` rewrites it); `?src=<session.jsonl url>` draws any session.
+- Demo: [/framework/ext/Chat/list/](/framework/ext/Chat/list/) draws `fixture/session.jsonl`, a session written by Servex's real writer, with one root task's Ref at the bottom (`CHAT_FIXTURE=<path> node Servex/agents/chat-messages.test.mjs` rewrites it); `?src=<session.jsonl url>` draws any session.
 - CSS prefix `chatlist-` (`.chat-list` is ext/Ask's).
