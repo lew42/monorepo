@@ -71,3 +71,7 @@
 {"log":{"at":"2026-11-01T19:36:13-06:00","heartbeat":"answered","msg":"Still waiting: no owner line or phone load since the 19:22 restart. Both watchers are armed, and the fallback check is at 20:08."}}
 {"log":{"at":"2026-11-01T19:42:09-06:00","heartbeat":"check","msg":"status check sent to mastermind-dictation-v3"}}
 {"log":{"at":"2026-11-01T19:42:13-06:00","heartbeat":"answered","msg":"Idle on purpose. Two watchers are waiting for your next voice line and your next phone load; I'll report only when one of them fires."}}
+{"log":{"at":"2026-11-01T19:53:11-06:00","heartbeat":"check","msg":"status check sent to mastermind-dictation-v3"}}
+{"wait":{"at":"2026-11-01T19:53:17-06:00","on":"owner","what":"the next owner voice line (to confirm the voice assistant places it) or the next phone load; watchers bz75oxju2 and b6n6mb2nu report it"},"by":"append.mjs","ts":"2026-11-02T01:53:17.552Z"}
+{"log":{"at":"2026-11-01T19:53:21-06:00","heartbeat":"answered","msg":"The task is now marked as waiting on you, so the heartbeat should stop pinging. Two watchers are still running: one for your next voice line, one for your next phone load."}}
+{"log":{"at":"2026-11-01T20:07:09-06:00","msg":"dropped: voice-models: owner minion-voice-models is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/voice-models/","reason":"owner-stopped"}}
