@@ -1,6 +1,6 @@
-# Events architecture — one mixin, `on` / `off` / `emit`, and a parent chain
+# Events architecture — one mixin, `on` / `off` / `once` / `clear` / `emit`, and a parent chain
 
-Events is a small mixin, not a base class: `Events(Base)` returns a subclass that adds `on`, `off` and `emit`. Anything that wants to announce its changes extends it. Entry: [`Events.js`](./../Events.js).
+Events is a small mixin, not a base class: `Events(Base)` returns a subclass that adds `on`, `off`, `once`, `clear` and `emit`. It handles instance events only: class-level events and `"new"` live in [core/Plugin](../../Plugin/readme.md), which extends this mixin (the old `Server/Events.js` is now a shim over it). Anything that wants to announce its changes extends it. Entry: [`Events.js`](./../Events.js).
 
 ## One mixin, not a base class
 

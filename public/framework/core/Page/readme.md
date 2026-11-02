@@ -69,6 +69,8 @@ A **List** when something is ordered and watched; an **Item** when it is a thing
 
 `page.js` vs `page.jsonl` are two ways to make one kind of page ([doc/jsonl-pages.md](doc/jsonl-pages.md)); `AITask`/`TaskPage` are Page subclasses for tasks ([ai/AITask](/framework/ai/AITask/), [core/Task](/framework/core/Task/)); `core/Page/ai/` is the per-page AI view, `ai/` is the AI system's records.
 
+`Page.use(Ext)` (runs `Ext.setup(page)` on every page) is the page-only plugin list; for anything that is not a page, and for anything new, use [core/Plugin](../Plugin/readme.md) (`Host.use`, `attach`/`detach`, a list you can switch off). Moving Page onto Plugin is a follow-up.
+
 Also here: [audit/](audit/) (every page layout in use, most-used first) · [make/readme-page/](make/readme-page/) (a readme as the whole page).
 
 ## Folders here
