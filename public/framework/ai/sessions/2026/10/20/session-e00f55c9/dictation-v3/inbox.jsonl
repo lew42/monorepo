@@ -108,3 +108,8 @@
 {"read_upto":107,"at":"2026-11-02T03:46:03-06:00","by":"servex-task-loop"}
 {"at":"2026-11-02T03:46:09-06:00","from":"mastermind-read-aloud-b","kind":"done","text":"Review is running in the background; I'll continue once it finishes."}
 {"read_upto":109,"at":"2026-11-02T03:46:20-06:00","by":"mastermind-dictation-v3"}
+{"at":"2026-11-02T03:46:57-06:00","from":"mastermind-read-aloud-b","kind":"done","text":null}
+{"at":"2026-11-02T03:46:57-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":null}
+{"at":"2026-11-02T03:48:16-06:00","from":"mastermind-dictate-red-tests","kind":"done","text":"The remaining Dictate scripts (settings, sheet-steps, stall, swallow, v1-order, watch, in-place) are running in the background. I'll check the results when they finish, then run review and merge batch 4."}
+{"read_upto":113,"at":"2026-11-02T03:52:33-06:00","by":"servex-task-loop"}
+{"read_upto":114,"at":"2026-11-02T03:52:48-06:00","by":"mastermind-dictation-v3"}
