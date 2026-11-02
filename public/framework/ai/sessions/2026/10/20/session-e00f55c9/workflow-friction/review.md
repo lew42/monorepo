@@ -1,25 +1,24 @@
-verdict: fix
-1. [fix] Snag 2 misses a modified task log: `branchTaskDirs` in `Server/merge.mjs` (the new function, about line 174) trims each `git status --porcelain` line and then does `l.slice(3)`. A tracked file with unstaged changes (` M public/…/task.jsonl`, which is what `review.mjs` makes when it appends a review line) becomes `ublic/…`, fails the `public/framework/ai/` check and is skipped. Don't trim the status lines; split on the first space after the two status characters. The new test in `Server/merge.test.mjs` only covers an untracked file (`??`), so add a case for a modified one.
-2. [fix] The task folder doesn't record the extra work. Commit ec10f6c70 ("snags 5, 6": `tasks.add` on a session route goes to `session.jsonl`, and a page write answers small, in `Servex/agents/page_tools.js`) and `Server/IgnoredImageLinks.mjs` (merge warns on links to git-ignored pictures) are not in `requirements.md`. No file in the task folder says who asked for them or why. Add the asks to `requirements.md` or the task log.
-3. [fix] A fresh agent couldn't continue from this folder. It holds only `requirements.md`, `past-work.md`, a one-line `session.jsonl` (the assign line) and `review/`. There is no task log, no outcome, and no record of the proof runs the brief asks for: each snag's test or rerun, and `run-all --browser` beside another headless job. That proof appears only as prose in `core/Test/doc/health.md`. Link the run lines (results.jsonl / run-all.jsonl) and the test results from the task folder.
-4. [note] The brief asked the builder to coordinate with `mastermind-task-close-loop` before touching `Servex/agents/Agents.js`, and the diff changes `Agents.successor()` (one line). Nothing records that coordination.
-5. [note] The new check in `public/framework/core/Test/TestRunner.test.mjs` doesn't test the fallback. `real.wav_path()` passes whenever the path ends in `jfk.wav`, and the worktree's own missing path does too. A case with a scratch "main" checkout that holds the wav would prove snag 4's fix.
-6. [note] A page write through `page_set`/`page_add` (`page_tools.js` about line 1396) no longer returns the page's text. Any caller that read the page out of a write's answer now needs a separate read. `Servex/doc/item-tool.md` documents the change, but it goes beyond the four snags.
-7. [note] `review.mjs --shots-only` on a diff of size `none` reaches the `size === "none"` branch (`Server/review.mjs:761`) before the shots-only exit, so it writes a no-agent pass review line. The flag's comment promises "no review line". This is harmless (no page means no shots), but the wording is wrong.
-8. [note] Snag 1's own wording ("isn't a live agent") no longer appears anywhere in `Servex/`. The fix traces the false failure to `successor()` following a shared `session_id`, and adds `ok`, `delivered_to` and `note` to the card. The readme says Servex needs a restart, and the report must say so too, as the brief asks.
-9. [note] `Server/readme.md` lists neither `OutPath.mjs` nor `IgnoredImageLinks.mjs`. It doesn't list `MergeTests.mjs` either, so this follows the existing pattern; `Server/doc/review.md` does document both.
+verdict: pass
+1. [note] Snag 1 still needs a Servex restart to take effect (`Servex/agents/readme.md` "Sending to a VS Code tab" says so). `session.jsonl` answer 8 only promises that the 3-line report to vscode-mastermind will say it. Make sure that report goes out.
+2. [note] `review.mjs --shots-only` takes the shots from the worktree's own server only when the worktree has a `.worktrees.json` entry. Without one it shoots the MAIN site, and only a log line says so (`Server/review.mjs:785-792`). The doc paragraph in `Server/doc/review.md` (the one route for the gate's shots) should say that the worktree must be registered.
+3. [note] `--shots-only` also skips shooting when every `<width>.png` already exists (`Server/review.mjs:787`), so a hand-drawn PNG left in `shots/` is still accepted as real. The rule against hand-made shots is only in the docs.
+4. [note] The snag 4 proof (run-all `--browser` beside another headless job) is linked from the `proof` line in `session.jsonl` as whole files (`core/Test/results.jsonl`, `run-all.jsonl`), not as the specific run lines. Naming the run's `at` stamps would let a reader find them.
+5. [note] Commits 40d37e7d0 and 215896213 both say "Server readme lists OutPath and IgnoredImageLinks". The second one looks like a follow-up to the same edit. This is harmless.
 
 ## Requirements
-- 1 "a send to a tab answers 'delivered to the tab's inbox'": yes. `Servex/agents/External.js` card has `ok: true`, `delivered_to`, `note: "Delivered…"`; `External.test.mjs` adds two cases; documented in `Servex/agents/readme.md` "Sending to a VS Code tab".
-- 2 "find the review by the branch's own task dir, not by age": partly. The fallback scans the dirs the branch touched plus `TaskDirs.find(slug, 3650)`, but a modified (not untracked) task log is missed (finding 1).
-- 3 "one route that works … shots from the worktree's own dev server into the task dir": yes. `OutPath` now allows any git worktree, `review.mjs --shots-only` is added, the merge refusal names the command, and `Server/doc/review.md` documents it.
-- 4 "find what is slow under load … prove it under load": yes, with a different cause than expected. The worktree had no `jfk.wav` (it is git-ignored), so `TestRunner.wav_path()` now falls back to the main checkout's copy, and `refresh` gets a 300 s limit. The proof is only in prose (finding 3).
-- "Each snag is its own commit": yes. c8064ed23, 56ea0eab8, 33a1eb62e and 917f98119 (plus 60a3bc970 for snag 4's docs). Two commits carry work outside the brief (finding 2).
-- "Document each fix in Server/doc/review.md and Servex/agents/readme.md": yes.
-- "Don't restart Servex; say a restart is needed": yes in the readme. No report was in the folder to check.
-- "Can you open a page that shows the class's live instances?": n/a. No new stateful class (`IgnoredImageLinks` is a stateless helper).
+- 1 "a send to a tab answers 'delivered to the tab's inbox'": yes. `Servex/agents/External.js:110` returns `ok: true`, `delivered_to` and a "Delivered." note. `Agents.successor()` (`Agents.js:713`) no longer follows a tab to an agent that shares its session. Two new cases in `External.test.mjs`.
+- 2 "find the review by the branch's own task dir, not by age": yes. `branchTaskDirs` and `TaskDirs.find(slug, 3650)` in `Server/merge.mjs`. The first review's bug with porcelain lines is fixed (no trim, CR stripped), and `merge.test.mjs` covers an old session plus a tracked log that was edited afterwards.
+- 3 "one route that works; review.mjs takes the gate's shots from the worktree's server into the task dir": yes. `OutPath` allows the repo's own git worktrees, `review.mjs --shots-only` was added, and the gate and review.mjs both pick widths with `widthsFor`, so they agree. The merge refusal names the command. Notes 2 and 3 above.
+- 4 "find what is slow under load, fix the wait, prove it beside another job": yes, and the cause turned out to be different. `jfk.wav` is git-ignored, so worktrees had no copy; `TestRunner.wav_path()` now uses the main checkout's copy. `refresh` gets 300 s. The fallback is tested against a real git worktree, and the proof is in `core/Test/doc/health.md` and the `proof` line.
+- Each snag is its own commit: yes. c8064ed23, 56ea0eab8, 33a1eb62e and 917f98119; the review fixes are in 7ff85ce46.
+- Document each fix in `Server/doc/review.md` and `Servex/agents/readme.md`: yes. `Server/README.md` now also indexes `OutPath.mjs` and `IgnoredImageLinks.mjs`.
+- Don't restart Servex; say a restart is needed: yes in the readme. The report itself is still pending (note 1).
+- The extra work (snags 5 and 6, IgnoredImageLinks) is recorded: yes. The `scope` line in `session.jsonl` says vscode-mastermind asked for it. `Servex/doc/item-tool.md` documents both changes.
+- Coordination on `Agents.js`: yes. The `coordination` line in `session.jsonl` records it.
+- Could a fresh agent continue from this folder? Yes. The brief, the first review, the answers to each finding, and the scope, proof and coordination lines are all there.
+- A page that shows a new class's live instances: n/a. `IgnoredImageLinks` is a stateless helper.
 
 ## Words
-- content 1 (says what it is, first): yes. Each new doc paragraph in `Server/doc/review.md` opens with a bold one-line claim.
-- content 3 (short, plain): no, a note. The `Server/doc/review.md` paragraphs on the shots route and the browser scripts each run past 100 words, with history inline.
-- content (owner's names): yes. "VS Code tab", "inbox" and "gate" match the brief.
+- content 1 (says what it is first): yes. Each new paragraph in `Server/doc/review.md` and `Servex/agents/readme.md` opens with what it is.
+- content 3 (short, plain): mostly. The `Server/doc/review.md` shots-route paragraph and the health.md "Load and the fake mic" entry run long and keep history inline. This is a small thing.
+- Owner's names ("VS Code tab", "inbox", "gate"): yes.
