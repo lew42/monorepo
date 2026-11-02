@@ -56,7 +56,7 @@ export const schemas = {
 			finish:     { fields: ["at"], eg: { at: "NOW" } },
 			// Work was logged and the task never completed (Servex/agents/Agents.js close_loop, Server/StaleClose.mjs, Server/Unclose.mjs): stops it if open, flags it; core/Task/Task.js replay_line.
 			unclosed:   { fields: ["at", "why", "by"], eg: { at: "NOW", why: "unclosed: 5 log lines, no outcome", by: "StaleClose" } },
-			wait:      { fields: ["at", "on"], eg: { at: "NOW", on: "owner", what: "approval of steps 3-11" } },
+			wait:       { fields: ["at", "on"], eg: { at: "NOW", on: "owner", what: "approval of steps 3-11" } },
 			approve:    { fields: ["at", "by"], eg: { at: "NOW", by: "owner", note: "…" } },
 			// Written by Servex/TaskLoop.js: one line per reminder to a task waiting on the owner.
 			follow_up:  { fields: ["n", "at"], eg: { n: 1, to: "agent-id", at: "NOW" } },

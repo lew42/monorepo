@@ -9,7 +9,6 @@ for (const chunk of [1, 3, 7, 1000]){
 	assert.deepEqual(got.map(g => g[1]), text.split("\n"), `chunk ${chunk}`);
 	assert.deepEqual(got.map(g => g[0]), got.map((_, i) => i));
 }
-fs.writeFileSync(f, jl()); const none = []; PromptAudit.each_line(f, l => none.push(l)); assert.deepEqual(none, []);
-function jl(){ return ""; }
+fs.writeFileSync(f, ""); const none = []; PromptAudit.each_line(f, l => none.push(l)); assert.deepEqual(none, []);
 fs.rmSync(f);
 console.log("ok");
