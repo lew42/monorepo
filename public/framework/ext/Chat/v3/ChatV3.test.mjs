@@ -77,6 +77,17 @@ try {
 	await page.waitForTimeout(1500);
 	check("a {chat} reply with the same text as a Prompt reply is drawn once", (await page.$$eval(card + " .chat-v3-reply", els => els.filter(e => e.textContent.includes("Seen, live.")).length)) === 1);
 
+	// 2b. a long dictation with no AI text yet: paragraphs, clamped, "show all", a muted first-words title (the owner's "wall of text", 2026-11-01)
+	const lid = "p-1761383100000", lcard = `.chat-v3-prompt[data-id='${lid}']`;
+	appendFileSync(served + live, JSON.stringify({ tasks: { add: { type: "Prompt", id: lid, raw: ["Sentence number 1 is said here. Sentence number 2 is said here. Sentence number 3 is said here. Sentence number 4 is said here. Sentence number 5 is said here. Sentence number 6 is said here. Sentence number 7 is said here. Sentence number 8 is said here. Sentence number 9 is said here. Sentence number 10 is said here. Sentence number 11 is said here. Sentence number 12 is said here. Sentence number 13 is said here. Sentence number 14 is said here. Sentence number 15 is said here. Sentence number 16 is said here. Sentence number 17 is said here. Sentence number 18 is said here. Sentence number 19 is said here. Sentence number 20 is said here. Sentence number 21 is said here. Sentence number 22 is said here. Sentence number 23 is said here. Sentence number 24 is said here. Sentence number 25 is said here. Sentence number 26 is said here. Sentence number 27 is said here. Sentence number 28 is said here. Sentence number 29 is said here. Sentence number 30 is said here. Sentence number 31 is said here. Sentence number 32 is said here. Sentence number 33 is said here. Sentence number 34 is said here. Sentence number 35 is said here. Sentence number 36 is said here. Sentence number 37 is said here. Sentence number 38 is said here. Sentence number 39 is said here. Sentence number 40 is said here."] } } }) + "\n");
+	await page.waitForSelector(lcard, { timeout: 8000 });
+	check("a long dictation is clamped, not a wall", !!(await page.$(lcard + " .chat-v3-dictation.is-clamped")));
+	check("it is cut into paragraphs (3 sentences each)", (await page.$$(lcard + " .chat-v3-para")).length === 14, (await page.$$(lcard + " .chat-v3-para")).length);
+	check("with no AI title, its first words are the muted title", (await page.textContent(lcard + " .chat-v3-title.is-untitled")).startsWith("Sentence number 1 is said here."));
+	await page.$eval(lcard + " .chat-v3-dictation + .chat-v3-toggle", e => e.click());
+	await page.waitForTimeout(300);
+	check("'show all' opens the whole dictation", !(await page.$(lcard + " .chat-v3-dictation.is-clamped")));
+
 	// 3. a copy of a real voice log: the other families of lines are ignored, the tasks are drawn
 	if (real_log) {
 		await page.goto(`${base}/framework/ext/Chat/v3/?src=${src(real)}`); await ready();
