@@ -78,5 +78,5 @@ assert.equal(red_lines(red_file), 1);
 assert.equal(red_lines(calm_file), 0);
 await dropped.tick(rows, T + 240000);
 assert.equal(red_lines(red_file), 1, "flagged once, not every tick");
-console.log("PASS Dropped: 6 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
+console.log("PASS Dropped: 7 flagged once, queued/working/fresh/settled/owner-wait left alone, revived owner clears, a session over 20% stopped is red-flagged once");
 fs.rmSync(root, { recursive: true, force: true });
