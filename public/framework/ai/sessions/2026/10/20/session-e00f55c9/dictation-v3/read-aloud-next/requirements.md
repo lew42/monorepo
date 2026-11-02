@@ -63,3 +63,13 @@ The owner's notes, items 11–12: [owner-notes-2026-11-01-2040.md](../owner-note
 - if the owner speaks mid-reply: stop, keep the rest queued, resume after quiet (unless their line asks something new, which drops the rest).
 Echo matching (above) is what makes "the owner is speaking" trustworthy, so do echo in the same change or the merge right after. The order is now: (a)+queue+turn-taking → echo → highlight dropout → (c) karaoke with phrase streaming → (b) tap to pause.
 Prove it with a test: two replies arriving back to back play in order; a reply arriving mid-speech waits for quiet; a barge-in stops, then resumes the rest.
+
+## No flood, prioritise, resumable bubbles (2026-11-01 21:01)
+
+The owner's notes, items 13–18: [owner-notes-2026-11-01-2040.md](../owner-notes-2026-11-01-2040.md). Simple items first.
+- **Prove "never starts while I speak"** in the queue merge: the owner still heard a reply start mid-speech. The test feeds mic speech, then a reply arriving, and asserts no playback until quiet.
+- **No flood:** queued replies release only after about 2–3 s of quiet (one quiet window, not 1.5 s). The one most relevant direct answer (the reply to the owner's latest line) plays first. Agent updates collapse into one spoken line, "I have an update on X, tap to hear it", instead of each being read. Fold this into the current queue change if it is small; otherwise it is the next merge, ahead of echo.
+- **Resumable bubbles:** tap an old bubble to continue reading from its last spoken word.
+- **Parked (back burner, do not build):** paced word streaming (phrase-level start in (c)) and heard-only context. Karaoke follow and the highlight stay; Chatterbox waits, Kokoro is fine.
+
+**Order now:** (a)+queue+turn-taking (+ no flood if small) → no flood + prioritise (if not folded in) → echo → highlight dropout → (b) tap to pause → resumable bubbles → (c) karaoke follow, without phrase streaming.
