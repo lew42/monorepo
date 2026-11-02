@@ -39,8 +39,10 @@ async function round(v2){
 ${ev(queue.splice(0))}` });
 		let out = { ok: true };
 		if (verb === "new" || verb === "resume") out = { ok: true, session: "stub-session", file: file_url };
-		if (verb === "say"){
-			const body = JSON.parse(req.postData() ?? "{}"), at = iso(Date.now());
+		const said = verb === "say" ? JSON.parse(req.postData() ?? "{}") : null;
+		if (said?.kind && said.kind !== "speech") queue.push({ log: { at: iso(Date.now()), msg: said.text } });   // a page report (Recite's "recite: …" lines): Servex files it as a log line, never as words
+		else if (verb === "say"){
+			const body = said, at = iso(Date.now());
 			out = { ok: true, at };
 			if (!v2_done.has(at)) setTimeout(() => { const r = { refined: { at: iso(Date.now()), re: at, sentences: [{ n: 1, text: "hello from the proof" }], sections: [], flags: [], cost_usd: 0.0123 } }; queue.push(r, r); }, 2200);
 			if (v2) queue.push({ tasks: { add: { id: "p-say", type: "Prompt", title: "Said", text: body.text } } });
