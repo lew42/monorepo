@@ -63,6 +63,7 @@ export default class Browser {
 	static async launch(opts){
 		const chromium = await this.get_chromium();
 		const b = await chromium.launch({ headless: true, channel: "chromium", ...opts });
+		if (process.env.FENCE_SERVEX === "1") (await import("./ServexFence.mjs")).fence_servex(b);   // browser tests: never the live Servex
 		this.current = b;
 		b.on("disconnected", () => { if (this.current === b) this.current = null; if (this.browser_promise) this.browser_promise = null; });
 		this.log_browser(b);

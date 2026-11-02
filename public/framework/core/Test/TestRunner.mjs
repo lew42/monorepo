@@ -163,7 +163,7 @@ export default class TestRunner {
 		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
 		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
 		for (const x of todo) {
-			const r = await this.one(x.file, "browser", { browser: true, status: x.status }, { args: x.args.map(fill), env: { PW_ROOT: pw, PWENTRY: path.join(pw, "node_modules/playwright/index.mjs"), WAV: wav }, timeout: x.ms || 120000 });
+			const r = await this.one(x.file, "browser", { browser: true, status: x.status }, { args: x.args.map(fill), env: { PW_ROOT: pw, PW_REAL: path.join(pw, "node_modules/playwright/index.mjs"), PWENTRY: path.join(HERE, "playwright-fenced.mjs"), FENCE_SERVEX: "1", WAV: wav }, timeout: x.ms || 120000 });
 			results.push({ ...r, status: x.status });
 			if (x.status === "red" && r.ok) red_now_passes.push(x.file);
 		}
