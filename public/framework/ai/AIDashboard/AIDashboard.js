@@ -30,7 +30,7 @@ export default class AIDashboard extends View {
 
 	get classes(){ return "ad-dash"; }
 
-	// The sessions active in the last hour, then InFlightView over their records: only those with something in flight or waiting show.
+	// The 8 most recently active sessions (the "inflight" query, state active; no one-hour cutoff), then InFlightView over their records: only those with something in flight or waiting show.
 	async in_flight($box){
 		const res = await new QueryClient("inflight", { row: () => {}, stale: () => {} }).ask({ where: [{ field: "state", op: "eq", value: "active" }], sort: { by: "last_activity", dir: "desc" }, limit: 8 }, { timeout: 20000 });
 		if (res.error || !res.rows?.length) return;
