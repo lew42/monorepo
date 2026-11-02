@@ -2075,3 +2075,6 @@
 {"at":"2026-11-02T09:46:00.369Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep","verdict":"queued","kind":"landing"}
 {"at":"2026-11-02T09:46:00.937Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep","verdict":"spawned","to":"clarity-v1-switch-prep-2"}
 {"at":"2026-11-02T03:50:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/v1-switch-prep","verdict":"rewrote","what":"task.jsonl had no outcome; appended one with four asks ticked with proof","to":"task.jsonl"}
+{"at":"2026-11-02T14:55:26.838Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/loose-ends-red/requirements.md","verdict":"queued","kind":"proposal"}
+{"at":"2026-11-02T14:56:27.906Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/loose-ends-red/requirements.md","verdict":"spawned","to":"clarity-loose-ends-red"}
+{"at":"2026-11-02T12:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/loose-ends-red/requirements.md","verdict":"rewrote","what":"text-check clean; title was 14 words, shortened to 5 and moved role line below it","to":"requirements.md"}
