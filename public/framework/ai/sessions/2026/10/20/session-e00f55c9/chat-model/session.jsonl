@@ -29,3 +29,7 @@
 {"review":{"at":"2026-11-01T22:36:03-06:00","answer":{"n":7,"reply":"noted: one merge per step by design; steps 2-8 follow."}}}
 {"log":{"at":"2026-11-01T22:41:06-06:00","msg":"step 1: reviewed the diff (5 fixes + 3 review fixes), answered the 7 review findings; merge refused twice: (a) .worktrees.json held a stale entry named \"--path\" (worktree-restart.mjs --path registers under the flag's name, port 62578, dead) shadowing the real chat-model entry (50698): removed it; (b) Task.steps.test.mjs Replay fails on the branch only (fix 5's add envelope not unwrapped by Task.set replay): sent back to the builder."}}
 {"log":{"at":"2026-11-01T22:41:06-06:00","msg":"cost: builder at $13.7 and 373k context after step 1 (planned $3-4 a step). Decision: after step 1 lands, steps 2+ go to a FRESH builder at Sonnet medium, one step per spawn, so context stays small. Alt: keep the warm one (cheaper per turn only while context is small; at 373k each turn re-reads it)."}}
+{"commit":"dcd6ab258ef6","by":"append.mjs","ts":"2026-11-02T04:41:16.085Z"}
+{"log":{"at":"2026-11-01T22:42:14-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T04:42:14.003Z"}
+{"log":{"at":"2026-11-01T22:42:14-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T04:42:14.950Z"}
+{"log":{"at":"2026-11-01T22:51:16-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T04:51:16.291Z"}

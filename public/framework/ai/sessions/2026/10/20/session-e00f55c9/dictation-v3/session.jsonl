@@ -129,3 +129,9 @@
 {"log":{"at":"2026-11-01T22:44:55-06:00","msg":"read-aloud-next landed (a) resume + queue + turn-taking on michael/dev (merge 4779bc843, 70/70 tests, smoke clean, branch empty); it now builds echo. v2-subclass fixed review finding 1 (9351a13c8), merge next."}}
 {"log":{"at":"2026-11-01T22:47:17-06:00","msg":"dropped: ink-check: owner mastermind-ink-check is dormant and the task is untouched","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/ink-check/","reason":"owner-dormant"}}
 {"log":{"at":"2026-11-01T22:49:15-06:00","msg":"v2-subclass landed: ChatV2 extends ChatV3 on michael/dev (bc5e17255, 91/91 tests, smoke clean, branch empty). mastermind-ink-check's views-fix is merged too (branch empty); its task was dropped as dormant. Step 3 (marks onto the message) asked of mastermind-chat-model in its inbox: it needs sent {fast,smart} + working on the Prompt message."}}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/join-and-follow/","by":"SessionRecord --links","ts":"2026-11-02T04:50:20.008Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/recite-trace/","by":"SessionRecord --links","ts":"2026-11-02T04:50:20.100Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/sheet-reads/","by":"SessionRecord --links","ts":"2026-11-02T04:50:20.116Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/tap-unlock/","by":"SessionRecord --links","ts":"2026-11-02T04:50:20.308Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/v3-wall/","by":"SessionRecord --links","ts":"2026-11-02T04:50:20.333Z"}
+{"task":"/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/views-fix/","by":"SessionRecord --links","ts":"2026-11-02T04:50:20.351Z"}

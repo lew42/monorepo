@@ -13,3 +13,5 @@
 {"file":"failures.jsonl"}
 {"file":"resurface.test.mjs"}
 {"file":"live-guess.test.mjs"}
+{"file":"old/"}
+{"file":"ChatV2Model.js","gone":true}
