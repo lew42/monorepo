@@ -11,6 +11,10 @@ import * as report from "/framework/ext/Chat/v2/report.js";
 
 // One chat box, every surface: doc/chat-notes.md
 const SESSION_KEY = "lew42-voice-session";
+/** JOIN, DON'T START (the owner, 2026-11-01): a page or tab with no session of its own joins the latest voice session if that had a
+ *  line within this long, instead of starting a new one. Only a real idle gap, or the New session button, starts a fresh session.
+ *  Doc: ux/Dictate/readme.md ("One session across tabs"). */
+export const JOIN_IDLE_MS = 30 * 60 * 1000;
 const RESUME_OFFER_MS = 60 * 60 * 1000;
 
 // THE one copy (review fix #9): reused, not duplicated in rail.js/sessions.js
@@ -71,6 +75,22 @@ function create_controller({ persist }){
 	async function ensure(target){
 		sync_from_storage();
 		if (ctl.session) return;
+		if (!ctl.starting && !ctl.fresh){
+			// Another tab, a link opened in a new tab, the Recite page: join the voice session in use rather than start a second one.
+			ctl.starting = Session.recent_project({ limit: 5 }).then(rows => {
+				const latest = (rows ?? []).filter(r => /^v-/.test(r.session ?? ""))
+					.sort((a, b) => Date.parse(b.last_at ?? b.at ?? 0) - Date.parse(a.last_at ?? a.at ?? 0))[0];
+				if (!latest || Date.now() - Date.parse(latest.last_at ?? latest.at ?? 0) > JOIN_IDLE_MS) return null;
+				return Session.resume(latest.session);
+			}).catch(() => null).then(made => {
+				if (!made || ctl.session) return;
+				ctl.session = made.session; ctl.file = made.file;
+				if (persist) write_saved({ session: made.session, file: made.file });
+				broadcast();
+			}).finally(() => { ctl.starting = null; });
+			await ctl.starting;
+			if (ctl.session) return;
+		}
 		if (!ctl.starting){
 			// fresh: after New session, never resume the last hour's session on this page (doc/chat.md#new-session-and-the-mic-indicator)
 			ctl.starting = Session.start({ path: target.path, card: target.card, fresh: ctl.fresh }).then(made => {

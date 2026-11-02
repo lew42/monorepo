@@ -81,6 +81,13 @@ ever appeared — no error, no clue why.
 
 - Moved verbatim to [doc/readme-full-2026-10-12.md](./doc/readme-full-2026-10-12.md): usage, design and mechanics in full.
 
+## One session across tabs, and settings per device
+
+- **Join, don't start.** A page or tab with no session of its own joins the latest voice session if that had a line in the last **30 minutes** (`JOIN_IDLE_MS` in [chat.js](chat.js)). Only a longer idle gap, or the New session button, starts a fresh one. So a link opened in a new tab, or the Recite page, joins the conversation in use.
+- **Read-aloud follows the session on every page:** the ✦ Sheet starts [Recite](/framework/audio/Recite/) and follows the page's session, or, with none, the voice session used in the last 2 hours ([ext/drawer/Sheet.js](../../ext/drawer/Sheet.js) `read_aloud()`).
+- **The mic does not restart by itself after a reload.** The browser grants the mic without a tap once allowed, but it keeps a new `AudioContext` suspended until the page gets a tap (Chrome's autoplay rule), and the mic's capture and level meter run on one. So the first tap after a reload starts it.
+- **⬜ Settings are per device today.** The gear's settings (send delay, wake, voice, speed) live in this browser's `localStorage`, so a phone and a desktop differ. The owner wants one set that applies everywhere (2026-11-01): a settings record in Servex, read at load, with the browser's copy as a cache.
+
 ## Also here (readme audit, 2026-10-13)
 - [playground](./playground/) — The dictation playground — a full-bleed, live diagram of a dictation session
 - [surfaces](./surfaces/) — every voice and chat surface on one page
