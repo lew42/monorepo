@@ -82,7 +82,7 @@ A step id never names a Task verb or field (`improve` would call `Task.improve()
 |---|---|
 | a step agent ends its turn without completing the step | ProcessRunner hears the turn end (`Agents` result event) and pulses it once with the step prompt; a second silent end puts the step `waiting` on the process's creator |
 | a spawn refused (no slot, machine hot) | a `queue` line; ProcessRunner retries on the TaskLoop tick |
-| Servex restarts mid-process | state is the file; the tick re-runs `next()` on every running process and resumes from the last line. Running processes are found from `ai/queue/processes.json` (written by `ProcessRunner`, gitignored; if missing, one 60-day scan rebuilds it), not from the TaskLoop's recent-days scan, so a process in an old-dated folder is still resumed |
+| Servex restarts mid-process | state is the file; the tick re-runs `next()` on every running process and resumes from the last line. Running processes are found from `ai/queue/processes.json` (written by `ProcessRunner`, gitignored; if missing, one 60-day scan rebuilds it), not from the TaskLoop's recent-days scan, so a process in an old-dated folder is still resumed (before this, `find_task_files()` used `TaskDirs.list(2)` and never scanned a session folder dated days ago). A process made by a raw append, or older than the 60-day seed scan, is picked up when the item tool next writes to it |
 | the step agent completes just as the runner reads the file | `after_turn` re-reads the file before it writes `pulse`/`wait`, and skips a step that is complete; `Dropped` does not flag a complete step's stopped agent |
 | a step's result only in chat | the outcome is the `complete` line's `outcome`; the next step's prompt is built from it |
 
