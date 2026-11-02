@@ -47,3 +47,7 @@ Your three asks, in your own words from that session, checked against V3 today:
 - **Replies fit to be read aloud**: the smart seat is told no tables and no bare paths.
 
 **Not built yet** (queued in [plan.md](plan.md), in the owner's order): voice and speed in the settings with a Sample button, "switch your voice", the echo guard, speech from the first words, Chatterbox and one-engine supervision, V3 paragraphs, the send outbox.
+
+## 4. The phone ran an old Sheet.js (2026-11-01)
+
+The owner's phone heard nothing because Chrome served it a `Sheet.js` from days before, straight from its HTTP cache, with no request at all. The page check of run mvyn29c5po2 showed it: status 200, 0 bytes over the wire, 28,512 bytes of body, while the current file is 33,987 bytes. The cause was an older reply that carried no `Cache-Control`. After a manual cache delete, the owner heard the voice (20:33). The fix makes sure no phone needs that again: the site gateway clears each browser's HTTP cache once, on its next page load (`Clear-Site-Data: "cache"`), and never touches cookies or storage. How it works and its proof: [tunnel.md, "No stale files on a phone"](/Servex/ext/remote/doc/tunnel.md), `node Server/SiteGateway.cache.test.mjs`.

@@ -1,10 +1,12 @@
 Budget: $9
 
-# Read-aloud inside the dictation chat: voice engines, speed and voice in the dictation settings, a Sample button, "switch your voice", and a mic that ignores the read-aloud
+# Read-aloud in the dictation chat, and a mic that ignores it
+
+Five pieces, in build order: **1** voice engines, **2** voice + speed + Sample in the settings gear, **3** "switch your voice" by voice, **4** the mic drops echoes of the read-aloud, **5** speech-friendly text. Modules: [Recite](/framework/audio/Recite/), [Voice](/framework/audio/Voice/), [Chat](/framework/ext/Chat/).
 
 Load the `minion` skill first, then the `code` and `ui` skills. Owner's words: [../requirements.md](../requirements.md) (the Read-aloud bullets and "Added by the owner"). The whole plan: [../plan.md](../plan.md) (you are piece B; decisions 5–8). Readmes first: `public/framework/audio/Recite/readme.md`, `public/framework/audio/Recite/doc/architecture.md`, `public/framework/audio/Voice/` (readme if any), `public/framework/ext/Chat/readme.md`.
 
-**Worktree:** `C:/Code/lew42/worktrees/dictation-v3` (branch `task/dictation-v3`, its own server at `http://dictation-v3.localhost/`). Work and commit only there, by path, after each working step.
+**Worktree:** `C:/Code/lew42/worktrees/dictation-v3` (branch `worktree/dictation-v3`, which already holds voice-recite, its own server at `http://dictation-v3.localhost/`). Work and commit only there, by path, after each working step.
 
 **Fence (only these files):** `public/framework/audio/Recite/*`, `public/framework/audio/Voice/*`, `public/framework/ext/Chat/Mic.js` (the settings rows and the echo drop only), `public/framework/ux/Dictate/chat.js` (the voice command only). Another builder works in `ext/Chat/v3/` and `ext/drawer/` at the same time: do not edit those.
 
@@ -13,7 +15,10 @@ Load the `minion` skill first, then the `code` and `ui` skills. Owner's words: [
 1. **Voice engines.** `Voice` takes an `engine`. Two engines, one class per file, beside `Voice.js`: `KokoroEngine` (recite-server, today's code moved, not rewritten) and `BrowserEngine` (`speechSynthesis`, today's fallback). An engine says which parameters it supports (`speed` for both; `pitch` for the browser). A future GPU model is one more engine file. Nothing outside `audio/` changes because of this.
 2. **Voice and speed in the dictation settings.** The gear panel is `settings_panel()` in `ext/Chat/Mic.js:314`. Add a "Read-aloud" group: the voice (the seven personas), speed (0.7–1.5), and a **Sample** button that plays one short line in the chosen voice, plus a **Sample all** that plays one line in each voice, saying its name. Store them in Recite's existing localStorage keys (`lew42.recite.voice`, add `lew42.recite.speed`) so the Recite bar's own voice menu and the settings always agree.
 3. **"Switch your voice" by voice.** When an owner sentence matches something like "switch/change (your|the) voice (to <name>)", Recite switches (to the named persona, else the next one) and says "Now I sound like <name>." in the new voice. The sentence is still sent as a normal line. Hook it where `ux/Dictate/chat.js` sends an owner line; keep the matching in Recite (`Recite.voice_command(text)`, a pure function you can test).
-4. **The mic must not transcribe the read-aloud.** Whisper heard "Here is a reply. Read aloud." several times (the owner, 2026-11-01). (a) Check the capture's `getUserMedia` constraints ask for `echoCancellation`, `noiseSuppression`, `autoGainControl` (find where the dictation mic opens it, probably `ux/Dictate/capture.js` or `ext/Chat/Mic.js`; if it is outside your fence, report the line, don't edit). (b) In `ext/Chat/Mic.js`, beside the duplicate drop (`same_as_last_send`, near line 749): while Recite is playing or within 1.5 s after, drop a finished sentence when most of its words (say 60%+) appear in the text Recite read in the last 20 s. Log the drop with `DictateHealth.event` as the duplicate drop does. The owner's own words still go through. Ask Recite through a small method (`Recite.shared.heard_itself(text)`), so Mic.js holds no Recite logic. A setting "while reading aloud: ignore echoes / mute the mic text" picks this or a full mute.
+4. **The mic must not transcribe the read-aloud.** Whisper heard "Here is a reply. Read aloud." several times (the owner, 2026-11-01).
+   - **(a) Capture constraints.** Check the dictation mic's `getUserMedia` asks for `echoCancellation`, `noiseSuppression`, `autoGainControl` (probably `ux/Dictate/capture.js` or `ext/Chat/Mic.js`). Outside your fence: report the line, don't edit.
+   - **(b) Echo drop.** In `ext/Chat/Mic.js`, beside `same_as_last_send` (near line 749): while Recite plays, or within 1.5 s after, drop a finished sentence when 60%+ of its words are in the text Recite read in the last 20 s. Log it with `DictateHealth.event`, as the duplicate drop does. The owner's own words still go through.
+   - **(c) Where the logic lives.** Mic.js asks `Recite.shared.heard_itself(text)` and holds no Recite logic. A setting, "while reading aloud: ignore echoes / mute the mic text", picks this or a full mute.
 5. **Speech-friendly text.** Before rendering, Recite strips markdown marks, reads a table as "a table with N rows" and skips it, reads a code block as "a code block", and turns a path or URL into its last readable word. A pure function, tested.
 
 ## Prove it
@@ -23,3 +28,11 @@ Load the `minion` skill first, then the `code` and `ui` skills. Owner's words: [
 - Update `audio/Recite/readme.md`, `audio/Recite/doc/architecture.md` and the Voice readme in the same commit as each class (the owner: "document as you build").
 
 **Never:** restart or kill any server or Servex, start or stop recite-server, run `python`, drive the owner's tabs, stash. Log progress lines in your own `task.jsonl` (`node .claude/hooks/append.mjs`). If short of budget, cut "Sample all" first, then step 5's code-block and path rules.
+
+## The owner's feedback once read-aloud was heard (2026-11-01, 20:34, relayed by vscode-mastermind)
+
+> (a) RESUME after barge-in. The interrupt works, but reading never comes back. Auto-resume where it stopped once the owner goes quiet (unless their line was a new question, in which case read the new reply instead), plus a resume control on the bar.
+> (b) TAP THE TEXT being read to pause it; tap again to resume.
+> (c) KARAOKE FOLLOW. A long reply reads from the top while the sheet isn't fully open. The view should scroll so the line being read stays visible, moving down with the voice, and highlight the words or phrase being spoken.
+
+Order: the stale-cache fix, then (a), then (c) together with phrase-level streaming (they share the word timing), then (b), then the V3 items.
