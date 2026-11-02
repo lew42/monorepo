@@ -50,7 +50,8 @@ export default class Recite extends Part {
 		this.unlock_on_tap();
 		this.trace("loaded", { host: globalThis.location?.host, ua: globalThis.navigator?.userAgent, coarse: !!globalThis.matchMedia?.("(pointer: coarse)").matches, saved_auto: Recite.remember("auto") });   // does Recite even start on this page?
 		// 4 s later: is the ✦ Sheet on this page, and which version of its read-aloud ran (a phone that logs no "sheet: boot" shows why here)
-		if (typeof document !== "undefined") setTimeout(() => this.trace("page check", { sheet_v: globalThis.lew42_sheet_v ?? null, sheet: !!document.querySelector(".drawer-rail"), app: !!document.querySelector("body > *"), page: location.pathname }), 4000);
+		if (typeof document !== "undefined") setTimeout(() => this.trace("page check", { sheet_v: globalThis.lew42_sheet_v ?? null, sheet: !!document.querySelector(".drawer-rail"), app: !!document.querySelector("body > *"), page: location.pathname,
+			loads: performance.getEntriesByType?.("resource").filter(e => /drawer\/(Sheet|menu)\.js|\/app\.js|Recite\/Recite\.js/.test(e.name)).map(e => ({ url: e.name.replace(location.origin, ""), status: e.responseStatus, bytes: e.transferSize, body: e.decodedBodySize, ms: Math.round(e.duration) })) }), 4000);   // where each module came from: bytes 0 = the browser cache, body = the file size it ran
 		Recite.track?.(this);
 	}
 
