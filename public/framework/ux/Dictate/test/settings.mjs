@@ -27,7 +27,7 @@ async function open(ctx, store){
 		if (req.method() === "OPTIONS") return route.fulfill({ status: 204, headers: cors });
 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
-		if (verb === "say"){ said.push(body.text); return json(route, { ok: true, at: new Date().toISOString() }); }
+		if (verb === "say"){ if (!body.kind) said.push(body.text);   /* a kind (error, click, context) is a diagnostic or context line, filed as a log line and never a prompt (ext/Chat/v2/report.js) */ return json(route, { ok: true, at: new Date().toISOString() }); }
 		if (verb === "settings"){ knobs.push(body); return json(route, { ok: true }); }
 		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
 	});
