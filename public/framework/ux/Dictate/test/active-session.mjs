@@ -47,6 +47,10 @@ async function type(text){
 }
 const followed = () => last(streams);
 
+// 0. a drawer opening while a voice session spoke recently joins it AT ONCE, so its history is on screen before a word is said
+await wait(1500);
+check("0 open: joins the recently-active voice session before any sentence", (await active()).session === "v-old" && !(await active()).fresh, JSON.stringify(await active()));
+
 // 1. first open, no session: the first sentence joins the recent voice session (v-old); read-aloud follows the same one
 await type("first sentence");
 check("1 first open: sentence goes to the session the view shows", last(said) === (await active()).session, `said=${last(said)} view=${(await active()).session}`);
@@ -78,6 +82,27 @@ await p.evaluate(async () => {
 await type("after reload");
 check("4 reload: sentence goes to the saved session", last(said) === saved && (await active()).session === saved, `said=${last(said)} saved=${saved}`);
 check("4 reload: read-aloud follows it", followed() === saved, `follows=${followed()}`);
+
+// 5. voice-session-mixup: "the last session" is the newest voice session by when it last spoke, never the oldest-started or a non-voice row
+const picked = await p.evaluate(async () => {
+	const { latest_voice } = await import("/framework/ux/Dictate/chat.js");
+	const h = n => new Date(Date.now() - n * 3600000).toISOString();
+	return latest_voice([{ session: "v-old", at: h(22), last_at: h(22) }, { session: "v-long", at: h(30), last_at: h(0.1) }, { session: "agent-x", at: h(1), last_at: h(0) }, { session: "v-mid", at: h(3), last_at: h(2) }])?.session;
+});
+const guard = await p.evaluate(async () => { const { is_other_session: o } = await import("/framework/ux/Dictate/chat.js"); return [o({ chat: { session: "v-A" } }, "v-B"), o({ chat: { session: "v-B" } }, "v-B"), o({ chat: {} }, "v-B"), o({ chat: { session: "v-A" } }, "unset"), o({ react: 1 }, "v-B")]; });
+check("5 draw guard: only a line stamped for ANOTHER watched session is dropped", JSON.stringify(guard) === "[true,false,false,false,false]", JSON.stringify(guard));
+check("5 latest_voice: newest last_at among v- sessions (started long ago is fine, a non-voice row is skipped)", picked === "v-long", `picked=${picked}`);
+
+// 6. switching twice with no pause: each sentence goes to the session selected at that moment
+await p.evaluate(() => window.__chat.resume("v-A"));
+await type("to A");
+check("6 switch A: sentence goes to A", last(said) === "v-A", `said=${last(said)}`);
+await p.evaluate(() => window.__chat.resume("v-B"));
+await type("to B straight after the switch");
+check("6 switch B: sentence goes to B, no pause needed", last(said) === "v-B" && (await active()).session === "v-B", `said=${last(said)}`);
+await p.evaluate(() => window.__chat.resume("v-A"));
+await type("back to A");
+check("6 switch back: sentence goes to A", last(said) === "v-A" && followed() === "v-A", `said=${last(said)} follows=${followed()}`);
 
 check("no page errors", errs.length === 0, errs.slice(0, 3).join(" | "));
 console.log(results.every(Boolean) ? "ALL PASS" : `FAILURES: ${results.filter(x => !x).length}`);

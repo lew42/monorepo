@@ -14,7 +14,7 @@ The stream can push the owner's own line back BEFORE `Session.say` resolves, so 
 
 ## Resume offer timing
 
-Before a word is said: the tab's newest OLDER session, offered as one tappable line — a session that spoke within the hour is picked up silently by `ensure()` itself; only an older one is worth asking about. Never offered for a `keep: false` mount — there is nothing saved for it to resume FROM; every one of its own sessions starts fresh.
+Before a word is said: the tab's newest OLDER session, offered as one tappable line — a session that spoke within 30 minutes (anywhere in the project) is joined silently, its history drawn at once (`maybe_offer`, and `ensure()` as a fallback); only an older one is worth asking about, aged from when it last spoke. Never offered for a `keep: false` mount — there is nothing saved for it to resume FROM; every one of its own sessions starts fresh.
 
 ## Cold reload fix
 

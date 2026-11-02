@@ -11,7 +11,7 @@
 
 ## One press, one file, under the page it started on
 
-**Decided (superseded 2026-10-25: the file now lives in the dated store, see [sessions.md, "The file"](sessions.md#the-file); `home` is only a field of the session):** a session lives at `<home>ai/<session>.jsonl`, where `home` is the nearest folder to the page. A press on a page whose session spoke in the last hour continues that session (`resumed: true`), unless `fresh: true` is passed.
+**Decided (superseded 2026-10-25: the file now lives in the dated store, see [sessions.md, "The file"](sessions.md#the-file); `home` is only a field of the session):** a session lives at `<home>ai/<session>.jsonl`, where `home` is the nearest folder to the page. A press continues the project's newest voice session if it spoke in the last 30 minutes (any page; a card session: the last hour) (`resumed: true`), unless `fresh: true` is passed.
 **Why:** the file sits where the work is, so the folder's own `ai/log.jsonl` can point at it.
 **Instead:** one global log. It loses the page context that the assistants need.
 **Detail:** [doc/sessions.md](./sessions.md#the-file)
