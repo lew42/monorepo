@@ -26,7 +26,7 @@ const WRITE = [
 	/\b(Add-Content|Out-File|Set-Content)\b[^|;&]*\.jsonl\b/i,   // PowerShell writers
 ];
 
-const MESSAGE = "JSONL GUARD: a hand write into a .jsonl file is blocked. One malformed line breaks the live page that reads it. Write the lines as a JSON array in a scratch .json file and run `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, which validates the whole file, or use Servex's append_log tool.\n";
+const MESSAGE = "JSONL GUARD: a hand write into a .jsonl file is blocked. One malformed line breaks the live page that reads it. Write the lines as a JSON array in a scratch .json file whose name holds your task slug (e.g. <scratchpad>/lines-<slug>.json; never a shared name like /tmp/ans.json, another agent overwrites it) and run `node .claude/hooks/append.mjs <target.jsonl> <lines.json>`, which validates the whole file, or use Servex's append_log tool.\n";
 
 let raw = "";
 process.stdin.on("data", d => raw += d).on("end", () => {
