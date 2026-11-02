@@ -94,8 +94,11 @@
 	@keyframes audio-recite-pulse { 50% { opacity: 0.35; } }
 }
 @layer theme {
-	/* The karaoke playhead: Recite.Highlight marks the sentence and word in the chat (no DOM change); the bar repeats them on one line. */
-	::highlight(recite-sentence) { background-color: color-mix(in srgb, var(--prime) 14%, transparent); }
+	/* The karaoke playhead: Recite.Highlight marks words in the chat (no DOM change); the bar repeats them on one line.
+	   Lit words (item 24, 2026-11-02): unread text stays muted, a word already said stays lit once passed, the
+	   current word is brightest — three disjoint ranges, not one wash over the whole sentence. */
+	::highlight(recite-unread) { color: var(--subtle); }
+	::highlight(recite-read) { color: var(--ink); }
 	::highlight(recite-word) { background-color: color-mix(in srgb, var(--prime) 45%, transparent); color: var(--ink); }
 	.audio-recite-now { padding: 0.15em 0.6em 0.3em; font-size: 0.95em; line-height: 1.4; color: var(--subtle); }
 	.audio-recite-now[hidden] { display: none; }
