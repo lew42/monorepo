@@ -8,8 +8,8 @@
 
 	/* A sentence row (dictation mode only, no refined text yet): the words as one small bubble of yours, and any Reply anchored to it
 	   plain beneath it, on the assistant's side (bubbles.css). A group of rows, never one bubble: `.chat-v3-yours`. */
-	.chat-v2-sentence { display: flex; flex-direction: column; align-items: flex-end; gap: .3em; }
+	.chat-v2-sentence { display: flex; flex-direction: column; align-items: flex-end; align-self: stretch; gap: .3em; }
 	.chat-v2-sentence-text { overflow-wrap: anywhere; }
-	.chat-v2-beside { align-self: flex-start; max-inline-size: var(--bubble-max, 80%); display: flex; flex-direction: column; gap: .4em; }
+	.chat-v2-beside { align-self: stretch; max-inline-size: 100%; display: flex; flex-direction: column; gap: .4em; }
 	.chat-v2-beside .chat-v3-reply { border-top: none; padding-block: 0; }
 }

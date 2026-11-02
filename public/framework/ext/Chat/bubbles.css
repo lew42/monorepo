@@ -54,7 +54,7 @@
 	.chat-v3-card { display: flex; flex-direction: column; gap: 0.5rem; border: 0; padding: 0; }
 	.chat-v3-card > .chat-v3-you { display: flex; flex-direction: column; gap: 0.3rem; }
 	.chat-v3-you .chat-v3-head, .chat-v3-yours .chat-v3-head { flex-wrap: wrap; }
-	.chat-v3-you .chat-v3-title.is-untitled { display: none; }   /* a muted copy of the words' own first words, right above them: noise inside a bubble */
+	.chat-v3-you .chat-v3-title.is-untitled, .chat-v3-yours .chat-v3-title.is-untitled { display: none; }   /* a muted copy of the words' own first words, right above them: noise inside a bubble */
 
 	/* V2 dictation: the group holds several small bubbles of yours (each `.chat-v3-you`), all on the right, each Reply under its own. */
 	.chat-v3-yours { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }

@@ -36,6 +36,7 @@ Like Claude's chat: **your words are a tinted pill on the right that hugs its te
 ## Files that matter
 
 - `bubbles.css`: the one layout rule set for all three views (above).
+- `v3/bubble-grow.mjs`: browser proof that your bubble widens as words arrive (V1 and V3) and stops at the cap, and that a guess becoming settled keeps the width; listed in `core/Test/browser-scripts.mjs`.
 
 - `Chat.js` / `Chat.css`: The message log, bubbles, and auto-scroll engine.
 - `chunks.js`: pure text splitters for the two moving cursors — `fast_chunks()` (comma/period/question/!, not yet called from production — the ✓ cursor sits at the end of the piece's own text, which is always the newest fast chunk by definition), `last_finished_sentence_end()` (sentence boundary only, walks the split sentences forward so a repeated final sentence lands on the real last one); `chunks.test.mjs` is the mock test.
