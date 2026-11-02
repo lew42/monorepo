@@ -36,7 +36,7 @@ Typing in a field calls `set({text})` on every key, and each one used to be a sa
 - on **blur** (any `focusout` in the page) and when the page is **hidden or closed** (`pagehide`, `visibilitychange`): `Store.flush_typing()`;
 - **before any other line**: a verb, a list change, or a change to another item sends what is held first, in order.
 
-The item changes at once (the screen updates on every key); only the save waits. `store.pending` counts held lines, so a "saving…" sign stays honest. The setting is `Store.coalesce = {idle, max}`; it is `null` in node (the item tool, scripts and tests keep their one-tick timing), and `null` in a browser turns it off. Measured in `coalesce.test.mjs`: 11 keystrokes 5 ms apart save one line with the last text, and it replays.
+The item changes at once (the screen updates on every key); only the save waits. `store.pending` counts held lines, so a "saving…" sign stays honest. The setting is `Store.coalesce = {idle, max}`, read per Store class (`this.constructor.coalesce`), so a subclass can turn it off: the Replay Lab's `LabTape.Store` does, because it shows every line the moment it is made. It is `null` in node (the item tool, scripts and tests keep their one-tick timing), and `null` in a browser turns it off. Measured in `coalesce.test.mjs`: 11 keystrokes 5 ms apart save one line with the last text, and it replays.
 
 **Caveat:** a held line lives only in memory for up to 2 seconds. A crash of the tab (not a close: `pagehide` sends it) in that window loses it. Alternative not taken: send the first keystroke at once and hold only the ones after it (no delay for a lone change, but two lines per burst instead of one).
 

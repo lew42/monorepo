@@ -7,8 +7,8 @@
 //  3. item.batch(fn) holds the store until fn ends, also across an await: one line per item touched.
 //  4. Every "change" event ends with {source}: "local" for code, "replay" while lines are replayed, "remote" for a line read live.
 //  5. (edge) A reaction to a line read live (a "read" listener that sets data) saves nothing: the tab that wrote the line owns it.
-import { register } from "node:module";
-register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
+// In node, site-hooks resolves the site's /absolute imports (Page needs them); a browser resolves them itself.
+if (typeof document === "undefined") (await import("node:module")).register("../../../../Servex/agents/site-hooks.mjs", import.meta.url);
 const { test } = await import("../Test/Test.js");
 const { default: Item } = await import("./Item.js");
 const { default: Store } = await import("./Store.js");
@@ -16,6 +16,7 @@ const { default: List } = await import("../List/List.js");
 const { default: Task } = await import("../Task/Task.js");
 const { default: Page } = await import("../Page/Page.class.js");
 await import("../Page/parts/kinds.js");
+Store.coalesce = null;   // typing has its own test (coalesce.test.mjs); here a flush is the next tick, in a browser too
 
 const J = x => JSON.stringify(x);
 const tick = () => new Promise(r => setTimeout(r, 0));

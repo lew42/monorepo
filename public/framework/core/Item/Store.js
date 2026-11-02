@@ -359,7 +359,7 @@ export class Store {
 	append(line){
 		(this._queue ??= []).push(line);
 		if (this.holding) return;
-		if (Store.coalesce && this.typing(line)) return;
+		if (this.constructor.coalesce && this.typing(line)) return;   // per Store class: a subclass may turn it off (LabTape.Store)
 		if (this._typing) return this.end_typing();   // any other line: what typing held goes first, in order, with it
 		if (this._flushing) return;
 		this._flushing = true;
@@ -378,7 +378,7 @@ export class Store {
 		Store.typists.add(this);
 		Store.listen_for_hide();
 		clearTimeout(t.timer);
-		t.timer = setTimeout(() => this.end_typing(), Math.max(0, Math.min(Store.coalesce.idle, t.since + Store.coalesce.max - now)));
+		t.timer = setTimeout(() => this.end_typing(), Math.max(0, Math.min(this.constructor.coalesce.idle, t.since + this.constructor.coalesce.max - now)));
 		return true;
 	}
 
