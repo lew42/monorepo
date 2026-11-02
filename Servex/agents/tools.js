@@ -485,7 +485,8 @@ return [
 			// needing a change to Agents.js itself. `agents.send()` always returns the live agent
 			// (or a held/external stand-in) it just delivered to.
 			if (dormant_after !== undefined && agent && typeof agent === "object") agent.dormant_after = dormant_after;
-			const sent = card(agent);
+			const held = agent?.fyi_held; if (held) delete agent.fyi_held;
+			const sent = held ? JSON.stringify({ ...agent.card(), held: true, note: held }, null, 2) : card(agent);
 			/* a peer message between task masterminds: the sender's parent gets a copy, so no interface between tasks is invisible */
 			const up = ruling.rule === "peer" && policy.parent(from);
 			if (up && up !== id) try { agents.send(up, `copy: ${from} -> ${id}: ${text}`, { from: "servex-peer-copy" }); } catch {}

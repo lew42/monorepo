@@ -1733,6 +1733,7 @@ Agents.Agent = class Agent {
 		const file = SessionRecord.log_file(dir) ?? path.join(dir, "task.jsonl");
 		try { LogLine.raw(file, { log: { at: stamp(), msg: `FYI from ${from} (task complete, so the agent was not woken): ${String(text).slice(0, 600)}` }, by: "servex-close-loop" }); } catch { return false; }
 		this.host?.store?.().append("servex", { type: "fyi-logged", agent: this.id, from, task: dir }).catch(() => {});
+		this.fyi_held = "not woken: its task has landed, so your message went to its task log. Pass revive:true (or priority \"now\") to wake it.";
 		return true;
 	}
 

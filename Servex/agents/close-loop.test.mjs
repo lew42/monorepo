@@ -54,7 +54,7 @@ const complete = [...done, { complete: { at: "2026-11-02T10:10:00-06:00", outcom
 dir = mk(complete); a = agent(dir, { parent: "mastermind-p" });
 assert.equal(a.landed_fyi("clarity: I rewrote your title", { from: "clarity-x" }), true);
 assert.match(fs.readFileSync(path.join(dir, "task.jsonl"), "utf8"), /FYI from clarity-x \(task complete/);
-for (const from of ["owner", "vscode-ab12", "mastermind-p", "voice-app"]) assert.equal(a.landed_fyi("q", { from }), false, from);
+for (const from of ["owner", "vscode-ab12", "mastermind-p", "voice-app", "user"]) assert.equal(a.landed_fyi("q", { from }), false, from);
 assert.equal(a.landed_fyi("q", { from: "clarity-x", priority: "now" }), false);
 assert.equal(a.landed_fyi("q", { from: "clarity-x", revive: true }), false);
 assert.equal(a.landed_fyi("q", {}), false);   // no sender: wakes
@@ -63,5 +63,6 @@ assert.equal(agent(mk(logs)).landed_fyi("news", { from: "clarity-x" }), false); 
 // send() returns early and pushes nothing for an FYI
 dir = mk(complete); a = agent(dir, { send: Agent.prototype.send, state: "idle", queue: { push(){ throw new Error("must not push"); } }, emit(){}, watchdog_refusal: () => null });
 assert.equal(a.send("merge news", { from: "minion-sibling" }), a);
+assert.match(a.fyi_held, /not woken: its task has landed.*revive:true/);   // send_to_agent shows the sender this as `held` + `note`
 assert.equal(a.state, "idle");
 console.log("ok");
