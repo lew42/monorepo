@@ -45,8 +45,8 @@ export default class Recite extends Part {
 	turn_wait_ms = 2500;    // no-flood: how much quiet before a held reply starts (2-3 s, the owner's own range, 2026-11-02; was 1.5 s) — BargeIn.quiet_ms (the auto-resume-after-a-barge-in window) is a separate field with the same new default, not merged into this one: several existing tests set it directly for speed, and the two timers gate different moments (starting a fresh reply vs. resuming a cut one)
 	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
-	thinking_cue = true;    // a short, subtle tone once the owner stops speaking and a reply is pending, again cue_repeat_ms later if it still has not started; false turns it off
-	cue_repeat_ms = 2000;   // thinking cue: how long to wait for the reply before the second, and last, cue
+	thinking_cue = true;    // a short, subtle tone fired by start_thinking() (the voice agent's long-lookup signal), repeated every cue_repeat_ms until the reply starts; false turns it off
+	cue_repeat_ms = 2000;   // thinking cue: the gap between repeats while the agent is still working
 	cue_timer = null;       // thinking cue: expect_reply()'s own pending timeout for the second cue
 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts or a fresh line replaces it
 	pending_updates = [];   // no-flood: agent updates (a reply whose from.id matches AGENT_ID — not "smart", and not "fast"/"revise"/"card" either) held here while cue_pending is true, so the direct answer to the owner's own line plays before them — flush_updates() queues them once it lands (or the safety timer below fires)
@@ -261,6 +261,7 @@ export default class Recite extends Part {
 			if (!Recite.AGENT_ID.test(chat.from.id ?? "")) return;   // "fast", "revise" (every voice revision), "card": not an agent update, ignored exactly as before this task (review finding, read-aloud-b 2026-11-02 — revise posts on every dictated sentence, the very flood this task was meant to stop)
 			return this.agent_update(chat.text, chat.at, chat.from.id);
 		}
+		if (line.thinking?.by === "smart"){ if (this.auto) this.start_thinking(); return; }   // the voice agent's own "long lookup" signal: the only thing that plays the cue
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
 		if (add){
 			if (add.by === "smart"){ const out = this.final(add.text, add.id); this.flush_updates(); return out; }
@@ -274,18 +275,22 @@ export default class Recite extends Part {
 	}
 
 	/** The owner's line just landed on the wire: a direct answer is now expected (`cue_pending` — no-flood's
-	 *  `agent_update()` reads this to decide whether to hold an update, whether or not the thinking cue is even
-	 *  on). When `thinking_cue` is also on, a short, subtle tone plays now, and once more about `cue_repeat_ms`
-	 *  later if the reply still has not arrived — then it stays quiet. A fresh line (another message before the
-	 *  first reply showed up) restarts the sequence from here; `partial()`/`final()` cancel it the moment real
-	 *  reply text arrives (dictation-v3, 2026-11-02; decoupled from `thinking_cue`, read-aloud-b 2026-11-02 —
-	 *  no-flood held nothing with the cue off, since `cue_pending` was only ever set while scheduling the tone). */
+	 *  `agent_update()` reads this to decide whether to hold an update). No tone here. */
 	expect_reply(){
+		clearTimeout(this.cue_timer); this.cue_timer = null;
+		this.cue_pending = true;
+	}
+
+	/** The voice agent marked itself working (a `{thinking:{by:"smart"}}` session line): the cue replaces a LONG
+	 *  silence, so only this plays it (owner, 2026-11-02: after every line was annoying). Plays now, then every
+	 *  `cue_repeat_ms` until `cancel_cue()` (the reply started). `thinking_cue = false` turns it off. */
+	start_thinking(){
 		clearTimeout(this.cue_timer);
 		this.cue_pending = true;
 		if (!this.thinking_cue) return;
 		this.play_cue();
-		this.cue_timer = setTimeout(() => { if (this.cue_pending) this.play_cue(); }, this.cue_repeat_ms);
+		const again = () => { if (!this.cue_pending) return; this.play_cue(); this.cue_timer = setTimeout(again, this.cue_repeat_ms); };
+		this.cue_timer = setTimeout(again, this.cue_repeat_ms);
 	}
 
 	/** The reply arrived, or a fresh line replaced the one being waited on: stop waiting. */
