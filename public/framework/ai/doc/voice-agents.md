@@ -52,6 +52,12 @@ Numbers from [measure.mjs](../sessions/2026/10/20/session-e00f55c9/voice-bridge/
 
 **Today's blocker (2026-11-01, 23:10Z):** every new agent waits at Servex's spawn gate while free memory is under 2.5 GB (`SERVEX_MIN_FREE_MB`, `Global.admit`); it was 1.2 GB, with 137 `node` processes holding 6.7 GB. So an `ask_mastermind` that must spawn its mastermind gets a ticket in 0.1 s and then **no answer at all** until memory frees. Two voice masterminds sat queued that way. The bridge says so in its status, and hands the ask to a fallback agent that is already running (`remote.fallback`).
 
+**Pushing into the VS Code tab (the brief asked what hooks or `CLAUDE_CODE_MESSAGING_SOCKET` allow).** A tab runs a turn only when something starts one: a prompt typed in it, or a background job or Monitor it started itself finishing or printing. Nothing outside can start one directly:
+- **Hooks** run inside the tab's own events (`UserPromptSubmit`, `PostToolUse`, `Stop`…). They can add text to a turn that is already running, or keep it going (a `Stop` hook that blocks), but no hook fires on an outside event, so a hook cannot wake an idle tab.
+- **`CLAUDE_CODE_MESSAGING_SOCKET`** is set in each tab (a named pipe, `\\.\pipe\LOCAL\cc-msg-<hex>`). It is most likely what Claude Code's peer `SendMessage` writes to, and that message never reached an idle tab (the row above). Its wire format is not documented, so Servex does not write to it.
+- **What works today** is the tab's own Monitor on its inbox file: the line shows up about 4–9 s later, while the Monitor is armed. That is why the bridge prefers a Servex agent, which streams its words, and uses a tab only as the `remote.fallback`.
+- **Known, later:** writing to the socket directly (copying the wire format of one `SendMessage`) could cut the tab's delay to under a second. It is worth one experiment once the bridge is live.
+
 ## 5. "Switch your voice"
 
 - **The web read-aloud** is [Recite](/framework/audio/Recite/readme.md): seven Kokoro voices (`Voice.PERSONAS`), chosen in the Recite bar's voice menu and saved per browser (`localStorage["lew42.recite.voice"]`). An agent cannot switch it from outside today.
