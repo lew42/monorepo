@@ -39,8 +39,8 @@ test("replaying change lines never calls the method, but replaying an act() line
 	t.view(calls.item, "reloaded from the act() line (spawned a second agent)");
 
 	t.eq(changes.tape.lines.length - 1, 4, "start() through the method saves 4 change lines (state, ran_since, started_at, agent_id)");
-	t.eq(Object.keys(calls.tape.lines.at(-1)).filter(k => k !== "by" && k !== "ts"), ["start"], "start() through act() saves one line, the verb");
-	t.eq(calls.tape.lines.at(-1).start, {}, "the act() line is {start:{}} (plus the writer's by and ts)");
+	t.eq(Object.keys(calls.tape.lines.at(-1)).filter(k => k !== "by" && k !== "ts"), ["start()"], "start() through act() saves one line, the verb");
+	t.eq(calls.tape.lines.at(-1)["start()"], {}, "the act() line is {\"start()\":{}} (plus the writer's by and ts)");
 
 	t.eq(changes.fx.agents, 0, "replaying change lines never calls the method: no agent spawned on reload");
 	t.ok(changes.item.state === "running" && changes.item.data.agent_id === changes.you.data.agent_id, "replaying change lines puts the values back: running, same agent_id");
@@ -131,7 +131,7 @@ test("two tabs pressing one button: set lines agree, act() lines keep both click
 	const calls = await both("calls", LabLayer, first, "toggle");
 	t.ok(changes.tape.lines.slice(1).every(l => l.set?.visible === false), "two tabs toggling through set: both lines say visible:false");
 	t.ok(changes.you.visible === false && changes.after.visible === false, "two tabs toggling through set agree: hidden, live and after a reload");
-	t.ok(calls.tape.lines.slice(1).every(l => l.toggle), "two tabs toggling through act(): both lines say toggle()");
+	t.ok(calls.tape.lines.slice(1).every(l => l["toggle()"]), "two tabs toggling through act(): both lines say toggle()");
 	t.ok(calls.you.visible === true && calls.after.visible === true, "two tabs toggling through act() cancel out: visible again, live (after hearing the other tab) and after a reload");
 
 	const counter = { id: "likes", count: 0 };
@@ -157,7 +157,7 @@ test("asking an AI: a set line saves the text, an act() line saves only the verb
 	}
 	t.eq(results.changes.tape.lines[1].set.summary, results.changes.you.summary, "summarize() through the method saves the AI's text as a value");
 	t.eq([results.changes.fx.ai, results.changes.item.summary], [0, results.changes.you.summary], "replaying it shows the same text and asks nothing again");
-	t.eq(results.calls.tape.lines[1].summarize, {}, "summarize() through act() saves only the verb: the text is not in the log");
+	t.eq(results.calls.tape.lines[1]["summarize()"], {}, "summarize() through act() saves only the verb: the text is not in the log");
 	t.eq([results.calls.fx.ai, results.calls.fx.cost], [1, LabWorld.PRICE], "replaying the verb asks the AI again and pays again");
 	t.ok(results.calls.item.summary !== results.calls.you.summary, "and the new text differs from the one the person saw");
 	t.ok(LabDoc.prototype.summarize.toString().includes("if (this.summary) return"), "the method has a guard (already summarized?), which does not help: a rebuilt document starts empty");
@@ -190,7 +190,7 @@ test.optional("edge: a plain Item's act() line is {hide:{}} and replays through 
 	you.act("hide");
 	await LabTape.tick();
 	const line = tape.lines.at(-1);
-	t.ok(line.hide && !("set" in line), "a plain Item's act() line is {hide:{}}: replay reaches the method through set()'s rule that a key naming a method calls it");
+	t.ok(line["hide()"] && !("set" in line), "a plain Item's act() line is {\"hide()\":{}}: replay reaches the method through set()'s rule that a key naming a method calls it");
 	t.eq((await tape.open(LabLayer)).visible, false, "and the reloaded layer is hidden");
 	t.view({ lines: tape.lines }, "the saved log");
 });

@@ -80,7 +80,7 @@ n++;
 	kid.set({ title: "hello" });
 	t(kid.parent === parent, "adding to a List makes the owner the child's parent");
 	t(lines.length === 2, "the add and the child's later set both reached the parent's store");
-	t(JSON.stringify(lines[1]) === '{"kids":{"k":{"set":{"title":"hello"}}}}', "the child's delta names its list, then its id (every hop names its list)");
+	t(JSON.stringify(lines[1]) === '{"kids":{"#k":{"set":{"title":"hello"}}}}', "the child's delta names its list, then its id (every hop names its list)");
 
 	const reloaded = new Foo({ id: "p" });
 	reloaded.kids = new List({ owner: reloaded, name: "kids" });
@@ -153,7 +153,7 @@ n++;
 	for (const id of ["save", "root", "at"]) live.kids.add({ id, title: id });
 	live.kids.find("save").set({ title: "saved" });
 	live.done.move("root", { after: null, from: live.kids });
-	t(JSON.stringify(lines.at(-2)) === '{"kids":{"save":{"set":{"title":"saved"}}}}', "(1) a member named \"save\" is written under its list like any other");
+	t(JSON.stringify(lines.at(-2)) === '{"kids":{"#save":{"set":{"title":"saved"}}}}', "(1) a member named \"save\" is written under its list like any other");
 	t(lines.at(-1).done?.move?.from === "kids", "(9) a cross-list move writes its `from` as a dotted path (here one name)");
 
 	const again = new Holder({ id: "h" });

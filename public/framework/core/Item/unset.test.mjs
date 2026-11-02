@@ -28,7 +28,7 @@ test("unset saves one line, and a replay (full, or snapshot plus tail) has no va
 	const changes = [];
 	a.on("change", (key, value, old) => changes.push([key, value, old]));
 	a.unset("color");
-	t.eq(J(lines.at(-1)), J({ unset: ["color"] }), "the saved line is {unset:[color]}");
+	t.eq(J(lines.at(-1)), J({ "unset()": ["color"] }), "the saved line is {\"unset()\":[color]}");
 	t.ok(!("color" in a.data), "live: the key is gone from data");
 	t.eq(J(changes), J([["color", null, "red"]]), "one change event, value undefined");
 	const full = Item.replay([{ id: "a" }, ...lines]);
@@ -43,7 +43,7 @@ test("set({k: undefined}) is an unset", t => {
 	const a = new Item({ id: "a" }), lines = recorded(a, "/unset/2.jsonl");
 	a.set({ color: "red" });
 	a.set({ color: undefined });
-	t.eq(J(lines.at(-1)), J({ unset: ["color"] }), "saved as {unset:[color]}, not {set:{}}");
+	t.eq(J(lines.at(-1)), J({ "unset()": ["color"] }), "saved as {\"unset()\":[color]}, not {set:{}}");
 	t.eq(Item.replay([{ id: "a" }, ...lines]).get("color"), undefined, "the replay has no color");
 });
 
@@ -52,7 +52,7 @@ test("a list member's unset names its list and id; a Task reads a top-level unse
 	const lines = recorded(root, "/unset/3.jsonl");
 	root.cards.add({ id: "c1", data: { title: "One", note: "x" } });
 	root.cards.find("c1").unset("note");
-	t.eq(J(lines.at(-1)), J({ cards: { c1: { unset: ["note"] } } }), "the line hops cards.c1");
+	t.eq(J(lines.at(-1)), J({ cards: { "#c1": { "unset()": ["note"] } } }), "the line hops cards.c1");
 	const back = Board.replay([{ id: "r" }, ...lines]);
 	t.eq(back.cards?.find("c1")?.get("note"), undefined, "replayed: no note");
 	t.eq(back.cards?.find("c1")?.get("title"), "One", "replayed: title kept");

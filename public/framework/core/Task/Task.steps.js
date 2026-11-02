@@ -40,7 +40,7 @@ export default [
 		code: `fix.act("start")   // Start`,
 		note: "The button saves the verb, one line, and the subtasks start with it.",
 		run: t => t.click("Start", () => t.fix.act("start")),
-		check: t => t.fix.state === "running" && t.fix.tasks.find("css").state === "running" && JSON.stringify(t.lines) === `[{"start":{}}]`,
+		check: t => t.fix.state === "running" && t.fix.tasks.find("css").state === "running" && JSON.stringify(t.lines) === `[{"start()":{}}]`,
 		show: t => t.fix,
 	},
 	{

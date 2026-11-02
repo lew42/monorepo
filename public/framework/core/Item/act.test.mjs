@@ -34,8 +34,8 @@ test("act on a Task saves the verb once, and a Store records only the verb", t =
 	task.on("delta", (d, origin) => seen.push({ d, origin }));
 	task.act("start");
 	t.ok(task.state === "running", "act ran the verb locally");
-	const verbs = seen.filter(x => x.d.start);
-	t.ok(verbs.length === 1 && JSON.stringify(verbs[0].d) === "{\"start\":{}}" && verbs[0].origin === task, "exactly one {start:{}} delta, origin the task");
+	const verbs = seen.filter(x => x.d["start()"]);
+	t.ok(verbs.length === 1 && JSON.stringify(verbs[0].d) === "{\"start()\":{}}" && verbs[0].origin === task, "exactly one {start:{}} delta, origin the task");
 
 	// A Store attached records the verb only (not the state set).
 	const store = new Store({ url: "/x/task.jsonl" }), queued = [];
@@ -44,7 +44,7 @@ test("act on a Task saves the verb once, and a Store records only the verb", t =
 	store.attach(t2);
 	t.view(t2, "a task with a store attached");
 	t2.act("start");
-	t.ok(queued.length === 1 && JSON.stringify(queued[0]) === '{"start":{}}', "the store got only the verb line: " + JSON.stringify(queued));
+	t.ok(queued.length === 1 && JSON.stringify(queued[0]) === '{"start()":{}}', "the store got only the verb line: " + JSON.stringify(queued));
 	t2.set({ title: "other" });
 	t.ok(queued.length === 2 && queued[1].set?.title === "other", "a plain set still records its state (Store.muted back to 0)");
 	return t2;
@@ -55,9 +55,9 @@ test.optional("edge: a refused verb emits nothing", t => {
 	const seen = [];
 	task.on("delta", d => seen.push(d));
 	task.act("start");
-	const before = seen.filter(d => d.start).length;
+	const before = seen.filter(d => d["start()"]).length;
 	task.act("start");   // already running
-	t.ok(seen.filter(d => d.start).length === before, "a refused verb emits nothing");
+	t.ok(seen.filter(d => d["start()"]).length === before, "a refused verb emits nothing");
 	return task;
 });
 
@@ -80,7 +80,7 @@ test("act on the last child saves the child's verb only, not the parent's derive
 	kid.act("complete", { auto: true });
 	t.eq(kid.state, "complete", "the child completed");
 	t.eq(parent.state, "complete", "and the parent derived its own completion, in memory");
-	t.eq(queued, [{ tasks: { c1: { complete: { auto: true } } } }], "the store got the child's verb and no line for the parent's derived change");
+	t.eq(queued, [{ tasks: { "#c1": { "complete()": { auto: true } } } }], "the store got the child's verb and no line for the parent's derived change");
 	const again = Task.replay([{ id: "p", title: "parent" }, { tasks: { add: { id: "c1", title: "kid" } } }, { start: {} }, ...queued]);
 	t.eq(again.state, "complete", "and a replay of the saved lines derives the same completion");
 	t.view(parent, "the parent after its last child completed");

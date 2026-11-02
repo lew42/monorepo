@@ -34,7 +34,7 @@ test("1b: act() saves one verb line and mutes only that item's tree; an unrelate
 	a.other = other;   // reached by the verb, not an argument (an argument would be the saved line)
 	const a_lines = record(a), other_lines = record(other);
 	a.act("poke");
-	t.eq(a_lines, [{ poke: {} }], "1b: act saves the verb once, not the set lines the verb made");
+	t.eq(a_lines, [{ "poke()": {} }], "1b: act saves the verb once, not the set lines the verb made");
 	t.eq(other_lines, [{ set: { touched: "by a poke" } }], "1b: an unrelated item's write during act() is still saved");
 	a.set({ after: 1 });
 	t.eq(a_lines.at(-1), { set: { after: 1 } }, "1b: the mute is released after act()");
@@ -43,7 +43,7 @@ test("1b: act() saves one verb line and mutes only that item's tree; an unrelate
 	const parent = new Parent({ id: "p" }); parent.child = new Item({ id: "kid" }); parent.child.parent = parent;
 	const p_lines = record(parent);
 	parent.act("touch_child");
-	t.eq(p_lines, [{ touch_child: {} }], "1b: a change below the acting item is muted too (the verb is the one line)");
+	t.eq(p_lines, [{ "touch_child()": {} }], "1b: a change below the acting item is muted too (the verb is the one line)");
 	t.view({ acting_item_lines: a_lines, unrelated_item_lines: other_lines }, "the lines each store saved");
 	t.view(a, "the acting item");
 	return parent;
