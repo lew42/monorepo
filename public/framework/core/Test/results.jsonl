@@ -19554,3 +19554,14 @@
 {"file":"public/framework/core/Task/child-verb.test.mjs","ok":true,"ms":56,"at":"2026-11-02T08:27:22.872Z","trigger":"manual"}
 {"file":"public/framework/core/Task/TasksPage.test.mjs","ok":true,"ms":27522,"at":"2026-11-02T08:27:50.333Z","trigger":"manual"}
 {"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":227,"at":"2026-11-02T08:43:18.556Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/V1Bubbles.test.mjs","ok":true,"ms":2418,"at":"2026-11-02T08:56:45.134Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":426,"at":"2026-11-02T09:00:05.312Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":256,"at":"2026-11-02T09:00:05.318Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/V1Bubbles.test.mjs","ok":true,"ms":262,"at":"2026-11-02T09:00:05.320Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/Prompt.raw.test.mjs","ok":true,"ms":270,"at":"2026-11-02T09:00:05.323Z","trigger":"manual"}
+{"file":"public/framework/core/Session/session-task.test.mjs","ok":true,"ms":71,"at":"2026-11-02T09:00:05.385Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/Chat.test.mjs","ok":true,"ms":110,"at":"2026-11-02T09:12:00.614Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Session.test.mjs","ok":true,"ms":76,"at":"2026-11-02T09:12:00.627Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/Prompt.raw.test.mjs","ok":true,"ms":87,"at":"2026-11-02T09:12:00.628Z","trigger":"manual"}
+{"file":"public/framework/core/Session/Chat/V1Bubbles.test.mjs","ok":true,"ms":88,"at":"2026-11-02T09:12:00.634Z","trigger":"manual"}
+{"file":"public/framework/core/Session/session-task.test.mjs","ok":true,"ms":94,"at":"2026-11-02T09:12:00.709Z","trigger":"manual"}
