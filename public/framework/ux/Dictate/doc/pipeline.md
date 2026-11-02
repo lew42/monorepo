@@ -10,6 +10,7 @@ The whole path of one spoken sentence, with the file that does each step. Line n
 
  SPEAK      Dictate.js:575        transcribe(): audio → whisper-server /inference (:584)
             ext/Chat/Mic.js:20    guess_ms 900: the growing sentence is re-sent to Whisper
+            (a finished sentence in the guess leaves NOW, see doc/upload.md#a-sentence-goes-out-when-it-ends-not-when-you-pause)
               │                   settled words + a still-moving "guess" tail
               ▼
  LIVE       ext/Chat/Chat.js:794  live({text, settled, guess}): ONE growing bubble (the draft)

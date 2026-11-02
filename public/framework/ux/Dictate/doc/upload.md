@@ -48,6 +48,9 @@ Whisper closes a segment only on a pause, so a long run of speech used to leave 
 - **From the live guess.** Each guess re-hears the growing segment. When it holds a finished sentence (ends in `.` `?` `!`, with more words after it), `ComposerMic.early_from_guess()` (`ext/Chat/Mic.js`) sends that sentence at once, one line each, in order. `SETTINGS.early_sentences = false` turns it off.
 - **The final loses what was sent.** `drop_early()` removes those sentences from the segment's final, so there is never a second copy. If the final heard an early sentence differently, the early wording stays (no server-side in-place correction exists) and the difference is logged as a `sentence` health event.
 - **A final or a pause-send with several sentences** leaves as several lines, in order (`send_screen()` splits it; `send_sentences()` runs again for words that arrived while it was busy), with `raw` on the first.
+- **Correction in place: not built.** The `fix` line in `chat.js` / `ChatPanel.deliver_rename` renames a chat title; it cannot change a sent sentence’s text in the session file, and Servex has no verb for that. So the early wording stays (V1 shows what was sent). A `session/amend` verb would be the way; until then the difference is logged.
+- A split send (several lines) skips the paragraph clean-up (`refine_final`); a single line still gets it.
+- The draft shows only the unsent rest of the guess, so a slow final can never make the pause send repeat a sentence.
 - It only runs when nothing else is held, nothing is sending and the typed `base` is empty, so ordering is never at risk.
 - **The mic light.** Stop (or pause) ends every `MediaStreamTrack` at once, not after the final upload, and a stop that lands while `getUserMedia` is still opening releases the late stream (`capture.js`, `Dictate.stop()`).
 

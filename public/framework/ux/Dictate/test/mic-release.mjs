@@ -47,6 +47,14 @@ const out = await page.evaluate(async () => {
 	let d2; new View({ el: d2h, capture: false }).append(() => { d2 = new Dictate({}); });
 	d2.toggle(); await wait(50); d2.toggle(); await wait(50); d2.toggle(); await wait(1500); d2.toggle(); await wait(6000);
 	r.rapid_state = d2.state; r.rapid_open = open();
+	// 5. the composer mic (what the bar taps): tap -> listening, tap -> paused with 0 live tracks, tap -> listening again with a fresh live track
+	const { ComposerMic } = await import("/framework/ext/Chat/Mic.js");
+	const ch = document.createElement("div"); document.body.append(ch);
+	let cm; new View({ el: ch, capture: false }).append(() => { cm = new ComposerMic({ deliver: async () => true }); });
+	cm.toggle(); await wait(1500); r.cm_on = [cm.state, open()];
+	cm.mic.chunks.push(new Float32Array(16000).fill(0.3)); cm.has_speech = true; cm.toggle(); await wait(500); r.cm_live_at_once = open(); await wait(5000); r.cm_paused = [cm.state, open()];
+	cm.toggle(); await wait(1500); r.cm_resumed = [cm.state, open()];
+	cm.toggle(); await wait(800); r.cm_off = [cm.state, open()];
 	return r;
 });
 console.log(JSON.stringify(out));
@@ -56,6 +64,11 @@ check(out.dictate_state === "listening", "Dictate listens: " + out.dictate_state
 check(out.dictate_after_stop_slow_whisper === 0, "stop with Whisper slow: tracks ended at once, not after the upload (" + out.dictate_after_stop_slow_whisper + " live)");
 check(out.dictate_final === 0, "after the final lands: none live");
 check(out.rapid_open === 0 && out.rapid_state === "idle", `press-press-press-press ends off: ${out.rapid_state}, ${out.rapid_open} live`);
+check(out.cm_on[0] === "listening" && out.cm_on[1] > 0, "composer mic: tap starts listening with a live track: " + out.cm_on);
+check(out.cm_live_at_once === 0, "composer mic: tracks ended 0.5 s after the tap, while Whisper is still working: " + out.cm_live_at_once);
+check(out.cm_paused[0] === "idle" && out.cm_paused[1] === 0, "composer mic: tap again pauses and every track is ended: " + out.cm_paused);
+check(out.cm_resumed[0] === "listening" && out.cm_resumed[1] > 0, "composer mic: tap resumes, the mic is opened again: " + out.cm_resumed);
+check(out.cm_off[1] === 0, "composer mic: and off again, none live: " + out.cm_off);
 check(!errors.length, "no page errors: " + errors.join(" | "));
 await browser.close();
 console.log(failed ? `${failed} FAILED` : "all passed");

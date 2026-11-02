@@ -646,11 +646,19 @@ export class ComposerMic extends Dictate {
 			const early = (this.early_sent ??= new Map());
 			for (const k of early.keys()) if (k < epoch - 3) early.delete(k);
 			const mine = early.get(epoch) ?? [];
-			if (done.length <= mine.length) return;
-			const fresh = done.slice(mine.length);
-			early.set(epoch, mine.concat(fresh));
-			const items = fresh.map(t => this.take_out({ text: t, raw: null })).filter(Boolean);
-			if (items.length) this.enqueue(items);
+			if (done.length > mine.length){
+				const fresh = done.slice(mine.length);
+				early.set(epoch, mine.concat(fresh));
+				const items = fresh.map(t => this.take_out({ text: t, raw: null })).filter(Boolean);
+				if (items.length) this.enqueue(items);
+			}
+			// The draft shows only what has not left yet: a sentence on screen twice could be sent twice by the pause send.
+			const sent = early.get(epoch)?.length ?? 0;
+			if (sent){
+				const all = [...guess.matchAll(this.cut_re())], last = all[Math.min(sent, all.length) - 1];
+				const rest = last ? guess.slice(last.index + last[0].length).trim() : guess;
+				if (rest !== this.partial_text){ this.partial_text = rest; this.draw_caption(); }
+			}
 		} catch (e){ DictateHealth.fail("sentence", e, "sending a finished sentence from the live guess"); }
 	}
 
@@ -664,8 +672,8 @@ export class ComposerMic extends Dictate {
 		const norm = s => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 		if (norm(sents.slice(0, mine.length).join(" ")) !== norm(mine.join(" ")))
 			DictateHealth.event("sentence", "wait", `the final heard the early sentences differently; kept what was sent: “${mine.join(" ").slice(0, 80)}” (final: “${String(text).slice(0, 80)}”)`, { early: mine, final: text });
-		const rest = String(text).trim().slice(sents.slice(0, mine.length).join("").length).trim();
-		return sents.length >= mine.length ? rest : "";
+		const all = [...String(text).matchAll(this.cut_re())], last = all[mine.length - 1];
+		return last ? String(text).slice(last.index + last[0].length).trim() : "";
 	}
 
 	// Messages leave in order; `posting` keeps a live reload waiting. Items are `{text, raw}` or a string.
@@ -706,8 +714,8 @@ export class ComposerMic extends Dictate {
 			this.notify_if_failed((this.held ?? []).filter(h => !h.gone));
 			const raw = (this.base + (this.base && !/\s$/.test(this.base) ? " " : "") + this.build_tail(true)).trim() || text;
 			// Several sentences on screen leave as several lines, in order (raw on the first only); an unfinished tail is the last line.
-			const sents = (text.match(this.cut_re()) ?? []).map(s => s.trim());
-			const tail = text.slice(sents.join(" ").length).trim();
+			const found = [...text.matchAll(this.cut_re())], sents = found.map(m => m[0].trim());
+			const tail = found.length ? text.slice(found.at(-1).index + found.at(-1)[0].length).trim() : "";
 			const parts = sents.length > 1 || (sents.length && tail) ? [...sents, ...(tail ? [tail] : [])] : [text];
 			const items = parts.map((t, i) => this.take_out({ text: t, raw: i === 0 ? raw : null })).filter(Boolean);   // in the chat now, where the draft was: the waits below never empty the screen
 			this.consume_sent();

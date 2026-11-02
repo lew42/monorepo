@@ -50,7 +50,7 @@ const out = await page.evaluate(async () => {
 console.log(JSON.stringify(out));
 const A = out.a;
 check(JSON.stringify(A.sent) === JSON.stringify(["One thing is first.", "Then the second thing happens.", "And finally the third?"]), "A: three sends in order, no duplicates: " + JSON.stringify(A.sent));
-check(A.marks[0] === 0 && A.marks[1] === 1 && A.marks[3] === 2 || A.marks[4] === 2, "A: each went out as its sentence ended, before the pause: " + A.marks.join(","));
+check(A.marks[0] === 0 && A.marks[1] === 1 && A.marks[2] === 1 && A.marks[3] === 2 && A.marks[4] === 2 && A.marks[5] === 3, "A: each went out as its sentence ended, before the pause: " + A.marks.join(","));
 check(JSON.stringify(out.b.sent) === JSON.stringify(["Open the window now.", "The dog barked loudly.", "Tomorrow we ship it."]), "B: a final of three sentences leaves as three lines: " + JSON.stringify(out.b.sent));
 check(out.c.sent.length === 2 && out.c.sent[0] === "The cat sat down." && /then it slept/.test(out.c.sent[1]), "C: no second copy of the early sentence: " + JSON.stringify(out.c.sent));
 check(out.d.sent.length === 3, "D: early off, the final still sends all three: " + JSON.stringify(out.d.sent));
