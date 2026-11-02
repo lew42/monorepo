@@ -12,7 +12,7 @@ import { strip_words, strip_sent } from "./strip.js";
 // Every knob of the whisper-to-box flow, read live everywhere. see doc/mic-notes.md#settings
 export const SETTINGS = {
 	send_mode: "pause",         // "pause" (sentences + the silence remainder) | "sentences" (no silence send)
-	sentences_per_send: 0,      // 0 = off; N = one message per N finished sentences (the old way)
+	sentences_per_send: 1,      // N = one message per N finished sentences, while still listening; 0 = off (views-fix item 0, 2026-11-01: "sent off sentence by sentence" was going unmet — arm() only ever took the check_chunk() safety path with this at 0, which flushes everything held as ONE message instead of one per sentence)
 	paragraph_pause_ms: 2000,   // quiet after a finished sentence that sends everything so far; see doc/mic-notes.md#settings
 	chunk_chars: 1200,          // safety: a message this long is cut at the next sentence end
 	chunk_ms: 60000,            // safety: words waiting this long are cut at the next sentence end
@@ -608,8 +608,13 @@ export class ComposerMic extends Dictate {
 			this.notify_if_failed(held);
 			const joined = held.map(h => h.text).join(" ");
 			const joined_raw = held.map(h => h.raw ?? h.text).join(" ");
-			const sents = joined.match(this.cut_re()) ?? [];
-			if (!sents.length || sents.length < n) return;
+			let sents = joined.match(this.cut_re()) ?? [];
+			// The safety flush (n=Infinity, from check_chunk()) must act as a real safety: a dictation
+			// with no sentence-ending mark anywhere in it must not wait forever. Send it whole.
+			if (!sents.length && n === Infinity && joined) sents = [joined];
+			// `sents.length < n` is "not enough finished sentences yet" for a finite n; it must never
+			// block the n=Infinity safety flush itself, which has no minimum — only "is there anything".
+			if (!sents.length || (n !== Infinity && sents.length < n)) return;
 			const per = Math.min(n, sents.length), cut = sents.length - sents.length % per, texts = [];
 			// `raw` goes on the first outgoing message only.
 			for (let i = 0; i < cut; i += per) texts.push({ text: sents.slice(i, i + per).join("").trim(), raw: i === 0 ? joined_raw : null });
