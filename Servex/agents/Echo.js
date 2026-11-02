@@ -122,7 +122,7 @@ export default class Echo {
 	async call(prompt, opts){
 		// The same 2.5 GB floor every spawn waits for (Global.admit, SERVEX_MIN_FREE_MB): this call starts
 		// a claude process too, but never passes through agents.spawn, so it checks the floor itself.
-		const floor = Number(process.env.SERVEX_MIN_FREE_MB) || 2560, free = os.freemem() / 1048576;
+		const floor = Number(process.env.SERVEX_MIN_FREE_MB) || 1024, free = os.freemem() / 1048576;
 		if (free < floor) throw new Error(`only ${Math.round(free)} MB free, under the ${floor} MB floor: this prompt is not refined`);
 		this.ask ??= (await import("../../Server/AskEach.mjs")).askOnce;
 		const run = this.ask(prompt, opts).then(r => { if (r?.sessionId) this.machine.add(r.sessionId); return r; });
