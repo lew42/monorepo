@@ -9,7 +9,7 @@ Every worktree gets its own dev server (`worktree-up.mjs`). Left alone they pile
 | The task lands | `Server/on-landing.mjs` → `Lifecycle.reap()` ([lifecycle.md](../../Servex/doc/lifecycle.md#2-the-reaper)) |
 | Servex is running | its sweep (every 5 min): landed task, task silent 2 h, or no task and up 2 h. The sweep has a 30 s limit on its process scan and a 3 min watchdog, so one hung scan cannot stop every later sweep. |
 | `worktree-down.mjs`, `worktree-prune.mjs`, removing the worktree | they stop the server first |
-| **Nobody has opened it for 30 min** | the server stops itself (below). Pool slots (`qf-N`) are exempt: `Pool.js` owns them. |
+| **No page request for 30 min** (merging alone stops nothing; it stops at landing, the sweep, or this) | the server stops itself (below). It counts HTTP requests only: a page left open without reloading counts as idle. Pool slots (`qf-N`) are exempt: `Pool.js` owns them. |
 | You run `worktree-servers.mjs --stop-stale` | everything the list marks `*` |
 
 **Idle exit.** `worktree-up.mjs` and `worktree-restart.mjs` start the server with `IDLE_EXIT_MIN=30` (change it with `WORKTREE_IDLE_MIN=<min>` in the launching shell; `0` turns it off). `Server/Server.js` `idle_exit()` watches HTTP requests; after that many quiet minutes the child tells `server.js` (the supervisor) over IPC, which shuts everything down. A plain exit would be respawned by the supervisor, so the message is needed. Open the page again and nothing is there: run `node Server/worktree-restart.mjs <name>`. Files are never touched.

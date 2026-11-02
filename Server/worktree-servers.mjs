@@ -58,7 +58,6 @@ for (const r of rows) {
 	else if (slot) { stale = !slot.taken_by && slot.state !== "taken"; state = !stale ? `pool slot, ${slot.state}${slot.taken_by ? ", taken by " + slot.taken_by : ""}` : `pool slot, ${slot.state} (returned)`; }
 	else if (!fs.existsSync(r.path) || !(slash(r.path) in branch_of)) { state = "gone (worktree removed)"; stale = true; }
 	else if (branch && git("merge-base", "--is-ancestor", branch, BASE).ok) { state = `merged into ${BASE}`; stale = true; }
-	else if (!branch && git("merge-base", "--is-ancestor", "HEAD", BASE).ok && false) { state = "detached"; }
 	else if (lc.task(r.owner_task)?.landed) { state = "task landed"; stale = true; }
 	else if (OLDER_H && age_h > OLDER_H) { state = `open, but up ${age_h.toFixed(0)} h (older than ${OLDER_H} h)`; stale = true; }
 	else state = "open (in use or unmerged)";

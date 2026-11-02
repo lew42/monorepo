@@ -1566,10 +1566,10 @@ export default class Servex extends Events {
             if (this.reaping || Date.now() - last < 5 * 60000) return;
             last = Date.now();
             const dry = !!process.env.SERVEX_REAPER_DRY;
-            this.reaping = this.lifecycle.sweep({ dry })
+            const mine = this.reaping = this.lifecycle.sweep({ dry })
                 .then(({ close, gone }) => (close.length || gone.length) && this.say(`lifecycle${dry ? " (dry)" : ""}: ${dry ? "would close" : "closed"} ${close.map(r => `${r.kind} ${r.id} (${r.why})`).join("; ") || "nothing"}; ${gone.length} dead log line(s) ended`))
                 .catch(e => this.say(`lifecycle: sweep failed: ${e.message || e}`))
-                .finally(() => { this.reaping = null; });
+                .finally(() => { if (this.reaping === mine) this.reaping = null; });
         };
         if (process.env.SERVEX_NO_HEARTBEAT){ this.reaper_timer = setInterval(sweep, 60000); this.reaper_timer.unref(); return; }
         const beat = this.heartbeat, tick = beat.tick.bind(beat);
