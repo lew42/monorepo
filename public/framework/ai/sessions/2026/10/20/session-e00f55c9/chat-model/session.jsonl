@@ -164,3 +164,5 @@
 {"log":{"at":"2026-11-02T03:03:14-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:03:14.212Z"}
 {"action":{"at":"2026-11-02T03:09:26-06:00","did":"edit","files":["public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/cost-test-fix/review.md"]},"by":"ledger","ts":"2026-11-02T09:09:26.447Z"}
 {"tasks":{"add":{"type":"Task","id":"cost-test-fix","title":"AISessionCost.test: red on a short real log","dir":"cost-test-fix","from":"mastermind-chat-model"}},"by":"mastermind-chat-model","ts":"2026-11-02T09:10:08.229Z"}
+{"log":{"at":"2026-11-02T03:11:11-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:11:11.352Z"}
+{"tasks":{"cost-test-fix":{"complete":{"outcome":"AISessionCost.test green again: the overlapping-tail case slices from max(0, mid - 300); the newest replayed log was 572 lines, so the old slice counted from the end. Not caused by step 7.","evidence":["ee70166fe merge of worktree/aisession-cost-test into michael/dev (pushed), 4/4 AISession tests pass in the merge run"],"confidence":"high","caveats":[]}}},"by":"mastermind-chat-model","ts":"2026-11-02T09:12:20.969Z"}

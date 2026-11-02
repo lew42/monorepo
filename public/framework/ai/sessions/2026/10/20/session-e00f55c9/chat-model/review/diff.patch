@@ -1,65 +1,265 @@
-diff --git a/.claude/skills/clarity/flags.jsonl b/.claude/skills/clarity/flags.jsonl
-index ae1c49221..b69819b66 100644
---- a/.claude/skills/clarity/flags.jsonl
-+++ b/.claude/skills/clarity/flags.jsonl
-@@ -2051,6 +2051,9 @@
- {"at":"2026-11-02T06:13:11.059Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/requirements.md","verdict":"queued","kind":"proposal"}
- {"at":"2026-11-02T06:14:12.145Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/requirements.md","verdict":"spawned","to":"clarity-dictate-red-tests"}
- {"at":"2026-11-02T06:14:26Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/dictate-red-tests/requirements.md","verdict":"clear","what":"text-check clean; title, table and fence read in ten seconds","to":"clarity"}
-+{"at":"2026-11-02T07:23:40.680Z","target":"look:ai2","verdict":"queued","kind":"look"}
-+{"at":"2026-11-02T07:23:40.913Z","target":"look:ai2","verdict":"spawned","to":"clarity-look-ai2"}
-+{"at":"2026-11-02T12:00:00.000Z","target":"http://monorepo.localhost/framework/ai2/","verdict":"ui","what":"Rail contradicts itself: every filter chip says 0 and '0 of 0' while 'Waiting on you 15' lists 15 cards; no card marked done is reachable in the rail, and 'Worktree pool' runs into 'Running now' without a gap. Status/asked/delivered not answerable from the rail alone. Screenshot C:/Users/mike/AppData/Local/Temp/cl/monorepo-localhost-framework-ai2/1920.png. Fix: derive chip counts from the same list as the sections, and add a collapsed 'Done' section.","to":"mastermind-servex"}
- {"at":"2026-11-02T07:21:52.405Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/servex-crash-revive/requirements.md","verdict":"queued","kind":"proposal"}
- {"at":"2026-11-02T07:22:53.537Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/servex-crash-revive/requirements.md","verdict":"spawned","to":"clarity-servex-crash-revive"}
- {"at":"2026-11-02T07:00:00.000Z","target":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/servex-crash-revive/requirements.md","verdict":"clear","what":"Title states the problem, text-check clean, four numbered asks, short bullets; only nit: mastermind names and Servex readme are not links","to":"clarity-servex-crash-revive"}
-diff --git a/public/framework/ai/AISession/SessionStats.js b/public/framework/ai/AISession/SessionStats.js
-index bba39bb21..400eb4560 100644
---- a/public/framework/ai/AISession/SessionStats.js
-+++ b/public/framework/ai/AISession/SessionStats.js
-@@ -39,6 +39,16 @@ export default class SessionStats extends View {
- 		if (open) $v.attr("title", "Open the Cost tab: what this session spent and every child session behind the total").on("click", open);
- 	}
- 
-+	/** Root tasks done ÷ total (chat-model s7): the session's OWN `tasks` list only (Session.completion / Task.progress_of),
-+	 *  never the nested task-folder tree `draw()` already shows below as "Task folders done". Same item-tool `summary` ask as `cost`. */
-+	static tasks($v, work){
-+		const base = work.id ? AICost.session_url(work.id) : work.dir;
-+		AICost.summary(base).then(({ summary }) => {
-+			const p = summary?.progress;
-+			$v.text(!p ? "—" : p.total ? `${p.done} of ${p.total} tasks done` : "no root tasks");   // no answer (Servex unreachable) is a dash, never "none"
-+		}).catch(() => $v.text("—"));
+diff --git a/Server/ChatV1Compare.mjs b/Server/ChatV1Compare.mjs
+new file mode 100644
+index 000000000..4ed9ea55c
+--- /dev/null
++++ b/Server/ChatV1Compare.mjs
+@@ -0,0 +1,89 @@
++/* node Server/ChatV1Compare.mjs <session.jsonl …>           (no args: the 5 largest voice sessions under ai/sessions)
++ *
++ * READ-ONLY (builder.md step 8, "V1 side by side"). For each real voice session it builds V1's bubble list two ways and prints
++ * where they differ:
++ *   - the V1 way: straight from the session's own `{chat}` lines (`V1Bubbles.from_chat_lines`, a plain-data mirror of
++ *     ext/Chat/Chat.js's mergeable()/put_line() — read, never edited).
++ *   - the adapter way: from `session.messages` (`V1Bubbles.from_session`, core/Session/Chat/V1Bubbles.js), after replaying the file.
++ * A session with no `messages`/`sentences` lines yet is never written to: its lines are copied to a scratch file, and the
++ * messages/sentences lines it would have had are computed in memory with `ChatToMessages.plan()` (the same dry-run plan the CLI
++ * prints, read straight from the exported method instead of re-parsing stdout) — nothing is appended, `--apply` is never passed.
++ *
++ * Prints, per session: the two bubble counts (what builder.md step 8 calls "two numbers that must agree"), then one line per
++ * differing bubble (index, sender and first 60 chars of text on each side), then a running total. Exit code is always 0 — this
++ * is a report, not a gate.
++ */
++import fs from "node:fs";
++import os from "node:os";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import Session from "../public/framework/core/Session/Session.js";
++import V1Bubbles from "../public/framework/core/Session/Chat/V1Bubbles.js";
++import ChatToMessages from "./ChatToMessages.mjs";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
++const SESSIONS_DIR = path.join(ROOT, "public/framework/ai/sessions");
++
++function read_lines(file){
++	return fs.readFileSync(file, "utf8").split("\n").filter(l => l.trim()).map(l => { try { return JSON.parse(l); } catch { return null; } });
++}
++
++/** The N largest voice sessions' session.jsonl under ai/sessions (folder name starts "v-"), by file size. */
++function largest_voice_sessions(n){
++	const hits = [];
++	const walk = dir => {
++		for (const name of fs.readdirSync(dir, { withFileTypes: true })){
++			const full = path.join(dir, name.name);
++			if (name.isDirectory()){ if (name.name.startsWith("v-")){ const f = path.join(full, "session.jsonl"); if (fs.existsSync(f)) hits.push(f); } else walk(full); }
++		}
++	};
++	walk(SESSIONS_DIR);
++	return hits.map(f => ({ f, size: fs.statSync(f).size })).sort((a, b) => b.size - a.size).slice(0, n).map(h => h.f);
++}
++
++/** The bubble list's text, first `n` chars, for a print line. */
++const summary = b => (b ? `${b.sender}: ${b.pieces.map(p => p.text).join(" ").slice(0, 60)}` : "(none)");
++
++function compare_one(file){
++	const lines = read_lines(file);
++	const has_messages = lines.some(l => l?.messages || l?.sentences);
++	let replay_lines = lines, note = "";
++	if (!has_messages){
++		const scratch = path.join(os.tmpdir(), "chat-v1-compare-" + path.basename(path.dirname(file)) + ".jsonl");
++		fs.writeFileSync(scratch, lines.filter(Boolean).map(l => JSON.stringify(l)).join("\n") + "\n");
++		const copy_lines = read_lines(scratch);
++		const planned = ChatToMessages.plan(copy_lines) ?? [];
++		replay_lines = [...lines, ...planned];
++		note = ` (no messages lines; ${planned.length} built in memory by ChatToMessages.plan() on a copy at ${scratch}, never --apply'd)`;
++	}
++	const session = Session.replay(replay_lines);
++	const v1 = V1Bubbles.from_chat_lines(lines);
++	const adapter = V1Bubbles.from_session(session);
++
++	console.log(`\n${path.relative(ROOT, file).replaceAll("\\", "/")}${note}`);
++	console.log(`  ${v1.length} bubbles via V1, ${adapter.length} bubbles via the adapter`);
++
++	let diffs = 0;
++	for (let i = 0; i < Math.max(v1.length, adapter.length); i++){
++		const a = v1[i], b = adapter[i];
++		const same = a && b && a.sender === b.sender && a.pieces.map(p => p.text).join(" ") === b.pieces.map(p => p.text).join(" ");
++		if (!same){ diffs++; console.log(`  bubble ${i}: v1=[${summary(a)}]  adapter=[${summary(b)}]`); }
++	}
++	console.log(`  ${diffs} differing bubble${diffs === 1 ? "" : "s"} of ${Math.max(v1.length, adapter.length)}`);
++	return { file, v1: v1.length, adapter: adapter.length, diffs };
++}
++
++function run(files){
++	const rows = files.map(compare_one);
++	console.log("\n--- totals ---");
++	for (const r of rows) console.log(`${path.relative(ROOT, r.file).replaceAll("\\", "/")}: ${r.v1} via V1, ${r.adapter} via the adapter, ${r.diffs} differing`);
++}
++
++if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)){
++	const args = process.argv.slice(2);
++	const files = args.length ? args.map(a => path.resolve(a)) : largest_voice_sessions(5);
++	if (!files.length){ console.error("usage: node Server/ChatV1Compare.mjs <session.jsonl …>"); process.exit(1); }
++	run(files);
++}
++
++export { compare_one, largest_voice_sessions, run };
+diff --git a/public/framework/core/Session/Chat/V1Bubbles.js b/public/framework/core/Session/Chat/V1Bubbles.js
+new file mode 100644
+index 000000000..552292ecd
+--- /dev/null
++++ b/public/framework/core/Session/Chat/V1Bubbles.js
+@@ -0,0 +1,69 @@
++// V1Bubbles.js — turns `session.messages` into the same bubble list V1 draws from its `{chat}` lines (builder.md step 8: "V1 side
++// by side"). V1 merges consecutive same-sender `{chat}` lines into one bubble when nothing else was drawn in between and the gap
++// between them is under MERGE_GAP_MS (`ext/Chat/Chat.js`'s `mergeable()`/`put_line()`, READ ONLY — this file never imports it, it
++// only mirrors the rule as plain data so a node script can run it with no DOM). `Server/ChatV1Compare.mjs` calls `bubbles()` on
++// BOTH this class's events and the `{chat}` lines' own events, so a real difference between the two counts means the underlying
++// data disagrees, not that two different algorithms were used to read it.
++//
++// Known simplification (documented, not fixed here — `doc/pseudo-properties.md`, "How V1 switches over"): a `{chat}` line that is
++// a `fix` (in-place correction) or a `re`+`level` revision never makes its own V1 bubble UNLESS the piece it corrects has already
++// scrolled off; this reader always treats it as "the original is still on screen" and drops it. A Reply mirrored with the same
++// `level` IS a real message on the adapter side, so a revision can show as one extra bubble on the adapter and not on V1 — a real
++// difference the compare tool is for finding, not a bug in either reader.
++import Prompt from "./Prompt.js";
++import Message from "./Message.js";
++
++export class V1Bubbles {
++	static MERGE_GAP_MS = 8000;   // ext/Chat/Chat.js:12
++
++	/** `at` as epoch ms, the same parse `put_line()` uses. */
++	static ms(at){ return Date.parse(at ?? 0) || 0; }
++
++	/** One atomic {sender, text, at, id} per owner sentence or assistant message, in the list's own order. */
++	static events(session){
++		const out = [];
++		for (const m of session.messages.messages){
++			if (m instanceof Prompt){
++				for (const s of m.sentence_items) out.push({ id: s.id, sender: "owner", text: s.text, at: V1Bubbles.ms(s.at) });
++			} else if (m instanceof Message){   // Reply or a plain Message; a Ref is not a Message — V1 never draws one as a chat bubble
++				out.push({ id: m.id, sender: m.by, text: m.text, at: V1Bubbles.ms(m.at) });
++			}
++		}
++		return out;
 +	}
 +
- 	/** The running time into `$run`: the session index's wall and active time, else the Task's banked time. */
- 	static running($run, work, root){
- 		const own = SessionStats.elapsed(root.ms());   // the Task's banked time, only if the index has no row for this session
-@@ -69,6 +79,7 @@ export default class SessionStats extends View {
- 					small.c("sov-k", "Running for"); SessionStats.running(strong.c("sov-v", "…"), work, root);
- 				});
- 				div.c("sov-stat", () => { small.c("sov-k", "Task folders done"); strong.c("sov-v", total ? `${done} of ${total}` : "no task folders"); });
-+				div.c("sov-stat", () => { small.c("sov-k", "Root tasks done"); SessionStats.tasks(strong.c("sov-v", "…"), work); });
- 			});
- 			if (part.counted.length) div.c("sov-bar", () => TaskView.draw_bar(part.counted.map(n => n.state), 12));
- 			small.c("sov-caption", `Task folders: ${done} done · ${part.running} running · ${total - done - part.running} queued or waiting · ${part.dropped.length} dropped (not counted)`);   // one count each, so the parts add up to the total
-diff --git a/public/framework/core/Session/Session.test.mjs b/public/framework/core/Session/Session.test.mjs
-index 87596a2fc..78152525a 100644
---- a/public/framework/core/Session/Session.test.mjs
-+++ b/public/framework/core/Session/Session.test.mjs
-@@ -73,6 +73,17 @@ check("replay: a bare child id walks to a nested task, two levels down (process-
- 	return top instanceof Task && kid instanceof Task && kid.state === "complete" && kid2.state === "complete" && top.progress().done === 2 && top.progress().total === 2 && !("kid2" in s.data);
- });
- 
-+check("session completion (chat-model s7): 5 root tasks, 3 complete, 1 dropped, 1 open, nested subtasks not counted", () => {
-+	const s = new Session("s7");
-+	for (const id of ["a", "b", "c", "d", "e"]) s.tasks.add(new Task({ id }));
-+	const [a, b, c, d, e] = ["a", "b", "c", "d", "e"].map(id => s.tasks.find(id));
-+	a.complete(EV); b.complete(EV); c.complete(EV);
-+	d.stop({ why: "duplicate" });   // dropped: not counted in either done or total
-+	e.tasks.add(new Task({ id: "nested" })); e.tasks.find("nested").complete(EV);   // a nested subtask under an open root task
-+	const p = s.progress();
-+	return p.done === 3 && p.total === 4 && p.stopped === 1 && s.completion === 0.75;
-+});
++	/** The same shape, read straight from the session's own `{chat}` lines (what `chat_line()`/`put_line()` merge). */
++	static chat_events(lines){
++		const out = [];
++		for (const line of lines){
++			const c = line?.chat;
++			if (!c) continue;
++			if (c.fix || (c.re && c.level)) continue;   // an in-place correction or revision never makes its own bubble (Chat.js:787,797)
++			const sender = (c.from?.kind ?? "") === "owner" ? "owner" : (c.from?.id || c.from?.kind || "");
++			out.push({ id: c.at, sender, text: c.text, at: V1Bubbles.ms(c.said_at ?? c.at) });
++		}
++		return out;
++	}
 +
- process.exit(results.every(Boolean) ? 0 : 1);
++	/** `mergeable()`/`put_line()`: a piece joins the LAST bubble when the sender matches and the gap is under MERGE_GAP_MS — in a
++	 * sequential replay the last bubble is always the only candidate, because the moment something else is appended after it,
++	 * V1's own `answered_below()` closes it for merging too. */
++	static bubbles(events){
++		const out = [];
++		for (const e of events){
++			const last = out.at(-1);
++			if (last && last.sender === e.sender && e.at - last.at < V1Bubbles.MERGE_GAP_MS){
++				last.pieces.push(e);
++				last.at = Math.max(last.at, e.at);
++			} else out.push({ sender: e.sender, at: e.at, pieces: [e] });
++		}
++		return out;
++	}
++
++	/** The bubble list V1 draws if it read `session.messages` instead of `{chat}` lines. */
++	static from_session(session){ return V1Bubbles.bubbles(V1Bubbles.events(session)); }
++	/** The bubble list V1 actually draws today, from its own `{chat}` lines. */
++	static from_chat_lines(lines){ return V1Bubbles.bubbles(V1Bubbles.chat_events(lines)); }
++}
++
++export default V1Bubbles;
+diff --git a/public/framework/core/Session/Chat/V1Bubbles.test.mjs b/public/framework/core/Session/Chat/V1Bubbles.test.mjs
+new file mode 100644
+index 000000000..7aa92dbb4
+--- /dev/null
++++ b/public/framework/core/Session/Chat/V1Bubbles.test.mjs
+@@ -0,0 +1,51 @@
++// node public/framework/core/Session/Chat/V1Bubbles.test.mjs — the adapter that turns session.messages into V1's bubble list
++// (builder.md step 8). A controlled conversation proves the merge rule (same sender, under MERGE_GAP_MS, nothing else drawn
++// between); the real fixture proves the adapter does not throw and never drops or duplicates a sentence.
++import assert from "node:assert/strict";
++import { readFileSync } from "node:fs";
++import { fileURLToPath } from "node:url";
++import Session from "../Session.js";
++import V1Bubbles from "./V1Bubbles.js";
++
++// Two owner lines 1s apart merge into one bubble; a smart reply 2s later is its own (different sender); a last owner line
++// 24s later starts a new bubble (past MERGE_GAP_MS=8000). Each {chat} line is mirrored, as the real writer does.
++const lines = [
++	{ session: { id: "v-t", kind: "voice", at: "2026-11-02T00:00:00.000Z" } },
++	{ chat: { at: "2026-11-02T00:00:00.000Z", from: { kind: "owner" }, text: "Fix the tab bar." } },
++	{ sentences: { add: { id: "s-1", at: "2026-11-02T00:00:00.000Z", text: "Fix the tab bar.", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-1", by: "owner", at: "2026-11-02T00:00:00.000Z", sentences: ["s-1"] } } },
++	{ chat: { at: "2026-11-02T00:00:01.000Z", from: { kind: "owner" }, text: "On my phone." } },
++	{ sentences: { add: { id: "s-2", at: "2026-11-02T00:00:01.000Z", text: "On my phone.", via: "voice" } }, messages: { "m-1": { sentences: { push: "s-2" } } } },
++	{ chat: { at: "2026-11-02T00:00:03.000Z", from: { kind: "smart" }, text: "On it." } },
++	{ messages: { add: { type: "Reply", id: "m-2", by: "smart", at: "2026-11-02T00:00:03.000Z", text: "On it.", re: { to: "s-2" } } } },
++	{ chat: { at: "2026-11-02T00:00:25.000Z", from: { kind: "owner" }, text: "Thanks." } },
++	{ sentences: { add: { id: "s-3", at: "2026-11-02T00:00:25.000Z", text: "Thanks.", via: "voice" } }, messages: { add: { type: "Prompt", id: "m-3", by: "owner", at: "2026-11-02T00:00:25.000Z", sentences: ["s-3"] } } },
++];
++
++const session = Session.replay(lines);
++const v1 = V1Bubbles.from_chat_lines(lines);
++const adapter = V1Bubbles.from_session(session);
++
++assert.equal(v1.length, 3, "V1 merges the two close owner lines, keeps the reply apart, and starts a new bubble past the gap");
++assert.deepEqual(v1.map(b => b.sender), ["owner", "smart", "owner"]);
++assert.equal(v1[0].pieces.map(p => p.text).join(" "), "Fix the tab bar. On my phone.", "the merged bubble's pieces join in order");
++
++assert.equal(adapter.length, 3, "the adapter reads the same three bubbles from session.messages");
++assert.deepEqual(adapter.map(b => b.sender), v1.map(b => b.sender), "same senders, same order");
++assert.deepEqual(adapter.map(b => b.pieces.map(p => p.text).join(" ")), v1.map(b => b.pieces.map(p => p.text).join(" ")), "same bubble text, V1 and the adapter agree (the two numbers builder.md step 8 asks for)");
++
++console.log("PASS V1Bubbles: a controlled conversation gives the same 3 bubbles, same senders, same text, V1 and the adapter (3 checks)");
++
++// The real fixture (read-only; builder.md step 8): the adapter must not throw on a real session, and every owner sentence it
++// holds must land in exactly one bubble — true regardless of the fixture being a trimmed excerpt (core/Session/Chat/readme.md:
++// only the tail written after chat-model step 1 landed was ever mirrored, so its {chat} lines and session.messages don't
++// line up one-to-one — ChatV1Compare.mjs's job on a full real session, not this fixture).
++const fixture = fileURLToPath(new URL("./fixture/v-u48msei-session.jsonl", import.meta.url));
++const real_lines = readFileSync(fixture, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++const real_session = Session.replay(real_lines);
++const real_adapter = V1Bubbles.from_session(real_session);
++const owner_bubbles = real_adapter.filter(b => b.sender === "owner");
++const owner_pieces = owner_bubbles.reduce((n, b) => n + b.pieces.length, 0);
++assert.equal(owner_pieces, real_session.sentences.length, "every mirrored sentence lands in exactly one owner bubble, merged or not");
++console.log(`PASS V1Bubbles: the real fixture's ${real_session.sentences.length} sentences are all held across ${owner_bubbles.length} owner bubbles, no loss or duplication (1 check)`);
++
++console.log("V1Bubbles.test.mjs: 4 checks passed");
+diff --git a/public/framework/core/Session/Chat/doc/pseudo-properties.md b/public/framework/core/Session/Chat/doc/pseudo-properties.md
+index 6478432c4..a6721f73f 100644
+--- a/public/framework/core/Session/Chat/doc/pseudo-properties.md
++++ b/public/framework/core/Session/Chat/doc/pseudo-properties.md
+@@ -33,11 +33,15 @@ Chat V2 (`ext/Chat/v2/ChatV2Model.js:20`) reads `chat` only to remember which Pr
  
- import Day from "./Day.js";
+ `core/Session/Chat` ([readme](../readme.md)) holds the conversation as one ordered list of real Items, by id: `session.sentences` (the raw words), `session.messages` (`Prompt` holds its sentence ids and the cleaned text per sentence; `Reply` is anchored by `re.to`). Order is the list's order and never changes. Servex dual-writes it: `write()` (line 679) calls `mirror_chat()` (267) after every `{chat}` line, via `ChatWriter.js`, since b35ee6370; the fast seat's `{place}` improve is mirrored as an in-place `clean` edit since 9165c4e6c (`ChatWriter.place`). A `{place}` move (`to`, `where`) is deliberately not mirrored.
+ 
+-## The plan for V1 to switch over (not yet)
++## How V1 switches over (not yet; builder.md step 8)
+ 
+-1. V2 and V3 read `messages` first ([views-on-messages.md](views-on-messages.md)).
+-2. Then V1's `Widget.js` draws the list instead of `{chat}` / `{place}`, and its `waiting` / `orphans` machinery goes.
+-3. Then the other readers above move one by one (read-aloud, timeline, mobile).
+-4. Last, Servex stops writing `{chat}` and `{place}`, and old sessions are migrated with `node Server/ChatToMessages.mjs`.
++Each step only starts once `node Server/ChatV1Compare.mjs` (read-only; `core/Session/Chat/V1Bubbles.js` is the adapter, `compare.txt` beside this doc's task is one real run) shows the thing that step needs. Run it again before trusting any of these — it moves as more sessions get mirrored.
+ 
+-Until step 4 both are written, and the `{chat}` lines stay exactly as they were. Nothing here is built yet.
++1. **V2 and V3 read `messages` first** ([views-on-messages.md](views-on-messages.md)) — done; nothing for the compare to check here.
++2. **Every session must have a `messages`/`sentences` list, not just the newest ones.** Right now most real sessions have none at all, and even `v-u48msei` only got the tail mirrored (`readme.md`'s "only the tail written after chat-model step 1 landed was ever mirrored"). The compare must show **0 sessions still needing `ChatToMessages.plan()`** among the ones it checks — today it is 4 of 5 (every session but `v-timqv56` needed it, one, `v-u48msei`, even with real `messages` lines, was still missing most of its early tail). Nothing is migrated for real until this step; `--apply` stays unused.
++3. **Ordering must match, not just counts.** `ChatWriter`'s reply-hold rule ("a reply never splits a message in progress", above) places a held reply after the owner's thought ends; V1 draws a `{chat}` line the moment Servex writes it, in file order. On the two biggest real sessions this is the dominant cause of difference in `compare.txt` (`v-sq8y7db`: 1114 of 1247 bubbles differ, `v-9dvbbrn`: 591 of 729) — once one reply lands at a different point, every later bubble index is shifted by one even though no words are lost (see `compare.txt` bubbles 137–166 of `v-9dvbbrn`: the same lines, one position apart, over and over). The compare must show **0 differing bubbles**, not just equal counts, on a session before `Widget.js` can trust the list's order over `{chat}`'s.
++4. **V1's `Widget.js` draws `session.messages` instead of `{chat}`/`{place}`,** and its `waiting`/`orphans` machinery goes — only once a session clears step 3.
++5. **The other ~20 readers move one by one** (read-aloud, timeline, mobile — the list above, "Who draws them").
++6. **Last, Servex stops writing `{chat}` and `{place}`,** and every remaining old session is migrated for real: `node Server/ChatToMessages.mjs --apply` on each file the compare still finds missing `messages`.
++
++Until step 6 both are written, and the `{chat}` lines stay exactly as they were. Nothing here is built yet; `V1Bubbles.js` and `ChatV1Compare.mjs` are read-only tools, not a migration.
+diff --git a/public/framework/core/Session/Chat/readme.md b/public/framework/core/Session/Chat/readme.md
+index 91e53b9f8..b20ebea20 100644
+--- a/public/framework/core/Session/Chat/readme.md
++++ b/public/framework/core/Session/Chat/readme.md
+@@ -89,6 +89,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
+ - ✅ Tasks and child sessions written as Refs in `session.messages` by Servex (2026-11-02, chat-model step 3): `page_tools.js`'s `tasks.add`, `Server/SessionRecord.mjs`'s `add_ref`.
+ - ✅ List view hooks: `ext/Chat/list/ChatList.js` draws the list through `DefaultView.place()` (chat-model step 4).
+ - ✅ `Prompt.raw`, the sent/working marks on the message, and Prompt as a card (`kind`/`items`) (2026-11-02, chat-model steps 5–6). `working` is still written on whichever Prompt (task or message) an instruction names; no caller does yet.
++- ✅ V1 side by side, read-only (2026-11-02, chat-model step 8): `V1Bubbles.js` turns `session.messages` into the bubble list V1 draws; `Server/ChatV1Compare.mjs` builds that list the V1 way (from `{chat}` lines) and the adapter way, and prints where they differ — run on the 5 largest voice sessions, raw output at `ai/sessions/2026/10/20/session-e00f55c9/chat-model/s8/compare.txt`. What it found, and the switch-over steps it gates: [doc/pseudo-properties.md](doc/pseudo-properties.md#how-v1-switches-over-not-yet-buildermd-step-8).
+ - ⬜ Question and Card as messages, when a writer needs them.
+ - ⬜ remove the old `said` alias once Chat V3 reads `sent.smart` (and `raw`) directly, instead of `ext/Chat/v3/ChatV3.js:163`'s `p.cleaned || p.said`.
+ - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").
