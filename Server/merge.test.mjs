@@ -34,14 +34,46 @@ test("a clean main: a new file and a changed file both land tracked, status clea
 	assert.equal(git(main, "status", "--porcelain").trim(), "", "git status --porcelain is empty");
 });
 
-test("someone else's staged file in main: the new file is still staged, not left untracked", () => {
+test("someone else's staged files in main: the merge commits only its paths and leaves theirs staged, exactly", () => {
 	const { main, wt } = scratch("worktree/two");
+	write(main, "theirs.txt", "T\n"); write(main, "other.txt", "x\ny\n"); git(main, "add", "theirs.txt", "other.txt");
+	const before = git(main, "diff", "--cached", "--name-status");
+	const r = merge(wt, main);
+	assert.equal(r.status, 0, r.stdout + r.stderr);
+	assert.match(r.stderr, /2 file\(s\) were already staged/, "names the strays instead of refusing");
+	assert.ok(!/left staged/.test(r.stdout), "never leaves its own paths staged");
+	assert.equal(git(main, "diff", "--cached", "--name-status"), before, "the index holds exactly the strays, nothing of ours");
+	assert.deepEqual(git(main, "diff", "--name-only", "HEAD^1", "HEAD").split(/\r?\n/).filter(Boolean).sort(), ["a.txt", "b/new.txt"], "the commit holds only the landed paths");
+	assert.equal(git(main, "rev-list", "--parents", "-n1", "HEAD").trim().split(" ").length, 3, "a two-parent merge commit");
+	assert.equal(git(main, "rev-parse", "worktree/two").trim(), git(main, "rev-parse", "HEAD^2").trim(), "the branch head is the second parent");
+	assert.equal(git(main, "show", "HEAD:b/new.txt"), "NEW\n");
+	assert.ok(tracked(main, "b/new.txt"));
+	assert.ok(!/^\?\?/m.test(git(main, "status", "--porcelain")), "nothing untracked");
+});
+
+test("a branch that DELETES a file lands the deletion through the temporary index, strays untouched", () => {
+	const { main, wt } = scratch("worktree/del");
+	git(wt, "rm", "-q", "other.txt"); git(wt, "commit", "-qm", "drop other");
 	write(main, "theirs.txt", "T\n"); git(main, "add", "theirs.txt");
 	const r = merge(wt, main);
 	assert.equal(r.status, 0, r.stdout + r.stderr);
-	assert.ok(/left staged/.test(r.stdout), r.stdout);
-	assert.ok(tracked(main, "b/new.txt"), "new file in git ls-files (index)");
-	assert.ok(!/^\?\?/m.test(git(main, "status", "--porcelain")), "nothing untracked");
+	assert.ok(!git(main, "ls-tree", "-r", "--name-only", "HEAD").includes("other.txt"), "deleted in HEAD");
+	assert.ok(!fs.existsSync(path.join(main, "other.txt")));
+	assert.equal(git(main, "diff", "--cached", "--name-only").trim(), "theirs.txt");
+});
+
+test("a refused merge (conflict) leaves the index exactly as it found it", () => {
+	const { main, wt } = scratch("worktree/conflict");
+	write(main, "a.txt", "main edit\n"); git(main, "commit", "-qam", "main moves a.txt");   // base moved: a.txt now conflicts
+	write(wt, "a.txt", "branch edit\n"); git(wt, "commit", "-qam", "branch edits a.txt differently");
+	write(main, "theirs.txt", "T\n"); git(main, "add", "theirs.txt");
+	const idx = git(main, "ls-files", "-s"), head = git(main, "rev-parse", "HEAD");
+	const r = merge(wt, main);
+	assert.notEqual(r.status, 0, "refused");
+	assert.equal(git(main, "ls-files", "-s"), idx, "index unchanged");
+	assert.equal(git(main, "rev-parse", "HEAD"), head, "HEAD unchanged");
+	assert.ok(!fs.existsSync(path.join(main, ".git", "MERGE_HEAD")));
+	assert.deepEqual(fs.readdirSync(path.join(main, ".git")).filter(f => f.startsWith("merge-index")), [], "no temporary index left");
 });
 
 test("the main tree has an uncommitted edit to a landed file: three-way path still stages the new file", () => {

@@ -31,6 +31,22 @@ export default class Worktrees {
         return { act: "close", why: "its branch is merged, or its folder is gone" };
     }
 
+    /* Is a worktree's server stale because its branch is "merged into the base"? (worktree-servers.mjs --stop-stale.)
+     * A FRESH branch with no commits is an ancestor of the base too, and read as merged (2026-11-02: replay-bubbles' server
+     * was stopped minutes after its worktree was made). So it must be both: the branch has commits of its own (its reflog holds
+     * more than the creation line) that are all on the base, AND the worktree saw no git activity (HEAD, index, log) for quiet_ms.
+     * Returns { stale, why }. */
+    static merged_stale(main, branch, wt_path, { base = Worktrees.BASE, quiet_ms = 30 * 60e3, now = Date.now() } = {}){
+        const g = (...a) => spawnSync("git", ["-C", main, ...a], { encoding: "utf8", windowsHide: true });
+        if (!branch || g("merge-base", "--is-ancestor", branch, base).status !== 0) return { stale: false, why: "not merged" };
+        const own = g("reflog", "show", "--format=%gs", `refs/heads/${branch}`).stdout.split(/\r?\n/).filter(l => l && !/^branch: Created from/.test(l));
+        if (!own.length) return { stale: false, why: "a fresh branch: no commits of its own yet" };
+        const gitdir = path.resolve(wt_path, spawnSync("git", ["-C", wt_path, "rev-parse", "--git-dir"], { encoding: "utf8", windowsHide: true }).stdout.trim() || ".git");
+        const touched = Math.max(0, ...["HEAD", "index", "logs/HEAD"].map(f => { try { return fs.statSync(path.join(gitdir, f)).mtimeMs; } catch { return 0; } }));
+        if (now - touched < quiet_ms) return { stale: false, why: `git activity ${Math.round((now - touched) / 60e3)} min ago` };
+        return { stale: true, why: `merged into ${base}` };
+    }
+
     static main_repo(from = HERE){
         return slash(path.resolve(from, execFileSync("git", ["rev-parse", "--git-common-dir"], { cwd: from, encoding: "utf8", windowsHide: true }).trim(), ".."));
     }
