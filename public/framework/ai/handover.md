@@ -2,6 +2,8 @@
 
 The file a fresh assistant, mastermind or minion reads before anything else. Keep it one screen; replace dated sections as they go stale.
 
+**What has been built** (dictation, voice, chat, session work since 2026-10-20, computed): [doc/built-index.md](doc/built-index.md) (`node Server/PastWork.mjs --built`).
+
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
