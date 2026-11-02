@@ -383,9 +383,9 @@ export class Store {
 		return host === "localhost" || host === "127.0.0.1" || !!host?.endsWith(".localhost");
 	}
 
-	// Hooks a subclass extends — empty here. `PageLog.Reader`'s own `changed()`
-	// redraws the folder listing and the tab strip; `reset()` forgets what was read
-	// so a REWRITTEN (not appended) file replays clean from line 1.
+	// A hook a subclass extends — empty here. `PageLog.Reader`'s own `changed()` redraws the folder listing and
+	// the tab strip; its own `reset()` takes the other path (forgets what was read, so a REWRITTEN file replays
+	// clean from line 1 onto a cleared host) rather than this class's dedupe — doc/reset.md.
 	changed(){}
 
 	/* `live.js`'s `jsonl_reset` handler calls this, then re-subscribes from byte 0: the server (Tail.js, R4) has

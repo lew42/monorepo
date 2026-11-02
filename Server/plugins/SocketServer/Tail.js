@@ -131,12 +131,17 @@ export default class Tail {
         const sockets = subs.get(abs);
         if (!sockets?.size) return;
 
-        const chunks = new Map();   // offset -> chunk | "reset": sockets at the same offset share one read (and one rewrite check)
+        // "offset:proof" -> chunk | "reset": sockets that agree on BOTH share one read and one rewrite check. Offset
+        // alone is not enough (review, note 8): two sockets can sit at the same offset with different proofs — one
+        // subscribed before a same-size rewrite, one after — and sharing by offset alone would give the second one
+        // the first's verdict (wrongly reset, or wrongly not) depending on Map iteration order.
+        const chunks = new Map();
         for (const [socket, entry] of sockets){
             if (entry === null) continue;   // a reset already went out to this socket
             const { offset: from, proof } = entry;
-            if (!chunks.has(from)) chunks.set(from, rewritten(abs, from, proof) ? "reset" : read(abs, from));
-            const chunk = chunks.get(from);
+            const key = from + ":" + (proof && proof.length ? proof.toString("hex") : "");
+            if (!chunks.has(key)) chunks.set(key, rewritten(abs, from, proof) ? "reset" : read(abs, from));
+            const chunk = chunks.get(key);
             if (chunk === "reset" || !chunk){ sockets.set(socket, null); socket.rpc("jsonl_reset", url_path(abs)); continue; }
             sockets.set(socket, { offset: chunk.offset, proof: proof_at(abs, chunk.offset) });
             if (chunk.lines.length) send(socket, abs, chunk, from);

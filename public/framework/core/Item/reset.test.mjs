@@ -82,6 +82,49 @@ try {
 	const replayed = fresh_replay();
 	t.eq([replayed.note, replayed.n, replayed.calls, [...replayed.things].map(x => x.id)], [host.note, host.n, host.calls, [...host.things].map(x => x.id)],
 		"the recovered host is identical to a fresh replay of the rewritten file");
+
+	// Finding 1 (review, 2026-11-02): a rewrite that leaves the file EMPTY answers the resubscribe with zero
+	// lines. `live.js` now calls read([]) for that frame too (ext/JSONL/live.js) — the one call that clears
+	// `skip`. Pinned here at the Store boundary: reset(), the one (empty) recovery read, THEN an ordinary later
+	// append whose text matches an already-applied line must still be applied, not swallowed as a duplicate.
+	{
+		const FILE2 = path.join(DIR, "empty.jsonl");
+		fs.writeFileSync(FILE2, line({ "increment()": {} }));
+		const host2 = new Counter({ id: "root" });
+		const store2 = new Store({ url: "/empty.jsonl" });
+		store2.attach(host2);
+		store2.read(parse(fs.readFileSync(FILE2, "utf8")));
+		t.eq(host2.calls, 1, "finding 1 setup: one increment applied");
+
+		fs.writeFileSync(FILE2, "");   // the rewrite leaves nothing: the resubscribe answers with zero lines
+		store2.reset();
+		store2.read([]);   // the empty recovery frame live.js's fix always delivers
+		t.eq(host2.calls, 1, "the empty recovery read changes nothing, but it does clear the pending skip");
+
+		fs.appendFileSync(FILE2, line({ "increment()": {} }));   // an ordinary later append — same text as the line already applied
+		store2.read(parse(fs.readFileSync(FILE2, "utf8")).slice(-1));
+		t.eq(host2.calls, 2, "finding 1: a later append matching an old line's text is still applied, not swallowed as a leftover duplicate");
+	}
+
+	// Finding 6 (review, note): a store started from a snapshot cannot tell what the snapshot already folded
+	// in, so reset() freezes it and warns instead of risking a double-apply (doc/reset.md). Pinned: the host is
+	// left exactly as it was.
+	{
+		const FILE3 = path.join(DIR, "snap.jsonl");
+		fs.writeFileSync(FILE3, line({ "increment()": {} }));
+		const host3 = new Counter({ id: "root" });
+		const store3 = new Store({ url: "/snap.jsonl" });
+		store3.attach(host3);
+		store3.read(parse(fs.readFileSync(FILE3, "utf8")));
+		t.eq(host3.calls, 1, "snapshot-store setup: one increment applied");
+
+		store3.snapshot = { lines: 1 };   // stands in for a used snapshot (reset() only checks truthiness)
+		fs.writeFileSync(FILE3, line({ "increment()": {} }) + line({ "increment()": {} }));
+		store3.reset();
+		store3.read(parse(fs.readFileSync(FILE3, "utf8")));
+		t.ok(store3.frozen, "a snapshot-started store marks itself frozen on reset");
+		t.eq(host3.calls, 1, "and the host is left exactly as it was — not double-applied, not partially replayed");
+	}
 } finally { fs.rmSync(DIR, { recursive: true, force: true }); }
 
 t.done();

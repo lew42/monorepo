@@ -59,8 +59,11 @@ because a frame carries only the offset it ends at, not the one it starts from.
 
 ## Reset means "this file is not what you think"
 
-`jsonl_reset` arrives only for a file that had already streamed and then shrank,
-was rewritten, or vanished. The reader calls
+`jsonl_reset` arrives for a file that had already streamed and then shrank, vanished, or was **rewritten in
+place** — same size or longer, including a same-length line changed in the middle (`Runtime.safe_write`
+correcting a url) and a rename-over. `Tail.js` proves every cursor before trusting it (a gap check, then a
+256-byte window) rather than only noticing a file that got shorter; a resubscribe with a stale offset (a
+reconnect) gets the same check. Full design: [`core/Item/doc/reset.md`](/framework/core/Item/doc/reset.md). The reader calls
 [`reset()`](/framework/ext/JSONL/api/reset/) and re-subscribes from 0 — **but
 only if something had already streamed**, a guard that keeps the cycle finite:
 a post-reset subscribe on a file that stays gone is answered with an *empty
