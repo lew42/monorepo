@@ -9,6 +9,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import ChatWriter from "../Servex/agents/ChatWriter.js";
 
 const SELF_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sha = buf => crypto.createHash("sha256").update(buf).digest("hex");
@@ -110,8 +111,15 @@ export default class SessionRecord {
 		let text = ""; try { text = fs.readFileSync(log, "utf8"); } catch {}
 		if (text.includes(`"task":"${url}"`) || text.includes(`"path":"${url}"`)) return log;
 		fs.appendFileSync(log, (text && !text.endsWith("\n") ? "\n" : "") + JSON.stringify(this.entry_line(log, url, by, as, entry)) + "\n");
+		// ROOT TASK/CHILD SESSION AS A REF IN THE CHAT (builder.md step 3): when this reference landed on the SESSION's own
+		// session.jsonl (never a task's own task.jsonl below it — "root tasks only"), `url` is also a folder another message
+		// can point at: add a Ref at the bottom of session.messages, right after the line that just referenced it.
+		if (this.is_chat_ref_target(log)) try { fs.appendFileSync(log, JSON.stringify(ChatWriter.ref_line({ url })) + "\n"); } catch {}
 		return log;
 	}
+	/** Is `log` a session's own session.jsonl (its folder sits directly under a day, per is_session_dir), as opposed to some
+	 *  task folder's task.jsonl beneath it? Only then does a {"task":url} reference also get a chat Ref (add_ref, above). */
+	static is_chat_ref_target(log){ return path.basename(log) === this.NEW && this.is_session_dir(path.dirname(log)); }
 	/** The reference line add_ref writes: a plain {"task":url,"as"} line, or a Session entry nested under its cause. */
 	static entry_line(log, url, by, as, entry){
 		const ts = new Date().toISOString();

@@ -53,6 +53,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
   - A reply never splits a message in progress: while the owner is mid-thought (`Sessions.mid_thought`: the floor is `speaking`, or a thought is held), a reply waits in the writer and is appended when the thought ends (`release_thought`, or the floor going `done`), below the owner's last words.
   - Known edge: a reply held at the moment Servex restarts is lost from the list (V1 still has it).
 - **Any agent, through the item tool:** `item({path: <session url>, delta: {messages: {add: {type: "Reply", by: "smart", text: "…"}}}})`, or `{messages: {"<id>": {title, text}}}` to refine a message in place. A read of the session (`item({path})`) answers `messages: {count, last}` (the last 20).
+- **A root task, or a spawned child session, as a Ref** (2026-11-02, chat-model step 3): when `tasks.add` lands at a session's own root — a folder-making ask (`Servex/agents/page_tools.js`'s `put({task: …})`) or an inline subtask (`put({tasks: {add: …}})`) — the same write also appends `ChatWriter.ref_line({path|url})`: a Ref at the bottom of `session.messages`, right after the line that made the task. A spawned child session gets the same Ref wherever `SessionRecord.add_ref` (`Server/SessionRecord.mjs`, called by `Agents.open_task`/`link_parent` and `ChildLinks.link`) writes a `{"task":url}` reference directly onto the **session's own** `session.jsonl` (never onto some task's `task.jsonl` beneath it — "root tasks only": `SessionRecord.is_chat_ref_target`). Idempotent the same way the `{task}` reference already was: a retried link never adds a second Ref.
 - **The fast seat's `{place}` lines** (written by the voice assistant through the item tool): one with a cleaned `text` (edit `improve` or `both`) also writes `{"messages":{"<prompt id>":{"clean":{"<sentence id>":"…"}}}}`, so that sentence's text updates on its Prompt **in place**: the Prompt keeps its position and its raw words, and a later improve of the same sentence wins (`ChatWriter.place`, called from the item tool, `page_tools.js`). Where a sentence goes (`to`, `where`) is not mirrored: the list's order never changes.
 
 ## How a view reads it
@@ -63,7 +64,7 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 
 ## Check it
 
-- `node Servex/agents/chat-messages.test.mjs` (13 checks; the last: two `{place}` improves through the real item tool merge on one Prompt, nothing moves, and an edit with no text writes no chat line): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit.
+- `node Servex/agents/chat-messages.test.mjs` (17 checks): a mixed session through the real `Sessions.js` (spoken sentences with the floor, a reply mid-thought, a refined line, typed, a Servex note), then replayed twice and through a snapshot: the same list, same order, no twins; two counts that must agree (owner `{chat}` lines = sentences; other `{chat}` lines = replies and notes); the item tool's add and in-place edit; two `{place}` improves merging on one Prompt; a root `tasks.add` and a `SessionRecord.add_ref` call each landing one Ref, in order, resolving by path or url, never duplicated on a retry.
 - On a copy of the biggest real voice session (`v-9dvbbrn`, 2026-11-01): 1,004 owner lines gave 1,004 sentences in 330 Prompts, 316 replies gave 316 Replies; the replay took 86 ms.
 
 ## Migration (written, not run)
@@ -79,6 +80,6 @@ Ids: `s-<ms>` and `m-<ms>` from Servex; the item tool gives an agent's add an 8-
 
 - ✅ Chat V3 reads this list instead of re-reading `{chat}` lines ([ext/Chat/v3](/framework/ext/Chat/v3/readme.md), 2026-11-01; the views belong to `mastermind-dictation-v3`, this list is the contract). Chat V2 next ([views-on-messages.md](doc/views-on-messages.md) step 2).
 - ✅ Ref as a message, and `resurface()` (2026-11-01, chat-model step 2): `core/List/List.js`'s explicit `ref(x)` (F7, reworded 2026-11-02 — `add()`'s own default is unchanged, see `plan.md` decision 2) plus `Chat.resurface(message)`.
+- ✅ Tasks and child sessions written as Refs in `session.messages` by Servex (2026-11-02, chat-model step 3): `page_tools.js`'s `tasks.add`, `Server/SessionRecord.mjs`'s `add_ref`.
 - ⬜ Question and Card as messages, when a writer needs them.
-- ⬜ Tasks and child sessions written as Refs in `session.messages` by Servex (chat-model step 3).
 - ⬜ V1 switches to the list, then the `{chat}` lines stop (the owner's decision #1, "later").

@@ -1299,6 +1299,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 				await record_new_folder(path.dirname(home.dir), home.slug);
 				// Step 16: the caller's own log gets the same reference (never the parent twice, never an error).
 				if (caller_log && path.resolve(caller_log) !== path.resolve(at.file)) try { write_line(caller_log, line, true); } catch {}
+				// ROOT TASK AS A REF IN THE CHAT (builder.md step 3): a task added at a session's own root also gets a Ref at the
+				// bottom of session.messages, right after the line that created it — the chat list shows every root task without
+				// duplicating it. Never for a nested task's own subtasks (at.target.length > 0 is some task, not the session).
+				if (kind === "Session" && !at.target.length){ const keep = line; put(ChatWriter.ref_line({ url: h.path })); line = keep; }
 			} else {
 				// A subtask nests in this file: {"tasks":{"add":{…}}}, no folder.
 				const { type: _t, data, ...fields } = a;
@@ -1310,7 +1314,7 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
 					ids.splice(ids.indexOf(id), 1);
 					const into = [...(root()._tasks ?? [])].find(t => Task.same_title(t.get_one("title"), a.title));
 					(merged ??= []).push({ title: a.title, into: into?.id ?? null, weight: into?.weight ?? null });
-				}
+				} else if (kind === "Session" && !at.target.length){ const keep = line; put(ChatWriter.ref_line({ path: `tasks.${id}` })); line = keep; }
 			}
 		}
 		const { tasks: _t, ...more } = body;
