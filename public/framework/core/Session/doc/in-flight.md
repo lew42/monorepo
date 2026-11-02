@@ -17,6 +17,10 @@ A short block that shows, for one session: what is being worked on now, what wai
 | [InFlightView.js](../InFlightView.js) | The view. One `SessionTasks` reader per session record (`.live()`), so it follows `session.jsonl` with no polling timer. `{url}` is one session; `{urls, all: true}` is many, showing only sessions with something in flight or waiting. |
 | [InFlight.css](../InFlight.css) | Styles, in `@layer site`. |
 | [InFlight.test.mjs](../InFlight.test.mjs) | `node public/framework/core/Session/InFlight.test.mjs` |
+| [InFlight.real.test.mjs](../InFlight.real.test.mjs) | The same over copies of real folders in [fixtures/](../fixtures/): a running process, a running agent folder, a complete task. |
+| [Task/legacy-open.test.mjs](../../Task/legacy-open.test.mjs) | Reading a legacy log infers its state and appends 0 lines. |
+
+While a session's file or its task files are still being read, the block says "Reading the session…" / "Reading N tasks…", not "Nothing is in flight." ([in-flight-real-400.png](in-flight-real-400.png)). `Task.open_ref` ends each opened reference with `replay_end`, so a spawned agent's folder (no `start` verb) reads running in the browser as in node; `Task.replay_end` never saves what it infers.
 
 ## Where it is used
 
@@ -32,3 +36,4 @@ Not a new task card: the rows are plain links and bars over the same `Session` r
 - **The row is not `core/Task/TaskView.js`**: that is a full task card with its own state and actions; this row is one title, one bar and one line, so reusing it would have meant hiding most of it.
 - The `/framework/ai/` block asks the same `inflight` query as `ai/now/AINow.js` (`state`, `last_activity`, `url` per row). It draws nothing if the query fails.
 - **Which five** are shown: running tasks that have a current line or some progress first, then by most recent activity.
+

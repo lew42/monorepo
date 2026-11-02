@@ -504,12 +504,13 @@ export class Task extends Item {
 			const res = await fetch(store.url).catch(() => null);
 			const entries = res?.ok ? store.parse(await res.text()) : [];
 			if (!entries.length) kid.set({ state: "missing" });
-			else { kid.put("state", "idle"); for (const e of entries) kid.replay_line(e); }
+			else { kid.put("state", "idle"); for (const e of entries) kid.replay_line(e); kid.replay_end?.(); }
 			return;
 		}
 		if (!store.count){ kid.set({ state: "missing" }); return; }
 		kid.put("state", "idle");   // the file's own verb lines take it from here
 		store.attach(kid);
+		kid.replay_end?.();   // a spawned agent's record has no start verb: node's from_ref replays it whole (running), so the browser infers it too
 	}
 
 	// The tasks sorted by recency x weight, biggest first. Weight = priority.score (1 if missing) x (1 + children);
@@ -599,7 +600,9 @@ export class Task extends Item {
 	// No explicit verb line anywhere: infer the state from the old fields.
 	replay_end(){
 		this._legacy = !this._rp?.explicit; this._fresh = !!this._rp?.fresh;   // kept (and in a snapshot's memory) so a restored task knows whether its state was read from verbs or inferred
-		if (!this._rp?.explicit) this.replay_legacy(!!this._rp?.fresh);
+		const Store = this.constructor.Store;   // the inferred state is a read, never a write: a Saver attached by now must not append it (Item.open calls this after attach)
+		if (Store) Store.replay_depth++;
+		try { if (!this._rp?.explicit) this.replay_legacy(!!this._rp?.fresh); } finally { if (Store) Store.replay_depth--; }
 		this._at = null;
 		this._rp = null;
 		return this;
