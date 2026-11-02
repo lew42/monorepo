@@ -26,6 +26,7 @@ export const SETTINGS = {
 	into: "chat",   // "chat" = growing bubble in the chat log, "box" = the text box; see doc/mic-notes.md#settings
 	wake_gap_s: null,   // smart assistant: quiet seconds before it hears a batch (null = Servex's own default); pushed to the session
 	wake_every: null,   // smart assistant: or this many sentences, whichever comes first (null = Servex's default)
+	assistant: undefined,   // undefined = never picked (nothing sent); null = Servex's boot word; "single" | "voice" = this session's seat (ux/Dictate/doc/single-voice-assistant.md)
 	send_on_period: true,      // cut a send at . ! or … (one box: the three read as one "a sentence ended" mark)
 	send_on_question: true,   // cut a send at a question mark
 	send_on_comma: false,     // cut a send at a comma too; off by default — on, it fragments a sentence into pieces at every comma
@@ -357,6 +358,7 @@ export class ComposerMic extends Dictate {
 			});
 			into.append(name, input);
 		}
+		this.assistant_row(panel);
 		this.wake_rows(panel);
 		this.segment_rows(more.querySelector("div"));   // same "More" grid as guess_ms/box_lines/… (round 4, item 8c)
 		panel.append(more);
@@ -383,6 +385,37 @@ export class ComposerMic extends Dictate {
 			});
 			grid.append(name, input);
 		}
+	}
+
+	// One assistant or two: a per-session word in Servex (POST /api/session/settings {assistant}); the line under it is read back from the server (GET /api/session/<id>), never from localStorage.
+	assistant_row(panel){
+		const name = document.createElement("label"); name.textContent = "voice assistants";
+		const select = document.createElement("select"); select.dataset.key = "assistant"; select.style.width = "10em";
+		for (const [value, label] of [["", "Default"], ["single", "One assistant"], ["voice", "Two assistants (fast + smart)"]]) select.add(new Option(label, value));
+		select.value = SETTINGS.assistant ?? "";
+		const live = document.createElement("div"); live.className = "chatbox-mic-settings-live"; live.dataset.role = "assistant-live";
+		live.style.cssText = "grid-column: 1 / -1; font-size: 0.85em; opacity: 0.75";
+		const show = async () => {
+			const session = this.wake_session?.();
+			if (!session){ live.textContent = "No session yet: your pick is sent when you start talking."; return; }
+			try {
+				const { servex_url } = await import("/framework/dev/servex_url.js");
+				const res = await fetch(servex_url("/api/session/" + encodeURIComponent(session)), { signal: AbortSignal.timeout(10000) });
+				const out = await res.json();
+				if (!out.ok) throw new Error(out.error ?? res.status);
+				live.textContent = "Live now: " + ({ single: "one assistant", voice: "two assistants (fast + smart)", fast: "two assistants (old fast chatter)", off: "smart assistant only" }[out.assistant] ?? "Servex's default");
+			} catch (e){ live.textContent = "Could not read which is live: " + (e.message ?? e); }
+		};
+		select.addEventListener("change", async () => {
+			SETTINGS.assistant = select.value || null;
+			save_settings();
+			live.textContent = "Saving…";
+			try { await this.push_wake(true); } catch (e){ console.warn("[dictate] assistant seat:", e); }
+			show();
+		});
+		panel.append(name, select, live);
+		this.refresh_assistant = show;
+		show();
 	}
 
 	// The smart assistant's batch knobs live in Servex, per session (ux/Dictate/doc/wake-policy.md); the browser keeps the owner's pick and re-sends it to each session.
@@ -412,12 +445,13 @@ export class ComposerMic extends Dictate {
 	// POST the saved batch knobs to the current voice session (null = back to Servex's default). `wake_session` is set by the widget.
 	async push_wake(force){
 		const session = this.wake_session?.();
-		if (!session || !force && SETTINGS.wake_gap_s == null && SETTINGS.wake_every == null) return;
+		if (!session || !force && SETTINGS.wake_gap_s == null && SETTINGS.wake_every == null && SETTINGS.assistant === undefined) return;
 		const { servex_url } = await import("/framework/dev/servex_url.js");
 		const res = await fetch(servex_url("/api/session/settings"), { method: "POST", signal: AbortSignal.timeout(10000), headers: { "content-type": "application/json" },
-			body: JSON.stringify({ session, gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every }) });
+			body: JSON.stringify({ session, gap_ms: SETTINGS.wake_gap_s == null ? null : SETTINGS.wake_gap_s * 1000, every: SETTINGS.wake_every, ...(SETTINGS.assistant === undefined ? {} : { assistant: SETTINGS.assistant }) }) });
 		const out = await res.json().catch(() => ({ ok: false, error: "HTTP " + res.status }));
 		if (!out.ok) throw new Error("Servex refused session/settings: " + (out.error ?? res.status));
+		this.refresh_assistant?.();
 	}
 
 	// The owner typed or pasted: text before the dictated tail is theirs; an edit inside the dictation makes the whole box theirs.

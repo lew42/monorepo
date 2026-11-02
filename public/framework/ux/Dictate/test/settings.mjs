@@ -14,6 +14,7 @@ const { default: Browser } = await import(new URL("../../../../../Server/Browser
 const browser = await Browser.launch();
 const kill = setTimeout(() => { console.log("FAIL killed after 120 s"); process.exit(2); }, 120000);
 let fails = 0;
+let server_assistant = null;   // the stub Servex's per-session word, shared by every page of the run
 const unstubbed = [];   // every API call no stub answered, over the whole run (must stay empty: this script never touches Servex)
 const check = (ok, what) => { console.log((ok ? "ok   " : "FAIL ") + what); if (!ok) fails++; };
 
@@ -27,7 +28,8 @@ async function stub(page, said, knobs){
 		if (verb.endsWith("/stream")) return route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: "retry: 60000\n\n" });
 		let body = {}; try { body = JSON.parse(req.postData() ?? "{}"); } catch {}
 		if (verb === "say"){ if (!body.kind) said.push(body.text);   /* a kind (error, click, context) is a diagnostic or context line, filed as a log line and never a prompt (ext/Chat/v2/report.js) */ return json(route, { ok: true, at: new Date().toISOString() }); }
-		if (verb === "settings"){ knobs.push(body); return json(route, { ok: true }); }
+		if (verb === "settings"){ knobs.push(body); if ("assistant" in body) server_assistant = body.assistant; return json(route, { ok: true }); }
+		if (verb === "stub-session") return json(route, { ok: true, id: "stub-session", ...(server_assistant ? { assistant: server_assistant } : {}) });   // GET /api/session/<id>: the server's own word
 		return json(route, verb === "new" || verb === "resume" ? { ok: true, session: "stub-session", file: "/stub-session.jsonl" } : { ok: true });
 	});
 	await page.route(/\/stub-session\.jsonl/, r => r.fulfill({ status: 200, contentType: "text/plain", body: "" }));
@@ -75,6 +77,28 @@ const gear = async page => {   // open the gear panel (the old "Dictation settin
 	check(await page.inputValue("input[data-key=send_delay]") === "1.5", "after a reload a send delay of 1.5 s still reads 1.5 s");
 	check(await page.evaluate(() => document.querySelector(".chatbox-compose-menu-panel input[data-key]").dataset.key) === "send_delay", "send delay is the first row of the panel");
 	check(await page.locator("details:not([open]) input[data-key=guess_ms]").count() === 1, "the expert knobs sit under a closed More");
+	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
+	await ctx.close();
+}
+// 1b. the one/two assistants switch: it POSTs assistant "single", the live line is read from the server, and it holds across a reload
+{
+	const ctx = await browser.newContext({ viewport: { width: 360, height: 740 }, hasTouch: true, isMobile: true });
+	let { page, errors, knobs } = await open(ctx);
+	await page.evaluate(() => { globalThis.$dictate_widget.dictate.wake_session = () => "stub-session"; });
+	await gear(page);
+	check(await page.locator("select[data-key=assistant]").inputValue() === "", "the assistants switch starts on Default");
+	await page.selectOption("select[data-key=assistant]", "single");
+	await page.waitForFunction(() => /one assistant/.test(document.querySelector("[data-role=assistant-live]")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
+	check(knobs.some(k => k.session === "stub-session" && k.assistant === "single"), "choosing One assistant POSTed assistant: single: " + JSON.stringify(knobs.at(-1) ?? null));
+	check(/Live now: one assistant/.test(await page.locator("[data-role=assistant-live]").textContent()), "the live line reads the server: " + await page.locator("[data-role=assistant-live]").textContent());
+	await page.screenshot({ path: path.join(shots, "assistants-360.png") });
+	await page.close();
+	({ page, errors } = await open(ctx));
+	await page.evaluate(() => { globalThis.$dictate_widget.dictate.wake_session = () => "stub-session"; });
+	await gear(page);
+	check(await page.locator("select[data-key=assistant]").inputValue() === "single", "after a reload the switch still reads One assistant");
+	await page.waitForFunction(() => /one assistant/.test(document.querySelector("[data-role=assistant-live]")?.textContent ?? ""), null, { timeout: 5000 }).catch(() => {});
+	check(/Live now: one assistant/.test(await page.locator("[data-role=assistant-live]").textContent()), "after a reload the live line still says one assistant (from the server)");
 	check(errors.length === 0, "no page errors" + (errors[0] ? ": " + errors[0] : ""));
 	await ctx.close();
 }

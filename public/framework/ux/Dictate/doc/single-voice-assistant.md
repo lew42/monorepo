@@ -4,6 +4,7 @@
 
 ## Turning it on
 - **Every session:** write the word `single` in `session-assistant.txt` (or set `SERVEX_SESSION_ASSISTANT=single`); read at boot, so Servex restarts for it. The word is one of `fast`, `voice` (default), `single`, `off`.
+- **From the phone:** the gear panel's **voice assistants** row (One assistant / Two assistants / Default) does the per-session POST below; its line shows which is live ([settings.md](settings.md)).
 - **One session:** `POST /api/session/settings {session, assistant: "single"}`. `assistant: null` drops it back to the boot word. If an agent is already awake for that session it is put to sleep; the next sentence wakes the new seat.
 
 ## What happens to a sentence (`Servex/agents/Sessions.js`: `single_say`, `single_cue`, `heard`)

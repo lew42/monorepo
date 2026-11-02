@@ -9,6 +9,8 @@ One panel, the old one: `ComposerMic.settings_panel()` in `ext/Chat/Mic.js`, ope
 - **Send delay (s), default 2.** Quiet that must pass before the words on screen leave as one prompt. Keep talking within it and the new sentence joins the same prompt. It sets both waits `auto_check()` uses, `SETTINGS.paragraph_pause_ms` (natural pause after a finished sentence) and `SETTINGS.pause_send_ms` (silence before the tail), to the same value.
 - **Smart assistant: batch after quiet (s, 1 to 60) and after this many sentences (1 to 50).** These are Servex's `gap_ms` and `every` ([wake-policy.md](wake-policy.md)); empty means Servex's default (12 s, 6: `WAKE_DEFAULTS` in `Servex/agents/WakePolicy.js`; the placeholders in `Mic.js` repeat those two numbers). Changing one POSTs `/api/session/settings` to the current voice session (`ComposerMic.push_wake()`); `chat.js` also sends the saved values once to each new session at its first send.
 
+- **Voice assistants: Default / One assistant / Two assistants (fast + smart).** Picking one POSTs `{session, assistant: "single" | "voice" | null}` to `/api/session/settings` (`ComposerMic.assistant_row()`, then `push_wake()`; `chat.js` re-sends the pick to each new session). The line under it ("Live now: …") is read from `GET /api/session/<id>`, which reports the session's own `assistant` word; with none it says Servex's default. The pick is kept in `SETTINGS.assistant` only so a new session gets it.
+
 The send delay is the first row. Guess every, box lines, safety chunks and filler words sit under a closed **More**; the rest of the panel is unchanged. The compact bar (the strip) has no ⚙ on purpose: only the full-size bar opens the panel.
 
 ## Where the values live
@@ -17,4 +19,4 @@ The send delay is the first row. Guess every, box lines, safety chunks and fille
 
 ## Proof
 
-`node ux/Dictate/test/settings.mjs <base-url>`: the delay holds across a reload; at 3 s two sentences 1 s apart are one prompt, at 0.5 s they are two; the batch seconds reach `/api/session/settings`. Shots: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/settings/shots/` (`panel-400.png`, `panel-1920.png`).
+`node ux/Dictate/test/settings.mjs <base-url>`: the delay holds across a reload; at 3 s two sentences 1 s apart are one prompt, at 0.5 s they are two; the batch seconds reach `/api/session/settings`; choosing One assistant posts `assistant: "single"`, the live line reads it back from the server, and it holds across a reload (shot `assistants-360.png`). Shots: `ai/sessions/2026/10/20/session-e00f55c9/sessions-and-tasks/dictation-debug/settings/shots/` (`panel-400.png`, `panel-1920.png`).
