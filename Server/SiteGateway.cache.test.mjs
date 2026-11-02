@@ -1,5 +1,6 @@
 // Proof that the gateway keeps a phone from holding stale code (the phone's old Sheet.js and Recite.js, 2026-11-01/02): code is sent no-store, and a browser with an old clear-cookie is cleared once.
 // A fake site serves a page that imports a.js, which imports b.js, and says "cache it for a day" (as Chrome did by heuristic).
+// `/stale.png` stands in for the phone's stuck Recite.js: a stuck .js cannot be seeded through the gateway any more, because it sends code no-store, but a non-code reply may still carry a long max-age.
 // Steps 1-2: the gateway sends them no-store, so after the site changes them the next load runs the new ones. Step 3 is a browser
 // whose clear-cookie is old (the phone): the page gets Clear-Site-Data (it wipes copies already stuck there). Step 4: no second clear,
 // and the site cookie survived. Steps 5-6: the Cache-Control a gateway sends by file type.
@@ -50,7 +51,7 @@ const check = (name, fn) => { try { fn(); console.log("PASS", name); } catch (e)
 
 await cookie(SiteGateway.CACHE_V);   // already cleared at this version: no clear, so the files get cached
 const s1 = await load();
-check("1 seed: the page loads a.js and b.js v1, no clear", () => { assert.deepEqual(s1.done, { a: 1, b: 1 }); assert.equal(s1.clear, null); });
+check("1 first load: the page loads a.js and b.js v1, no clear", () => { assert.deepEqual(s1.done, { a: 1, b: 1 }); assert.equal(s1.clear, null); });
 const p1 = await stale();
 ver = 2; cache = "no-cache";
 const s2 = await load();
