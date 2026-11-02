@@ -3,7 +3,6 @@ import path from "path";
 import http from "http";
 import net from "net";
 import crypto from "crypto";
-import { execFileSync } from "child_process";
 import WorktreePreview from "./WorktreePreview.mjs";
 import { fileURLToPath } from "url";
 
@@ -23,10 +22,10 @@ import { fileURLToPath } from "url";
  *   4. /servex/* passes only the page routes in SERVEX (no /mcp, no merge, no project start/stop).
  * Every request is also marked `x-lew42-remote` (Socket.js drops such a socket to the LAN tier even from loopback).
  * Caching (2026-11-01, 2026-11-02): a phone kept an old Sheet.js and Recite.js for days, served from its HTTP cache with no request at all.
- * Three guards: every reply without a Cache-Control gets `no-cache`; a page load from a browser whose `lew42_cache_v` cookie is not the
- * deploy version() gets `Clear-Site-Data: "cache"` (only the HTTP cache: cookies, the site key and storage stay) plus the cookie, once per
- * browser per deploy; and every HTML page carries a small self-heal script (HEAL below) that asks /__version and, for a page that came out
- * of the browser's cache, refetches its own files and reloads once. localhost never passes here.
+ * Three guards: HTML, JS, CSS and JSON (NO_STORE) go out as `Cache-Control: no-store`, so the phone keeps no copy to go stale; every other
+ * reply without a Cache-Control gets `no-cache`; and a page load
+ * from a browser whose `lew42_cache_v` cookie is not CACHE_V gets `Clear-Site-Data: "cache"` (only the HTTP cache: cookies, the
+ * site key and storage stay) plus the cookie, so it happens once per browser. Bump CACHE_V to clear every browser again. localhost never passes here.
  * A live stream (SSE) gets a comment line after 20 s of silence (the socket gets a ping from Socket.js), so Cloudflare's ~100 s idle cut does not drop it.
  *
  *     node Server/SiteGateway.mjs       run it alone (Tunnel.mjs `up` also starts it in named mode)
@@ -38,17 +37,14 @@ export default class SiteGateway {
     static PUBLIC = "https://monorepo.lew42.com";
     static COOKIE = "lew42_site";
     static CACHE_COOKIE = "lew42_cache_v";
-    static CACHE_V = "";   // manual salt on top of the deploy version: change it to clear every browser's HTTP cache once more
-    static CODE = ["*.js", "*.mjs", "*.css", "*.html", "*.webmanifest"];   // a deploy is a commit that touches one of these (log sweeps and docs are not)
-    static ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-    static TTL = 30000;   // the deploy version is looked up at most this often, never per request
+    static CACHE_V = "2";   // bump to clear every browser's HTTP cache once more, on its next page load
+    static NO_STORE_TYPE = /^(text\/html|(text|application)\/javascript|text\/css|application\/(?:[\w.-]*\+)?json|application\/x-ndjson)\b/i;
+    static NO_STORE_PATH = /\.(m?js|css|html?|jsonl?|webmanifest)$/i;   // by name too: a .jsonl is served as text/plain or octet-stream
     static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(?![\w-])/i;   // a prefix: /mcp, /mcp/x, /mcp;x all match
     static SERVEX = /^\/servex\/(api\/item|api\/page-ai|api\/page-session\/(new|resume)|api\/session\/[\w-]+(\/stream)?|api\/refine(\/live)?|api\/tidy|api\/voice(\/card|\/stream)?|api\/whisper(\/stream)?|api\/hitl|api\/local-chat|log\/prompts)$/;
     static SERVEX_GET = /^\/servex\/(api\/agents|api\/page-agents|api\/page-sessions|api\/sessions|api\/stream|api\/ready-to-merge|waiting)$/;
 
-    constructor({ port = SiteGateway.PORT, target = null, key, version = null } = {}){
-        this.fixed_v = version;   // a test pins the deploy version (a string, or a function)
-        this.v_at = 0; this.v_last = null;
+    constructor({ port = SiteGateway.PORT, target = null, key } = {}){
         this.port = port;
         this.fixed = !!target;
         this.target = target;   // { host, port, name }: name is the Host header the dev server sees; null = look it up (dest())
@@ -70,51 +66,13 @@ export default class SiteGateway {
     // the login cookie, 30 days from now: sent on sign-in and again on every page visit, so the owner signs in once
     set_cookie(){ return `${SiteGateway.COOKIE}=${this.cookie}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`; }
 
-    // the deploy version: the short hash of the last commit that touched code in the served checkout, plus the manual CACHE_V salt
-    version(){
-        if (this.fixed_v) return typeof this.fixed_v === "function" ? this.fixed_v() : this.fixed_v;
-        const now = Date.now(), salt = SiteGateway.CACHE_V ? "." + SiteGateway.CACHE_V : "";
-        if (this.v_last === null || now - this.v_at > SiteGateway.TTL){
-            this.v_at = now;
-            try {
-                const h = execFileSync("git", ["log", "-1", "--format=%h", "--", ...SiteGateway.CODE], { cwd: SiteGateway.ROOT, encoding: "utf8", timeout: 5000, windowsHide: true }).trim();
-                if (h) this.v_last = h + salt;
-            } catch (e){ if (process.env.GW_DEBUG) console.error(e); }
-            this.v_last ??= "0" + salt;   // git unavailable: a constant, so each browser is still cleared once
-        }
-        return this.v_last;
-    }
-
-    // a page load (not a module, an image or a fetch)
-    is_document(req){
+    // a page load (not a module, an image or a fetch) from a browser whose HTTP cache was not cleared at CACHE_V yet
+    stale_cache(req){
         if (req.method !== "GET") return false;
         const dest = req.headers["sec-fetch-dest"];
-        return dest ? dest === "document" : /text\/html/i.test(String(req.headers.accept));
-    }
-    // a browser whose HTTP cache was not cleared at the current deploy version yet
-    cache_old(req){
+        if (dest ? dest !== "document" : !/text\/html/i.test(String(req.headers.accept))) return false;
         const m = new RegExp(`(?:^|;\\s*)${SiteGateway.CACHE_COOKIE}=([^;]*)`).exec(req.headers.cookie ?? "");
-        return m?.[1] !== this.version();
-    }
-    clear_headers(h){
-        h["clear-site-data"] = '"cache"';
-        h["set-cookie"] = [].concat(h["set-cookie"] ?? [], `${SiteGateway.CACHE_COOKIE}=${this.version()}; Path=/; Max-Age=31536000; Secure; SameSite=Lax`);
-    }
-
-    // The self-heal, injected at the top of every HTML page. A page is always sent whole (no 304), so V is the version it was served with.
-    // A page that came out of the browser's cache (a restored phone tab) still runs its old V: it asks /__version, and on a difference it
-    // replaces its own cached js/css with cache:"reload" fetches and reloads once (the sessionStorage guard keeps it from ever looping).
-    // After the reload it writes one line to the Whisper log, so the phone's own log proves it.
-    static HEAL = `<script>(()=>{const V="@V@",T="lew42_heal_tried",K="lew42_healed";
-try{const n=JSON.parse(sessionStorage.getItem(K));if(n){sessionStorage.removeItem(K);addEventListener("load",()=>import("/framework/audio/Whisper/WhisperLog.js").then(m=>m.default.event("recite","stale code healed",n)).catch(()=>{}))}}catch{}
-const check=async()=>{try{const n=(await(await fetch("/__version",{cache:"no-store"})).json()).v;if(n===V||sessionStorage.getItem(T)===n)return;sessionStorage.setItem(T,n);
-const u=[...new Set(performance.getEntriesByType("resource").map(e=>e.name).filter(x=>{const l=new URL(x);return l.origin===location.origin&&/\\.(m?js|css)$/.test(l.pathname)}))];
-await Promise.all(u.map(x=>fetch(x,{cache:"reload"}).catch(()=>{})));sessionStorage.setItem(K,JSON.stringify({from:V,to:n}));location.reload()}catch{}};
-addEventListener("load",check);addEventListener("pageshow",e=>e.persisted&&check());document.addEventListener("visibilitychange",()=>document.visibilityState==="visible"&&check());
-})()</script>`;
-    inject(html){
-        const tag = SiteGateway.HEAL.replace("@V@", this.version());
-        return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, m => m + tag) : tag + html;
+        return m?.[1] !== SiteGateway.CACHE_V;
     }
 
     // ── the four checks ────────────────────────────────────────────────────
@@ -173,31 +131,18 @@ addEventListener("load",check);addEventListener("pageshow",e=>e.persisted&&check
         if (!this.has_cookie(req)) return this.locked(res);
         const why = this.refuse(req.method, p, req.headers.origin);
         if (why) return res.writeHead(403, { "content-type": "text/plain" }).end("refused: " + why);
-        if (p === "/__version"){
-            const h = { "content-type": "application/json", "cache-control": "no-store" };
-            if (this.cache_old(req)) this.clear_headers(h);   // a page served from the browser's cache: clear it here too, then it reloads
-            return res.writeHead(200, h).end(JSON.stringify({ v: this.version() }));
-        }
         let to; try { to = this.dest(); } catch (e) { return res.writeHead(502, { "content-type": "text/plain" }).end("site unreachable: " + e.message); }
-        const doc = this.is_document(req), stale = doc && this.cache_old(req), ask = this.headers(req);
-        if (doc){ delete ask["if-none-match"]; delete ask["if-modified-since"]; delete ask["accept-encoding"]; }   // a page is always sent whole and plain: a 304 would skip the clear and keep a stale version, and the heal script is added to the text
+        const stale = this.stale_cache(req), ask = this.headers(req);
+        if (stale){ delete ask["if-none-match"]; delete ask["if-modified-since"]; }   // a 304 would skip the clear: make the site send the page whole
         const up = http.request({ host: to.host, port: to.port, method: req.method, path: req.url, headers: ask }, r => {
             const h = { ...r.headers };
             if (h.location) h.location = String(h.location).replace("http://" + this.target.name, SiteGateway.PUBLIC);
             h["set-cookie"] = [].concat(h["set-cookie"] ?? [], this.set_cookie());   // each visit with a valid cookie renews its 30 days
+            if (SiteGateway.NO_STORE_PATH.test(p) || SiteGateway.NO_STORE_TYPE.test(String(h["content-type"] ?? ""))) h["cache-control"] = "no-store";   // the phone keeps no copy of code or data
             h["cache-control"] ??= "no-cache";   // never left to a heuristic cache: the browser always asks (a 304 is cheap)
-            const html = doc && r.statusCode === 200 && /text\/html/i.test(String(r.headers["content-type"])) && !h["content-encoding"];
-            if (html && stale) this.clear_headers(h);   // once per browser per deploy: drop its HTTP cache before this page loads its modules
-            if (html){
-                const parts = [];
-                r.on("data", c => parts.push(c));
-                r.on("end", () => {
-                    const body = Buffer.from(this.inject(Buffer.concat(parts).toString("utf8")));
-                    delete h.etag; delete h["last-modified"]; delete h["transfer-encoding"]; h["content-length"] = body.length;
-                    res.writeHead(200, h).end(body);
-                });
-                r.on("error", () => res.destroy());
-                return;
+            if (stale && r.statusCode === 200 && /text\/html/i.test(String(r.headers["content-type"]))){   // once per browser per CACHE_V: drop its HTTP cache before this page loads its modules
+                h["clear-site-data"] = '"cache"';
+                h["set-cookie"].push(`${SiteGateway.CACHE_COOKIE}=${SiteGateway.CACHE_V}; Path=/; Max-Age=31536000; Secure; SameSite=Lax`);
             }
             res.writeHead(r.statusCode, h);
             // A live stream (SSE) that goes quiet is cut by Cloudflare after about 100 s; a comment line every 20 s of silence keeps it open.
