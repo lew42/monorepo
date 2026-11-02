@@ -246,11 +246,13 @@ export default class Recite extends Part {
 		if (chat?.from?.kind === "assistant"){
 			this.trace("reply line", { from: chat.from.id, text: String(chat.text ?? "").slice(0, 40) });
 			if (chat.from.id === "smart"){ const out = this.final(chat.text, chat.at); this.flush_updates(); return out; }
+			if (!Recite.AGENT_ID.test(chat.from.id ?? "")) return;   // "fast", "revise" (every voice revision), "card": not an agent update, ignored exactly as before this task (review finding, read-aloud-b 2026-11-02 — revise posts on every dictated sentence, the very flood this task was meant to stop)
 			return this.agent_update(chat.text, chat.at, chat.from.id);
 		}
 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
 		if (add){
 			if (add.by === "smart"){ const out = this.final(add.text, add.id); this.flush_updates(); return out; }
+			if (!Recite.AGENT_ID.test(add.by ?? "")) return;
 			return this.agent_update(add.text, add.id, add.by);
 		}
 		if (chat?.text){
@@ -601,10 +603,15 @@ export default class Recite extends Part {
 	/** Text compared loosely: spaces and markdown marks do not count. */
 	static norm(s){ return String(s ?? "").replace(/[\s*_`#>]+/g, " ").trim().toLowerCase(); }
 
+	/** A tracked agent role's own id shape (Servex/agents/roles/readme.md) — never "fast", "revise" or "card", the
+	 *  other ids that post an assistant chat line but are not agent-update material (`from_wire()` reads this to
+	 *  decide; review finding, read-aloud-b 2026-11-02). */
+	static AGENT_ID = /^(mastermind|minion|reviewer|clarity)-/;
+
 	/** An agent id as something a voice can say: the role prefix off, dashes and underscores to spaces — "mastermind-
 	 *  read-aloud-b" reads as "read aloud b". A rough heuristic, not a lookup of the agent's own title; revisit if it
 	 *  reads badly in practice. */
-	static agent_label(id){ return String(id ?? "an agent").replace(/^(mastermind|minion|reviewer|clarity)-/, "").replace(/[-_]+/g, " ").trim() || "an agent"; }
+	static agent_label(id){ return String(id ?? "an agent").replace(Recite.AGENT_ID, "").replace(/[-_]+/g, " ").trim() || "an agent"; }
 
 	/** Message ids already read in full, kept across a reload (item 20, dictation-v3 2026-11-01): a reload within the
 	 *  2-minute window in `from_wire` must never read a settled reply twice. localStorage, capped to the most recent

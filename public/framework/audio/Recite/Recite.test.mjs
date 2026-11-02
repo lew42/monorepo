@@ -632,6 +632,23 @@ if (Recite) test("Recite: a held update waits for the whole stream to end, not j
 	return r;
 });
 
+// Review finding, read-aloud-b 2026-11-02: "fast", "revise" and "card" post an assistant chat line too, but are not
+// agent updates — treating every non-"smart" id as one would read "revise" (every voice revision of the owner's own
+// sentence) aloud as "I have an update on revise, tap to hear it.", the very flood this task was meant to stop.
+if (Recite) test("Recite: 'fast', 'revise' and 'card' are not agent updates — ignored, same as before this task", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+
+	for (const id of ["fast", "revise", "card"]){
+		r.from_wire({ kind: "line", line: { chat: { text: "something posted on this id", at: new Date().toISOString(), from: { kind: "assistant", id } } } });
+	}
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.length, 0, "none of them queued anything");
+	t.eq(r.pending_updates.length, 0, "and none of them were even held as a pending update");
+	return r;
+});
+
 // A held update must not be lost forever if the direct answer never arrives (the owner's line may not have needed one).
 if (Recite) test("Recite: a held agent update is released on its own if no direct answer ever arrives", async t => {
 	const r = new Recite({ voice: fake_voice });
