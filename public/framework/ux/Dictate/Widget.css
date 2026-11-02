@@ -251,7 +251,7 @@
 	/* RAW LOOKS RAW, A SUMMARY SWALLOWS (doc/voice-assistant.md#raw-and-refined): unrefined Whisper words are muted (same font and size, so settling never re-wraps a line, 2026-10-19); a card with a summary folds its lines */
 	.ux-dictate-swallowed > [data-re] { opacity: 0.6; }
 	/* Raw words once sent are final (2026-11-01): full ink, like every view; only the guess is draft ink (Chat.css .chatbox-guess).
-	   With the fast seat off by default nothing "settles", so the old 0.6 fade left every line dim for good. */
+	   The old 0.6 fade left a line dim until the fast seat refined it, and a line it never refined stayed dim for good; the fast seat is back on (2026-11-01) and the lines stay full ink. */
 	.ux-dictate-raw { color: var(--final-ink); }
 	.ux-dictate-swallowed:not(.open) > [data-re] { display: none; }
 	.ux-dictate-summary-text { font-weight: 500; }
