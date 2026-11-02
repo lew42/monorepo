@@ -78,8 +78,13 @@
         /* Dim to strong, one pair for every chat view (V1, V2, V3; the owner, 2026-11-01): words still being spoken
            (a Whisper guess, not yet written) are --draft-ink; a line once written to the session is --final-ink.
            Relative to the text colour, so it reads inside a dark bubble too. Set on ONE element only: two nested
-           drafts would multiply (60% inside 75% read as 45%, "far too dim"). */
-        --draft-ink: color-mix(in srgb, currentColor 70%, transparent);
+           drafts would multiply (60% inside 75% read as 45%, "far too dim").
+           ⚠ 45%, was 70% (views-fix item 1, 2026-11-01: "far too light... nearly white" on the owner's
+           phone, dark theme). 70% against --ink/--surface composited to ~169,169,172 on dark -- still
+           bright enough to read as barely dimmed. 45% composites to ~117,117,120 on dark (contrast vs
+           --surface ~3.9:1, against --final-ink's ~14.5:1 there -- unmistakably the dimmer one) and
+           ~152,152,152 on light (~2.9:1 vs white, against --final-ink's ~17.4:1) -- muted but legible. */
+        --draft-ink: color-mix(in srgb, currentColor 45%, transparent);
         --final-ink: currentColor;
 
         --ink:     light-dark(#1a1a1a, #e8e8ea);            /* body text */
