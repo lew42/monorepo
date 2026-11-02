@@ -37,18 +37,29 @@ export class RecordWriter {
 		return new Date(t).toISOString();
 	}
 
+	// Fix 2 (design/fixes.md, R1 interim): one id for the life of this load (a browser tab, a node process), so the twin
+	// check below can tell two different posters apart even when `by` is the same ("owner" for every tab) and `ts` collides
+	// in the same millisecond (sync-protocol.md R1: "two tabs, same ms: second edit silently dropped, told successful").
+	static client(){ return this._client ??= (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)).slice(0, 8); }
+
 	/* Posts each line in order. `{lines}`: raw lines, written as given plus `by`/`ts` (hooks, LogLine, page files). `{deltas}`:
 	   item-tool verbs (`{"start":{}}`), validated and stamped by the tool (the browser's task and session files).
 	   Answers `{rest, ts, refused}`: `rest` are the lines (stamped) never taken, to append with `append_once`/`Append`. */
 	static async post(path, { lines, deltas, by = "owner", root, timeout = this.SLOW } = {}){
-		const raw = !!lines, list = (lines ?? deltas ?? []).map(l => ({ ...l, by: l.by ?? by, ts: l.ts ?? this.stamp() }));
+		// `client` rides ON the line itself (not just the request body) for a verb: `rest` below (what the caller falls back to
+		// appending, through Append.js or append_once) is sliced straight off `list`, so if `client` were only ever added to the
+		// per-request body, the FALLBACK's own write would carry no `client` — keyed `owner|ts` on disk — while a later retry's
+		// twin check (page_tools.js, `ctx.client`) looks for `client|ts` and never finds it: a second, duplicate line (review,
+		// chat-model step 1, finding 1).
+		const raw = !!lines, client = this.client();
+		const list = (lines ?? deltas ?? []).map(l => ({ ...l, by: l.by ?? by, ts: l.ts ?? this.stamp(), ...(raw ? {} : { client: l.client ?? client }) }));
 		const url = await this.entry(), refused = [];
 		// Raw lines go in one request (record_lines takes the batch and names each refusal by index); a verb goes one per request.
 		const batches = raw ? (list.length ? [list.map((l, i) => i)] : []) : list.map((l, i) => [i]);
 		for (const idx of batches){
-			const { by: _by, ts, ...bare } = list[idx[0]];
+			const { by: _by, ts, client: line_client, ...bare } = list[idx[0]];
 			// A verb's `by` is not sent: the door stamps every verb "owner" (only a tab posts verbs); `by` here keys the caller's own twin check.
-				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, ...(root ? { root } : {}) };
+				const body = raw ? { path, lines: idx.map(i => list[i]), ...(root ? { root } : {}) } : { path, delta: bare, ts, client: line_client, ...(root ? { root } : {}) };
 			let res, answer;
 			try {
 				res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeout) });
@@ -66,10 +77,13 @@ export class RecordWriter {
 
 	/* The lines of `want` not already in `tail` (parsed lines of the file's end). A line is there when a tail line has its `by` and
 	   its `ts`, a millisecond stamp (stamp() or the item tool's), so that pair names one post; `strict` (raw lines, written as given)
-	   also needs the whole line to match. A line with no such `ts` (LogLine stamps a page line to the second) is always written. */
+	   also needs the whole line to match. A line with no such `ts` (LogLine stamps a page line to the second) is always written.
+	   Fix 2 (R1 interim): `by` is "owner" for every tab, so two tabs in the same millisecond used to share one key and the second
+	   was dropped. A line that carries a `client` (this load's own id) is keyed on `client|ts` instead, so two different tabs'
+	   same-ts writes no longer collide; a line with no `client` (a hook, an agent) keeps the old `by|ts` key, unchanged. */
 	static MS = /\.\d{3}Z$/;
 	static fresh(tail, want, { strict = false } = {}){
-		const key = l => strict ? JSON.stringify(l) : `${l.by}|${l.ts}`;
+		const key = l => strict ? JSON.stringify(l) : l.client != null ? `c:${l.client}|${l.ts}` : `${l.by}|${l.ts}`;
 		const seen = new Set(tail.filter(l => this.MS.test(l?.ts ?? "")).map(key));
 		return want.filter(l => !this.MS.test(l?.ts ?? "") || !seen.has(key(l)));
 	}
@@ -86,15 +100,29 @@ export class RecordWriter {
 		finally { if (fd !== undefined) fs.closeSync(fd); }
 	}
 
+	/* Fix 1 (fixes.md: a newline guard before every append), ONE helper, shared by every writer (review, chat-model step 1
+	   finding 2): the append below, `write_line` (Servex/agents/page_tools.js) and `Append.js`'s own `fs.appendFileSync`. A
+	   half-written last line (no trailing `\n` — a torn tail, or a file some other writer left mid-line) would otherwise glue
+	   onto the first byte of whatever is appended next, and BOTH lines become unparseable. Node only; `fs` is passed in so this
+	   file still loads in the browser (`tail_sync` takes it the same way). */
+	static guard_newline(fs, file){
+		try {
+			const size = fs.statSync(file).size;
+			if (!size) return "";
+			const b = Buffer.alloc(1), fd = fs.openSync(file, "r");
+			fs.readSync(fd, b, 0, 1, size - 1);
+			fs.closeSync(fd);
+			return b[0] === 10 ? "" : "\n";
+		} catch { return ""; }
+	}
+
 	// The fallback, node only: append the lines the file does not already hold, newline-safe. Answers how many were written.
 	static async append_once(file, lines){
 		const fs = await import("node:fs"), path = await import("node:path");
 		const out = this.fresh(await this.tail(file), lines, { strict: true });
 		if (!out.length) return 0;
 		fs.mkdirSync(path.dirname(file), { recursive: true });
-		let lead = "";
-		try { const size = fs.statSync(file).size; if (size){ const b = Buffer.alloc(1), fd = fs.openSync(file, "r"); fs.readSync(fd, b, 0, 1, size - 1); fs.closeSync(fd); if (b[0] !== 10) lead = "\n"; } } catch {}
-		fs.appendFileSync(file, lead + out.map(l => JSON.stringify(l)).join("\n") + "\n");
+		fs.appendFileSync(file, this.guard_newline(fs, file) + out.map(l => JSON.stringify(l)).join("\n") + "\n");
 		return out.length;
 	}
 

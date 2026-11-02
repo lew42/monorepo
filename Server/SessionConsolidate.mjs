@@ -24,6 +24,7 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
+import Runtime from "./plugins/SocketServer/Runtime.js";   // F4 (fixes.md): the crash-safe rewrite helper (write tmp, fsync, rename)
 
 const args = process.argv.slice(2), flag = n => args.includes(n), val = n => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
 const ID = args.find(a => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(a));
@@ -107,7 +108,7 @@ export default class SessionConsolidate {
 				if (s.kind === "task") fs.appendFileSync(ledger, JSON.stringify({ at: at(), run, kind: "task", from: s.from, to: s.to, session: this.id }) + "\n");
 				for (const f of walk(abs(s.to)).filter(f => f.endsWith(".jsonl"))){   // a moved task's own records name its old address
 					const from_url = "/" + s.from.replace(/^public\//, "") + "/", to_url = "/" + s.to.replace(/^public\//, "") + "/", t = fs.readFileSync(f, "utf8");
-					if (t.includes(from_url)) fs.writeFileSync(f, t.split(from_url).join(to_url));
+					if (t.includes(from_url)) Runtime.safe_write(f, t.split(from_url).join(to_url));
 				}
 			}
 			else if (s.do === "append"){
@@ -129,7 +130,7 @@ export default class SessionConsolidate {
 		const changed = [];
 		for (const d of ["public", "Server", "Servex", ".claude"]) for (const f of walk(path.join(this.repo, d), [".md", ".js", ".mjs", ".html"])){
 			const t = fs.readFileSync(f, "utf8");
-			if (t.includes(from)){ fs.writeFileSync(f, t.split(from).join(to)); changed.push(rel(f)); }
+			if (t.includes(from)){ Runtime.safe_write(f, t.split(from).join(to)); changed.push(rel(f)); }
 		}
 		return changed;
 	}
@@ -152,7 +153,7 @@ if (process.argv[1] && path.resolve(process.argv[1]).endsWith(path.join("Server"
 	if (flag("--apply")){
 		const out = val("--manifest"); if (!out) { console.error("--apply needs --manifest <file.json>"); process.exit(1); }
 		const manifest = c.apply(plan);
-		fs.writeFileSync(out, JSON.stringify(manifest, null, 1));
+		Runtime.safe_write(out, JSON.stringify(manifest, null, 1));
 		console.log(`applied; manifest ${out}; originals copied to ${manifest.moved_aside}`);
 	} else console.log("dry run: nothing written. Add --apply --manifest <file.json>.");
 }

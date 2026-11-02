@@ -10,11 +10,21 @@ The research planned six phases ([design/phase-1.md](/framework/research/2026/10
 
 | Phase | Status |
 |---|---|
-| **0. Stop silent losses** ([design/fixes.md](/framework/research/2026/10/29/persistence-sync/design/fixes.md) 1–5: a newline guard before appends, a client id in the twin key, readers kept through a server restart, crash-safe rewrites, the `add` envelope) | **Not done as a set.** Check each one before building more on the save path. |
+| **0. Stop silent losses** ([design/fixes.md](/framework/research/2026/10/29/persistence-sync/design/fixes.md) 1–5) | **Done, as of 2026-11-01.** Each fix, and its proof: below. |
 | **1. Solid streaming, robust data, bindings** | **About half.** Done: every saved line is numbered per tab (`{client, n}`), acknowledged, resent after a reconnect and deduplicated; unsent lines survive a reload; a heartbeat; saving no longer breaks when a view throws; `act()` mutes only its own object; `set()` refuses values that can't be saved; the new line spelling is *read* everywhere, and an unknown `name()` or `#id` is refused with a warning; `view.bind` (views redraw themselves). Built but off: *writing* the new spelling (`Store.marked_lines`, below). Not built: recovery after a file is rewritten (`reset`/`epoch`, gap check), the `unset` verb, the `source` tag and `batch()` (one line per action), merging keystrokes while typing, `Room` + `FileJournal`. |
 | **2. The cloud, and more than one person** | **One piece:** snapshots (`<file>.snapshot.json`, loaded as snapshot + the lines after it; made by hand with `Server/Snapshots.mjs`). Not built: presence and soft locks, a schema line, a Durable Object journal, a SQLite journal. |
 | **3–5. Scale and history; throwaway streams; merging** | Not started. |
 | **Built, in no phase** | The Replay Lab on the real classes; visual tests (`test(name, fn)`); `set_<key>` hooks; `as_call` (a method saved as one call); the Files tab (list, create, upload, rename, move with undo); deploy safety tests. |
+
+**Phase 0, each fix:**
+
+1. **A newline guard before every append.** Was already built in `RecordWriter.append_once` ([RecordWriter.test.mjs](../Item/RecordWriter.test.mjs)); the other two append paths (`write_line` in `Servex/agents/page_tools.js`, [Append.js](/Server/plugins/SocketServer/Append.js)) had none, and now share `RecordWriter.guard_newline()`.
+2. **A client id in the twin key (R1 interim).** `RecordWriter.client()` rides a tab's own id through `serve_item`; `RecordWriter.fresh()` keys on `client|ts` when one is given, so two tabs posting in the same millisecond no longer collide — the socket/[Append.js](/Server/plugins/SocketServer/Append.js) path already had its own `{client, n}`.
+3. **A reader kept through a server restart.** Already built: [ext/JSONL/live.js](/framework/ext/JSONL/live.js)'s `Socket.prototype.open` override resubscribes every live stream with its stored offset on reconnect. No new test — a real restart needs a live dev server; skipped per the brief's own allowance.
+4. **A crash-safe rewrite helper (write tmp, fsync, rename).** `Runtime.safe_write()` in [Runtime.js](/Server/plugins/SocketServer/Runtime.js), used by `rpc:write` and by `Server/SessionConsolidate.mjs`'s rewrites.
+5. **The `add` envelope.** `List.add()`'s announce nests a member's own `data` and child lists instead of spreading them flat, so a field named `after` or `type` no longer collides with the list's own metadata. Three readers that read an `add` line's fields flat were updated to read `data` first: `ai/rail/rail.js`, `ai/cards/Activity.js`, `ai/AISession/SessionTimelineRows.js`.
+
+Proof: [Servex/agents/one-writer.test.mjs](/Servex/agents/one-writer.test.mjs) (fixes 1, 2), [Runtime.safe-write.test.mjs](/Server/plugins/SocketServer/Runtime.safe-write.test.mjs) (fix 4), [List.test.mjs](../../List/List.test.mjs) (fix 5).
 
 **"Marked lines" in plain words.** A saved line can spell a key three ways: `title` is data, `start()` is a method call, `#c3` is the list item with id `c3`. The `()` and `#` marks make a line say exactly what it means. Every reader understands both the old bare spelling and the marked one; writers still use the bare spelling until the switch `Item.Store.marked_lines` is turned on (one line in `Store.js`; steps: [Item/doc/line-format.md](../Item/doc/line-format.md)). Nothing on disk has to change either way.
 

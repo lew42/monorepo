@@ -27,9 +27,8 @@ Each line carries its own `ts`, made by the caller (`RecordWriter.stamp()`, uniq
 - A slow entry point is waited on (15 s for a tab, 3 s for a hook). The browser no longer appends blind after 5 s.
 - If the entry point writes after the caller gave up, the fallback finds the line and writes nothing.
 - If the fallback wrote first, the late post is answered `{already: true}` (a verb) or counted as `skipped` (raw lines).
-- Two limits remain, both rare:
-  - two writers using the same `by` and the same millisecond `ts` would look like one line. `stamp()` prevents that within one writer; across two tabs it needs the same millisecond and a fallback.
-  - a twin can still happen if the entry point has passed its tail check and is writing at the very moment a tab's 15 s fallback reaches `Append.js`: both read a tail without the line. It needs Servex to stall for 15 s between its check and its write, which is one synchronous step.
+- **Two tabs, one millisecond (fix 2, `/framework/research/2026/10/29/persistence-sync/design/fixes.md`, R1 interim):** every verb is stamped `by: "owner"` at the door, so `by|ts` alone cannot tell two tabs apart — the second one used to look like a twin of the first and was dropped while told it had succeeded. `RecordWriter.client()` is one id for the life of a tab (or a node process); a tab's post carries it, the written line carries it, and the twin check (`RecordWriter.fresh`) keys on `client|ts` when one is given, `by|ts` otherwise (a hook or an agent, which never send one, are unaffected). Proven in `Servex/agents/one-writer.test.mjs` case 4.
+- One limit remains, rare: a twin can still happen if the entry point has passed its tail check and is writing at the very moment a tab's 15 s fallback reaches `Append.js`: both read a tail without the line. It needs Servex to stall for 15 s between its check and its write, which is one synchronous step.
 - A hook waits at most 3 s for the entry point (`RecordWriter.write`'s timeout), and only when it has a record line to write; a held Servex event loop costs each such hook up to 3 s. Normal cost is one loopback post.
 - A verb is always stamped `by: "owner"` at the door (`serve_item`): only a tab posts verbs today. A node caller that needs its own `by` posts raw lines.
 

@@ -121,6 +121,54 @@ try {
 	appender.append(`/${REL}/page.jsonl`, [{ title: "other", by: "owner", ts: RecordWriter.stamp() }], 2);
 	const page = fs.readFileSync(PAGE, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
 	t.eq([said, page.map(l => l.title)], [["append successful", "append successful"], ["card", "other"]], "3. Append.js: the line the entry point wrote is not written twice; a new one is");
+
+	// 4. Fix 2 (design/fixes.md, R1 interim): two different TABS, same millisecond. `by` is "owner" for both (serve_item stamps
+	// it), so before this fix the second tab's write was silently dropped and told `already`. A tab's RecordWriter.post stamps
+	// `client` (RecordWriter.client()) on every verb it posts; here we post two different clients at the SAME ts directly.
+	const twin_ts = RecordWriter.stamp();
+	const tabA = await serve_item({ path: URL, delta: { tasks: { add: { title: "tab A" } } }, ts: twin_ts, client: "tabA" });
+	const tabB = await serve_item({ path: URL, delta: { tasks: { add: { title: "tab B" } } }, ts: twin_ts, client: "tabB" });
+	t.eq([tabA.already, tabB.already], [undefined, undefined], "4. neither tab is answered `already` — the same ts, different clients, are not the same op");
+	const twins = lines().filter(l => l.tasks?.add?.title === "tab A" || l.tasks?.add?.title === "tab B").map(l => l.tasks.add.title);
+	t.eq(twins.sort(), ["tab A", "tab B"], "4. both tabs' adds are in the file: the second was not dropped");
+	// A real retry (the SAME client resending, e.g. after a slow answer) must still be recognised and not double-written.
+	const retry = await serve_item({ path: URL, delta: { tasks: { add: { title: "tab A" } } }, ts: twin_ts, client: "tabA" });
+	t.eq(retry.already, true, "4. the same client resending the same ts is still answered `already` — no double write");
+	t.eq(lines().filter(l => l.tasks?.add?.title === "tab A").length, 1, "4. tab A's own retry wrote nothing a second time");
+
+	// 5. Fix 2 follow-up (review, chat-model step 1 finding 1): `RecordWriter.post`'s `rest` — what the CALLER falls back to
+	// appending (through Append.js for a real tab, `append_once` for a node caller) when the entry point never answered — must
+	// carry `client` on every delta line, not just the request body sent to the entry point. Before this, the fallback's own
+	// WRITE was keyed `owner|ts` on disk (no `client` at all), so a later retry checked with `client|ts` (page_tools.js's twin
+	// check, `ctx.client`) never found it: a second, duplicate line.
+	process.env.RECORD_ENTRY = "http://127.0.0.1:9/api/item";   // nothing listens: forces post() to give up and return `rest`
+	const down2 = await RecordWriter.post(`${URL}session.jsonl`, { deltas: [{ tasks: { add: { title: "rest-shape" } } }] });
+	process.env.RECORD_ENTRY = real_entry;
+	t.eq(down2.rest[0]?.client, RecordWriter.client(), "5. the fallback line `post()` hands back carries this load's own client id, not just the request body");
+	// And end to end: the fallback appends that exact `rest` line, then a late entry-point answer with the same client+ts
+	// (what the caller's own post already carried) must be recognised, not written a second time.
+	await RecordWriter.append_once(FILE, down2.rest);
+	const late_verb2 = await serve_item({ path: URL, delta: { tasks: { add: { title: "rest-shape" } } }, ts: down2.rest[0].ts, client: down2.rest[0].client });
+	t.eq([late_verb2.already, lines().filter(l => l.tasks?.add?.title === "rest-shape").length], [true, 1], "5. a late post with the SAME client the fallback's own write carried is recognised: one line, not two");
+
+	// 6. Fix 1 (fixes.md: a newline guard before every append), extended to the other two append paths (review, chat-model
+	// step 1 finding 2): page_tools.js's write_line (what run_item's `put()` appends through) and Append.js's own
+	// fs.appendFileSync. Tear the file's last line (no trailing \n — a torn tail, same shape the research probe used), then
+	// append a new line through each path and check nothing glued.
+	fs.appendFileSync(FILE, JSON.stringify({ log: { msg: "torn" } }));   // no trailing \n
+	t.ok(!fs.readFileSync(FILE, "utf8").endsWith("\n"), "6. setup: the file now ends without a newline");
+	await run_item({ path: URL, delta: { log: { msg: "after torn (write_line)" } } }, { caller: "agent-t" });
+	let tail6 = fs.readFileSync(FILE, "utf8").trim().split("\n");
+	t.ok(tail6.every(l => { try { JSON.parse(l); return true; } catch { return false; } }), "6. write_line: every line still parses after appending onto a torn tail");
+	t.eq(JSON.parse(tail6.at(-1)).log?.msg, "after torn (write_line)", "6. write_line: the new line landed intact, not glued onto the torn one");
+
+	fs.appendFileSync(FILE, JSON.stringify({ log: { msg: "torn 2" } }));   // no trailing \n, again
+	// {item: true} matches the real shape (Item.Store.deliver → Outbox → this socket frame), which skips the per-file verb
+	// schema (an Item's own deltas, not an agent verb) — the newline guard is what this case is proving, not the schema.
+	appender.append(`/${REL}/session.jsonl`, [{ log: { msg: "after torn (Append.js)" }, by: "owner", ts: RecordWriter.stamp() }], 99, { client: "fallback-tab", n: 1, item: true });
+	tail6 = fs.readFileSync(FILE, "utf8").trim().split("\n");
+	t.ok(tail6.every(l => { try { JSON.parse(l); return true; } catch { return false; } }), "6. Append.js: every line still parses after appending onto a torn tail");
+	t.eq(JSON.parse(tail6.at(-1)).log?.msg, "after torn (Append.js)", "6. Append.js: the new line landed intact, not glued onto the torn one");
 } finally {
 	server.close();
 	process.chdir(os.tmpdir());

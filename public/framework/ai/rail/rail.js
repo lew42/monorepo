@@ -481,7 +481,11 @@ export default class AIRail extends Inbox.Rail {
 		// "unknown key, latest wins" rule, out of this fence). When that last line was adding a
 		// section, its own text IS the newest written sentence; failing that, the card's own
 		// one-line `chat` summary (always present once `chat()` is called) beats showing nothing.
-		const newest_section = fold.content?.add?.text ?? fold.content?.add?.title;
+		// Fix 5 (fixes.md, review: chat-model step 1 finding 3): List.add() now nests an Item member's fields under `data`
+		// (`core/List/List.js`), so a card added from the browser reads there first; a line written before that fix (or by
+		// node, which still spreads flat) still has `text`/`title` at the top.
+		const added_data = fold.content?.add?.data ?? fold.content?.add;
+		const newest_section = added_data?.text ?? added_data?.title;
 		const fallback_text = newest_section ?? fold.chat?.text;
 		// `fold.id` is the REAL dated folder (`2026/10/03/now`) `resolve_card()` found — keep it so
 		// `pool()`/`decorate()` can also exclude the card's TRUE id, not only the literal alias
