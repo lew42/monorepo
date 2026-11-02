@@ -62,8 +62,8 @@ try {
 	check("a written sentence is solid at once (gray is only for the unsent draft)", await page.$(card + " .chat-v3-text.is-moving") === null);
 	// what Sessions.assign_prompt writes for a line that continues the Prompt: the raw words, and the paragraph growing with them
 	appendFileSync(served + live, JSON.stringify({ [id]: { raw: "and more words" } }) + "\n" + JSON.stringify({ [id]: { paragraphs: { append: { id: "a", text: " And more words." } } } }) + "\n");
-	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("And more words"), card, { timeout: 8000 }).catch(() => {});
-	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("And more words"), await page.textContent(card));
+	await page.waitForFunction(c => document.querySelector(c + " .chat-v3-text")?.textContent.includes("and more words"), card, { timeout: 8000 }).catch(() => {});
+	check("new words append to the same newest card (raw is append-only)", (await page.$$(".chat-v3 > .chat-v3-card")).length === 4 && (await page.textContent(card + " .chat-v3-text")).includes("and more words"), await page.textContent(card));
 	appendFileSync(served + live, JSON.stringify({ [id]: { title: "Arrived live", replies: { add: { id: "r-1761383010000", text: "Seen, live.", by: "smart" } } } }) + "\n");
 	await page.waitForFunction(c => document.querySelector(c)?.textContent.includes("Seen, live."), card, { timeout: 8000 });
 	check("its reply lands inside it", true);

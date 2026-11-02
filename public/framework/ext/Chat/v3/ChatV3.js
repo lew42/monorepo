@@ -147,14 +147,17 @@ export default class ChatV3 extends JSONL {
 	}
 
 	prompt(p){
-		const title = p.get_one("title"), open = this.raw_open.has(p.id);
+		const title = p.get_one("title"), refined = p.get_one("text"), open = this.raw_open.has(p.id);
 		div.c("chat-v3-head", () => {
 			if (title) h3.c("chat-v3-title", title);
+			else h3.c("chat-v3-title is-untitled", ChatV3.first_words(p.cleaned || p.raw_text));   // no AI title yet: its first words, muted
 		});
 		/* Gray is only for words Whisper has not finished (the draft at the end, the owner 2026-10-26: "light gray to black reserved
-		 * only for the whisper finalization"). A sentence in the file is final, so it is solid: the cleaned text, else the words heard. */
-		const body = div.c("chat-v3-text md");
-		md_into(body.el, p.text || p.raw_text);
+		 * only for the whisper finalization"). A sentence in the file is final, so it is solid.
+		 * The card shows the AI's cleaned text when there is one; until then the dictation itself, in paragraphs and a few lines high
+		 * with "show all", never one wall (the owner, 2026-11-01: a 6,760-character Prompt came up as "a huge wall of text"). */
+		if (refined) md_into(div.c("chat-v3-text md").el, refined);
+		else this.dictation(p);
 		if (p.raw.length) button.c("chat-v3-toggle", open ? "hide raw" : "show raw").attr("type", "button")
 			.click(() => { open ? this.raw_open.delete(p.id) : this.raw_open.add(p.id); this.els.get(p.id)?.empty(() => this.prompt(p)); });
 		if (open) div.c("chat-v3-raw", () => p.raw.forEach(line => blockquote.c("chat-v3-raw-line", line)));
@@ -163,6 +166,27 @@ export default class ChatV3 extends JSONL {
 		const kids = [...(p._tasks ?? []), ...this.nested(p)];
 		if (kids.length) div.c("chat-v3-nest", () => kids.forEach(k => k instanceof Question ? this.question(k) : TaskView.row(k)));
 	}
+
+	/** The words as dictated, when no AI text exists yet: one paragraph per sent chunk (a pause), a long chunk cut every 3 sentences,
+	 *  clamped to a few lines with "show all (N words)". */
+	dictation(p){
+		const paras = ChatV3.paragraphs(p.raw.length ? p.raw : [p.cleaned]);
+		const words = paras.join(" ").split(/\s+/).filter(Boolean).length, long = words > 80, all = this.all_open?.has(p.id);
+		const box = div.c("chat-v3-text chat-v3-dictation" + (long && !all ? " is-clamped" : ""), () => paras.forEach(s => div.c("chat-v3-para", s)));
+		if (long) button.c("chat-v3-toggle", all ? "show less" : `show all (${words} words)`).attr("type", "button").click(() => {
+			(this.all_open ??= new Set())[all ? "delete" : "add"](p.id); this.els.get(p.id)?.empty(() => this.prompt(p));
+		});
+		return box;
+	}
+	static paragraphs(chunks){
+		const out = [];
+		for (const chunk of chunks){
+			const sentences = String(chunk ?? "").split(/(?<=[.!?…])\s+/).filter(s => s.trim());
+			for (let i = 0; i < sentences.length; i += 3) out.push(sentences.slice(i, i + 3).join(" "));
+		}
+		return out;
+	}
+	static first_words(text, n = 8){ const w = String(text ?? "").split(/\s+/).filter(Boolean); return w.slice(0, n).join(" ") + (w.length > n ? "…" : ""); }
 
 	// A Question is a few words; its answer is one or two short sentences.
 	question(q){
