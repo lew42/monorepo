@@ -29,7 +29,7 @@ The asks: [requirements.md](requirements.md). The facts: [../dictation-map/answe
 | A. V3: replies, live reply stream, markdown, gray-only-for-draft, version dropdown | `ext/Chat/v3/*`, `ext/drawer/ChatView.js`, `ext/drawer/Sheet.js` (the chip call), `ext/drawer/tabs/ai.js` (same), `ext/drawer/*.css` for the dropdown | Sonnet builder `minion-v3-view` |
 | B. Recite: engines, speed, settings + Sample, voice command, echo guard, markdown-free speech | `audio/Recite/*`, `audio/Voice/*`, `ext/Chat/Mic.js` (settings rows, echo drop), `ux/Dictate/chat.js` (voice command only) | Sonnet builder `minion-recite-voice` |
 | C. Fast seat off + Questions by code + reply rule | `Servex/agents/Sessions.js`, `Servex/agents/session-smart.md`, its tests | the mastermind |
-| D. voice-models.md (research, measured Kokoro RAM/CPU) | `dictation-v3/voice-models/` → `audio/Recite/doc/` | `minion-voice-models` (running) |
+| D. voice-models.md (research, measured Kokoro RAM/CPU) | `dictation-v3/voice-models/` → `audio/Recite/doc/` | ✅ landed: [audio/Recite/doc/voice-models.md](/framework/audio/Recite/doc/voice-models.md) |
 
 Each new class gets its readme line and class doc in the same commit (the owner, 2026-11-01).
 
