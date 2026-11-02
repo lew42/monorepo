@@ -275,7 +275,7 @@ export default class Recite extends Part {
 	 *  would talk over the new one, so it is dropped outright, not resumed (dictation-v3, 2026-11-01). Only the heard
 	 *  reply's own chunks go: a later reply already queued behind it (never heard yet) keeps its place and still
 	 *  plays — calling `stop()` here used to empty the whole queue, losing whatever came after (dictation-v3,
-	 *  2026-11-02). `chunks[i].reply` groups every sentence pushed by one `queue()` call (take()'s own calls share
+	 *  2026-11-01). `chunks[i].reply` groups every sentence pushed by one `queue()` call (take()'s own calls share
 	 *  their live reply's id, so a streamed-so-far reply still drops as one unit). */
 	drop_heard(){
 		if (this.state !== "heard") return;
