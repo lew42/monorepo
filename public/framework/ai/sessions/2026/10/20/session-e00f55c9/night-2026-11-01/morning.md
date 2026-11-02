@@ -58,3 +58,11 @@ The plan was [requirements.md](requirements.md). Every item below was merged to 
 - **Read-aloud follow-ups** are filed in `audio/Recite/improvements.jsonl`. For example, "tap to hear it" doesn't do what it says yet.
 
 **Dictation and read-aloud detail** (13 landings with commits, open items): [../dictation-v3/handover.md](../dictation-v3/handover.md).
+
+## Added after 08:55
+- **Loose ends closed** (`mastermind-loose-ends-red`):
+  - the jsonl-schema test is green (7dea99c52);
+  - 2 of the 3 red Refine scripts pass, and `dictate-flow` is skipped with its real reason (the headless page crashes on the looped fake mic);
+  - Recite's update line now says "it is in the chat" instead of "tap to hear it" (7d11b7303).
+  - Full run: 213 of 214 pass; the one red moves between runs.
+- **A process gap that keeps recurring:** agents commit straight onto `michael/dev` in the main tree, skipping the worktree, `review.mjs` and `merge.mjs`. It happened 4 times tonight, although every brief says "worktree". This time the tab reviewed the 11-file diff by hand (one Recite string, tests and docs) and pushed it. **A guard is worth adding:** a hook that refuses a commit in the main tree touching `public/` code (not records) unless `merge.mjs` is the one committing. That's a rule change for the owner to approve.
