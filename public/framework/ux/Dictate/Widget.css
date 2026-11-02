@@ -249,7 +249,10 @@
 	.ux-dictate-placed-card[data-where="inside"] { margin-inline-start: var(--gap, 1em); }
 	.ux-dictate-placed-title { font-weight: 600; }
 	/* RAW LOOKS RAW, A SUMMARY SWALLOWS (doc/voice-assistant.md#raw-and-refined): unrefined Whisper words are muted (same font and size, so settling never re-wraps a line, 2026-10-19); a card with a summary folds its lines */
-	.ux-dictate-raw, .ux-dictate-swallowed > [data-re] { opacity: 0.6; }
+	.ux-dictate-swallowed > [data-re] { opacity: 0.6; }
+	/* Raw words once sent are final (2026-11-01): full ink, like every view; only the guess is draft ink (Chat.css .chatbox-guess).
+	   With the fast seat off by default nothing "settles", so the old 0.6 fade left every line dim for good. */
+	.ux-dictate-raw { color: var(--final-ink); }
 	.ux-dictate-swallowed:not(.open) > [data-re] { display: none; }
 	.ux-dictate-summary-text { font-weight: 500; }
 	.ux-dictate-fold-toggle { font: inherit; font-size: 0.85em; opacity: 0.7; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline dotted; }

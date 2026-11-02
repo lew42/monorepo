@@ -161,31 +161,47 @@ export default class Capture {
 		this.stream?.getTracks().forEach(t => t.stop());
 	}
 
-	/** `samples` (Float32, -1..1) as a 16-bit PCM mono WAV `Blob` — the exact
-	 *  shape whisper-server's `/inference` accepts. */
+	/** `samples` (Float32, -1..1) as a mono WAV `Blob` whisper-server's `/inference` reads.
+	 *  8-bit mu-law by default: half the bytes of 16-bit PCM and the same text (measured 2026-11-01,
+	 *  doc/upload.md). Every guess re-sends the whole growing segment, so on a phone's slow uplink
+	 *  the upload IS the delay. `Capture.prototype.encoding = "pcm16"` switches back. */
 	wav(samples){
-		const rate = this.rate();
-		const buf = new ArrayBuffer(44 + samples.length * 2);
+		const rate = this.rate(), mulaw = this.encoding === "mulaw", width = mulaw ? 1 : 2;
+		const buf = new ArrayBuffer(44 + samples.length * width);
 		const view = new DataView(buf);
 		const str = (at, s) => { for (let i = 0; i < s.length; i++) view.setUint8(at + i, s.charCodeAt(i)); };
 
-		str(0, "RIFF"); view.setUint32(4, 36 + samples.length * 2, true); str(8, "WAVE");
-		str(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true);   // PCM
+		str(0, "RIFF"); view.setUint32(4, 36 + samples.length * width, true); str(8, "WAVE");
+		str(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, mulaw ? 7 : 1, true);   // 7 = mu-law, 1 = PCM
 		view.setUint16(22, 1, true);                                                  // mono
 		view.setUint32(24, rate, true);
-		view.setUint32(28, rate * 2, true);                                           // byte rate
-		view.setUint16(32, 2, true); view.setUint16(34, 16, true);                    // block align, bits/sample
-		str(36, "data"); view.setUint32(40, samples.length * 2, true);
+		view.setUint32(28, rate * width, true);                                       // byte rate
+		view.setUint16(32, width, true); view.setUint16(34, width * 8, true);         // block align, bits/sample
+		str(36, "data"); view.setUint32(40, samples.length * width, true);
 
 		let at = 44;
 		for (const s of samples){
 			const clamped = Math.max(-1, Math.min(1, s));
-			view.setInt16(at, clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff, true);
-			at += 2;
+			const int = clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff;
+			if (mulaw) view.setUint8(at++, mulaw_byte(int));
+			else { view.setInt16(at, int, true); at += 2; }
 		}
 
 		return new Blob([buf], { type: "audio/wav" });
 	}
+}
+
+Capture.prototype.encoding = "mulaw";   // "mulaw" (8 bits a sample) or "pcm16"; 4-bit IMA ADPCM was tried and garbled quiet speech
+
+/** One 16-bit sample as a G.711 mu-law byte (the telephone standard; whisper.cpp's WAV reader decodes it). */
+function mulaw_byte(x){
+	x = Math.round(x);
+	const sign = x < 0 ? 0x80 : 0;
+	if (sign) x = -x;
+	x = Math.min(x, 32635) + 0x84;
+	let exp = 7;
+	for (let mask = 0x4000; (x & mask) === 0 && exp > 0; mask >>= 1) exp--;
+	return ~(sign | (exp << 4) | ((x >> (exp + 3)) & 0x0f)) & 0xff;
 }
 
 /** How loud one chunk is, 0 (silence) to ~1 (clipping) — the level meter's

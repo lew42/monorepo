@@ -538,7 +538,7 @@
 	   speak, and a reply while it is written. The still-moving guess is grey; a sent bubble fades
 	   until its real line replaces it; a streaming reply ends in a caret. */
 	.chatbox-draft .chatbox-text { white-space: pre-wrap; }
-	.chatbox-guess { opacity: 0.55; }
+	.chatbox-guess { color: var(--draft-ink); }   /* framework.css: the dim-to-strong pair */
 	/* "sent, waiting" is its own cue (a left rule, not the text's own opacity/colour) — found
 	   2026-10-25: this bubble-wide fade used to dim the SAME text opacity the live "heard, not
 	   sent yet" state uses (`.chatbox-guess`, above), so a sentence that had already turned
