@@ -35,5 +35,11 @@ const nearCli = spawnSync(process.execPath, [RUNNER, "--near", RUNNER], { encodi
 assert.ok(nearCli.stdout.split(/\s+/).includes("public/framework/core/Test/TestRunner.test.mjs"), nearCli.stdout + nearCli.stderr);
 assert.doesNotMatch(nearCli.stdout, /PASS|FAIL/);
 
+// the fake mic file: a checkout that has jfk.wav uses it; one without (a worktree: recordings/ is git-ignored) is not handed a missing path when the main checkout has it
+put("public/framework/ai/recordings/jfk.wav", "x");
+assert.equal(r.wav_path(), path.join(root, "public/framework/ai/recordings/jfk.wav"));
+const real = new TestRunner(); const w = real.wav_path();
+assert.ok(path.isAbsolute(w) && w.endsWith("jfk.wav"), w);
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log("ok - TestRunner: a file path runs, --near is one level");
