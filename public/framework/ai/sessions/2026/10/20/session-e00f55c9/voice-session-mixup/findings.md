@@ -21,7 +21,7 @@ Nothing from another session leaked. The drawer's "Pick up where you left off?" 
 It already did: each session has its own smart and fast agent, told only that session's lines, and they write into that session's own file (`v-qfzrnhh`: the smart seat's answer 4 s after "can you hear me"). The browser guard above is the second wall. No leak found, no code change.
 
 ## Two copies of the resume rule
-`Layers.session_for()` (card prompts, one-hour window) and `Sessions.create()` (the drawer, 30 min) stay separate for now; unifying them is a follow-up.
+Merged as branch `worktree/voice-resume-one-rule`: `Layers.session_for()` (page and card prompts) now calls `Sessions.create()`, so the drawer, the browser join and Layers share one rule. Behaviour change: a card prompt now continues a session only if it spoke in the last 30 min (was 60), and a new one starts from the page's folder, not the card's. Needs a Servex restart (vscode-mastermind's), like the Sessions.js change.
 
 ## Tests
 `node Servex/agents/Sessions.test.mjs` (29 checks, new one for the project-wide resume); `node public/framework/ux/Dictate/test/active-session.mjs <worktree url> <worktree>` ALL PASS (new 5 and 6).
