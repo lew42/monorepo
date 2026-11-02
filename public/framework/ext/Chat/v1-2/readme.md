@@ -20,6 +20,10 @@ Try it: [/framework/ext/Chat/v1-2/](/framework/ext/Chat/v1-2/) draws [fixture/se
 - `page.js`, `fixture/session.jsonl`: the demo.
 - `ChatV1Dot2.test.mjs`: headless proof (below).
 
+## Pictures
+
+[Phone, test end state](doc/v1-2-360.png) · [demo at 360](doc/demo-360.png) · [demo at 1920](doc/demo-1920.png), with the shared Claude-style layout. The ✓ is the shared `.chat-cursor`; the assistant's round avatar on a Reply is V1's own role avatar, not the removed 🧠 mark.
+
 ## Test
 
 `FENCE_SERVEX=1 node ChatV1Dot2.test.mjs [base-url] [shots-dir]` (default base `http://monorepo.localhost`; the fence keeps it off the live Servex). It drives `ChatV1Dot2.read()` at 360×740 with the phone UA: one bubble growing sentence by sentence, a live draft after the ✓, the ✓ after each `sent` mark, dimmed then lit green, no 🧠, a `clean` edit in place, a Reply as its own bubble, `stop()`/`start()`, no page errors. 18 checks, including the live draft bubble after the ✓ and the sheet/drawer dropdown mounting V1.2.

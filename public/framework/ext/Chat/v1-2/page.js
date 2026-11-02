@@ -9,7 +9,7 @@ export default new Page({
 
 	content(){
 		const src = new URLSearchParams(location.search).get("src"), url = src ?? new URL("./fixture/session.jsonl", import.meta.url).href;
-		p(src ? `This is the chat of the session file you passed in ?src= (${src}), drawn live.` : "A demo of Chat V1.2. The ✓ sits after the last sentence the assistant has; the grey sentences after it are on their way. Pass ?src=<url of any session.jsonl> to draw a real one.");
+		p(src ? `This is the chat of the session file you chose (${src}), drawn live.` : "A demo of Chat V1.2. The green ✓ sits after the last sentence the assistant has received; the faded sentence after it is on its way. To see a real session, add ?src= and the address of its session.jsonl to this page's address.");
 		const $box = div.c("chat-v1-2");
 		new ChatV1Dot2({ url, $box }).live();
 	},
