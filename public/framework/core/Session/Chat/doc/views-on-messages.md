@@ -39,4 +39,4 @@ Each step: a worktree, a test, review, merge by the mastermind that owns the vie
 
 ## Open questions
 
-Folded in from `mastermind-dictation-v3` (it owns the views): see the section below once it answers.
+Asked of `mastermind-dictation-v3` (it owns the views), not yet answered when this was written: (1) which marks V2 and V3 read that have no field on Prompt or Reply yet; (2) one view or two skins on one model (step 4); (3) its preferred merge order. Its answer amends the steps above.
