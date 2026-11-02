@@ -6,11 +6,10 @@
 @layer site {
 	.chat-v2-marks { display: inline-flex; gap: .3em; align-items: baseline; flex: none; }
 
-	/* A sentence row (dictation mode only, no refined text yet): the words, and any Reply anchored to it beside them —
-	   side by side when there is room, stacked on a phone, same breakpoint idea as the old chat-v2-sentence. */
-	.chat-v2-sentence { display: grid; grid-template-columns: minmax(0, 1fr); gap: .3em 1rem; }
-	.chat-v2-sentence:has(.chat-v2-beside) { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+	/* A sentence row (dictation mode only, no refined text yet): the words as one small bubble of yours, and any Reply anchored to it
+	   plain beneath it, on the assistant's side (bubbles.css). A group of rows, never one bubble: `.chat-v3-yours`. */
+	.chat-v2-sentence { display: flex; flex-direction: column; align-items: flex-end; align-self: stretch; gap: .3em; }
 	.chat-v2-sentence-text { overflow-wrap: anywhere; }
-	.chat-v2-beside { display: flex; flex-direction: column; gap: .4em; }
-	.chat-v2-beside .chat-v3-reply { border-top: none; padding-top: 0; }
+	.chat-v2-beside { align-self: stretch; max-inline-size: 100%; display: flex; flex-direction: column; gap: .4em; }
+	.chat-v2-beside .chat-v3-reply { border-top: none; padding-block: 0; }
 }

@@ -305,11 +305,9 @@
 
 	/* Text-message style: your words on the right, everyone else on the left.
 	   A role label sits above each message (below). */
-	/* ONE WIDTH PER SIDE (the owner, 2026-09-25): every bubble, yours and theirs, is
-	   exactly `--chat-bubble` wide — a share of the chat column, capped in rem — so
-	   the bubbles line up instead of sizing to their text. Re-declare the token on a
-	   host to change both sides at once. */
-	.chatbox-log { display: flex; flex-direction: column; --chat-bubble: min(85%, 34rem); }
+	/* SIZE AND FILL (the owner, 2026-11-02, "follow Claude's chat UI"): see bubbles.css, the one rule set for all three views.
+	   Your bubble hugs its text up to `--bubble-max`; the assistant's text is plain. This file keeps only what is V1's own. */
+	.chatbox-log { display: flex; flex-direction: column; }
 
 	/* A short conversation sits at the BOTTOM of a tall log, next to the box you type
 	   in, the way a chat app reads — never a void between the last line and the box.
@@ -320,18 +318,6 @@
 	.chatbox-reply {
 		position: relative;   /* the reaction chips and picker are placed against the bubble */
 		display: flow-root;
-		width: var(--chat-bubble);
-		padding: 0.3em 0.7em;
-		border-radius: 0.9em;
-		overflow-wrap: anywhere;
-	}
-	.chatbox-you {
-		align-self: flex-end;
-		background: color-mix(in srgb, var(--prime) 22%, transparent);
-	}
-	.chatbox-reply {
-		align-self: flex-start;
-		background: color-mix(in srgb, currentColor 10%, transparent);
 	}
 	.chatbox-update {
 		font-size: 0.85em;
@@ -444,7 +430,7 @@
 		font-size: 0.85em;
 		cursor: pointer;
 	}
-	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --chat-bubble: 100%; }
+	.chatbox-thread-body { display: flex; flex-direction: column; border-inline-start: 2px solid var(--line); padding-inline-start: 0.5em; --bubble-max: 100%; }
 	.chatbox-thread-body[hidden] { display: none; }
 	.chatbox-thread-btn { display: inline-block; margin-block-start: 0.3em; margin-inline-start: 0.4em; font: inherit; font-size: 0.8em; padding: 0.15em 0.5em; }
 	/* "Replying to …" above the box, while a reply is pending. */
