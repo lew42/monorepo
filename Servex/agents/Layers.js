@@ -525,7 +525,7 @@ export default class Layers {
 		// Inside the card listener: a throw here (an unknown card, an empty line) must never
 		// break the listener for every other card, so it is logged and dropped.
 		try {
-			const session = this.session_for({ path, card: id });
+			const session = this.session_for({ path });
 			this.servex.sessions.say({ session: session.session, path, text: said, via: "text" });
 		} catch (e){ console.warn(`[layers] owner prompt on ${id} not sent to the session: ${e.message}`); }
 	}
@@ -572,23 +572,11 @@ export default class Layers {
 		return agent;
 	}
 
-	/* ONE GLOBAL SESSION PER PROJECT (one-dictation, 2026-09-30: "we're not doing
-	 * per directory assistants anymore. We're doing global dictation assistance…
-	 * but they're contextually aware"). Whichever session of this project spoke
-	 * most recently — wherever on the site or whatever card it started on — is
-	 * resumed, as long as that was within Sessions' own `resume_ms`; otherwise a
-	 * fresh one is created here. This reads only Sessions' own public state
-	 * (`map`, `project`, `project_of`, `resume_ms`) and its own verbs (`resume`,
-	 * `create`) — Sessions.js itself is never touched, so this never conflicts
-	 * with the other task's uncommitted edits to it. */
-	session_for({ path, card, host } = {}){
-		const sessions = this.servex.sessions;
-		const project = sessions.project_of(host);
-		const [newest] = Object.values(sessions.map)
-			.filter(s => sessions.project(s) === project)
-			.sort((a, b) => Date.parse(b.last_at ?? b.at) - Date.parse(a.last_at ?? a.at));
-		if (newest && Date.now() - Date.parse(newest.last_at ?? newest.at) < sessions.resume_ms) return sessions.resume({ session: newest.id });
-		return sessions.create({ path, card, host });
+	/* ONE GLOBAL SESSION PER PROJECT (one-dictation, 2026-09-30): no per-directory assistants.
+	 * The resume rule (the project's newest voice session within `idle_ms`, else a new one) lives in
+	 * ONE place, `Sessions.create`, shared with the drawer and the browser's join (voice-session-mixup). */
+	session_for({ path, host } = {}){
+		return this.servex.sessions.create({ path, host });   // no card: a card prompt joins the global session, never a per-card one
 	}
 
 	/* THE DRAWER'S SEND (interface: ai/sessions/2026/09/28/recursive-pairs/recursive-pairs/interface.md;

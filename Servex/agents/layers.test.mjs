@@ -51,7 +51,7 @@ const routes = new Map();
 const router = { get(p, ...h){ routes.set("GET " + p, h.at(-1)); }, post(p, ...h){ routes.set("POST " + p, h.at(-1)); }, options(){} };
 
 /* A fake Sessions (the ext/Session pair): just enough of its public shape —
- * `map`, `project`, `project_of`, `resume_ms`, `resume`, `create`, `say` — for
+ * `create` (which resumes the newest session itself) and `say` — for
  * Layers' `session_for` helper to drive without starting a real Claude session.
  * Shared by every fake servex below: it is plain state, not filesystem-bound,
  * so the same fake proves both the card path (item 3) and the page path (item 2). */
@@ -59,15 +59,9 @@ const session_calls = [];                      // every say(): {session, path, t
 const sessions_map = {};
 let ssid = 0;
 const fake_sessions = {
-	map: sessions_map,
-	project_of(){ return "proj"; },
-	project(s){ return s.project ?? "proj"; },
-	resume_ms: 3600000,
-	resume({ session }){
-		const s = sessions_map[session];
-		return { ok: true, session: s.id, home: s.home, file: s.file, resumed: true };
-	},
 	create({ path, card } = {}){
+		const [newest] = Object.values(sessions_map).sort((a, b) => Date.parse(b.last_at) - Date.parse(a.last_at));
+		if (newest) return { ok: true, session: newest.id, home: newest.home, file: newest.file, resumed: true };   // like the real Sessions.create: the resume rule lives only there
 		const id = "vsess-" + (++ssid);
 		const s = { id, home: card ? `/framework/ai/${card}/` : path, file: `${(card ? `/framework/ai/${card}/` : path)}ai/${id}.jsonl`,
 			project: "proj", at: new Date().toISOString(), last_at: new Date().toISOString() };
