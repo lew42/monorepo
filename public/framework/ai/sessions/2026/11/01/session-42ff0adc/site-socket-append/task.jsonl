@@ -9,3 +9,8 @@
 {"review":{"at":"2026-11-01T17:33:38-06:00","answer":{"n":5,"reply":"fixed: the SiteGateway header comment now credits the ws ping and the SSE comment, not TCP keep-alive (the keep-alive calls stay, harmless)."}}}
 {"review":{"at":"2026-11-01T17:33:38-06:00","answer":{"n":6,"reply":"fixed: doc/lan.md says the site tier can append to any .jsonl under public/ and the key cookie (or Access later) is the guard."}}}
 {"review":{"at":"2026-11-01T17:33:38-06:00","answer":{"n":7,"reply":"noted: tests re-run, no change needed."}}}
+{"log":{"at":"2026-11-01T17:42:40-06:00","msg":"task-loop status ask 1: could not ask: no owning agent found","ask":1}}
+{"log":{"at":"2026-11-01T17:47:41-06:00","msg":"task-loop status ask 2: could not ask: no owning agent found","ask":2}}
+{"log":{"at":"2026-11-01T17:52:42-06:00","msg":"task-loop status ask 3: could not ask: no owning agent found","ask":3}}
+{"log":{"at":"2026-11-01T17:57:44-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
+{"log":{"at":"2026-11-01T17:58:28-06:00","msg":"Owner follow-up: two reconnect UIs (slim dev-socket strip at the top, bigger Servex banner with a Reconnect button inside the sheet, far down). Built ONE state and ONE banner: dev/Socket/Link.js, fed by Socket.js (dev) and ux/Dictate/chat.js (servex), top of the page, shown only after 8 s down. Sheet's row and the slim strip removed. Proof (worktree server, Playwright routeWebSocket cut): hidden at 5 s down, 'Site link down 9 s' at 10 s, top 0 full width, hidden again after recovery; no page errors. The 17:44:30 and 17:45:30 dev-server restarts were mine (supervisor hot-swap from my Socket.js merge, then restart_server)."}}
