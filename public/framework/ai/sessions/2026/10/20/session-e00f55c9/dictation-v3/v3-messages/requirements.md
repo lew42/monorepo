@@ -14,7 +14,12 @@ Budget: $10. Load the `minion` skill first, then `code` and `ui`. You own this o
 - A node test (`ext/Chat/v3/ChatV3.test.mjs` or beside `core/Session/Chat/Chat.test.mjs`) over a fixture copied from a real voice session (`public/framework/ai/sessions/2026/11/01/v-u48msei/session.jsonl`, a range with replies; do not edit the session file): every Reply lands under the Prompt holding its `re.to`; order is list order; a pause makes a paragraph.
 - Headless shots of `/framework/ext/Chat/v3/` at 400x860 and 1200 on that session, in `shots/` here; read them yourself. The existing suite still passes.
 
-**Land.** Worktree via `node Server/worktree-up.mjs v3-messages`; commit by exact path after each working piece; update `ext/Chat/readme.md` (the V3 line) and `views-on-messages.md` (step 1 done) in the same branch; `node Server/review.mjs <this dir> <worktree>`; answer every finding as `{"review":{"answer":{"n","reply"}}}` in this dir's `task.jsonl` (`node .claude/hooks/append.mjs`); `MSYS_NO_PATHCONV=1 node Server/merge.mjs <full worktree path> --review-dir <this dir>`; `node Server/smoke.mjs` shows no FAIL; `git log michael/dev..worktree/v3-messages` is empty.
+**Land**, in this order:
+- [ ] Worktree: `node Server/worktree-up.mjs v3-messages`; commit by exact path after each working piece.
+- [ ] Docs, same branch: `ext/Chat/readme.md` (the V3 line) and `views-on-messages.md` (step 1 done).
+- [ ] Review: `node Server/review.mjs <this dir> <worktree>`; answer every finding as `{"review":{"answer":{"n","reply"}}}` in this dir's `task.jsonl` (`node .claude/hooks/append.mjs`).
+- [ ] Merge: `MSYS_NO_PATHCONV=1 node Server/merge.mjs <full worktree path> --review-dir <this dir>`.
+- [ ] Check: `node Server/smoke.mjs` shows no FAIL; `git log michael/dev..worktree/v3-messages` is empty.
 
 **Report** once, after the merge, to `mastermind-dictation-v3`, in 3 lines: what changed, the proof, what step 2 needs.
 
