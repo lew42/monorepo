@@ -1,0 +1,1232 @@
+diff --git a/Server/IgnoredImageLinks.mjs b/Server/IgnoredImageLinks.mjs
+new file mode 100644
+index 000000000..1ccfeee43
+--- /dev/null
++++ b/Server/IgnoredImageLinks.mjs
+@@ -0,0 +1,37 @@
++/* IgnoredImageLinks.find(dir, changed) — a changed .md that links a picture git ignores.
++ * .gitignore drops most images under public/framework/ai/ (repo size; only a doc/ folder keeps them), so a
++ * walkthrough that links <task>/shots/x.png reads fine in the worktree and shows a broken picture once merged.
++ * merge.mjs warns; the fix is to keep the picture in <task>/doc/screens/. Test: Server/IgnoredImageLinks.test.mjs */
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++
++const IMAGE = /\]\(\s*<?([^)\s>]+\.(?:png|jpe?g|gif|webp))(?:\s+"[^"]*")?\s*>?\)/gi;
++
++export default class IgnoredImageLinks {
++	/** Repo-relative path a link points at, or null for an external link / a link out of the repo. */
++	static target(mdRel, link){
++		if (/^[a-z]+:/i.test(link) || link.startsWith("//")) return null;
++		const clean = decodeURI(link.split("#")[0].split("?")[0]);
++		const abs = clean.startsWith("/") ? path.posix.join("public", clean) : path.posix.join(path.posix.dirname(mdRel), clean);
++		return abs.startsWith("..") ? null : abs;
++	}
++
++	/** [{md, link, target}] for every picture linked from a changed .md that exists in `dir` and is git-ignored there. */
++	static find(dir, changed){
++		const hits = [];
++		for (const md of changed.filter(f => f.endsWith(".md"))) {
++			let text; try { text = fs.readFileSync(path.join(dir, md), "utf8"); } catch { continue; }
++			for (const m of text.matchAll(IMAGE)) {
++				const target = this.target(md, m[1]);
++				if (!target || !fs.existsSync(path.join(dir, target))) continue;
++				if (spawnSync("git", ["check-ignore", "-q", "--", target], { cwd: dir, windowsHide: true }).status === 0) hits.push({ md, link: m[1], target });
++			}
++		}
++		return hits;
++	}
++
++	static sentence(hits){
++		return `!!! ${hits.length} picture(s) linked from a changed .md are git-ignored and will not reach the main tree: ${hits.map(h => `${h.md} -> ${h.link}`).join("; ")}. Keep hand-kept pictures in <task>/doc/screens/ (only doc/ is tracked) !!!`;
++	}
++}
+diff --git a/Server/IgnoredImageLinks.test.mjs b/Server/IgnoredImageLinks.test.mjs
+new file mode 100644
+index 000000000..07c08b89b
+--- /dev/null
++++ b/Server/IgnoredImageLinks.test.mjs
+@@ -0,0 +1,19 @@
++// node Server/IgnoredImageLinks.test.mjs — a scratch repo: a .md linking an ignored png is flagged, a tracked one is not.
++import fs from "node:fs"; import os from "node:os"; import path from "node:path"; import assert from "node:assert/strict";
++import { execFileSync } from "node:child_process";
++import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
++
++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ignimg-"));
++const git = (...a) => execFileSync("git", a, { cwd: dir, windowsHide: true, stdio: "pipe" }).toString();
++const write = (f, t) => { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), t); };
++git("init", "-q", "-b", "main");
++write(".gitignore", "public/framework/ai/**/*.png\n!public/framework/ai/**/doc/**/*.png\n");
++const task = "public/framework/ai/sessions/2026/11/02/session-x/t";
++write(task + "/shots/400.png", "x"); write(task + "/doc/screens/400.png", "x");
++write(task + "/outcome.md", "![a](shots/400.png)\n![b](doc/screens/400.png)\n![c](https://example.com/x.png)\n![gone](shots/missing.png)\n");
++const hits = IgnoredImageLinks.find(dir, [task + "/outcome.md", task + "/shots/400.png"]);
++assert.deepEqual(hits.map(h => h.link), ["shots/400.png"], "only the ignored, existing, local picture");
++assert.match(IgnoredImageLinks.sentence(hits), /doc\/screens/);
++assert.equal(IgnoredImageLinks.target("a/b.md", "/framework/x.png"), "public/framework/x.png", "a site path maps under public/");
++fs.rmSync(dir, { recursive: true, force: true });
++console.log("IgnoredImageLinks: 3 cases ok");
+diff --git a/Server/OutPath.mjs b/Server/OutPath.mjs
+index 92c629244..0ed63afac 100644
+--- a/Server/OutPath.mjs
++++ b/Server/OutPath.mjs
+@@ -1,6 +1,8 @@
+ /* OutPath.resolve(arg) — turns a path argument into a real absolute path, or refuses it.
+  * A git-bash drive path (/c/Code/...) is read as C:/Code/..., not as C:\c\Code\... (the 2026-10-17 stray dir).
+- * Only the repo this script lives in and the OS temp dir are allowed. Test: Server/OutPath.test.mjs */
++ * Only the repo this script lives in, the OS temp dir and this repo's own git worktrees are allowed (a review shot for a branch is
++ * taken by the main tree's layout-check and belongs in the branch's worktree, 2026-11-02). Test: Server/OutPath.test.mjs */
++import { spawnSync } from "node:child_process";
+ import os from "node:os";
+ import path from "node:path";
+ import { fileURLToPath } from "node:url";
+@@ -18,11 +20,19 @@ export default class OutPath {
+ 		return !rel.startsWith("..") && !path.isAbsolute(rel);
+ 	}
+ 
++	// the checked-out worktrees of this repo, from git itself (nothing else is trusted as a repo root)
++	static worktrees(){
++		const r = spawnSync("git", ["worktree", "list", "--porcelain"], { cwd: OutPath.ROOT, encoding: "utf8", windowsHide: true });
++		return (r.stdout || "").split(String.fromCharCode(10)).filter(l => l.startsWith("worktree ")).map(l => l.slice(9).trim());
++	}
++
+ 	// allowed: extra roots besides the repo and os.tmpdir() (tests pass their own)
+-	static resolve(arg, allowed = [OutPath.ROOT, os.tmpdir()]){
++	static DEFAULT = [OutPath.ROOT, os.tmpdir()];
++	static resolve(arg, allowed = OutPath.DEFAULT){
+ 		const out = path.resolve(OutPath.gitbash(arg));
+-		if (!allowed.some(r => OutPath.inside(out, r)))
+-			throw new Error(`OutPath: refusing "${arg}" -> ${out}; output must be inside the repo (${OutPath.ROOT}) or ${os.tmpdir()}`);
++		const ok = r => OutPath.inside(out, r);
++		if (!allowed.some(ok) && !(allowed === OutPath.DEFAULT && OutPath.worktrees().some(ok)))
++			throw new Error(`OutPath: refusing "${arg}" -> ${out}; output must be inside the repo (${OutPath.ROOT}), one of its git worktrees, or ${os.tmpdir()}`);
+ 		return out;
+ 	}
+ }
+diff --git a/Server/OutPath.test.mjs b/Server/OutPath.test.mjs
+index 4dd463819..094e8d266 100644
+--- a/Server/OutPath.test.mjs
++++ b/Server/OutPath.test.mjs
+@@ -11,3 +11,7 @@ assert.equal(OutPath.resolve("layout-check-out"), path.resolve("layout-check-out
+ assert.throws(() => OutPath.resolve(path.join(path.parse(root).root, "stray-outside")), /refusing/, "a path outside the repo is refused");
+ assert.throws(() => OutPath.resolve("../../elsewhere"), /refusing/);
+ console.log("OutPath: 3 cases ok");
++const other = OutPath.worktrees().find(w => path.resolve(w).toLowerCase() !== OutPath.ROOT.toLowerCase());
++if (other) assert.equal(OutPath.resolve(path.join(other, "public/x")), path.join(other, "public/x"), "another git worktree of this repo is allowed (a review shot goes beside the branch's task dir)");
++assert.throws(() => OutPath.resolve(path.join(path.parse(root).root, "not-a-worktree", "x")), /refusing/, "a plain sibling folder is still refused");
++console.log("OutPath: worktree cases ok");
+diff --git a/Server/README.md b/Server/README.md
+index d205c7aa9..c746bd099 100644
+--- a/Server/README.md
++++ b/Server/README.md
+@@ -41,6 +41,7 @@ The owner-facing server also starts `whisper-server` for dictation on its own 
+ - `Server/on-landing.mjs` — runs on the first `landed_at`: text-check, layout-check, padding-check, `doc-check.mjs` ([`doc/on-landing.md`](./doc/on-landing.md)); `Server/owner-check.mjs` is its last check. The ledger hook refuses a `landed_at` with no `outcome`.
+ - `node Server/ReadyToMerge.mjs [--json]` — the branches agents marked `ready:` (not yet in michael/dev), with review phrase and worktree; Servex serves it to the Merge button on [`/framework/ai/merge/`](/framework/ai/merge/) ([`ai/merge/readme.md`](../public/framework/ai/merge/readme.md)).
+ - `node Server/review.mjs <taskdir> [<worktree>]` — a fresh agent says pass or fix before `merge.mjs` takes a branch; run on `michael/dev` it reviews the task record's worktree or refuses, never a false pass ([`doc/review.md`](./doc/review.md)).
++- `Server/OutPath.mjs` (where review shots go, git worktrees included) and `Server/IgnoredImageLinks.mjs` (`merge.mjs` warns when an outcome links a git-ignored png; keep shots under `<task>/doc/screens/`) ([`doc/review.md`](./doc/review.md)).
+ - `node Server/Audit.mjs <taskdir...>` — computes the consensus of several task audits; no AI writes it from memory.
+ - `Server/AskEach.mjs` `askOnce()` — one cheap Q&A turn, optionally on OpenRouter; ⚠ the SDK mis-prices an OpenRouter turn.
+ - `Server/Crawl.mjs` — nightly full-site crawl at 1920; failures go to `ai/todo.md`.
+diff --git a/Server/doc/review.md b/Server/doc/review.md
+index be548bfbf..89ebd4aab 100644
+--- a/Server/doc/review.md
++++ b/Server/doc/review.md
+@@ -118,6 +118,10 @@ appended to `task.jsonl`, naming the widths actually used:
+ {"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
+ ```
+ 
++**The one route for the gate's shots (2026-11-02).** The merge gate wants a `<width>.png` for every width the change needs under the task's `shots/`. `node Server/review.mjs <taskdir> <worktree>` takes them from the worktree's own dev server; `--shots-only` takes just the pictures (no reviewer, no review line) when that is all the gate lacks. `layout-check.mjs` may write inside any git worktree of the repo (`OutPath.worktrees()`, from `git worktree list`), so a task dir that lives in a worktree no longer makes it refuse: before, the main tree's `layout-check` accepted only the main tree and the temp dir, and agents drew PNGs by hand to pass the gate. Never hand-make a screenshot: the gate is meant to stand on real pictures. Test: `node Server/OutPath.test.mjs`.
++
++**Review shots are not committed; keep a picture you want to show in `doc/screens/`.** `.gitignore` drops `public/framework/ai/**/*.png` (and the other image types) except under a `doc/` folder, because screenshots were 84% of git history by size. The gate reads `shots/` from disk, so they need no commit. A walkthrough or outcome that links a picture must keep it under `<task>/doc/screens/`, where git tracks it. `merge.mjs` warns when a changed `.md` links a git-ignored picture (`Server/IgnoredImageLinks.mjs`, test `IgnoredImageLinks.test.mjs`); the owner's other option, committing the review shots themselves, was left out on purpose for the repo-size reason.
++
+ **`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
+ skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
+ then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same
+@@ -182,6 +186,8 @@ also touches a page is refused unless that review has its own page report (`revi
+ with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
+ gets is not enough for a page.
+ 
++**Where the gate looks for the review (2026-11-02).** It reads the newest `{"review":…}` line naming this branch in the task folders of the last 4 days, in the main tree and in the worktree. If none is there it looks where the branch itself worked, not by age: the task folders that the branch's commits (and uncommitted files) touch under `public/framework/ai/`, and the folder named like the branch (`worktree/<slug>` finds `<slug>` in any session ever, via `TaskDirs.find`). So a long-lived session dated weeks ago needs no `--review-dir`; the flag still works. `guessTaskDir` (the folder the refusal tells you to review) uses the same whole-store lookup. Test: `node Server/merge.test.mjs` ("a review in a task dir of an old session").
++
+ **The test gate (2026-10-23).** After the smoke test, `merge.mjs` runs the tests that cover the diff (`TestRunner.covers`, transitive) on the branch. A failing test is then re-run on the merge base; the merge is refused only when it passes on the base and fails on the branch (pass-to-fail), so a test that already failed on `michael/dev` never blocks. A timeout is no result. Base results are cached per sha in `core/Test/results.jsonl` (`trigger:"merge-base"`). `--skip-tests` turns the gate off; a dry run skips it. The code is `Server/MergeTests.mjs`. **The tests run inside the merge lock:** a failing test on a new base costs a checkout of about 10 s (7.6 s `git worktree add` plus 2.7 s remove, for 23k files, measured) plus up to 60 s per test.
+ 
+ Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
+@@ -241,6 +247,9 @@ overwrite the first pass's finding text for readers of `review.jsonl`. Nothing t
+ second full pass — requirements.md's own model is one pass, one round of holds — so this is a
+ known limit, not a defended-against case.
+ 
++## Browser scripts in a worktree (2026-11-02)
++The Dictate browser scripts (`TestRunner.mjs --browser`, `run-all.mjs --browser`) looked load-sensitive from a worktree: `dictation-bar` and `refresh` got "0 sentences". The cause was not load but the fake mic file: `recordings/jfk.wav` is git-ignored, so a worktree has none, and the runner passed the missing path. `TestRunner.wav_path()` now falls back to the main checkout's copy. Run beside two more browser batches and the node suite, all three passed; `refresh` (real Whisper, six scenarios) takes about 130 s, so its limit is 300 s. Detail: [core/Test/doc/health.md](/framework/core/Test/doc/health.md).
++
+ ## Later, not now
+ 
+ `--model <id>` is already there so the reviewer can one day be a different model family
+diff --git a/Server/merge.mjs b/Server/merge.mjs
+index c440bea68..f5bab6907 100644
+--- a/Server/merge.mjs
++++ b/Server/merge.mjs
+@@ -74,6 +74,7 @@ import Browser from "./Browser.mjs";
+ import { refuse_links_into_main } from "./junction-guard.mjs";
+ import SessionRecord from "./SessionRecord.mjs";
+ import MergeTests from "./MergeTests.mjs";
++import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
+ 
+ const BASE = "michael/dev";
+ const argv = process.argv.slice(2);
+@@ -184,6 +185,28 @@ function shotsReminder(changed, pages, branch){
+ 	if (missing.length) console.warn(`!!! Shots: no screenshot round since this branch began for ${missing.join(", ")} — shoot, read, judge: node Server/shots.mjs <url> !!!`);
+ }
+ 
++/* The task dirs a branch's own work sits in: every changed path (committed on the branch, or still
++ * uncommitted in its worktree) under public/framework/ai/, walked up to the nearest folder that holds a
++ * task log. roots[1], when present, is the worktree; a missing log in the main tree is checked there. */
++function branchTaskDirs(roots){
++	const changed = new Set();
++	const dirOf = roots[1] ?? MAIN;
++	const lns = s => s.split(String.fromCharCode(10)).map(l => l.replace(/\r$/, "")).filter(Boolean);   // never trim: a porcelain line starts with a space for an unstaged change (" M path")
++	for (const l of lns(git(dirOf, "diff", "--name-only", `${BASE}...HEAD`).stdout)) changed.add(l.trim());
++	for (const l of lns(git(dirOf, "status", "--porcelain", "--untracked-files=all").stdout)) l.length > 3 && changed.add(l.slice(3));
++	const out = new Set();
++	for (const f of changed) {
++		if (!f.startsWith("public/framework/ai/")) continue;
++		let d = path.dirname(f);
++		while (d.length > "public/framework/ai".length) {
++			const here = path.join(dirOf, d);
++			if (fs.existsSync(here) && fs.readdirSync(here).some(n => SessionRecord.is_log_entry(here, n))) { out.add(path.join(MAIN, d)); break; }
++			d = path.dirname(d);
++		}
++	}
++	return [...out];
++}
++
+ function reviewGate(branch, head){
+ 	if (mainArg) { console.warn(`!!! --main: merging against another repo WITHOUT a fresh-eyes review !!!`); return null; }
+ 	if (noReview) { console.warn(`!!! --no-review: ${noReview} — merging WITHOUT a fresh-eyes review !!!`); return null; }
+@@ -221,15 +244,30 @@ function reviewGate(branch, head){
+ 		return out;
+ 	}
+ 	const roots = [MAIN, ...(path.resolve(dir).toLowerCase() === path.resolve(MAIN).toLowerCase() ? [] : [dir])];
+-	for (const root of roots)
+-		for (const day of dayDirs(root))
+-			for (const tj of taskLogs(day)) {
+-				const td = path.dirname(tj);
+-				for (const l of lines(fs.readFileSync(tj, "utf8"))) {
+-					let e; try { e = JSON.parse(l); } catch { continue; }
+-					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
+-				}
++	function scan(root, folder){
++		for (const tj of taskLogs(folder)) {
++			const td = path.dirname(tj);
++			for (const l of lines(fs.readFileSync(tj, "utf8"))) {
++				let e; try { e = JSON.parse(l); } catch { continue; }
++				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
+ 			}
++		}
++	}
++	for (const root of roots) for (const day of dayDirs(root)) scan(root, day);
++	/* Not in the last 4 days: look where THIS branch worked, not by age (2026-11-02). A review is written
++	 * into the task dir the branch's own commits (or uncommitted files) touch, and that task dir is also the
++	 * one named like the branch. A long-lived session dated weeks ago is found the same way. */
++	if (!best) {
++		const seen = new Set();
++		for (const td of [...branchTaskDirs(roots), TaskDirs.find(branch.replace(/^worktree[/]/, ""), 3650)]) {
++			if (!td || seen.has(td)) continue;
++			seen.add(td);
++			for (const root of roots) {
++				const fromMain = path.relative(MAIN, td), here = path.join(root, fromMain.startsWith("..") ? path.relative(path.resolve(import.meta.dirname, ".."), td) : fromMain);
++				if (fs.existsSync(here)) scan(root, here);
++			}
++		}
++	}
+ 	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
+ 	const guessedTd = best ? null : guessTaskDir(aiDir, branch);
+ 	const cmd = `node Server/review.mjs ${best ? path.relative(best.root, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
+@@ -255,7 +293,7 @@ function reviewGate(branch, head){
+ 		const walk = d => { try { for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : /^\d+\.png$/.test(e.name) && have.add(Number(e.name.slice(0, -4))); } catch {} };
+ 		walk(path.join(best.td, "shots"));
+ 		const missing = need.filter(w => !have.has(w));
+-		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
++		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; take just the pictures from the worktree's own server: ${cmd} --shots-only  (or re-run the review: ${cmd}; --no-review "why" skips, and is logged)`;
+ 	}
+ 	return null;
+ }
+@@ -522,6 +560,8 @@ try {
+ 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
+ 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
+ 		shotsReminder(changed, autoPages, branch);
++		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
++		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
+ 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
+ 		if (changed.some(f => f.startsWith("public/framework/ext/Figma/")) && fs.existsSync(path.join(dir, "public/framework/ext/Figma/visibility.mjs"))) {
+ 			const vis = run("node", [path.join(dir, "public/framework/ext/Figma/visibility.mjs")], dir);
+diff --git a/Server/merge.test.mjs b/Server/merge.test.mjs
+index 5d2f13cbc..1e4a82e82 100644
+--- a/Server/merge.test.mjs
++++ b/Server/merge.test.mjs
+@@ -162,6 +162,35 @@ test("tests: --skip-tests runs nothing", () => {
+ 	assert.equal(rows(main).length, 0);
+ });
+ 
++test("gate: a review in a task dir of an old session (years old, not in the 4-day scan) is found by the branch's own task dir", () => {
++	const { main, wt } = scratch("worktree/oldtask");
++	const gate = () => spawnSync("node", [MERGE, wt, "--gate-only"], { encoding: "utf8", windowsHide: true });
++	const td = "public/framework/ai/sessions/2025/01/05/session-aaaa1111/oldtask";
++	const base = git(main, "rev-parse", "michael/dev").trim();
++	assert.match(gate().stdout, /no review/, "before any review is written");
++	const review = { review: { verdict: "pass", findings: [], file: "review.md", branch: "worktree/oldtask", head: base, at: "2026-11-02T00:00:00Z" } };
++	write(wt, td + "/task.jsonl", [{ task: "oldtask" }, review].map(o => JSON.stringify(o)).join("\n") + "\n");
++	assert.match(gate().stdout, /gate: ok/, "uncommitted in the worktree: found");
++	git(wt, "add", "."); git(wt, "commit", "-qm", "review line");
++	const r = gate();
++	assert.equal(r.status, 0, r.stdout + r.stderr);
++	assert.match(r.stdout, /gate: ok/, "committed on the branch: found");
++});
++
++test("gate: a task log that is tracked and then edited (\" M path\") is found too", () => {
++	const { main, wt } = scratch("worktree/modtask");
++	const gate = () => spawnSync("node", [MERGE, wt, "--gate-only"], { encoding: "utf8", windowsHide: true });
++	const td = "public/framework/ai/sessions/2025/02/06/session-bbbb2222/modtask", file = path.join(wt, td, "task.jsonl");
++	write(wt, td + "/task.jsonl", JSON.stringify({ task: "modtask" }) + String.fromCharCode(10));
++	git(wt, "add", "."); git(wt, "commit", "-qm", "task log");
++	const review = { review: { verdict: "pass", findings: [], file: "review.md", branch: "worktree/modtask", head: git(wt, "rev-parse", "HEAD").trim(), at: "2026-11-02T00:00:00Z" } };
++	fs.appendFileSync(file, JSON.stringify(review) + String.fromCharCode(10));
++	assert.match(git(wt, "status", "--porcelain"), /^ M /, "the log shows as an unstaged change");
++	const r = gate();
++	assert.equal(r.status, 0, r.stdout + r.stderr);
++	assert.match(r.stdout, /gate: ok/, "an edited, uncommitted log: found");
++});
++
+ for (const t of tmps) { try { git(t, "worktree", "prune"); } catch {} }
+ for (const t of tmps) fs.rmSync(t, { recursive: true, force: true });
+ console.log(`${passed} passed, 0 failed`);
+diff --git a/Server/review.mjs b/Server/review.mjs
+index 951361203..c473c9f25 100644
+--- a/Server/review.mjs
++++ b/Server/review.mjs
+@@ -711,9 +711,10 @@ async function main() {
+ 		return;
+ 	}
+ 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
++	const shotsOnly = argv.includes("--shots-only") && !!argv.splice(argv.indexOf("--shots-only"), 1);   // take the gate's screenshots only: no reviewer, no review line
+ 	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model"), widthsArg = flag("--widths");
+ 	const [taskDirArg, worktreeArg] = argv;
+-	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
++	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920] [--shots-only]'); process.exit(1); }
+ 	const taskDir = path.resolve(taskDirArg);
+ 	let worktreeDir = null;
+ 	if (!range) try { worktreeDir = branchTree(taskDir, path.resolve(worktreeArg || process.cwd())); } catch (e) { console.error(e.message); process.exit(1); }
+@@ -757,6 +758,7 @@ async function main() {
+ 	}
+ 
+ 	const taskJsonl = SessionRecord.log_or_old(taskDir);
++	if (size === "none" && shotsOnly) { console.log("review.mjs --shots-only: this diff changes no page, so no screenshots are needed (size none: nothing written)"); return; }
+ 	if (size === "none") {
+ 		const note = `No review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.`;
+ 		await writeNoReviewPass(root, taskDir, { size, note, branch, head });
+@@ -796,6 +798,10 @@ async function main() {
+ 		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
+ 		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands, widths } });
+ 	}
++	if (shotsOnly) {
++		console.log(pageReview ? `review.mjs --shots-only: ${pages.length} page(s) at ${widths.join(", ")}px -> ${path.relative(process.cwd(), shotsDir)}/ (no reviewer was started)` : "review.mjs --shots-only: this diff changes no page, so no screenshots are needed");
++		return;
++	}
+ 
+ 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved
+ 	// the same way — both live under public/framework/ai/ per the brief's own convention.
+diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
+index 6593bb37d..0260943bb 100644
+--- a/Servex/agents/Agents.js
++++ b/Servex/agents/Agents.js
+@@ -710,6 +710,7 @@ export class Agents {
+ 	successor(id){
+ 		const running = x => { const a = this.live.get(x); return a && a.state !== "stopped"; };
+ 		if (!id || running(id)) return id;   // the hot path (every send): no disk read for a running id
++		if (this.external?.has?.(id)) return id;   // a registered tab is an inbox, not a stopped agent: it never follows a session another agent shares (a send to vscode-rp-proof landed in task-mastermind-recursive-pairs)
+ 		const rows = this.reg().read(), seen = new Set([id]);
+ 		const sess = x => this.live.get(x)?.session_id ?? rows[x]?.session_id;
+ 		const started = x => String(this.live.get(x)?.started_at ?? rows[x]?.started_at ?? "");
+diff --git a/Servex/agents/External.js b/Servex/agents/External.js
+index 246f4b933..d4aa5fd8c 100644
+--- a/Servex/agents/External.js
++++ b/Servex/agents/External.js
+@@ -107,7 +107,8 @@ export default class External {
+ 		const line = { from: note.from ?? null, text, reply_to: note.reply_to ?? null, at: stamp() };
+ 		fs.appendFileSync(this.file(id), JSON.stringify(line) + "\n");
+ 		this.touch(id);
+-		return { id, state: "external", delivered: line, card: () => ({ id, kind: "external", state: "external", delivered: line }) };
++		const card = { id, kind: "external", state: "external", ok: true, delivered_to: `the inbox of the VS Code tab ${id} (logs/inbox/${id}.jsonl)`, note: "Delivered. A tab is not a running agent, so it will not answer in this call: it reads its inbox on its next turn.", delivered: line };
++		return { id, state: "external", delivered: line, card: () => card };
+ 	}
+ 
+ 	/* Make `id` addressable if it is not yet (the remote door's caller, "voice-app", has no tab to register itself). */
+diff --git a/Servex/agents/External.test.mjs b/Servex/agents/External.test.mjs
+index caa8ddfb8..acab9b8fb 100644
+--- a/Servex/agents/External.test.mjs
++++ b/Servex/agents/External.test.mjs
+@@ -87,6 +87,26 @@ check("Agents.send() to a registered external id delivers to its inbox instead o
+ 	assert.ok(Date.parse(lines[0].at) >= before, "timestamped, and recent");
+ });
+ 
++check("the answer to a send says it was delivered to the tab's inbox (not that the tab is not a live agent)", () => {
++	external.register({ id: "vscode-card", session_id: "card-session" });
++	const card = agents.send("vscode-card", "second hello", { from: "mastermind-servex" }).card();
++	assert.equal(card.ok, true);
++	assert.match(card.delivered_to, /inbox of the VS Code tab vscode-card/);
++	assert.match(card.note, /Delivered/);
++	assert.equal(lines_of("vscode-card").pop().text, "second hello");
++});
++
++check("a registered tab that shares a session id with a spawned agent is NOT followed to that agent", () => {
++	const rows = agents.reg().read();
++	rows["worker-sharing"] = { id: "worker-sharing", role: "minion", state: "stopped", session_id: "shared-session", started_at: "2099-01-01T00:00:00Z" };
++	agents.reg().save(rows);
++	external.register({ id: "vscode-shared", session_id: "shared-session" });
++	assert.equal(agents.holder("vscode-shared"), "vscode-shared");
++	assert.equal(agents.send("vscode-shared", "to the tab", { from: "mastermind-servex" }).card().kind, "external");
++	assert.equal(lines_of("vscode-shared").length, 1);
++	assert.equal(agents.holder("worker-sharing"), "worker-sharing");
++});
++
+ check("an id nobody registered still goes through wake() and throws, unchanged", () => {
+ 	assert.throws(() => agents.send("nobody-here", "hi"), /No agent "nobody-here"/);
+ });
+diff --git a/Servex/agents/item-generic.test.mjs b/Servex/agents/item-generic.test.mjs
+index 984004360..b5573537d 100644
+--- a/Servex/agents/item-generic.test.mjs
++++ b/Servex/agents/item-generic.test.mjs
+@@ -32,7 +32,9 @@ try {
+ 		try {
+ 			const tool = name => page_tools().find(t => t.name === name).handler;
+ 			r = await run_item({ path: PURL, delta: { title: "Renamed" } }, { caller: "t" });
+-			ok(r.ok && /# Renamed/.test(r.state), "page set: the answer is drawn from the live root");
++			ok(r.ok && r.state === undefined, "page set: a write answers small (no whole page)");
++			const seen = await run_item({ path: PURL }, { caller: "t" });
++			ok(/# Renamed/.test(seen.state), "page set: a read draws the page from the live root");
+ 			const added = JSON.parse(await tool("page_add")({ path: PURL, item: { type: "part-card", title: "Card one" } }, { caller: "t" }));
+ 			ok(added.ok && RANDOM.test(added.id), "page add: the card gets an 8-character random id");
+ 			const called = JSON.parse(await tool("page_call")({ path: PURL, target: ["content", added.id], method: "set", args: { text: "called" } }, { caller: "t" }));
+diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
+index 7d62e2e14..5a90ef0b3 100644
+--- a/Servex/agents/page_tools.js
++++ b/Servex/agents/page_tools.js
+@@ -1192,6 +1192,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		else if (delta !== undefined) return { ok: false, why: `"${url}" has no session record to answer ${Object.keys(delta).join(", ")}, and these keys are never written to its page. Nothing was written.` };
+ 	}
+ 
++	// Task verbs (a `tasks` key) on a session route belong to the session record, not its page: a `tasks.add` written to page.jsonl is an unknown field there and no process ever runs (2026-11-02). The dated folder already resolved this way (resolve_file).
++	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && is_plain(delta) && "tasks" in expand_dots(delta) && fs.existsSync(path.join(path.dirname(at.file), "session.jsonl")))
++		at = { file: path.join(path.dirname(at.file), "session.jsonl"), target: [] };
++
+ 	// ONE LIVE ROOT PER FILE, for any class Item.types registers (a page, a task, a session, an improvements file): the class named on
+ 	// line 1, else the one its file name implies. A Task-family root (tasky) also gets the task steps below; every root gets the same write.
+ 	let kind = class_of(at.file), Class = await class_for(kind);
+@@ -1360,7 +1364,8 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
+ 		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
+ 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
+ 	}
+-	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias ? await extra() : {}) };
++	// A write answers small, whatever the file size: never the page's whole text (753,132 characters once). A read (item with no delta) is how you get the picture.
++	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
+ }
+ 
+ /* ---------- the six tools ---------- */
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index 6dbfcb10c..78412b566 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -68,6 +68,10 @@ agents do, so a child's wake — `wake_parent`'s `done`/`blocked` — reaches it
+ becomes one more `task` line, `state: working | blocked | landed`, which is what the card's
+ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
+ 
++## Sending to a VS Code tab
++
++A tab (`vscode-<id8>`, `kind: "external"`) is not a running agent. `External.js` registers it, and `send_to_agent` to it appends one line to its inbox file (`%LOCALAPPDATA%/lew42/servex/logs/inbox/<id>`, a JSONL file), which the tab reads on its next turn. The answer says so: `ok: true`, `delivered_to: "the inbox of the VS Code tab <id> …"` and a note that the tab will not reply in this call. It is delivered; do not post an `owner_note` to repeat it. `Agents.successor()` never follows a registered tab to another agent that shares its `session_id` (a send to `vscode-rp-proof` once landed in a running mastermind). Test: `External.test.mjs`. Needs a Servex restart to take effect (2026-11-02).
++
+ ## Watch out — [`doc/traps.md`](./doc/traps.md) has the measurements
+ 
+ - `result.result` is not reliably the last thing the agent said; read `transcript` events.
+diff --git a/Servex/agents/session-route-tasks.test.mjs b/Servex/agents/session-route-tasks.test.mjs
+new file mode 100644
+index 000000000..49a0a4f44
+--- /dev/null
++++ b/Servex/agents/session-route-tasks.test.mjs
+@@ -0,0 +1,45 @@
++// A session route (/framework/ai/sessions/<uuid>/) takes task verbs on session.jsonl, not on the page; and a write answers small. `node Servex/agents/session-route-tasks.test.mjs`
++import assert from "node:assert";
++import fs from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { run_item } from "./page_tools.js";
++
++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
++const ID = "00000000-0000-4000-8000-" + String(process.pid).padStart(12, "0");
++const NAME = "srt-test-" + process.pid, DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/16", NAME);
++const BY_ID = `/framework/ai/sessions/${ID}/`, BY_DATE = `/framework/ai/sessions/2026/10/16/${NAME}/`;
++const lines = f => fs.readFileSync(path.join(DIR, f), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
++let n = 0;
++const ok = (c, m) => { assert.ok(c, m); n++; };
++
++fs.mkdirSync(DIR, { recursive: true });
++fs.writeFileSync(path.join(DIR, "index.json"), JSON.stringify({ id: ID, first_at: "2026-10-16T01:00:00.000Z" }));
++fs.writeFileSync(path.join(DIR, "page.jsonl"), JSON.stringify({ session: ID, ts: "2026-10-16T01:00:00.000Z" }) + "\n");
++fs.writeFileSync(path.join(DIR, "session.jsonl"), JSON.stringify({ session: { id: ID, kind: "vscode-tab", at: "2026-10-16T01:00:00.000Z" }, by: "test" }) + "\n");
++try {
++	const page_before = lines("page.jsonl").length;
++	for (const [label, url] of [["uuid route", BY_ID], ["dated route", BY_DATE]]) {
++		const r = await run_item({ path: url, delta: { tasks: { add: { title: "A task from the " + label } } } }, { caller: "owner" });
++		ok(r.ok && r.ids?.length === 1, label + ": the task was added: " + JSON.stringify(r).slice(0, 200));
++		const { instructions: _i, ...bare } = r;
++		ok(JSON.stringify(bare).length < 3000, `${label}: the answer is small (${JSON.stringify(bare).length} characters, instructions aside)`);
++		ok(r.state === undefined, label + ": no whole state in a write's answer");
++	}
++	ok(!lines("page.jsonl").some(l => l.tasks || l.task), "nothing task-like was written to page.jsonl: " + JSON.stringify(lines("page.jsonl").slice(page_before)).slice(0, 300));
++	ok(lines("session.jsonl").filter(l => l.tasks?.add).length === 2, "both tasks are on session.jsonl");
++
++	// a page write on a session route still goes to the page, and answers small too
++	const card = await run_item({ path: BY_ID, delta: { content: { add: { type: "part-text", text: "hello" } } } }, { caller: "owner" });
++	ok(card.ok && card.ids?.length === 1, "a card still lands on the page: " + JSON.stringify(card).slice(0, 200));
++	ok(lines("page.jsonl").some(l => l.content?.add), "the card is on page.jsonl");
++	ok(card.state === undefined, "a page write does not answer with the whole page");
++	const { instructions: _j, ...cbare } = card;
++	ok(JSON.stringify(cbare).length < 3000, `a page write's answer is small (${JSON.stringify(cbare).length} characters)`);
++
++	// a read still answers the picture
++	const read = await run_item({ path: BY_ID }, { caller: "owner" });
++	ok(read.ok && read.state, "a read with no delta still returns the state");
++	console.log(`session-route-tasks: ${n} checks passed`);
++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
++process.exit(0);
+diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
+index 71d9d020f..5d8d798eb 100644
+--- a/Servex/doc/item-tool.md
++++ b/Servex/doc/item-tool.md
+@@ -5,7 +5,7 @@
+ - **Which log:** a url's folder holds `task.jsonl` (Task), else `session.jsonl` (Session, `core/Session/Session.js`), else `page.jsonl` (Page). `task.jsonl` beside a `page.jsonl` means a task folder. A `class` key on line 1 wins when `Item.types` registers that name (`class_for`); an unknown name falls back to the file's own class.
+ - **One live root per file, for any class** (2026-10-28, build I): every file is replayed once into `Item.Store.for(url)`, and each write is one line applied to that live root (`try_line`), then appended. A page write no longer replays the whole page: `page_set`, `page_add`, `page_call` and `page_log` all go through `run_item`, and a page's answer is drawn from the live `Page` (`page_picture`). Measured on the 1167 `page.jsonl` files in git: 1137 draw exactly as the old text replay, 19 differ cosmetically (an untyped item, a nested data card flattened, a title a line set now shows, one order), 11 need a browser to replay (their writes were already refused; reads fall back to the text replay). At most 1000 live roots are kept (`LIVE_CAP`; the least recently used go cold and replay on their next call). A browser's raw page line (`record_lines`) advances a warm page the same way; one node's Page cannot apply is still written and the warm root dropped (a task line is refused instead).
+ - **`improvements.jsonl`** (2026-10-22): a url naming `<folder>/improvements.jsonl` is class `Improvements` (`core/Task/Improvements.js`, a Task); `tasks.add` always nests there (no folder). The same title proposed again is merged by the class's own list (its `add` reinforces the existing task, on write and on replay), so the tool writes the add as sent; the answer says `merged: [{title, into, weight}]`. The rule for writing one is in `Servex/agents/roles/mastermind.md`, "Improvements".
+-- **Item vs log, settled 2026-10-22** ([code-shape.md](/framework/ai/doc/code-shape.md)): `item` is for files a class reads (Task, Session, Process, Page, improvements): node replays the class, checks the delta or method against it, writes, and answers with what it wrote (`{ok, ids, line, size, now: {state, completion}}` for a Task, Session or Process; a Page write still answers its page). The full computed state is a read, with no delta. `log` (the Servex MCP `log` tool) is the plainly named raw append for any other JSONL record: node adds time, author and session and checks the line against the log's schema. Neither makes the model write bookkeeping.
++- **Item vs log, settled 2026-10-22** ([code-shape.md](/framework/ai/doc/code-shape.md)): `item` is for files a class reads (Task, Session, Process, Page, improvements): node replays the class, checks the delta or method against it, writes, and answers with what it wrote (`{ok, ids, line, size, now: {state, completion}}` for a Task, Session or Process; a Page write answers `{ok, ids, line, size}` too, never the page text: a 753,132-character answer to one card on a big session page was the reason, 2026-11-02). The full computed state is a read, with no delta. `log` (the Servex MCP `log` tool) is the plainly named raw append for any other JSONL record: node adds time, author and session and checks the line against the log's schema. Neither makes the model write bookkeeping.
+ - **No delta** returns the state; Task: `{class, state, completion, data, tasks}` from `Task.replay`. A Session also answers `messages: {count, last}` (its chat's last 20 messages, `{id, type, by, at, text}`) when it has any.
+ - **The chat list** (2026-11-01): a Session takes `messages` and `sentences` (its chat, [core/Session/Chat](/framework/core/Session/Chat/readme.md)): `{"messages":{"add":{"type":"Reply","by":"smart","text":"…"}}}` appends; `{"messages":{"<id>":{"title":…,"text":…}}}` refines a message in place. Servex writes the owner's sentences and the seats' replies there itself; a `{place}` with a cleaned `text` also writes that sentence's cleaned text onto its Prompt, in place (`ChatWriter.place`).
+ - **Dot paths:** `"now.preview": x` becomes `{now: {preview: x}}`, and `"tasks.a.tasks.b.title": x` sets three levels down; the line is written nested, never dotted. `target` takes the same path (`"tasks.a.tasks.b"`, or a list of hops) and is walked level by level through each level's own `get` (a property, a named List, a List's member), so it reaches any list, not only `tasks` ([ids-and-paths.md](/framework/core/Session/tasks/data-shapes/ids-and-paths.md), DECIDED). Watch out: when a key names both a data field holding an object and a child with that id, the field wins (`hop` in `page_tools.js` asks `get` before `member`); random ids make that clash unlikely.
+@@ -63,6 +63,6 @@ Moved into classes so far: verdict strings (`Task.replay_line`) and improvements
+ 5. **The same-title refusal** on `tasks.add`: `Task.List.add`, once a browser add should refuse a repeat too (Improvements already merges in its own list).
+ 6. **Request stamping** (`from` on an add to another agent's task) and the **`sessions` line**: node-side, they need the caller; a Task hook on add if a class should own them.
+ 7. **`type` defaulting** (`task_type`: an unknown type becomes `Task`): `Task.List.make`.
+-8. **Session url routing** (a query on a session's page url reads its `session.jsonl`): a path rule in `resolve`, not a delta rewrite; it stays.
++8. **Session url routing** (a query on a session's page url reads its `session.jsonl`): a path rule in `resolve`, not a delta rewrite; it stays. Since 2026-11-02 a `tasks` write on `/framework/ai/sessions/<uuid-or-agent-id>/` goes to `session.jsonl` too (the dated folder always did); before, it landed as an unknown field on `page.jsonl` and no process ran. Other writes there (cards, pages, title) still go to the page. Test: `Servex/agents/session-route-tasks.test.mjs`.
+ 
+ Test: `node Servex/agents/item-generic.test.mjs` (page writes through the live root with zero replays, a task added by verb, a dotted set three levels deep, random ids).
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review.jsonl
+new file mode 100644
+index 000000000..1499c9b7c
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review.jsonl
+@@ -0,0 +1,11 @@
++{"phase":{"at":"2026-11-02T15:28:44-06:00","n":1,"kind":"findings","status":"start"}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":1,"kind":"fix","text":"Snag 2 misses a modified task log: `branchTaskDirs` in `Server/merge.mjs` (the new function, about line 174) trims each `git status --porcelain` line and then does `l.slice(3)`. A tracked file with unstaged changes (` M public/…/task.jsonl`, which is what `review.mjs` makes when it appends a review line) becomes `ublic/…`, fails the `public/framework/ai/` check and is skipped. Don't trim the status lines; split on the first space after the two status characters. The new test in `Server/merge.test.mjs` only covers an untracked file (`??`), so add a case for a modified one."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":2,"kind":"fix","text":"The task folder doesn't record the extra work. Commit ec10f6c70 (\"snags 5, 6\": `tasks.add` on a session route goes to `session.jsonl`, and a page write answers small, in `Servex/agents/page_tools.js`) and `Server/IgnoredImageLinks.mjs` (merge warns on links to git-ignored pictures) are not in `requirements.md`. No file in the task folder says who asked for them or why. Add the asks to `requirements.md` or the task log."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":3,"kind":"fix","text":"A fresh agent couldn't continue from this folder. It holds only `requirements.md`, `past-work.md`, a one-line `session.jsonl` (the assign line) and `review/`. There is no task log, no outcome, and no record of the proof runs the brief asks for: each snag's test or rerun, and `run-all --browser` beside another headless job. That proof appears only as prose in `core/Test/doc/health.md`. Link the run lines (results.jsonl / run-all.jsonl) and the test results from the task folder."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":4,"kind":"note","text":"The brief asked the builder to coordinate with `mastermind-task-close-loop` before touching `Servex/agents/Agents.js`, and the diff changes `Agents.successor()` (one line). Nothing records that coordination."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":5,"kind":"note","text":"The new check in `public/framework/core/Test/TestRunner.test.mjs` doesn't test the fallback. `real.wav_path()` passes whenever the path ends in `jfk.wav`, and the worktree's own missing path does too. A case with a scratch \"main\" checkout that holds the wav would prove snag 4's fix."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":6,"kind":"note","text":"A page write through `page_set`/`page_add` (`page_tools.js` about line 1396) no longer returns the page's text. Any caller that read the page out of a write's answer now needs a separate read. `Servex/doc/item-tool.md` documents the change, but it goes beyond the four snags."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":7,"kind":"note","text":"`review.mjs --shots-only` on a diff of size `none` reaches the `size === \"none\"` branch (`Server/review.mjs:761`) before the shots-only exit, so it writes a no-agent pass review line. The flag's comment promises \"no review line\". This is harmless (no page means no shots), but the wording is wrong."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":8,"kind":"note","text":"Snag 1's own wording (\"isn't a live agent\") no longer appears anywhere in `Servex/`. The fix traces the false failure to `successor()` following a shared `session_id`, and adds `ok`, `delivered_to` and `note` to the card. The readme says Servex needs a restart, and the report must say so too, as the brief asks."}}
++{"finding":{"at":"2026-11-02T15:28:44-06:00","n":9,"kind":"note","text":"`Server/readme.md` lists neither `OutPath.mjs` nor `IgnoredImageLinks.mjs`. It doesn't list `MergeTests.mjs` either, so this follows the existing pattern; `Server/doc/review.md` does document both."}}
++{"phase":{"at":"2026-11-02T15:28:44-06:00","n":1,"kind":"findings","status":"done","verdict":"fix","cost":0.8532344,"model":"claude-opus-5-5"}}
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review.md b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review.md
+new file mode 100644
+index 000000000..977ec0c68
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review.md
+@@ -0,0 +1,25 @@
++verdict: fix
++1. [fix] Snag 2 misses a modified task log: `branchTaskDirs` in `Server/merge.mjs` (the new function, about line 174) trims each `git status --porcelain` line and then does `l.slice(3)`. A tracked file with unstaged changes (` M public/…/task.jsonl`, which is what `review.mjs` makes when it appends a review line) becomes `ublic/…`, fails the `public/framework/ai/` check and is skipped. Don't trim the status lines; split on the first space after the two status characters. The new test in `Server/merge.test.mjs` only covers an untracked file (`??`), so add a case for a modified one.
++2. [fix] The task folder doesn't record the extra work. Commit ec10f6c70 ("snags 5, 6": `tasks.add` on a session route goes to `session.jsonl`, and a page write answers small, in `Servex/agents/page_tools.js`) and `Server/IgnoredImageLinks.mjs` (merge warns on links to git-ignored pictures) are not in `requirements.md`. No file in the task folder says who asked for them or why. Add the asks to `requirements.md` or the task log.
++3. [fix] A fresh agent couldn't continue from this folder. It holds only `requirements.md`, `past-work.md`, a one-line `session.jsonl` (the assign line) and `review/`. There is no task log, no outcome, and no record of the proof runs the brief asks for: each snag's test or rerun, and `run-all --browser` beside another headless job. That proof appears only as prose in `core/Test/doc/health.md`. Link the run lines (results.jsonl / run-all.jsonl) and the test results from the task folder.
++4. [note] The brief asked the builder to coordinate with `mastermind-task-close-loop` before touching `Servex/agents/Agents.js`, and the diff changes `Agents.successor()` (one line). Nothing records that coordination.
++5. [note] The new check in `public/framework/core/Test/TestRunner.test.mjs` doesn't test the fallback. `real.wav_path()` passes whenever the path ends in `jfk.wav`, and the worktree's own missing path does too. A case with a scratch "main" checkout that holds the wav would prove snag 4's fix.
++6. [note] A page write through `page_set`/`page_add` (`page_tools.js` about line 1396) no longer returns the page's text. Any caller that read the page out of a write's answer now needs a separate read. `Servex/doc/item-tool.md` documents the change, but it goes beyond the four snags.
++7. [note] `review.mjs --shots-only` on a diff of size `none` reaches the `size === "none"` branch (`Server/review.mjs:761`) before the shots-only exit, so it writes a no-agent pass review line. The flag's comment promises "no review line". This is harmless (no page means no shots), but the wording is wrong.
++8. [note] Snag 1's own wording ("isn't a live agent") no longer appears anywhere in `Servex/`. The fix traces the false failure to `successor()` following a shared `session_id`, and adds `ok`, `delivered_to` and `note` to the card. The readme says Servex needs a restart, and the report must say so too, as the brief asks.
++9. [note] `Server/readme.md` lists neither `OutPath.mjs` nor `IgnoredImageLinks.mjs`. It doesn't list `MergeTests.mjs` either, so this follows the existing pattern; `Server/doc/review.md` does document both.
++
++## Requirements
++- 1 "a send to a tab answers 'delivered to the tab's inbox'": yes. `Servex/agents/External.js` card has `ok: true`, `delivered_to`, `note: "Delivered…"`; `External.test.mjs` adds two cases; documented in `Servex/agents/readme.md` "Sending to a VS Code tab".
++- 2 "find the review by the branch's own task dir, not by age": partly. The fallback scans the dirs the branch touched plus `TaskDirs.find(slug, 3650)`, but a modified (not untracked) task log is missed (finding 1).
++- 3 "one route that works … shots from the worktree's own dev server into the task dir": yes. `OutPath` now allows any git worktree, `review.mjs --shots-only` is added, the merge refusal names the command, and `Server/doc/review.md` documents it.
++- 4 "find what is slow under load … prove it under load": yes, with a different cause than expected. The worktree had no `jfk.wav` (it is git-ignored), so `TestRunner.wav_path()` now falls back to the main checkout's copy, and `refresh` gets a 300 s limit. The proof is only in prose (finding 3).
++- "Each snag is its own commit": yes. c8064ed23, 56ea0eab8, 33a1eb62e and 917f98119 (plus 60a3bc970 for snag 4's docs). Two commits carry work outside the brief (finding 2).
++- "Document each fix in Server/doc/review.md and Servex/agents/readme.md": yes.
++- "Don't restart Servex; say a restart is needed": yes in the readme. No report was in the folder to check.
++- "Can you open a page that shows the class's live instances?": n/a. No new stateful class (`IgnoredImageLinks` is a stateless helper).
++
++## Words
++- content 1 (says what it is, first): yes. Each new doc paragraph in `Server/doc/review.md` opens with a bold one-line claim.
++- content 3 (short, plain): no, a note. The `Server/doc/review.md` paragraphs on the shots route and the browser scripts each run past 100 words, with history inline.
++- content (owner's names): yes. "VS Code tab", "inbox" and "gate" match the brief.
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review/diff.patch b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review/diff.patch
+new file mode 100644
+index 000000000..47928f455
+--- /dev/null
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/review/diff.patch
+@@ -0,0 +1,558 @@
++diff --git a/Server/IgnoredImageLinks.mjs b/Server/IgnoredImageLinks.mjs
++new file mode 100644
++index 000000000..1ccfeee43
++--- /dev/null
+++++ b/Server/IgnoredImageLinks.mjs
++@@ -0,0 +1,37 @@
+++/* IgnoredImageLinks.find(dir, changed) — a changed .md that links a picture git ignores.
+++ * .gitignore drops most images under public/framework/ai/ (repo size; only a doc/ folder keeps them), so a
+++ * walkthrough that links <task>/shots/x.png reads fine in the worktree and shows a broken picture once merged.
+++ * merge.mjs warns; the fix is to keep the picture in <task>/doc/screens/. Test: Server/IgnoredImageLinks.test.mjs */
+++import fs from "node:fs";
+++import path from "node:path";
+++import { spawnSync } from "node:child_process";
+++
+++const IMAGE = /\]\(\s*<?([^)\s>]+\.(?:png|jpe?g|gif|webp))(?:\s+"[^"]*")?\s*>?\)/gi;
+++
+++export default class IgnoredImageLinks {
+++	/** Repo-relative path a link points at, or null for an external link / a link out of the repo. */
+++	static target(mdRel, link){
+++		if (/^[a-z]+:/i.test(link) || link.startsWith("//")) return null;
+++		const clean = decodeURI(link.split("#")[0].split("?")[0]);
+++		const abs = clean.startsWith("/") ? path.posix.join("public", clean) : path.posix.join(path.posix.dirname(mdRel), clean);
+++		return abs.startsWith("..") ? null : abs;
+++	}
+++
+++	/** [{md, link, target}] for every picture linked from a changed .md that exists in `dir` and is git-ignored there. */
+++	static find(dir, changed){
+++		const hits = [];
+++		for (const md of changed.filter(f => f.endsWith(".md"))) {
+++			let text; try { text = fs.readFileSync(path.join(dir, md), "utf8"); } catch { continue; }
+++			for (const m of text.matchAll(IMAGE)) {
+++				const target = this.target(md, m[1]);
+++				if (!target || !fs.existsSync(path.join(dir, target))) continue;
+++				if (spawnSync("git", ["check-ignore", "-q", "--", target], { cwd: dir, windowsHide: true }).status === 0) hits.push({ md, link: m[1], target });
+++			}
+++		}
+++		return hits;
+++	}
+++
+++	static sentence(hits){
+++		return `!!! ${hits.length} picture(s) linked from a changed .md are git-ignored and will not reach the main tree: ${hits.map(h => `${h.md} -> ${h.link}`).join("; ")}. Keep hand-kept pictures in <task>/doc/screens/ (only doc/ is tracked) !!!`;
+++	}
+++}
++diff --git a/Server/IgnoredImageLinks.test.mjs b/Server/IgnoredImageLinks.test.mjs
++new file mode 100644
++index 000000000..07c08b89b
++--- /dev/null
+++++ b/Server/IgnoredImageLinks.test.mjs
++@@ -0,0 +1,19 @@
+++// node Server/IgnoredImageLinks.test.mjs — a scratch repo: a .md linking an ignored png is flagged, a tracked one is not.
+++import fs from "node:fs"; import os from "node:os"; import path from "node:path"; import assert from "node:assert/strict";
+++import { execFileSync } from "node:child_process";
+++import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
+++
+++const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ignimg-"));
+++const git = (...a) => execFileSync("git", a, { cwd: dir, windowsHide: true, stdio: "pipe" }).toString();
+++const write = (f, t) => { fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true }); fs.writeFileSync(path.join(dir, f), t); };
+++git("init", "-q", "-b", "main");
+++write(".gitignore", "public/framework/ai/**/*.png\n!public/framework/ai/**/doc/**/*.png\n");
+++const task = "public/framework/ai/sessions/2026/11/02/session-x/t";
+++write(task + "/shots/400.png", "x"); write(task + "/doc/screens/400.png", "x");
+++write(task + "/outcome.md", "![a](shots/400.png)\n![b](doc/screens/400.png)\n![c](https://example.com/x.png)\n![gone](shots/missing.png)\n");
+++const hits = IgnoredImageLinks.find(dir, [task + "/outcome.md", task + "/shots/400.png"]);
+++assert.deepEqual(hits.map(h => h.link), ["shots/400.png"], "only the ignored, existing, local picture");
+++assert.match(IgnoredImageLinks.sentence(hits), /doc\/screens/);
+++assert.equal(IgnoredImageLinks.target("a/b.md", "/framework/x.png"), "public/framework/x.png", "a site path maps under public/");
+++fs.rmSync(dir, { recursive: true, force: true });
+++console.log("IgnoredImageLinks: 3 cases ok");
++diff --git a/Server/OutPath.mjs b/Server/OutPath.mjs
++index 92c629244..0ed63afac 100644
++--- a/Server/OutPath.mjs
+++++ b/Server/OutPath.mjs
++@@ -1,6 +1,8 @@
++ /* OutPath.resolve(arg) — turns a path argument into a real absolute path, or refuses it.
++  * A git-bash drive path (/c/Code/...) is read as C:/Code/..., not as C:\c\Code\... (the 2026-10-17 stray dir).
++- * Only the repo this script lives in and the OS temp dir are allowed. Test: Server/OutPath.test.mjs */
+++ * Only the repo this script lives in, the OS temp dir and this repo's own git worktrees are allowed (a review shot for a branch is
+++ * taken by the main tree's layout-check and belongs in the branch's worktree, 2026-11-02). Test: Server/OutPath.test.mjs */
+++import { spawnSync } from "node:child_process";
++ import os from "node:os";
++ import path from "node:path";
++ import { fileURLToPath } from "node:url";
++@@ -18,11 +20,19 @@ export default class OutPath {
++ 		return !rel.startsWith("..") && !path.isAbsolute(rel);
++ 	}
++ 
+++	// the checked-out worktrees of this repo, from git itself (nothing else is trusted as a repo root)
+++	static worktrees(){
+++		const r = spawnSync("git", ["worktree", "list", "--porcelain"], { cwd: OutPath.ROOT, encoding: "utf8", windowsHide: true });
+++		return (r.stdout || "").split(String.fromCharCode(10)).filter(l => l.startsWith("worktree ")).map(l => l.slice(9).trim());
+++	}
+++
++ 	// allowed: extra roots besides the repo and os.tmpdir() (tests pass their own)
++-	static resolve(arg, allowed = [OutPath.ROOT, os.tmpdir()]){
+++	static DEFAULT = [OutPath.ROOT, os.tmpdir()];
+++	static resolve(arg, allowed = OutPath.DEFAULT){
++ 		const out = path.resolve(OutPath.gitbash(arg));
++-		if (!allowed.some(r => OutPath.inside(out, r)))
++-			throw new Error(`OutPath: refusing "${arg}" -> ${out}; output must be inside the repo (${OutPath.ROOT}) or ${os.tmpdir()}`);
+++		const ok = r => OutPath.inside(out, r);
+++		if (!allowed.some(ok) && !(allowed === OutPath.DEFAULT && OutPath.worktrees().some(ok)))
+++			throw new Error(`OutPath: refusing "${arg}" -> ${out}; output must be inside the repo (${OutPath.ROOT}), one of its git worktrees, or ${os.tmpdir()}`);
++ 		return out;
++ 	}
++ }
++diff --git a/Server/OutPath.test.mjs b/Server/OutPath.test.mjs
++index 4dd463819..094e8d266 100644
++--- a/Server/OutPath.test.mjs
+++++ b/Server/OutPath.test.mjs
++@@ -11,3 +11,7 @@ assert.equal(OutPath.resolve("layout-check-out"), path.resolve("layout-check-out
++ assert.throws(() => OutPath.resolve(path.join(path.parse(root).root, "stray-outside")), /refusing/, "a path outside the repo is refused");
++ assert.throws(() => OutPath.resolve("../../elsewhere"), /refusing/);
++ console.log("OutPath: 3 cases ok");
+++const other = OutPath.worktrees().find(w => path.resolve(w).toLowerCase() !== OutPath.ROOT.toLowerCase());
+++if (other) assert.equal(OutPath.resolve(path.join(other, "public/x")), path.join(other, "public/x"), "another git worktree of this repo is allowed (a review shot goes beside the branch's task dir)");
+++assert.throws(() => OutPath.resolve(path.join(path.parse(root).root, "not-a-worktree", "x")), /refusing/, "a plain sibling folder is still refused");
+++console.log("OutPath: worktree cases ok");
++diff --git a/Server/doc/review.md b/Server/doc/review.md
++index be548bfbf..89ebd4aab 100644
++--- a/Server/doc/review.md
+++++ b/Server/doc/review.md
++@@ -118,6 +118,10 @@ appended to `task.jsonl`, naming the widths actually used:
++ {"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
++ ```
++ 
+++**The one route for the gate's shots (2026-11-02).** The merge gate wants a `<width>.png` for every width the change needs under the task's `shots/`. `node Server/review.mjs <taskdir> <worktree>` takes them from the worktree's own dev server; `--shots-only` takes just the pictures (no reviewer, no review line) when that is all the gate lacks. `layout-check.mjs` may write inside any git worktree of the repo (`OutPath.worktrees()`, from `git worktree list`), so a task dir that lives in a worktree no longer makes it refuse: before, the main tree's `layout-check` accepted only the main tree and the temp dir, and agents drew PNGs by hand to pass the gate. Never hand-make a screenshot: the gate is meant to stand on real pictures. Test: `node Server/OutPath.test.mjs`.
+++
+++**Review shots are not committed; keep a picture you want to show in `doc/screens/`.** `.gitignore` drops `public/framework/ai/**/*.png` (and the other image types) except under a `doc/` folder, because screenshots were 84% of git history by size. The gate reads `shots/` from disk, so they need no commit. A walkthrough or outcome that links a picture must keep it under `<task>/doc/screens/`, where git tracks it. `merge.mjs` warns when a changed `.md` links a git-ignored picture (`Server/IgnoredImageLinks.mjs`, test `IgnoredImageLinks.test.mjs`); the owner's other option, committing the review shots themselves, was left out on purpose for the repo-size reason.
+++
++ **`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
++ skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
++ then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same
++@@ -182,6 +186,8 @@ also touches a page is refused unless that review has its own page report (`revi
++ with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
++ gets is not enough for a page.
++ 
+++**Where the gate looks for the review (2026-11-02).** It reads the newest `{"review":…}` line naming this branch in the task folders of the last 4 days, in the main tree and in the worktree. If none is there it looks where the branch itself worked, not by age: the task folders that the branch's commits (and uncommitted files) touch under `public/framework/ai/`, and the folder named like the branch (`worktree/<slug>` finds `<slug>` in any session ever, via `TaskDirs.find`). So a long-lived session dated weeks ago needs no `--review-dir`; the flag still works. `guessTaskDir` (the folder the refusal tells you to review) uses the same whole-store lookup. Test: `node Server/merge.test.mjs` ("a review in a task dir of an old session").
+++
++ **The test gate (2026-10-23).** After the smoke test, `merge.mjs` runs the tests that cover the diff (`TestRunner.covers`, transitive) on the branch. A failing test is then re-run on the merge base; the merge is refused only when it passes on the base and fails on the branch (pass-to-fail), so a test that already failed on `michael/dev` never blocks. A timeout is no result. Base results are cached per sha in `core/Test/results.jsonl` (`trigger:"merge-base"`). `--skip-tests` turns the gate off; a dry run skips it. The code is `Server/MergeTests.mjs`. **The tests run inside the merge lock:** a failing test on a new base costs a checkout of about 10 s (7.6 s `git worktree add` plus 2.7 s remove, for 23k files, measured) plus up to 60 s per test.
++ 
++ Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
++@@ -241,6 +247,9 @@ overwrite the first pass's finding text for readers of `review.jsonl`. Nothing t
++ second full pass — requirements.md's own model is one pass, one round of holds — so this is a
++ known limit, not a defended-against case.
++ 
+++## Browser scripts in a worktree (2026-11-02)
+++The Dictate browser scripts (`TestRunner.mjs --browser`, `run-all.mjs --browser`) looked load-sensitive from a worktree: `dictation-bar` and `refresh` got "0 sentences". The cause was not load but the fake mic file: `recordings/jfk.wav` is git-ignored, so a worktree has none, and the runner passed the missing path. `TestRunner.wav_path()` now falls back to the main checkout's copy. Run beside two more browser batches and the node suite, all three passed; `refresh` (real Whisper, six scenarios) takes about 130 s, so its limit is 300 s. Detail: [core/Test/doc/health.md](/framework/core/Test/doc/health.md).
+++
++ ## Later, not now
++ 
++ `--model <id>` is already there so the reviewer can one day be a different model family
++diff --git a/Server/merge.mjs b/Server/merge.mjs
++index c440bea68..925ce1f05 100644
++--- a/Server/merge.mjs
+++++ b/Server/merge.mjs
++@@ -74,6 +74,7 @@ import Browser from "./Browser.mjs";
++ import { refuse_links_into_main } from "./junction-guard.mjs";
++ import SessionRecord from "./SessionRecord.mjs";
++ import MergeTests from "./MergeTests.mjs";
+++import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
++ 
++ const BASE = "michael/dev";
++ const argv = process.argv.slice(2);
++@@ -184,6 +185,28 @@ function shotsReminder(changed, pages, branch){
++ 	if (missing.length) console.warn(`!!! Shots: no screenshot round since this branch began for ${missing.join(", ")} — shoot, read, judge: node Server/shots.mjs <url> !!!`);
++ }
++ 
+++/* The task dirs a branch's own work sits in: every changed path (committed on the branch, or still
+++ * uncommitted in its worktree) under public/framework/ai/, walked up to the nearest folder that holds a
+++ * task log. roots[1], when present, is the worktree; a missing log in the main tree is checked there. */
+++function branchTaskDirs(roots){
+++	const changed = new Set();
+++	const dirOf = roots[1] ?? MAIN;
+++	const lns = s => s.split(String.fromCharCode(10)).map(l => l.trim());
+++	for (const l of lns(git(dirOf, "diff", "--name-only", `${BASE}...HEAD`).stdout)) l && changed.add(l);
+++	for (const l of lns(git(dirOf, "status", "--porcelain", "--untracked-files=all").stdout)) l.length > 3 && changed.add(l.slice(3));
+++	const out = new Set();
+++	for (const f of changed) {
+++		if (!f.startsWith("public/framework/ai/")) continue;
+++		let d = path.dirname(f);
+++		while (d.length > "public/framework/ai".length) {
+++			const here = path.join(dirOf, d);
+++			if (fs.existsSync(here) && fs.readdirSync(here).some(n => SessionRecord.is_log_entry(here, n))) { out.add(path.join(MAIN, d)); break; }
+++			d = path.dirname(d);
+++		}
+++	}
+++	return [...out];
+++}
+++
++ function reviewGate(branch, head){
++ 	if (mainArg) { console.warn(`!!! --main: merging against another repo WITHOUT a fresh-eyes review !!!`); return null; }
++ 	if (noReview) { console.warn(`!!! --no-review: ${noReview} — merging WITHOUT a fresh-eyes review !!!`); return null; }
++@@ -221,15 +244,30 @@ function reviewGate(branch, head){
++ 		return out;
++ 	}
++ 	const roots = [MAIN, ...(path.resolve(dir).toLowerCase() === path.resolve(MAIN).toLowerCase() ? [] : [dir])];
++-	for (const root of roots)
++-		for (const day of dayDirs(root))
++-			for (const tj of taskLogs(day)) {
++-				const td = path.dirname(tj);
++-				for (const l of lines(fs.readFileSync(tj, "utf8"))) {
++-					let e; try { e = JSON.parse(l); } catch { continue; }
++-					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
++-				}
+++	function scan(root, folder){
+++		for (const tj of taskLogs(folder)) {
+++			const td = path.dirname(tj);
+++			for (const l of lines(fs.readFileSync(tj, "utf8"))) {
+++				let e; try { e = JSON.parse(l); } catch { continue; }
+++				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
++ 			}
+++		}
+++	}
+++	for (const root of roots) for (const day of dayDirs(root)) scan(root, day);
+++	/* Not in the last 4 days: look where THIS branch worked, not by age (2026-11-02). A review is written
+++	 * into the task dir the branch's own commits (or uncommitted files) touch, and that task dir is also the
+++	 * one named like the branch. A long-lived session dated weeks ago is found the same way. */
+++	if (!best) {
+++		const seen = new Set();
+++		for (const td of [...branchTaskDirs(roots), TaskDirs.find(branch.replace(/^worktree[/]/, ""), 3650)]) {
+++			if (!td || seen.has(td)) continue;
+++			seen.add(td);
+++			for (const root of roots) {
+++				const fromMain = path.relative(MAIN, td), here = path.join(root, fromMain.startsWith("..") ? path.relative(path.resolve(import.meta.dirname, ".."), td) : fromMain);
+++				if (fs.existsSync(here)) scan(root, here);
+++			}
+++		}
+++	}
++ 	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
++ 	const guessedTd = best ? null : guessTaskDir(aiDir, branch);
++ 	const cmd = `node Server/review.mjs ${best ? path.relative(best.root, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
++@@ -255,7 +293,7 @@ function reviewGate(branch, head){
++ 		const walk = d => { try { for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : /^\d+\.png$/.test(e.name) && have.add(Number(e.name.slice(0, -4))); } catch {} };
++ 		walk(path.join(best.td, "shots"));
++ 		const missing = need.filter(w => !have.has(w));
++-		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
+++		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; take just the pictures from the worktree's own server: ${cmd} --shots-only  (or re-run the review: ${cmd}; --no-review "why" skips, and is logged)`;
++ 	}
++ 	return null;
++ }
++@@ -522,6 +560,8 @@ try {
++ 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
++ 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
++ 		shotsReminder(changed, autoPages, branch);
+++		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
+++		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
++ 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
++ 		if (changed.some(f => f.startsWith("public/framework/ext/Figma/")) && fs.existsSync(path.join(dir, "public/framework/ext/Figma/visibility.mjs"))) {
++ 			const vis = run("node", [path.join(dir, "public/framework/ext/Figma/visibility.mjs")], dir);
++diff --git a/Server/merge.test.mjs b/Server/merge.test.mjs
++index 5d2f13cbc..a05e35eed 100644
++--- a/Server/merge.test.mjs
+++++ b/Server/merge.test.mjs
++@@ -162,6 +162,21 @@ test("tests: --skip-tests runs nothing", () => {
++ 	assert.equal(rows(main).length, 0);
++ });
++ 
+++test("gate: a review in a task dir of an old session (years old, not in the 4-day scan) is found by the branch's own task dir", () => {
+++	const { main, wt } = scratch("worktree/oldtask");
+++	const gate = () => spawnSync("node", [MERGE, wt, "--gate-only"], { encoding: "utf8", windowsHide: true });
+++	const td = "public/framework/ai/sessions/2025/01/05/session-aaaa1111/oldtask";
+++	const base = git(main, "rev-parse", "michael/dev").trim();
+++	assert.match(gate().stdout, /no review/, "before any review is written");
+++	const review = { review: { verdict: "pass", findings: [], file: "review.md", branch: "worktree/oldtask", head: base, at: "2026-11-02T00:00:00Z" } };
+++	write(wt, td + "/task.jsonl", [{ task: "oldtask" }, review].map(o => JSON.stringify(o)).join("\n") + "\n");
+++	assert.match(gate().stdout, /gate: ok/, "uncommitted in the worktree: found");
+++	git(wt, "add", "."); git(wt, "commit", "-qm", "review line");
+++	const r = gate();
+++	assert.equal(r.status, 0, r.stdout + r.stderr);
+++	assert.match(r.stdout, /gate: ok/, "committed on the branch: found");
+++});
+++
++ for (const t of tmps) { try { git(t, "worktree", "prune"); } catch {} }
++ for (const t of tmps) fs.rmSync(t, { recursive: true, force: true });
++ console.log(`${passed} passed, 0 failed`);
++diff --git a/Server/review.mjs b/Server/review.mjs
++index 951361203..74757cc4f 100644
++--- a/Server/review.mjs
+++++ b/Server/review.mjs
++@@ -711,9 +711,10 @@ async function main() {
++ 		return;
++ 	}
++ 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
+++	const shotsOnly = argv.includes("--shots-only") && !!argv.splice(argv.indexOf("--shots-only"), 1);   // take the gate's screenshots only: no reviewer, no review line
++ 	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model"), widthsArg = flag("--widths");
++ 	const [taskDirArg, worktreeArg] = argv;
++-	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
+++	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920] [--shots-only]'); process.exit(1); }
++ 	const taskDir = path.resolve(taskDirArg);
++ 	let worktreeDir = null;
++ 	if (!range) try { worktreeDir = branchTree(taskDir, path.resolve(worktreeArg || process.cwd())); } catch (e) { console.error(e.message); process.exit(1); }
++@@ -796,6 +797,10 @@ async function main() {
++ 		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
++ 		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands, widths } });
++ 	}
+++	if (shotsOnly) {
+++		console.log(pageReview ? `review.mjs --shots-only: ${pages.length} page(s) at ${widths.join(", ")}px -> ${path.relative(process.cwd(), shotsDir)}/ (no reviewer was started)` : "review.mjs --shots-only: this diff changes no page, so no screenshots are needed");
+++		return;
+++	}
++ 
++ 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved
++ 	// the same way — both live under public/framework/ai/ per the brief's own convention.
++diff --git a/Servex/agents/Agents.js b/Servex/agents/Agents.js
++index 6593bb37d..0260943bb 100644
++--- a/Servex/agents/Agents.js
+++++ b/Servex/agents/Agents.js
++@@ -710,6 +710,7 @@ export class Agents {
++ 	successor(id){
++ 		const running = x => { const a = this.live.get(x); return a && a.state !== "stopped"; };
++ 		if (!id || running(id)) return id;   // the hot path (every send): no disk read for a running id
+++		if (this.external?.has?.(id)) return id;   // a registered tab is an inbox, not a stopped agent: it never follows a session another agent shares (a send to vscode-rp-proof landed in task-mastermind-recursive-pairs)
++ 		const rows = this.reg().read(), seen = new Set([id]);
++ 		const sess = x => this.live.get(x)?.session_id ?? rows[x]?.session_id;
++ 		const started = x => String(this.live.get(x)?.started_at ?? rows[x]?.started_at ?? "");
++diff --git a/Servex/agents/External.js b/Servex/agents/External.js
++index 246f4b933..d4aa5fd8c 100644
++--- a/Servex/agents/External.js
+++++ b/Servex/agents/External.js
++@@ -107,7 +107,8 @@ export default class External {
++ 		const line = { from: note.from ?? null, text, reply_to: note.reply_to ?? null, at: stamp() };
++ 		fs.appendFileSync(this.file(id), JSON.stringify(line) + "\n");
++ 		this.touch(id);
++-		return { id, state: "external", delivered: line, card: () => ({ id, kind: "external", state: "external", delivered: line }) };
+++		const card = { id, kind: "external", state: "external", ok: true, delivered_to: `the inbox of the VS Code tab ${id} (logs/inbox/${id}.jsonl)`, note: "Delivered. A tab is not a running agent, so it will not answer in this call: it reads its inbox on its next turn.", delivered: line };
+++		return { id, state: "external", delivered: line, card: () => card };
++ 	}
++ 
++ 	/* Make `id` addressable if it is not yet (the remote door's caller, "voice-app", has no tab to register itself). */
++diff --git a/Servex/agents/External.test.mjs b/Servex/agents/External.test.mjs
++index caa8ddfb8..acab9b8fb 100644
++--- a/Servex/agents/External.test.mjs
+++++ b/Servex/agents/External.test.mjs
++@@ -87,6 +87,26 @@ check("Agents.send() to a registered external id delivers to its inbox instead o
++ 	assert.ok(Date.parse(lines[0].at) >= before, "timestamped, and recent");
++ });
++ 
+++check("the answer to a send says it was delivered to the tab's inbox (not that the tab is not a live agent)", () => {
+++	external.register({ id: "vscode-card", session_id: "card-session" });
+++	const card = agents.send("vscode-card", "second hello", { from: "mastermind-servex" }).card();
+++	assert.equal(card.ok, true);
+++	assert.match(card.delivered_to, /inbox of the VS Code tab vscode-card/);
+++	assert.match(card.note, /Delivered/);
+++	assert.equal(lines_of("vscode-card").pop().text, "second hello");
+++});
+++
+++check("a registered tab that shares a session id with a spawned agent is NOT followed to that agent", () => {
+++	const rows = agents.reg().read();
+++	rows["worker-sharing"] = { id: "worker-sharing", role: "minion", state: "stopped", session_id: "shared-session", started_at: "2099-01-01T00:00:00Z" };
+++	agents.reg().save(rows);
+++	external.register({ id: "vscode-shared", session_id: "shared-session" });
+++	assert.equal(agents.holder("vscode-shared"), "vscode-shared");
+++	assert.equal(agents.send("vscode-shared", "to the tab", { from: "mastermind-servex" }).card().kind, "external");
+++	assert.equal(lines_of("vscode-shared").length, 1);
+++	assert.equal(agents.holder("worker-sharing"), "worker-sharing");
+++});
+++
++ check("an id nobody registered still goes through wake() and throws, unchanged", () => {
++ 	assert.throws(() => agents.send("nobody-here", "hi"), /No agent "nobody-here"/);
++ });
++diff --git a/Servex/agents/item-generic.test.mjs b/Servex/agents/item-generic.test.mjs
++index 984004360..b5573537d 100644
++--- a/Servex/agents/item-generic.test.mjs
+++++ b/Servex/agents/item-generic.test.mjs
++@@ -32,7 +32,9 @@ try {
++ 		try {
++ 			const tool = name => page_tools().find(t => t.name === name).handler;
++ 			r = await run_item({ path: PURL, delta: { title: "Renamed" } }, { caller: "t" });
++-			ok(r.ok && /# Renamed/.test(r.state), "page set: the answer is drawn from the live root");
+++			ok(r.ok && r.state === undefined, "page set: a write answers small (no whole page)");
+++			const seen = await run_item({ path: PURL }, { caller: "t" });
+++			ok(/# Renamed/.test(seen.state), "page set: a read draws the page from the live root");
++ 			const added = JSON.parse(await tool("page_add")({ path: PURL, item: { type: "part-card", title: "Card one" } }, { caller: "t" }));
++ 			ok(added.ok && RANDOM.test(added.id), "page add: the card gets an 8-character random id");
++ 			const called = JSON.parse(await tool("page_call")({ path: PURL, target: ["content", added.id], method: "set", args: { text: "called" } }, { caller: "t" }));
++diff --git a/Servex/agents/page_tools.js b/Servex/agents/page_tools.js
++index 7d62e2e14..5a90ef0b3 100644
++--- a/Servex/agents/page_tools.js
+++++ b/Servex/agents/page_tools.js
++@@ -1192,6 +1192,10 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
++ 		else if (delta !== undefined) return { ok: false, why: `"${url}" has no session record to answer ${Object.keys(delta).join(", ")}, and these keys are never written to its page. Nothing was written.` };
++ 	}
++ 
+++	// Task verbs (a `tasks` key) on a session route belong to the session record, not its page: a `tasks.add` written to page.jsonl is an unknown field there and no process ever runs (2026-11-02). The dated folder already resolved this way (resolve_file).
+++	if (session_url && !at.target.length && path.basename(at.file) === "page.jsonl" && is_plain(delta) && "tasks" in expand_dots(delta) && fs.existsSync(path.join(path.dirname(at.file), "session.jsonl")))
+++		at = { file: path.join(path.dirname(at.file), "session.jsonl"), target: [] };
+++
++ 	// ONE LIVE ROOT PER FILE, for any class Item.types registers (a page, a task, a session, an improvements file): the class named on
++ 	// line 1, else the one its file name implies. A Task-family root (tasky) also gets the task steps below; every root gets the same write.
++ 	let kind = class_of(at.file), Class = await class_for(kind);
++@@ -1360,7 +1364,8 @@ async function run_item_now({ path: url, target, delta } = {}, ctx = {}, alias =
++ 		return { ok: true, ids, line, size, now: { state: live.state, completion: live.completion }, ...(unchanged ? { warning: unchanged } : {}), ...(merged ? { merged } : {}), ...(homes.length ? { homes } : {}),
++ 			...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
++ 	}
++-	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias ? await extra() : {}) };
+++	// A write answers small, whatever the file size: never the page's whole text (753,132 characters once). A read (item with no delta) is how you get the picture.
+++	return { ok: true, ids, line, size, ...(unchanged ? { warning: unchanged } : {}), ...(homes.length ? { homes } : {}), ...(made ? { pages: made.done } : {}), ...(!alias && first_time() ? { instructions: await instructions_for(kind, Class) } : {}) };
++ }
++ 
++ /* ---------- the six tools ---------- */
++diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
++index 6dbfcb10c..78412b566 100644
++--- a/Servex/agents/readme.md
+++++ b/Servex/agents/readme.md
++@@ -68,6 +68,10 @@ agents do, so a child's wake — `wake_parent`'s `done`/`blocked` — reaches it
++ becomes one more `task` line, `state: working | blocked | landed`, which is what the card's
++ status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
++ 
+++## Sending to a VS Code tab
+++
+++A tab (`vscode-<id8>`, `kind: "external"`) is not a running agent. `External.js` registers it, and `send_to_agent` to it appends one line to its inbox file (`%LOCALAPPDATA%/lew42/servex/logs/inbox/<id>`, a JSONL file), which the tab reads on its next turn. The answer says so: `ok: true`, `delivered_to: "the inbox of the VS Code tab <id> …"` and a note that the tab will not reply in this call. It is delivered; do not post an `owner_note` to repeat it. `Agents.successor()` never follows a registered tab to another agent that shares its `session_id` (a send to `vscode-rp-proof` once landed in a running mastermind). Test: `External.test.mjs`. Needs a Servex restart to take effect (2026-11-02).
+++
++ ## Watch out — [`doc/traps.md`](./doc/traps.md) has the measurements
++ 
++ - `result.result` is not reliably the last thing the agent said; read `transcript` events.
++diff --git a/Servex/agents/session-route-tasks.test.mjs b/Servex/agents/session-route-tasks.test.mjs
++new file mode 100644
++index 000000000..49a0a4f44
++--- /dev/null
+++++ b/Servex/agents/session-route-tasks.test.mjs
++@@ -0,0 +1,45 @@
+++// A session route (/framework/ai/sessions/<uuid>/) takes task verbs on session.jsonl, not on the page; and a write answers small. `node Servex/agents/session-route-tasks.test.mjs`
+++import assert from "node:assert";
+++import fs from "node:fs";
+++import path from "node:path";
+++import { fileURLToPath } from "node:url";
+++import { run_item } from "./page_tools.js";
+++
+++const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+++const ID = "00000000-0000-4000-8000-" + String(process.pid).padStart(12, "0");
+++const NAME = "srt-test-" + process.pid, DIR = path.join(ROOT, "public/framework/ai/sessions/2026/10/16", NAME);
+++const BY_ID = `/framework/ai/sessions/${ID}/`, BY_DATE = `/framework/ai/sessions/2026/10/16/${NAME}/`;
+++const lines = f => fs.readFileSync(path.join(DIR, f), "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l));
+++let n = 0;
+++const ok = (c, m) => { assert.ok(c, m); n++; };
+++
+++fs.mkdirSync(DIR, { recursive: true });
+++fs.writeFileSync(path.join(DIR, "index.json"), JSON.stringify({ id: ID, first_at: "2026-10-16T01:00:00.000Z" }));
+++fs.writeFileSync(path.join(DIR, "page.jsonl"), JSON.stringify({ session: ID, ts: "2026-10-16T01:00:00.000Z" }) + "\n");
+++fs.writeFileSync(path.join(DIR, "session.jsonl"), JSON.stringify({ session: { id: ID, kind: "vscode-tab", at: "2026-10-16T01:00:00.000Z" }, by: "test" }) + "\n");
+++try {
+++	const page_before = lines("page.jsonl").length;
+++	for (const [label, url] of [["uuid route", BY_ID], ["dated route", BY_DATE]]) {
+++		const r = await run_item({ path: url, delta: { tasks: { add: { title: "A task from the " + label } } } }, { caller: "owner" });
+++		ok(r.ok && r.ids?.length === 1, label + ": the task was added: " + JSON.stringify(r).slice(0, 200));
+++		const { instructions: _i, ...bare } = r;
+++		ok(JSON.stringify(bare).length < 3000, `${label}: the answer is small (${JSON.stringify(bare).length} characters, instructions aside)`);
+++		ok(r.state === undefined, label + ": no whole state in a write's answer");
+++	}
+++	ok(!lines("page.jsonl").some(l => l.tasks || l.task), "nothing task-like was written to page.jsonl: " + JSON.stringify(lines("page.jsonl").slice(page_before)).slice(0, 300));
+++	ok(lines("session.jsonl").filter(l => l.tasks?.add).length === 2, "both tasks are on session.jsonl");
+++
+++	// a page write on a session route still goes to the page, and answers small too
+++	const card = await run_item({ path: BY_ID, delta: { content: { add: { type: "part-text", text: "hello" } } } }, { caller: "owner" });
+++	ok(card.ok && card.ids?.length === 1, "a card still lands on the page: " + JSON.stringify(card).slice(0, 200));
+++	ok(lines("page.jsonl").some(l => l.content?.add), "the card is on page.jsonl");
+++	ok(card.state === undefined, "a page write does not answer with the whole page");
+++	const { instructions: _j, ...cbare } = card;
+++	ok(JSON.stringify(cbare).length < 3000, `a page write's answer is small (${JSON.stringify(cbare).length} characters)`);
+++
+++	// a read still answers the picture
+++	const read = await run_item({ path: BY_ID }, { caller: "owner" });
+++	ok(read.ok && read.state, "a read with no delta still returns the state");
+++	console.log(`session-route-tasks: ${n} checks passed`);
+++} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+++process.exit(0);
++diff --git a/Servex/doc/item-tool.md b/Servex/doc/item-tool.md
++index 71d9d020f..5d8d798eb 100644
++--- a/Servex/doc/item-tool.md
+++++ b/Servex/doc/item-tool.md
++@@ -5,7 +5,7 @@
++ - **Which log:** a url's folder holds `task.jsonl` (Task), else `session.jsonl` (Session, `core/Session/Session.js`), else `page.jsonl` (Page). `task.jsonl` beside a `page.jsonl` means a task folder. A `class` key on line 1 wins when `Item.types` registers that name (`class_for`); an unknown name falls back to the file's own class.
++ - **One live root per file, for any class** (2026-10-28, build I): every file is replayed once into `Item.Store.for(url)`, and each write is one line applied to that live root (`try_line`), then appended. A page write no longer replays the whole page: `page_set`, `page_add`, `page_call` and `page_log` all go through `run_item`, and a page's answer is drawn from the live `Page` (`page_picture`). Measured on the 1167 `page.jsonl` files in git: 1137 draw exactly as the old text replay, 19 differ cosmetically (an untyped item, a nested data card flattened, a title a line set now shows, one order), 11 need a browser to replay (their writes were already refused; reads fall back to the text replay). At most 1000 live roots are kept (`LIVE_CAP`; the least recently used go cold and replay on their next call). A browser's raw page line (`record_lines`) advances a warm page the same way; one node's Page cannot apply is still written and the warm root dropped (a task line is refused instead).
++ - **`improvements.jsonl`** (2026-10-22): a url naming `<folder>/improvements.jsonl` is class `Improvements` (`core/Task/Improvements.js`, a Task); `tasks.add` always nests there (no folder). The same title proposed again is merged by the class's own list (its `add` reinforces the existing task, on write and on replay), so the tool writes the add as sent; the answer says `merged: [{title, into, weight}]`. The rule for writing one is in `Servex/agents/roles/mastermind.md`, "Improvements".
++-- **Item vs log, settled 2026-10-22** ([code-shape.md](/framework/ai/doc/code-shape.md)): `item` is for files a class reads (Task, Session, Process, Page, improvements): node replays the class, checks the delta or method against it, writes, and answers with what it wrote (`{ok, ids, line, size, now: {state, completion}}` for a Task, Session or Process; a Page write still answers its page). The full computed state is a read, with no delta. `log` (the Servex MCP `log` tool) is the plainly named raw append for any other JSONL record: node adds time, author and session and checks the line against the log's schema. Neither makes the model write bookkeeping.
+++- **Item vs log, settled 2026-10-22** ([code-shape.md](/framework/ai/doc/code-shape.md)): `item` is for files a class reads (Task, Session, Process, Page, improvements): node replays the class, checks the delta or method against it, writes, and answers with what it wrote (`{ok, ids, line, size, now: {state, completion}}` for a Task, Session or Process; a Page write answers `{ok, ids, line, size}` too, never the page text: a 753,132-character answer to one card on a big session page was the reason, 2026-11-02). The full computed state is a read, with no delta. `log` (the Servex MCP `log` tool) is the plainly named raw append for any other JSONL record: node adds time, author and session and checks the line against the log's schema. Neither makes the model write bookkeeping.
++ - **No delta** returns the state; Task: `{class, state, completion, data, tasks}` from `Task.replay`. A Session also answers `messages: {count, last}` (its chat's last 20 messages, `{id, type, by, at, text}`) when it has any.
++ - **The chat list** (2026-11-01): a Session takes `messages` and `sentences` (its chat, [core/Session/Chat](/framework/core/Session/Chat/readme.md)): `{"messages":{"add":{"type":"Reply","by":"smart","text":"…"}}}` appends; `{"messages":{"<id>":{"title":…,"text":…}}}` refines a message in place. Servex writes the owner's sentences and the seats' replies there itself; a `{place}` with a cleaned `text` also writes that sentence's cleaned text onto its Prompt, in place (`ChatWriter.place`).
++ - **Dot paths:** `"now.preview": x` becomes `{now: {preview: x}}`, and `"tasks.a.tasks.b.title": x` sets three levels down; the line is written nested, never dotted. `target` takes the same path (`"tasks.a.tasks.b"`, or a list of hops) and is walked level by level through each level's own `get` (a property, a named List, a List's member), so it reaches any list, not only `tasks` ([ids-and-paths.md](/framework/core/Session/tasks/data-shapes/ids-and-paths.md), DECIDED). Watch out: when a key names both a data field holding an object and a child with that id, the field wins (`hop` in `page_tools.js` asks `get` before `member`); random ids make that clash unlikely.
++@@ -63,6 +63,6 @@ Moved into classes so far: verdict strings (`Task.replay_line`) and improvements
++ 5. **The same-title refusal** on `tasks.add`: `Task.List.add`, once a browser add should refuse a repeat too (Improvements already merges in its own list).
++ 6. **Request stamping** (`from` on an add to another agent's task) and the **`sessions` line**: node-side, they need the caller; a Task hook on add if a class should own them.
++ 7. **`type` defaulting** (`task_type`: an unknown type becomes `Task`): `Task.List.make`.
++-8. **Session url routing** (a query on a session's page url reads its `session.jsonl`): a path rule in `resolve`, not a delta rewrite; it stays.
+++8. **Session url routing** (a query on a session's page url reads its `session.jsonl`): a path rule in `resolve`, not a delta rewrite; it stays. Since 2026-11-02 a `tasks` write on `/framework/ai/sessions/<uuid-or-agent-id>/` goes to `session.jsonl` too (the dated folder always did); before, it landed as an unknown field on `page.jsonl` and no process ran. Other writes there (cards, pages, title) still go to the page. Test: `Servex/agents/session-route-tasks.test.mjs`.
++ 
++ Test: `node Servex/agents/item-generic.test.mjs` (page writes through the live root with zero replays, a task added by verb, a dotted set three levels deep, random ids).
++diff --git a/public/framework/core/Test/TestRunner.mjs b/public/framework/core/Test/TestRunner.mjs
++index 1d4c22fac..a246a2494 100644
++--- a/public/framework/core/Test/TestRunner.mjs
+++++ b/public/framework/core/Test/TestRunner.mjs
++@@ -125,6 +125,17 @@ export default class TestRunner {
++ 		return this._site;
++ 	}
++ 
+++	/* recordings/ is git-ignored, so a worktree has no jfk.wav: the fake mic takes the main checkout's copy. (2026-11-02: three Dictate browser scripts failed in a worktree with "0 sentences" and looked like load.) */
+++	wav_path(){
+++		const rel = "public/framework/ai/recordings/jfk.wav", own = path.join(this.root, rel);
+++		if (fs.existsSync(own)) return own;
+++		try {
+++			const main = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: this.root, windowsHide: true, encoding: "utf8" }).split(String.fromCharCode(10))[0].replace(/^worktree /, "").trim();
+++			if (main && fs.existsSync(path.join(main, rel))) return path.join(main, rel);
+++		} catch {}
+++		return own;
+++	}
+++
++ 	one(file, trigger, extra = {}, { args = [], env = {}, timeout = this.limit(file) } = {}){
++ 		return new Promise(resolve => {
++ 			const t0 = Date.now(); let out = "", timedOut = false;
++@@ -163,7 +174,7 @@ export default class TestRunner {
++ 		const { SCRIPTS } = await import(pathToFileURL(path.join(HERE, "browser-scripts.mjs")).href);
++ 		const site = process.env.SITE_URL || this.site_url(), shots = fs.mkdtempSync(path.join(os.tmpdir(), "browser-shots-"));
++ 		const pw = path.dirname(execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim());
++-		const wav = path.join(this.root, "public/framework/ai/recordings/jfk.wav");
+++		const wav = this.wav_path();
++ 		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
++ 		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
++ 		for (const x of todo) {
++diff --git a/public/framework/core/Test/TestRunner.test.mjs b/public/framework/core/Test/TestRunner.test.mjs
++index f72fd1245..b3410ea1e 100644
++--- a/public/framework/core/Test/TestRunner.test.mjs
+++++ b/public/framework/core/Test/TestRunner.test.mjs
++@@ -35,5 +35,11 @@ const nearCli = spawnSync(process.execPath, [RUNNER, "--near", RUNNER], { encodi
++ assert.ok(nearCli.stdout.split(/\s+/).includes("public/framework/core/Test/TestRunner.test.mjs"), nearCli.stdout + nearCli.stderr);
++ assert.doesNotMatch(nearCli.stdout, /PASS|FAIL/);
++ 
+++// the fake mic file: a checkout that has jfk.wav uses it; one without (a worktree: recordings/ is git-ignored) is not handed a missing path when the main checkout has it
+++put("public/framework/ai/recordings/jfk.wav", "x");
+++assert.equal(r.wav_path(), path.join(root, "public/framework/ai/recordings/jfk.wav"));
+++const real = new TestRunner(); const w = real.wav_path();
+++assert.ok(path.isAbsolute(w) && w.endsWith("jfk.wav"), w);
+++
++ fs.rmSync(root, { recursive: true, force: true });
++ console.log("ok - TestRunner: a file path runs, --near is one level");
++diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
++index 4012da8a2..e65f1b685 100644
++--- a/public/framework/core/Test/browser-scripts.mjs
+++++ b/public/framework/core/Test/browser-scripts.mjs
++@@ -25,7 +25,7 @@ export const SCRIPTS = [
++ 	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
++ 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
++ 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"pass"},
++-	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":180000},
+++	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":300000},
++ 	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"pass"},
++ 	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
++ 	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"pass"},
++diff --git a/public/framework/core/Test/doc/health.md b/public/framework/core/Test/doc/health.md
++index a969db266..e3f975675 100644
++--- a/public/framework/core/Test/doc/health.md
+++++ b/public/framework/core/Test/doc/health.md
++@@ -36,6 +36,7 @@ Playwright scripts that take a site URL (not named `*.test.mjs`) are listed in [
++ Per-script runs against monorepo.localhost (2026-11-02, 32 scripts, each line in [results.jsonl](../results.jsonl) with trigger `browser` or in the run-all line): the first pass had 19 pass and 13 red; re-runs showed `dictation-bar` and `refresh` are flaky under load (they passed once, failed twice), so they are listed red. The list now holds **17 pass, 15 red**. The `run-all.mjs --browser` line in run-all.jsonl ran against the worktree site and shows 16 pass.
++ - **Pass (17):** Dictate `active-session`, `chat-gray`, `docs-tab`, `errors`, `flicker`, `freeze`, `load`, `marks`, `order`, `raw-stays`, `sheet-steps`, `v1-order`, `watch`; `repeat`; Refine `session-log`, `refine-style`; `tag-router`.
++ - **Red (15):** `chat-sent` (v2 chat at 400px: scroll-pinning checks fail (scroll max 0, newest not in view)); `debug-tab` (Debug view shows llm=wait, not all eight lights green); `deltas` (owner bubble should read One. Two. Three. once; the repeat is drawn or the late line is misplaced); `earlier` (after show-earlier, the reader moved (144 -> -1115)); `in-place` (4 checks fail (see its output)); `new-session` (A2: New session does not clear the demo chat); `reconnect` (5 s outage should stay hidden (8 s grace); log lines not written); `settings` (delay 0.5 s: 3 prompts sent, wanted 2); `stall` (1 check fails after the reload step); `swallow` (page.evaluate: querySelectorAll of undefined); `composer-flow` (screenshot step fails (unsupported mime type); needs Whisper :8178 and Servex); `dictate-flow` (times out waiting for .voice-conn); `nothing-to-refine` (loading Dictate.js request errors).
+++- **Load and the fake mic (2026-11-02, workflow-friction).** In a worktree the three Dictate scripts `dictation-bar`, `refresh` (and so a `run-all --browser` from a worktree) failed with "0 sentences" and looked load-related: `recordings/` is git-ignored, so the worktree has no `jfk.wav`, and the runner handed the scripts that missing path. `TestRunner.wav_path()` now falls back to the main checkout copy. With that fixed, all three passed while two other `--browser` batches (17 scripts) and the whole node suite ran beside them (dictation-bar 30 s, docs-tab 26 s, refresh 126-136 s; their waits are conditions, the fixed `waitForTimeout`s only prove that nothing happens). `refresh` is the slow one (real Whisper, six scenarios), so its runner limit is 300 s, not 180 s. If one of them times out again, read its tail first: the usual cause is the sentence wait ("none in 40 s"), i.e. Whisper on :8178 or the wav, not the page.
++ - **Never the live Servex (2026-11-02).** Browser scripts run fenced: `TestRunner.browser()` sets `FENCE_SERVEX=1` and points `PWENTRY` at [playwright-fenced.mjs](../playwright-fenced.mjs), so any request to `127.0.0.1:8090` that a script does not stub itself gets a harmless reply and is listed at exit (`servex fence: kept off the live Servex: …`). Scripts that stub Servex use `route.fallback()`, not `route.continue()`. Why: the Dictate scripts posted made-up sessions to the live `/api/session/say` and one of those ended Servex at 00:31. Detail and test: [Servex/doc/restart.md](/framework/servex/doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02).
++ - **Skipped:** `handoff.mjs` (asks the live Servex and starts real agents) and `live-refine-measure.mjs` (spends model money).
++ - The reds are filed: the Dictate ones logged by dictation-v3 in commit b4dfb5639 ("log test-health browser failures"), the Refine ones in [ext/Refine/improvements.jsonl](/framework/ext/Refine/improvements.jsonl).
+diff --git a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/session.jsonl b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/session.jsonl
+index c72f0c287..47cdc5fa9 100644
+--- a/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/session.jsonl
++++ b/public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/session.jsonl
+@@ -1 +1,14 @@
+ {"assign":{"session_id":"72c74d54-1f13-41e4-8cdf-70187b0a8042","agent":"mastermind-workflow-friction","role":"mastermind","card":"Workflow: fix the four snags every agent hit today","brief":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/workflow-friction/requirements.md","model":"claude-sonnet-5-5","effort":"high","role_readme":"Servex/agents/roles/mastermind.md","home":"/framework/servex/","requested_at":"2026-11-02T14:40:13-06:00","now":"starting"}}
++{"review":{"at":"2026-11-02T15:28:44-06:00","size":"full","verdict":"fix","findings":[{"n":1,"kind":"fix","text":"Snag 2 misses a modified task log: `branchTaskDirs` in `Server/merge.mjs` (the new function, about line 174) trims each `git status --porcelain` line and then does `l.slice(3)`. A tracked file with unstaged changes (` M public/…/task.jsonl`, which is what `review.mjs` makes when it appends a review line) becomes `ublic/…`, fails the `public/framework/ai/` check and is skipped. Don't trim the status lines; split on the first space after the two status characters. The new test in `Server/merge.test.mjs` only covers an untracked file (`??`), so add a case for a modified one."},{"n":2,"kind":"fix","text":"The task folder doesn't record the extra work. Commit ec10f6c70 (\"snags 5, 6\": `tasks.add` on a session route goes to `session.jsonl`, and a page write answers small, in `Servex/agents/page_tools.js`) and `Server/IgnoredImageLinks.mjs` (merge warns on links to git-ignored pictures) are not in `requirements.md`. No file in the task folder says who asked for them or why. Add the asks to `requirements.md` or the task log."},{"n":3,"kind":"fix","text":"A fresh agent couldn't continue from this folder. It holds only `requirements.md`, `past-work.md`, a one-line `session.jsonl` (the assign line) and `review/`. There is no task log, no outcome, and no record of the proof runs the brief asks for: each snag's test or rerun, and `run-all --browser` beside another headless job. That proof appears only as prose in `core/Test/doc/health.md`. Link the run lines (results.jsonl / run-all.jsonl) and the test results from the task folder."},{"n":4,"kind":"note","text":"The brief asked the builder to coordinate with `mastermind-task-close-loop` before touching `Servex/agents/Agents.js`, and the diff changes `Agents.successor()` (one line). Nothing records that coordination."},{"n":5,"kind":"note","text":"The new check in `public/framework/core/Test/TestRunner.test.mjs` doesn't test the fallback. `real.wav_path()` passes whenever the path ends in `jfk.wav`, and the worktree's own missing path does too. A case with a scratch \"main\" checkout that holds the wav would prove snag 4's fix."},{"n":6,"kind":"note","text":"A page write through `page_set`/`page_add` (`page_tools.js` about line 1396) no longer returns the page's text. Any caller that read the page out of a write's answer now needs a separate read. `Servex/doc/item-tool.md` documents the change, but it goes beyond the four snags."},{"n":7,"kind":"note","text":"`review.mjs --shots-only` on a diff of size `none` reaches the `size === \"none\"` branch (`Server/review.mjs:761`) before the shots-only exit, so it writes a no-agent pass review line. The flag's comment promises \"no review line\". This is harmless (no page means no shots), but the wording is wrong."},{"n":8,"kind":"note","text":"Snag 1's own wording (\"isn't a live agent\") no longer appears anywhere in `Servex/`. The fix traces the false failure to `successor()` following a shared `session_id`, and adds `ok`, `delivered_to` and `note` to the card. The readme says Servex needs a restart, and the report must say so too, as the brief asks."},{"n":9,"kind":"note","text":"`Server/readme.md` lists neither `OutPath.mjs` nor `IgnoredImageLinks.mjs`. It doesn't list `MergeTests.mjs` either, so this follows the existing pattern; `Server/doc/review.md` does document both."}],"branch":"worktree/workflow-friction","head":"60a3bc970da837bb9a9d33a336b3b0dcec139d24","model":"claude-opus-5-5","cost":0.8532344,"file":"review.md","report":null,"shots":null}}
++{"scope":{"at":"2026-11-02T21:32:28.849Z","by":"mastermind-workflow-friction","note":"Snags 5 and 6 (item write on a session route lost tasks.add; its answer was 753,132 chars) and the git-ignored png warning (IgnoredImageLinks) were added mid-task by vscode-mastermind, who hit them while using this branch's snag 2/3 work. They are built in page_tools.js and merge.mjs, each its own commit with its own test."}}
++{"coordination":{"at":"2026-11-02T21:32:28.849Z","by":"mastermind-workflow-friction","with":"mastermind-task-close-loop","note":"Its branch touches Agents.js (an import, close_loop() before context_alert(), one-line calls in result()/stop()) and Registry.js (one close_nagged field); mine touches only successor() in Agents.js. It confirmed no overlap; the merge will tell if git disagrees."}}
++{"proof":{"at":"2026-11-02T21:32:28.849Z","by":"mastermind-workflow-friction","note":"Per-snag tests all exit 0 after the review fixes: merge.test 12 passed (snag 2 incl. old session and edited tracked log), OutPath + IgnoredImageLinks (snag 3), External.test 15 (snag 1), session-route-tasks 13 and item-generic 23 (snags 5, 6), TestRunner.test (snag 4 wav_path, now against a real git worktree). Snag 4 cause: worktrees lacked the git-ignored recordings/jfk.wav (not load), plus refresh needed 300 s; the --browser reruns are in public/framework/core/Test/results.jsonl and run-all.jsonl.","links":["/framework/core/Test/results.jsonl","/framework/core/Test/run-all.jsonl","/framework/core/Test/doc/health.md"]}}
++{"answer":{"n":1,"reply":"fixed: the porcelain line was cut by a stray CR in the regex; new test 'a task log that is tracked and then edited' passes (7ff85ce46)"}}
++{"answer":{"n":2,"reply":"recorded: see the scope line above (the asks came from vscode-mastermind)"}}
++{"answer":{"n":3,"reply":"recorded: see the proof line above, linking results.jsonl and run-all.jsonl"}}
++{"answer":{"n":4,"reply":"recorded: see the coordination line above"}}
++{"answer":{"n":5,"reply":"fixed: the test makes a real git worktree whose main checkout holds the wav and checks wav_path takes it (7ff85ce46)"}}
++{"answer":{"n":6,"reply":"noted: page writes no longer echo state; documented in Servex/doc/item-tool.md; page_read is the read"}}
++{"answer":{"n":7,"reply":"fixed: --shots-only at size none returns before the no-review pass is written"}}
++{"answer":{"n":8,"reply":"will do: the final report to vscode-mastermind says snag 1 needs a Servex restart"}}
++{"answer":{"n":9,"reply":"fixed: OutPath.mjs and IgnoredImageLinks.mjs listed in Server/readme.md"}}
+diff --git a/public/framework/core/Test/TestRunner.mjs b/public/framework/core/Test/TestRunner.mjs
+index 1d4c22fac..a246a2494 100644
+--- a/public/framework/core/Test/TestRunner.mjs
++++ b/public/framework/core/Test/TestRunner.mjs
+@@ -125,6 +125,17 @@ export default class TestRunner {
+ 		return this._site;
+ 	}
+ 
++	/* recordings/ is git-ignored, so a worktree has no jfk.wav: the fake mic takes the main checkout's copy. (2026-11-02: three Dictate browser scripts failed in a worktree with "0 sentences" and looked like load.) */
++	wav_path(){
++		const rel = "public/framework/ai/recordings/jfk.wav", own = path.join(this.root, rel);
++		if (fs.existsSync(own)) return own;
++		try {
++			const main = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: this.root, windowsHide: true, encoding: "utf8" }).split(String.fromCharCode(10))[0].replace(/^worktree /, "").trim();
++			if (main && fs.existsSync(path.join(main, rel))) return path.join(main, rel);
++		} catch {}
++		return own;
++	}
++
+ 	one(file, trigger, extra = {}, { args = [], env = {}, timeout = this.limit(file) } = {}){
+ 		return new Promise(resolve => {
+ 			const t0 = Date.now(); let out = "", timedOut = false;
+@@ -163,7 +174,7 @@ export default class TestRunner {
+ 		const { SCRIPTS } = await import(pathToFileURL(path.join(HERE, "browser-scripts.mjs")).href);
+ 		const site = process.env.SITE_URL || this.site_url(), shots = fs.mkdtempSync(path.join(os.tmpdir(), "browser-shots-"));
+ 		const pw = path.dirname(execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim());
+-		const wav = path.join(this.root, "public/framework/ai/recordings/jfk.wav");
++		const wav = this.wav_path();
+ 		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
+ 		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
+ 		for (const x of todo) {
+diff --git a/public/framework/core/Test/TestRunner.test.mjs b/public/framework/core/Test/TestRunner.test.mjs
+index f72fd1245..3a41cc56a 100644
+--- a/public/framework/core/Test/TestRunner.test.mjs
++++ b/public/framework/core/Test/TestRunner.test.mjs
+@@ -35,5 +35,20 @@ const nearCli = spawnSync(process.execPath, [RUNNER, "--near", RUNNER], { encodi
+ assert.ok(nearCli.stdout.split(/\s+/).includes("public/framework/core/Test/TestRunner.test.mjs"), nearCli.stdout + nearCli.stderr);
+ assert.doesNotMatch(nearCli.stdout, /PASS|FAIL/);
+ 
++// the fake mic file: a checkout that has jfk.wav uses it; one without (a worktree: recordings/ is git-ignored) is not handed a missing path when the main checkout has it
++put("public/framework/ai/recordings/jfk.wav", "x");
++assert.equal(r.wav_path(), path.join(root, "public/framework/ai/recordings/jfk.wav"));
++const real = new TestRunner(); const w = real.wav_path();
++assert.ok(path.isAbsolute(w) && w.endsWith("jfk.wav"), w);
++// a real worktree without the wav takes the main checkout's copy
++const main = fs.mkdtempSync(path.join(os.tmpdir(), "wavmain-")), wt = main + "-wt";
++const git = (...a) => spawnSync("git", a, { cwd: main, windowsHide: true, encoding: "utf8" });
++git("init", "-q", "-b", "main"); fs.writeFileSync(path.join(main, "x.txt"), "x"); git("add", "."); git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "x");
++git("worktree", "add", "-q", wt, "-b", "wt");
++fs.mkdirSync(path.join(main, "public/framework/ai/recordings"), { recursive: true }); fs.writeFileSync(path.join(main, "public/framework/ai/recordings/jfk.wav"), "w");
++const fromWt = Object.assign(new TestRunner(), { root: wt }).wav_path();
++assert.equal(fs.realpathSync(fromWt), fs.realpathSync(path.join(main, "public/framework/ai/recordings/jfk.wav")), "the worktree has no wav, so the main checkout's is used: " + fromWt);
++git("worktree", "remove", "--force", wt); fs.rmSync(main, { recursive: true, force: true });
++
+ fs.rmSync(root, { recursive: true, force: true });
+ console.log("ok - TestRunner: a file path runs, --near is one level");
+diff --git a/public/framework/core/Test/browser-scripts.mjs b/public/framework/core/Test/browser-scripts.mjs
+index 4012da8a2..e65f1b685 100644
+--- a/public/framework/core/Test/browser-scripts.mjs
++++ b/public/framework/core/Test/browser-scripts.mjs
+@@ -25,7 +25,7 @@ export const SCRIPTS = [
+ 	{"file":"public/framework/ux/Dictate/test/order.mjs","args":["{site}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/raw-stays.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/reconnect.mjs","args":["{site}","{shots}"],"status":"pass"},
+-	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":180000},
++	{"file":"public/framework/ux/Dictate/test/refresh.mjs","args":["{site}"],"status":"pass","ms":300000},
+ 	{"file":"public/framework/ux/Dictate/test/settings.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/sheet-steps.mjs","args":["{site}","{shots}"],"status":"pass"},
+ 	{"file":"public/framework/ux/Dictate/test/stall.mjs","args":["{site}"],"status":"pass"},
+diff --git a/public/framework/core/Test/doc/health.md b/public/framework/core/Test/doc/health.md
+index a969db266..e3f975675 100644
+--- a/public/framework/core/Test/doc/health.md
++++ b/public/framework/core/Test/doc/health.md
+@@ -36,6 +36,7 @@ Playwright scripts that take a site URL (not named `*.test.mjs`) are listed in [
+ Per-script runs against monorepo.localhost (2026-11-02, 32 scripts, each line in [results.jsonl](../results.jsonl) with trigger `browser` or in the run-all line): the first pass had 19 pass and 13 red; re-runs showed `dictation-bar` and `refresh` are flaky under load (they passed once, failed twice), so they are listed red. The list now holds **17 pass, 15 red**. The `run-all.mjs --browser` line in run-all.jsonl ran against the worktree site and shows 16 pass.
+ - **Pass (17):** Dictate `active-session`, `chat-gray`, `docs-tab`, `errors`, `flicker`, `freeze`, `load`, `marks`, `order`, `raw-stays`, `sheet-steps`, `v1-order`, `watch`; `repeat`; Refine `session-log`, `refine-style`; `tag-router`.
+ - **Red (15):** `chat-sent` (v2 chat at 400px: scroll-pinning checks fail (scroll max 0, newest not in view)); `debug-tab` (Debug view shows llm=wait, not all eight lights green); `deltas` (owner bubble should read One. Two. Three. once; the repeat is drawn or the late line is misplaced); `earlier` (after show-earlier, the reader moved (144 -> -1115)); `in-place` (4 checks fail (see its output)); `new-session` (A2: New session does not clear the demo chat); `reconnect` (5 s outage should stay hidden (8 s grace); log lines not written); `settings` (delay 0.5 s: 3 prompts sent, wanted 2); `stall` (1 check fails after the reload step); `swallow` (page.evaluate: querySelectorAll of undefined); `composer-flow` (screenshot step fails (unsupported mime type); needs Whisper :8178 and Servex); `dictate-flow` (times out waiting for .voice-conn); `nothing-to-refine` (loading Dictate.js request errors).
++- **Load and the fake mic (2026-11-02, workflow-friction).** In a worktree the three Dictate scripts `dictation-bar`, `refresh` (and so a `run-all --browser` from a worktree) failed with "0 sentences" and looked load-related: `recordings/` is git-ignored, so the worktree has no `jfk.wav`, and the runner handed the scripts that missing path. `TestRunner.wav_path()` now falls back to the main checkout copy. With that fixed, all three passed while two other `--browser` batches (17 scripts) and the whole node suite ran beside them (dictation-bar 30 s, docs-tab 26 s, refresh 126-136 s; their waits are conditions, the fixed `waitForTimeout`s only prove that nothing happens). `refresh` is the slow one (real Whisper, six scenarios), so its runner limit is 300 s, not 180 s. If one of them times out again, read its tail first: the usual cause is the sentence wait ("none in 40 s"), i.e. Whisper on :8178 or the wav, not the page.
+ - **Never the live Servex (2026-11-02).** Browser scripts run fenced: `TestRunner.browser()` sets `FENCE_SERVEX=1` and points `PWENTRY` at [playwright-fenced.mjs](../playwright-fenced.mjs), so any request to `127.0.0.1:8090` that a script does not stub itself gets a harmless reply and is listed at exit (`servex fence: kept off the live Servex: …`). Scripts that stub Servex use `route.fallback()`, not `route.continue()`. Why: the Dictate scripts posted made-up sessions to the live `/api/session/say` and one of those ended Servex at 00:31. Detail and test: [Servex/doc/restart.md](/framework/servex/doc/restart.md#when-servex-crashes-what-comes-back-why-and-what-to-watch-2026-11-02).
+ - **Skipped:** `handoff.mjs` (asks the live Servex and starts real agents) and `live-refine-measure.mjs` (spends model money).
+ - The reds are filed: the Dictate ones logged by dictation-v3 in commit b4dfb5639 ("log test-health browser failures"), the Refine ones in [ext/Refine/improvements.jsonl](/framework/ext/Refine/improvements.jsonl).

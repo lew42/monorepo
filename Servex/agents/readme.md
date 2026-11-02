@@ -68,6 +68,10 @@ agents do, so a child's wake — `wake_parent`'s `done`/`blocked` — reaches it
 becomes one more `task` line, `state: working | blocked | landed`, which is what the card's
 status strip on `/framework/ai2/` and `/framework/ai/talk/` reads.
 
+## Sending to a VS Code tab
+
+A tab (`vscode-<id8>`, `kind: "external"`) is not a running agent. `External.js` registers it, and `send_to_agent` to it appends one line to its inbox file (`%LOCALAPPDATA%/lew42/servex/logs/inbox/<id>`, a JSONL file), which the tab reads on its next turn. The answer says so: `ok: true`, `delivered_to: "the inbox of the VS Code tab <id> …"` and a note that the tab will not reply in this call. It is delivered; do not post an `owner_note` to repeat it. `Agents.successor()` never follows a registered tab to another agent that shares its `session_id` (a send to `vscode-rp-proof` once landed in a running mastermind). Test: `External.test.mjs`. Needs a Servex restart to take effect (2026-11-02).
+
 ## When an agent stops
 
 An agent's turn ends (`result()`), or it is stopped (`stop()`), and its task may still be open. [`Servex/CloseLoop.js`](../CloseLoop.js) decides, and `Agent.close_loop()` in `Agents.js` applies it, once per agent:

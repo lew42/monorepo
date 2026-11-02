@@ -125,6 +125,17 @@ export default class TestRunner {
 		return this._site;
 	}
 
+	/* recordings/ is git-ignored, so a worktree has no jfk.wav: the fake mic takes the main checkout's copy. (2026-11-02: three Dictate browser scripts failed in a worktree with "0 sentences" and looked like load.) */
+	wav_path(){
+		const rel = "public/framework/ai/recordings/jfk.wav", own = path.join(this.root, rel);
+		if (fs.existsSync(own)) return own;
+		try {
+			const main = execFileSync("git", ["worktree", "list", "--porcelain"], { cwd: this.root, windowsHide: true, encoding: "utf8" }).split(String.fromCharCode(10))[0].replace(/^worktree /, "").trim();
+			if (main && fs.existsSync(path.join(main, rel))) return path.join(main, rel);
+		} catch {}
+		return own;
+	}
+
 	one(file, trigger, extra = {}, { args = [], env = {}, timeout = this.limit(file) } = {}){
 		return new Promise(resolve => {
 			const t0 = Date.now(); let out = "", timedOut = false;
@@ -163,7 +174,7 @@ export default class TestRunner {
 		const { SCRIPTS } = await import(pathToFileURL(path.join(HERE, "browser-scripts.mjs")).href);
 		const site = process.env.SITE_URL || this.site_url(), shots = fs.mkdtempSync(path.join(os.tmpdir(), "browser-shots-"));
 		const pw = path.dirname(execSync("npm root -g", { encoding: "utf8", windowsHide: true }).trim());
-		const wav = path.join(this.root, "public/framework/ai/recordings/jfk.wav");
+		const wav = this.wav_path();
 		const fill = a => a.replace("{site}", site).replace("{shots}", shots).replace("{repo}", this.root).replace("{wav}", wav);
 		const todo = SCRIPTS.filter(x => x.status !== "skip" && (!names.length || names.some(n => x.file.includes(n)))), results = [], red_now_passes = [];
 		for (const x of todo) {

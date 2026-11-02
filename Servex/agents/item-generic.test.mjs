@@ -32,7 +32,9 @@ try {
 		try {
 			const tool = name => page_tools().find(t => t.name === name).handler;
 			r = await run_item({ path: PURL, delta: { title: "Renamed" } }, { caller: "t" });
-			ok(r.ok && /# Renamed/.test(r.state), "page set: the answer is drawn from the live root");
+			ok(r.ok && r.state === undefined, "page set: a write answers small (no whole page)");
+			const seen = await run_item({ path: PURL }, { caller: "t" });
+			ok(/# Renamed/.test(seen.state), "page set: a read draws the page from the live root");
 			const added = JSON.parse(await tool("page_add")({ path: PURL, item: { type: "part-card", title: "Card one" } }, { caller: "t" }));
 			ok(added.ok && RANDOM.test(added.id), "page add: the card gets an 8-character random id");
 			const called = JSON.parse(await tool("page_call")({ path: PURL, target: ["content", added.id], method: "set", args: { text: "called" } }, { caller: "t" }));

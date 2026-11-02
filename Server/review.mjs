@@ -711,9 +711,10 @@ async function main() {
 		return;
 	}
 	const flag = name => { const i = argv.indexOf(name); if (i < 0) return undefined; const [, v] = argv.splice(i, 2); return v; };
+	const shotsOnly = argv.includes("--shots-only") && !!argv.splice(argv.indexOf("--shots-only"), 1);   // take the gate's screenshots only: no reviewer, no review line
 	const range = flag("--range"), sizeArg = flag("--size"), why = flag("--why"), modelArg = flag("--model"), widthsArg = flag("--widths");
 	const [taskDirArg, worktreeArg] = argv;
-	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920]'); process.exit(1); }
+	if (!taskDirArg) { console.error('usage: node Server/review.mjs <taskdir> [<worktree dir>] [--range A..B] [--size none|light|full] [--why "..."] [--model <id>] [--widths 1200,1920] [--shots-only]'); process.exit(1); }
 	const taskDir = path.resolve(taskDirArg);
 	let worktreeDir = null;
 	if (!range) try { worktreeDir = branchTree(taskDir, path.resolve(worktreeArg || process.cwd())); } catch (e) { console.error(e.message); process.exit(1); }
@@ -757,6 +758,7 @@ async function main() {
 	}
 
 	const taskJsonl = SessionRecord.log_or_old(taskDir);
+	if (size === "none" && shotsOnly) { console.log("review.mjs --shots-only: this diff changes no page, so no screenshots are needed (size none: nothing written)"); return; }
 	if (size === "none") {
 		const note = `No review needed: only CSS/docs changed (${numstat.reduce((n, r) => n + r.added + r.deleted, 0)} line(s)), no new file.`;
 		await writeNoReviewPass(root, taskDir, { size, note, branch, head });
@@ -795,6 +797,10 @@ async function main() {
 		const sheets = pages.map(p => `shots/${slug(base + p)}/sheet.png`);
 		const bands = pages.map(p => `shots/${slug(base + p)}/layout.json`).filter(f => fs.existsSync(path.join(taskDir, f)));
 		appendJSON(taskJsonl, { shots: { at: now(), pages, dir: "shots/", sheet: sheets[0], sheets, bands, widths } });
+	}
+	if (shotsOnly) {
+		console.log(pageReview ? `review.mjs --shots-only: ${pages.length} page(s) at ${widths.join(", ")}px -> ${path.relative(process.cwd(), shotsDir)}/ (no reviewer was started)` : "review.mjs --shots-only: this diff changes no page, so no screenshots are needed");
+		return;
 	}
 
 	// cardDir: the "Card: `...`" line. ownerWordsFiles: every "Owner's words: `...`" line, resolved

@@ -74,6 +74,7 @@ import Browser from "./Browser.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 import MergeTests from "./MergeTests.mjs";
+import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
 
 const BASE = "michael/dev";
 const argv = process.argv.slice(2);
@@ -184,6 +185,28 @@ function shotsReminder(changed, pages, branch){
 	if (missing.length) console.warn(`!!! Shots: no screenshot round since this branch began for ${missing.join(", ")} — shoot, read, judge: node Server/shots.mjs <url> !!!`);
 }
 
+/* The task dirs a branch's own work sits in: every changed path (committed on the branch, or still
+ * uncommitted in its worktree) under public/framework/ai/, walked up to the nearest folder that holds a
+ * task log. roots[1], when present, is the worktree; a missing log in the main tree is checked there. */
+function branchTaskDirs(roots){
+	const changed = new Set();
+	const dirOf = roots[1] ?? MAIN;
+	const lns = s => s.split(String.fromCharCode(10)).map(l => l.replace(/\r$/, "")).filter(Boolean);   // never trim: a porcelain line starts with a space for an unstaged change (" M path")
+	for (const l of lns(git(dirOf, "diff", "--name-only", `${BASE}...HEAD`).stdout)) changed.add(l.trim());
+	for (const l of lns(git(dirOf, "status", "--porcelain", "--untracked-files=all").stdout)) l.length > 3 && changed.add(l.slice(3));
+	const out = new Set();
+	for (const f of changed) {
+		if (!f.startsWith("public/framework/ai/")) continue;
+		let d = path.dirname(f);
+		while (d.length > "public/framework/ai".length) {
+			const here = path.join(dirOf, d);
+			if (fs.existsSync(here) && fs.readdirSync(here).some(n => SessionRecord.is_log_entry(here, n))) { out.add(path.join(MAIN, d)); break; }
+			d = path.dirname(d);
+		}
+	}
+	return [...out];
+}
+
 function reviewGate(branch, head){
 	if (mainArg) { console.warn(`!!! --main: merging against another repo WITHOUT a fresh-eyes review !!!`); return null; }
 	if (noReview) { console.warn(`!!! --no-review: ${noReview} — merging WITHOUT a fresh-eyes review !!!`); return null; }
@@ -221,15 +244,30 @@ function reviewGate(branch, head){
 		return out;
 	}
 	const roots = [MAIN, ...(path.resolve(dir).toLowerCase() === path.resolve(MAIN).toLowerCase() ? [] : [dir])];
-	for (const root of roots)
-		for (const day of dayDirs(root))
-			for (const tj of taskLogs(day)) {
-				const td = path.dirname(tj);
-				for (const l of lines(fs.readFileSync(tj, "utf8"))) {
-					let e; try { e = JSON.parse(l); } catch { continue; }
-					if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
-				}
+	function scan(root, folder){
+		for (const tj of taskLogs(folder)) {
+			const td = path.dirname(tj);
+			for (const l of lines(fs.readFileSync(tj, "utf8"))) {
+				let e; try { e = JSON.parse(l); } catch { continue; }
+				if (e.review?.verdict && !e.review.answer && e.review.branch === branch && (!best || (e.review.at ?? "") > (best.e.review.at ?? ""))) best = { td, e, root };   // a hand-written review line with no `at` is oldest; undefined > "…" is always false, so it used to win forever (2026-10-23)
 			}
+		}
+	}
+	for (const root of roots) for (const day of dayDirs(root)) scan(root, day);
+	/* Not in the last 4 days: look where THIS branch worked, not by age (2026-11-02). A review is written
+	 * into the task dir the branch's own commits (or uncommitted files) touch, and that task dir is also the
+	 * one named like the branch. A long-lived session dated weeks ago is found the same way. */
+	if (!best) {
+		const seen = new Set();
+		for (const td of [...branchTaskDirs(roots), TaskDirs.find(branch.replace(/^worktree[/]/, ""), 3650)]) {
+			if (!td || seen.has(td)) continue;
+			seen.add(td);
+			for (const root of roots) {
+				const fromMain = path.relative(MAIN, td), here = path.join(root, fromMain.startsWith("..") ? path.relative(path.resolve(import.meta.dirname, ".."), td) : fromMain);
+				if (fs.existsSync(here)) scan(root, here);
+			}
+		}
+	}
 	// no review yet: guess the task dir from the branch name so the printed command is runnable as-is
 	const guessedTd = best ? null : guessTaskDir(aiDir, branch);
 	const cmd = `node Server/review.mjs ${best ? path.relative(best.root, best.td).replaceAll("\\", "/") : guessedTd ? path.relative(MAIN, guessedTd).replaceAll("\\", "/") : "<taskdir or public/framework/ai/<date>/<slug>>"} ${dir}`;
@@ -255,7 +293,7 @@ function reviewGate(branch, head){
 		const walk = d => { try { for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : /^\d+\.png$/.test(e.name) && have.add(Number(e.name.slice(0, -4))); } catch {} };
 		walk(path.join(best.td, "shots"));
 		const missing = need.filter(w => !have.has(w));
-		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
+		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; take just the pictures from the worktree's own server: ${cmd} --shots-only  (or re-run the review: ${cmd}; --no-review "why" skips, and is logged)`;
 	}
 	return null;
 }
@@ -522,6 +560,8 @@ try {
 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
 		shotsReminder(changed, autoPages, branch);
+		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
+		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
 		if (changed.some(f => f.startsWith("public/framework/ext/Figma/")) && fs.existsSync(path.join(dir, "public/framework/ext/Figma/visibility.mjs"))) {
 			const vis = run("node", [path.join(dir, "public/framework/ext/Figma/visibility.mjs")], dir);

@@ -711,6 +711,7 @@ export class Agents {
 	successor(id){
 		const running = x => { const a = this.live.get(x); return a && a.state !== "stopped"; };
 		if (!id || running(id)) return id;   // the hot path (every send): no disk read for a running id
+		if (this.external?.has?.(id)) return id;   // a registered tab is an inbox, not a stopped agent: it never follows a session another agent shares (a send to vscode-rp-proof landed in task-mastermind-recursive-pairs)
 		const rows = this.reg().read(), seen = new Set([id]);
 		const sess = x => this.live.get(x)?.session_id ?? rows[x]?.session_id;
 		const started = x => String(this.live.get(x)?.started_at ?? rows[x]?.started_at ?? "");

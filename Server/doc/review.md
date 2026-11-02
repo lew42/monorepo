@@ -118,6 +118,10 @@ appended to `task.jsonl`, naming the widths actually used:
 {"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
 ```
 
+**The one route for the gate's shots (2026-11-02).** The merge gate wants a `<width>.png` for every width the change needs under the task's `shots/`. `node Server/review.mjs <taskdir> <worktree>` takes them from the worktree's own dev server; `--shots-only` takes just the pictures (no reviewer, no review line) when that is all the gate lacks. `layout-check.mjs` may write inside any git worktree of the repo (`OutPath.worktrees()`, from `git worktree list`), so a task dir that lives in a worktree no longer makes it refuse: before, the main tree's `layout-check` accepted only the main tree and the temp dir, and agents drew PNGs by hand to pass the gate. Never hand-make a screenshot: the gate is meant to stand on real pictures. Test: `node Server/OutPath.test.mjs`. Two limits: a worktree not registered in `.worktrees.json` is shot as the MAIN site (a log line says so; register it with `worktree-up.mjs`), and existing PNGs are reused as they are, so only the rule above keeps hand-made ones out.
+
+**Review shots are not committed; keep a picture you want to show in `doc/screens/`.** `.gitignore` drops `public/framework/ai/**/*.png` (and the other image types) except under a `doc/` folder, because screenshots were 84% of git history by size. The gate reads `shots/` from disk, so they need no commit. A walkthrough or outcome that links a picture must keep it under `<task>/doc/screens/`, where git tracks it. `merge.mjs` warns when a changed `.md` links a git-ignored picture (`Server/IgnoredImageLinks.mjs`, test `IgnoredImageLinks.test.mjs`); the owner's other option, committing the review shots themselves, was left out on purpose for the repo-size reason.
+
 **`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
 skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
 then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same
@@ -182,6 +186,8 @@ also touches a page is refused unless that review has its own page report (`revi
 with shots at all four widths) on disk — the plain brief-and-diff `review.md` a non-page change
 gets is not enough for a page.
 
+**Where the gate looks for the review (2026-11-02).** It reads the newest `{"review":…}` line naming this branch in the task folders of the last 4 days, in the main tree and in the worktree. If none is there it looks where the branch itself worked, not by age: the task folders that the branch's commits (and uncommitted files) touch under `public/framework/ai/`, and the folder named like the branch (`worktree/<slug>` finds `<slug>` in any session ever, via `TaskDirs.find`). So a long-lived session dated weeks ago needs no `--review-dir`; the flag still works. `guessTaskDir` (the folder the refusal tells you to review) uses the same whole-store lookup. Test: `node Server/merge.test.mjs` ("a review in a task dir of an old session").
+
 **The test gate (2026-10-23).** After the smoke test, `merge.mjs` runs the tests that cover the diff (`TestRunner.covers`, transitive) on the branch. A failing test is then re-run on the merge base; the merge is refused only when it passes on the base and fails on the branch (pass-to-fail), so a test that already failed on `michael/dev` never blocks. A timeout is no result. Base results are cached per sha in `core/Test/results.jsonl` (`trigger:"merge-base"`). `--skip-tests` turns the gate off; a dry run skips it. The code is `Server/MergeTests.mjs`. **The tests run inside the merge lock:** a failing test on a new base costs a checkout of about 10 s (7.6 s `git worktree add` plus 2.7 s remove, for 23k files, measured) plus up to 60 s per test.
 
 Before any of that, `merge.mjs`'s own smoke test (`Server/smoke.mjs`) fails the branch on two
@@ -240,6 +246,9 @@ answers — an actual second `review.md` from a fresh diff), the new pass's find
 overwrite the first pass's finding text for readers of `review.jsonl`. Nothing today asks for a
 second full pass — requirements.md's own model is one pass, one round of holds — so this is a
 known limit, not a defended-against case.
+
+## Browser scripts in a worktree (2026-11-02)
+The Dictate browser scripts (`TestRunner.mjs --browser`, `run-all.mjs --browser`) looked load-sensitive from a worktree: `dictation-bar` and `refresh` got "0 sentences". The cause was not load but the fake mic file: `recordings/jfk.wav` is git-ignored, so a worktree has none, and the runner passed the missing path. `TestRunner.wav_path()` now falls back to the main checkout's copy. Run beside two more browser batches and the node suite, all three passed; `refresh` (real Whisper, six scenarios) takes about 130 s, so its limit is 300 s. Detail: [core/Test/doc/health.md](/framework/core/Test/doc/health.md).
 
 ## Later, not now
 
