@@ -280,13 +280,13 @@ bubble instead of opening a new one each time, and made `Widget.Composer` the sa
 
 ## The active session
 
-There is one active session per tab: `chat.active()` in `chat.js` returns `{session, fresh}`. The send (`ensure` posts `say` to `ctl.session`), the view (`attach` watches `ctl.session`) and the Sheet's read-aloud (`Sheet.follow`) all read it.
+There is one active session per tab: `chat.active()` in `chat.js` returns `{session, fresh}`. The send and the view read the same controller state it reports (`ctl.session`); the Sheet's read-aloud (`Sheet.follow`, `Sheet.js:78`) calls it directly.
 
 | Moment | Sentence goes to | View shows | Read-aloud follows |
 |---|---|---|---|
-| First open, no session | `ensure` joins the latest `v-` session within 30 min, else starts one | the same, after `broadcast` | no session: the same latest-recent rule; then `chat.current()` |
-| Switch session | `resume_to` sets `ctl.session` | the picked one | `on_change` runs `follow`, which takes `chat.current()` |
+| First open, no session | `ensure` (chat.js:76) joins the latest `v-` session within 30 min, else starts one | empty until the first sentence | before the first sentence, the same latest-recent rule (`Sheet.js:78`), so it may follow a session the view does not show yet; after it, `chat.active().session` |
+| Switch session | `resume_to` (chat.js:118) sets `ctl.session` | the picked one | `on_change` runs `follow`, which takes `chat.active().session` |
 | New session | none until the first sentence (`fresh`), which starts a new one | empty | **was the old session (bug); now none** (`chat.active().fresh` stops the fallback in `Sheet.follow`) |
-| Reload | the id saved in `sessionStorage` | the same | `chat.current()`, read from the same storage |
+| Reload | the id saved in `sessionStorage` (`sync_from_storage`, chat.js:54) | the same | `chat.active().session`, read from the same storage |
 
 A tab with no session is deliberate only after New session. A `keep: false` mount (the Dictate page demo) has its own private session and never touches this. Proof: `test/active-session.mjs` (Servex mocked).

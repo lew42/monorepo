@@ -76,7 +76,7 @@ export default class Sheet extends View {
 		// No session on this page (a fresh tab, the Recite demo): follow the voice session used most recently, if it had a line within
 		// JOIN_IDLE_MS (the same rule chat.js uses to join it), so a reply is still read (the owner, 2026-11-01). The page's own session, once it has one, takes over.
 		const follow = async why => {
-			const own = chat.current?.() ?? null;
+			const own = chat.active?.().session ?? null;
 			if (own) return listen(own, `this page's session (${why})`);
 			if (chat.active?.().fresh) return listen(null, `New session pressed: none until the first sentence (${why})`);   // never fall back to the old session
 			recite.trace("sheet: looking for a recent voice session", { why });
@@ -86,7 +86,7 @@ export default class Sheet extends View {
 					new Promise((_, no) => timer = setTimeout(() => no(new Error(`no answer in ${this.RECENT_MS} ms`)), this.RECENT_MS))]);
 			} catch (e){ rows = null; recite.trace("sheet: recent sessions failed", { error: String(e?.message ?? e) }); }
 			clearTimeout(timer);
-			if (chat.current?.()) return listen(chat.current(), `this page's session (${why}, found while searching)`);
+			if (chat.active?.().session) return listen(chat.active().session,`this page's session (${why}, found while searching)`);
 			if (chat.active?.().fresh) return listen(null, `New session pressed during the search (${why})`);
 			if (!rows){   // the search failed or hung (the phone through the tunnel): a ?session= in the url, else the session this browser last followed
 				const last = Wire.last_session();   // written by every say, session pick and follow on this browser
@@ -104,7 +104,7 @@ export default class Sheet extends View {
 		this.follow_session(from);
 		// A session can be attached in ways that broadcast nothing to this module (another mount's controller, a resume in flight):
 		// a 5 s look at the page's session catches them all. It reads one variable; the follow itself only runs on a change.
-		setInterval(() => { const now = chat.current?.() ?? null; if (now && now !== followed) this.follow_session("the 5 s check"); }, 5000);
+		setInterval(() => { const now = chat.active?.().session ?? null; if (now && now !== followed) this.follow_session("the 5 s check"); }, 5000);
 	}
 
 	// A dev reload (a file changed) brings the sheet back at its size, its mic bar saying why the mic is off:
