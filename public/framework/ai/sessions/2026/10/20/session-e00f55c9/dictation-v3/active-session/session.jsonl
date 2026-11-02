@@ -15,3 +15,4 @@
 {"review":{"at":"2026-11-01T19:20:51-06:00","answer":{"n":6,"reply":"noted: the branch head is f3f491d03; landed by the parent with this merge"}},"by":"append.mjs","ts":"2026-11-02T01:20:51.986Z"}
 {"review":{"at":"2026-11-01T19:20:51-06:00","answer":{"n":7,"reply":"noted: also verified by the parent (fails on the old Sheet.js: new streams v-old)"}},"by":"append.mjs","ts":"2026-11-02T01:20:51.987Z"}
 {"stop":{"at":"2026-11-01T20:22:09-06:00","why":"dropped: owner mastermind-active-session is dormant and the task is untouched"}}
+{"finish":{"at":"2026-11-01T20:23:30-06:00","outcome":"Landed: dictation has one active session. After New session, read-aloud follows no session until the first sentence (ext/drawer/Sheet.js reads chat.active()). Proof: ux/Dictate/test/active-session.mjs (11 checks; fails on the old Sheet.js). Doc: ux/Dictate/doc/chat.md, The active session. Merged into michael/dev and pushed."},"by":"append.mjs","ts":"2026-11-02T02:23:30.529Z"}
