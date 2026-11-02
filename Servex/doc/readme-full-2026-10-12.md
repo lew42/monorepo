@@ -178,7 +178,7 @@ It is cheap on purpose: one hidden PowerShell loop and one `nvidia-smi` for its
 whole life, never a new process per sample.
 
 **The flag** goes up when CPU stays above 90% for 60 seconds, or free RAM drops
-under 3 GB (`SERVEX_HOT_CPU`, `SERVEX_HOT_SECONDS`, `SERVEX_LOW_RAM_GB`, or the
+under 1.5 GB (`SERVEX_HOT_CPU`, `SERVEX_HOT_SECONDS`, `SERVEX_LOW_RAM_GB`, or the
 tool's own three arguments while it runs). Going up sends one message to
 `mastermind-servex` and one line to the Live card; clearing says one line more.
 **While it is up, new agents wait in a queue** instead of starting: `spawn_agent`

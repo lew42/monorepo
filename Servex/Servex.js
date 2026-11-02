@@ -1098,7 +1098,7 @@ export default class Servex extends Events {
             inputSchema: { type: "object", properties: {
                 hot_cpu: { type: "number", description: "Flag when total CPU % stays at or above this. Default 90." },
                 hot_seconds: { type: "number", description: "…for this many seconds. Default 60." },
-                low_ram_gb: { type: "number", description: "Flag when free RAM falls under this many GB. Default 3." }
+                low_ram_gb: { type: "number", description: "Flag when free RAM falls under this many GB. Default 1.5." }
             } }
         }, args => {
             this.monitor?.set(args ?? {});
@@ -1562,6 +1562,7 @@ export default class Servex extends Events {
         if (process.env.SERVEX_NO_REAPER) return;
         let last = 0;
         const sweep = () => {
+            if (this.reaping && Date.now() - last > 3 * 60000) this.reaping = null;   // a wedged sweep must not stop every later one
             if (this.reaping || Date.now() - last < 5 * 60000) return;
             last = Date.now();
             const dry = !!process.env.SERVEX_REAPER_DRY;

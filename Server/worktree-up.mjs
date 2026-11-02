@@ -191,7 +191,9 @@ console.log(`worktree-up: booting node server.js in ${target} on PORT ${port}…
  * stays a plain hidden launch. (-NoNewWindow is no way out: the child keeps the launcher's stdout
  * pipe, so spawnSync below would wait until the server exits.) The pid is cmd's; taskkill /T takes the tree. */
 const cmdline = `/d /c ""${process.execPath}" server.js >>"${log_path}" 2>>"${log_path}.err""`;
-const ps = `$env:PORT='${port}'; $p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
+/* A server nobody asks for ends itself (Server/Server.js idle_exit). Pool slots are the Pool's: no idle stop. */
+const idle_min = new RegExp(`^${process.env.SERVEX_POOL_PREFIX || "qf"}-\\d+$`).test(name) ? 0 : Number(process.env.WORKTREE_IDLE_MIN ?? 30);
+const ps = `$env:PORT='${port}'; ${idle_min > 0 ? `$env:IDLE_EXIT_MIN='${idle_min}'; ` : ""}$p = Start-Process -FilePath $env:ComSpec -ArgumentList '${cmdline.replaceAll("'", "''")}' -WorkingDirectory '${target.replaceAll("'", "''")}' -WindowStyle Hidden -PassThru; $p.Id`;
 const started = spawnSync("powershell.exe", ["-NoProfile", "-Command", ps], { encoding: "utf8", windowsHide: true });
 if (started.stderr?.trim()) console.error("worktree-up: launcher said:", started.stderr.trim());
 const child = { pid: Number(String(started.stdout).trim()) || null };

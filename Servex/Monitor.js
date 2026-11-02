@@ -34,7 +34,7 @@ import { ONE_PASS } from "./Lifecycle.js";
  * sends ONE message to the mastermind and one line on the Live card; it then
  * stays quiet until the flag clears.
  *
- * Thresholds: SERVEX_HOT_CPU (90), SERVEX_HOT_SECONDS (60), SERVEX_LOW_RAM_GB (3),
+ * Thresholds: SERVEX_HOT_CPU (90), SERVEX_HOT_SECONDS (60), SERVEX_LOW_RAM_GB (1.5),
  * and changeable at runtime through `set()` — the `system_health` tool's own
  * arguments — so a test can trip the flag and clear it without a restart. */
 export default class Monitor extends Events {
@@ -43,7 +43,7 @@ export default class Monitor extends Events {
         this.every ??= 5000;
         this.hot_cpu ??= Number(process.env.SERVEX_HOT_CPU) || 90;
         this.hot_seconds ??= Number(process.env.SERVEX_HOT_SECONDS) || 60;
-        this.low_ram_gb ??= Number(process.env.SERVEX_LOW_RAM_GB) || 3;
+        this.low_ram_gb ??= Number(process.env.SERVEX_LOW_RAM_GB) || 1.5;
         this.notify ??= "mastermind-servex";   // who hears the flag go up
         this.card ??= "live";                  // where the owner sees it
 
