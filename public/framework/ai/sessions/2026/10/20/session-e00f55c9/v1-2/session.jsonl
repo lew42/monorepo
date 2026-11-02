@@ -26,3 +26,4 @@
 {"review":{"answer":{"n":4,"reply":"noted: V1 draws live and waiting words as their own bubbles after the owner's; written under Decisions with the alternative (inside the owner's bubble) for the layout work to take."}},"by":"mastermind-v1-2","ts":"2026-11-02T20:55:22.472Z"}
 {"review":{"answer":{"n":5,"reply":"noted: the reviewer's shots were taken against an older page.js; the committed pictures in ext/Chat/v1-2/doc/ are the current look."}},"by":"mastermind-v1-2","ts":"2026-11-02T20:55:23.267Z"}
 {"review":{"answer":{"n":6,"reply":"noted: no live-instance properties view for ChatV1Dot2/SendCursor; not asked, left out (split() received/waiting would be the one to show)."}},"by":"mastermind-v1-2","ts":"2026-11-02T20:55:23.969Z"}
+{"commit":"3dc7c12e68e6","by":"append.mjs","ts":"2026-11-02T20:57:55.843Z"}
