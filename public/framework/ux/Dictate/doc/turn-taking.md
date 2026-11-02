@@ -31,3 +31,14 @@ These are the owner's design notes from 2026-11-01, 20:55, relayed by the web vo
 
 - **The fast seat** is woken on pieces shorter than a sentence: at a comma, full stop or question mark.
 - **The smart seat** is woken on whole sentences, because there's no better trigger than a sentence's end.
+
+## Voice dynamics (the owner, 2026-11-01, about 21:45)
+
+The owner's words: [night-2026-11-01/requirements.md](/framework/ai/sessions/2026/10/20/session-e00f55c9/night-2026-11-01/requirements.md), point 5–6.
+
+- **A "thinking" cue** (queued in [read-aloud-next](/framework/ai/sessions/2026/10/20/session-e00f55c9/dictation-v3/read-aloud-next/requirements.md)). Soon after the owner stops speaking, while a reply is pending, Recite plays a short, subtle cue. It plays once more after about 2 s if the reply is still pending, and then stays quiet. A setting turns it off.
+- **Async updates are never spoken mid-idea** (part of no-flood, same task). An agent's news, such as a background job finishing, becomes one spoken line, "I have an update on X, tap to hear it". It's spoken only in a quiet window, and the full text waits in its bubble.
+- ⬜ **A polite interjection** (later, not built). For something directly relevant only: say "excuse me", then wait for a pause or a "go ahead" before speaking.
+- **When the page is hidden, read-aloud keeps playing** (decided 2026-11-01 by `mastermind-dictation-v3`). The use case is a walk with the screen off, and the reply should still be heard. On 2026-11-01 the owner switched from Chrome to the Claude app, and the site's voice kept reading. They found it jarring.
+  - **The alternative:** pause on `visibilitychange` to hidden, and resume when the page is visible again. That's better when the owner leaves to talk to another app.
+  - **The switch** is a Recite setting, `read_aloud_hidden: "keep" | "pause"`, default `keep`. It's queued in read-aloud-next. Until it's built, the behaviour is `keep`.
