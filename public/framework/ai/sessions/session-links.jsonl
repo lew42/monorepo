@@ -895,3 +895,14 @@
 {"run":"2026-11-02T07:21:37.461Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/s4","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl"}
 {"run":"2026-11-02T08:09:29.475Z","kind":"links","count":0}
 {"run":"2026-11-02T08:18:08.221Z","kind":"links","count":0}
+{"run":"2026-11-02T09:01:47.293Z","kind":"links","count":0}
+{"run":"2026-11-02T10:06:36.815Z","kind":"links","count":1}
+{"run":"2026-11-02T10:06:36.815Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/cost-test-fix","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-model/session.jsonl"}
+{"run":"2026-11-02T15:13:09.975Z","kind":"links","count":0}
+{"run":"2026-11-02T15:15:02.419Z","kind":"links","count":0}
+{"run":"2026-11-02T15:16:48.907Z","kind":"links","count":0}
+{"run":"2026-11-02T21:10:02.994Z","kind":"links","count":2}
+{"run":"2026-11-02T21:10:02.994Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/marked-lines-readers","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl"}
+{"run":"2026-11-02T21:10:02.994Z","dir":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/marked-lines-switch","log":"public/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl"}
+{"run":"2026-11-02T21:13:25.594Z","kind":"links","count":0}
+{"run":"2026-11-02T21:23:11.267Z","kind":"links","count":0}

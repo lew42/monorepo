@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import Task from "../public/framework/core/Task/Task.js";
+import LineKey from "../public/framework/core/Item/LineKey.js";
 
 /* THE CLOSE LOOP (2026-11-02, Servex/agents/readme.md "When an agent stops"): the decision, kept pure so a test can run it
  * on a log and a few facts. An agent's turn ended, or it was stopped, and its task is still open. One of three answers:
@@ -16,7 +17,7 @@ export default class CloseLoop {
 	static lines(file){
 		let text; try { text = fs.readFileSync(file, "utf8"); } catch { return []; }
 		const out = [];
-		for (const raw of text.split("\n")){ if (!raw.trim()) continue; try { out.push(JSON.parse(raw)); } catch {} }
+		for (const raw of text.split("\n")){ if (!raw.trim()) continue; try { out.push(LineKey.deep(JSON.parse(raw))); } catch {} }   // D13: marks off
 		return out;
 	}
 
