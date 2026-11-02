@@ -99,3 +99,9 @@ Run as a **build process**: Haiku investigates → plan → Sonnet improves the 
   - move a sentence.
 - **An idea to weigh: a `context()` view on every object.** `thing.context()` would render a context card of itself, and the agent then appends content to it by id.
 - **No `eval`.** No JavaScript passed through the tool.
+
+## Found by dictate-mic-sentences (604c6f5a1), 16:20
+
+- **Sentences now go out the moment they end.** But a sentence sent early can't be corrected yet when Whisper's final text hears it differently. The early wording stays, and the difference is logged.
+- **The missing piece:** a Servex verb (`session/amend`, or the item tool on `sentences.#<id>`) that writes the correction for one of the owner's sentences in place. The display can already patch a line. See `ux/Dictate/doc/upload.md`.
+- **Fold it into this build:** the single voice assistant's own cleaning uses the same "correct a sentence by id" path.
