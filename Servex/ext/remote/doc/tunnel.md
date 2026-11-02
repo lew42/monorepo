@@ -45,7 +45,7 @@ These routes still pass on purpose, because they are the features: `/api/item` (
 
 *Not built, on purpose:* a deploy-version `CACHE_V` from git and an inline self-heal script (fetch `/__version`, re-fetch the page's modules, reload once). With `no-store` there is nothing to heal. Both exist in commit `70770dd3f` on branch `worktree/cache-version` if a gap shows up.
 
-*Cost of no-store:* every visit re-downloads the whole module tree, so a phone on mobile data pays for each load (numbers just below). If that is slow, the next step is versioned URLs: an import map that maps `/framework/` to `/v/<git hash>/framework/`, served `immutable`, with the HTML staying `no-store`.
+*Cost of no-store (measured 2026-11-02, a 360x740 phone viewport loading `/framework/` through a gateway on this PC, no tunnel in the path):* 873 requests, about 0.5 MB, loaded in 0.4 s cold and 0.25 s warm, idle at 1.3 s. The warm load makes the same 872 requests as the cold one (before, they were conditional requests answered 304, so the request count is not new, only the bytes). Through the tunnel each of those is a round trip: see *Measured through the tunnel* below. If that is slow, the next step is versioned URLs: an import map that maps `/framework/` to `/v/<git hash>/framework/`, served `immutable`, with the HTML staying `no-store`.
 
 **Later: a real login.** Once Access is enabled (Zero Trust → team name → Free plan) and the token has **Access: Apps and Policies → Edit**, put an Access application with the owner's email in front of `monorepo.lew42.com`; the key cookie can then go.
 

@@ -37,7 +37,7 @@ export default class SiteGateway {
     static PUBLIC = "https://monorepo.lew42.com";
     static COOKIE = "lew42_site";
     static CACHE_COOKIE = "lew42_cache_v";
-    static CACHE_V = "2";   // bump to clear every browser's HTTP cache once more, on its next page load
+    static CACHE_V = "2";   // bump (by hand) only if a phone is found holding stale copies; no-store keeps new ones from sticking, this clears ones already stuck
     static NO_STORE_TYPE = /^(text\/html|(text|application)\/javascript|text\/css|application\/(?:[\w.-]*\+)?json|application\/x-ndjson)\b/i;
     static NO_STORE_PATH = /\.(m?js|css|html?|jsonl?|webmanifest)$/i;   // by name too: a .jsonl is served as text/plain or octet-stream
     static DENY = /^\/(mcp|ai-logs|screenshot|recordings|devsource\.json|servex|server|ask|push\/send)(?![\w-])/i;   // a prefix: /mcp, /mcp/x, /mcp;x all match
