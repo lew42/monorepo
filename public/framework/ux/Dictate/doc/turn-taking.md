@@ -42,3 +42,13 @@ The owner's words: [night-2026-11-01/requirements.md](/framework/ai/sessions/202
 - **When the page is hidden, read-aloud keeps playing** (decided 2026-11-01 by `mastermind-dictation-v3`). The use case is a walk with the screen off, and the reply should still be heard. On 2026-11-01 the owner switched from Chrome to the Claude app, and the site's voice kept reading. They found it jarring.
   - **The alternative:** pause on `visibilitychange` to hidden, and resume when the page is visible again. That's better when the owner leaves to talk to another app.
   - **The switch** is a Recite setting, `read_aloud_hidden: "keep" | "pause"`, default `keep`. It's queued in read-aloud-next. Until it's built, the behaviour is `keep`.
+
+## Idea: show the floor with the ✦ icon (the owner, 2026-11-02, 14:50)
+
+A "dictation mode" exists today. It's the **floor**: the page tells Servex `speaking` or `done`, and a reply waits while the floor is `speaking` (`Sessions.mid_thought`, see `core/Session/Chat/readme.md`). It isn't shown anywhere.
+
+The owner's idea for showing it, instead of (or beside) the mic's level bars:
+- the ✦ AI icon pulses (bigger or brighter) while you speak;
+- it dims after about 1 s of silence, which is when your words are sent.
+
+Not built yet. It fits as a Voice Chat plugin once `core/Plugin` lands (`ai/sessions/2026/10/20/session-e00f55c9/core-plugin/requirements.md`).
