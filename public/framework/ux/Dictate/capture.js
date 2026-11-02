@@ -41,6 +41,7 @@ export default class Capture {
 
 	async start(on_level){
 		this.fell_back = this.recovered = false;
+		this.stopped = false;
 		try {
 			this.stream = await navigator.mediaDevices.getUserMedia({ audio: this.constraint() });
 		} catch (e){
@@ -56,6 +57,7 @@ export default class Capture {
 			this.stream = await navigator.mediaDevices.getUserMedia({ audio: this.constraint() });
 		}
 
+		if (this.stopped) return this.stop();   // stop() landed while the browser opened the mic: release it now, the light must go off
 		this.ctx = new AudioContext({ sampleRate: this.sample_rate });
 		try { await this.load_worklet(); }
 		catch (e){   // never hold the mic after a failed start
@@ -63,6 +65,7 @@ export default class Capture {
 			throw Object.assign(new Error(`the mic’s audio module (pcm-worklet.js) did not load after 3 tries: ${e?.message ?? e}`), { name: "WorkletError" });
 		}
 
+		if (this.stopped) return this.stop();
 		this.node = new AudioWorkletNode(this.ctx, "dictate-pcm");
 		this.chunks = [];
 		this.node.port.onmessage = e => {
@@ -157,6 +160,7 @@ export default class Capture {
 	 *  can run while a normal stop is still finishing, and a second `close()` on a
 	 *  closed AudioContext rejects. */
 	stop(){
+		this.stopped = true;
 		if (this.ctx && this.ctx.state !== "closed") this.ctx.close().catch(() => {});
 		this.stream?.getTracks().forEach(t => t.stop());
 	}

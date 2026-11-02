@@ -363,8 +363,10 @@ export default class Dictate extends View {
 		this.set_state("transcribing");
 
 		if (this.engine === "whisper"){
-			await this.close_segment("manual");
+			// The mic goes off NOW: close_segment() takes its snapshot before its first await, so the light never waits for the upload.
+			const closing = this.close_segment("manual");
 			this.mic?.stop();
+			await closing;
 			if (this.state !== "error"){
 				this.set_state("idle");
 				if (!this.settled && this.skipped_silent)
