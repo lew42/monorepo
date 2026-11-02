@@ -81,10 +81,23 @@ try {
 	appendFileSync(here + "fixture/" + live, JSON.stringify({ sentences: { add: { id: sid, at, text: "A live sentence." } }, messages: { add: { type: "Prompt", id: "m-live-1", by: "owner", at, sentences: [sid] } } }) + "\n");
 	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-1']", { timeout: 15000 });
 	check("appended prompt appears, last, without a reload", (await ids(".chat-v3 > .chat-v3-card")).at(-1) === "m-live-1" && await page.evaluate(() => window.__no_reload === true));
+
+	// the marks themselves, replayed live off the message (views step 3): fast's mark lands, then smart's, then a Reply
+	// after smart.at turns 🧠 done — each read straight off `m-live-1`'s own `sent`, no separate broadcast line.
+	const newest_sel = ".chat-v3-prompt[data-id='m-live-1']";
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-live-1": { sent: { fast: { at: "2026-11-01T20:39:40.000-06:00" } } } } }) + "\n");
+	await page.waitForSelector(newest_sel + " .chat-v2-marks .chat-cursor.done", { timeout: 15000 });
+	check("✓ appears live once fast's sent line lands", await page.$(newest_sel + " .chat-v2-marks .chat-smart-cursor") === null);
+	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { "m-live-1": { sent: { smart: { at: "2026-11-01T20:39:50.000-06:00" } } } } }) + "\n");
+	await page.waitForSelector(newest_sel + " .chat-v2-marks .chat-smart-cursor", { timeout: 15000 });
+	check("🧠 appears live once smart's sent line lands, not yet done (no reply)", await page.$eval(newest_sel + " .chat-v2-marks .chat-smart-cursor", e => !e.classList.contains("done")));
+
 	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-2", type: "Reply", by: "smart", at, text: "Seen, live.", re: { to: sid } } } }) + "\n");
 	await page.waitForFunction(sid => document.querySelector(`[data-sentence="${sid}"] .chat-v2-beside`)?.textContent.includes("Seen, live."), sid, { timeout: 15000 });
 	const live_card_replies = await page.$$eval("[data-id='m-live-1'] .chat-v3-reply", els => els.length);
 	check("a live reply lands beside its sentence, drawn exactly once (not also in the trailing list)", live_card_replies === 1, live_card_replies);
+	await page.waitForSelector(newest_sel + " .chat-v2-marks .chat-smart-cursor.done", { timeout: 15000 });
+	check("🧠 turns done once the Reply (after smart.at) lands", true);
 
 	check("no page errors", errors.length === 0, errors);
 } finally {

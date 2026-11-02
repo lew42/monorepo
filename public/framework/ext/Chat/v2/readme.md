@@ -36,7 +36,7 @@ The session page's Chat tab under its **Chat v2** chip (`?tab=chat&chat_view=v2`
 
 ## Test
 
-- `ChatV2.test.mjs` (headless Playwright, `node ChatV2.test.mjs [base-url] [shots-dir]`): card order/nesting match ChatV3's own; the marks show only on the newest Prompt (an older Prompt with the same sent/answered data shows none); a Reply drawn beside its sentence is not duplicated in the trailing list; a sentence with no reply has no beside box; live append of a Prompt and a Reply beside its sentence, no reload. Checked against the first and the live-appended Prompt, not every Reply in the fixture (a worthwhile follow-up: loop every Reply and assert its `re.to` sentence holds it).
+- `ChatV2.test.mjs` (headless Playwright, `node ChatV2.test.mjs [base-url] [shots-dir]`): card order/nesting match ChatV3's own; the marks show only on the newest Prompt (an older Prompt with the same sent/answered data shows none); a Reply drawn beside its sentence is not duplicated in the trailing list; a sentence with no reply has no beside box; live append of a Prompt and a Reply beside its sentence, no reload; and live, straight off `sent` (views step 3): ✓ appears once `sent.fast` lands, 🧠 appears once `sent.smart` lands (not done yet), then 🧠 turns done once a Reply after `sent.smart.at` lands. Checked against the first and the live-appended Prompt, not every Reply in the fixture (a worthwhile follow-up: loop every Reply and assert its `re.to` sentence holds it).
 - `live-guess.test.mjs`: the live draft (owner item 6, "V2 shows no live Whisper text") — inherited unchanged from ChatV3's own `draft()`, fires the shared `chat-live` window event.
 - `resurface.test.mjs`: the old model's own logic (`old/ChatV2Model.js`), for the record — see "What moved to old/" above.
 
