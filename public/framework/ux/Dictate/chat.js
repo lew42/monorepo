@@ -449,6 +449,10 @@ export function session_switcher(mount, { label = "New session", title = "Clear 
 	return Object.assign($wrap, { stop(){ unsubscribe(); open_menu?.close(); } });
 }
 
+/** THE active session, named once: the id sentences go to and the view shows, or null. `fresh` = New session was pressed and the
+ *  first sentence has not started the next one yet: there is deliberately none, and nothing may fall back to an older session.
+ *  The send (`ensure`) and the view (`attach`) read the same `ctl`; the Sheet's read-aloud (`follow`) reads it through this. */
+chat.active = () => { GLOBAL.sync_from_storage(); return { session: GLOBAL.ctl.session, fresh: !GLOBAL.ctl.session && !!GLOBAL.ctl.fresh }; };
 chat.current = () => GLOBAL.current();
 chat.file = () => GLOBAL.ctl.file;
 chat.resume = session => GLOBAL.resume_to(session);
