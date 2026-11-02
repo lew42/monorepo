@@ -46,3 +46,11 @@ The owner's notes: [owner-notes-2026-11-01-2040.md](../owner-notes-2026-11-01-20
 Prove it with a test that feeds read text back in as heard text (dropped, no barge-in) and an unrelated owner line (sent, barge-in fires). Then (c) with phrase streaming, then (b).
 
 `mastermind-ink-check` now builds in `worktree/views-fix` (the guess colour, V2 live text, paragraph breaks in `ux/Dictate/` views and the send path); if your echo work and its paragraph work touch the same file, agree with it by message first.
+
+## Highlight drops out (2026-11-01 20:47, the owner via vscode-mastermind)
+
+The owner likes the word-by-word highlight. The bug: it sometimes vanishes for whole sentences or chunks, then comes back a sentence or two later. Build this **after echo, ahead of (c) karaoke** (they share `audio/Recite/ReciteHighlight.js`). One merge.
+- Log first: when the spoken sentence can't be found in the bubble, write a `highlight: not found` trace with both texts (the spoken one and the bubble's text near the playhead) to the phone's log, so the phone itself proves the cause.
+- The likely causes, to confirm from that trace: text-prep or markdown (links, icons, mention chips) changes the spoken text so it no longer matches the DOM; or the bubble re-renders while the reply streams and drops the highlight's node.
+- Fix the cause: match on normalized text (or map the prepared text back to DOM offsets), and re-find the node after a re-render instead of holding a stale one.
+Prove it with a test reply holding a link, a mention chip and markdown, re-rendered mid-read: every sentence stays highlighted, no `not found` traces.
