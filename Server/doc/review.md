@@ -118,6 +118,10 @@ appended to `task.jsonl`, naming the widths actually used:
 {"shots":{"pages":["/framework/x/"],"dir":"shots/","sheet":"shots/x/sheet.png","sheets":["shots/x/sheet.png"],"bands":["shots/x/layout.json"],"widths":[1200]}}
 ```
 
+**The one route for the gate's shots (2026-11-02).** The merge gate wants a `<width>.png` for every width the change needs under the task's `shots/`. `node Server/review.mjs <taskdir> <worktree>` takes them from the worktree's own dev server; `--shots-only` takes just the pictures (no reviewer, no review line) when that is all the gate lacks. `layout-check.mjs` may write inside any git worktree of the repo (`OutPath.worktrees()`, from `git worktree list`), so a task dir that lives in a worktree no longer makes it refuse: before, the main tree's `layout-check` accepted only the main tree and the temp dir, and agents drew PNGs by hand to pass the gate. Never hand-make a screenshot: the gate is meant to stand on real pictures. Test: `node Server/OutPath.test.mjs`.
+
+**Review shots are not committed; keep a picture you want to show in `doc/screens/`.** `.gitignore` drops `public/framework/ai/**/*.png` (and the other image types) except under a `doc/` folder, because screenshots were 84% of git history by size. The gate reads `shots/` from disk, so they need no commit. A walkthrough or outcome that links a picture must keep it under `<task>/doc/screens/`, where git tracks it. `merge.mjs` warns when a changed `.md` links a git-ignored picture (`Server/IgnoredImageLinks.mjs`, test `IgnoredImageLinks.test.mjs`); the owner's other option, committing the review shots themselves, was left out on purpose for the repo-size reason.
+
 **`merge.mjs --quick`** (the fast path for a one-line voice fix) reuses `widthsFor` the same way,
 skipping the reviewer agent entirely: one screenshot (normally one width, from the rule above),
 then a `review.md` line ("size quick — one shot at `<w>` — pass", written by the same

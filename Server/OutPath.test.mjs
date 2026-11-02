@@ -11,3 +11,7 @@ assert.equal(OutPath.resolve("layout-check-out"), path.resolve("layout-check-out
 assert.throws(() => OutPath.resolve(path.join(path.parse(root).root, "stray-outside")), /refusing/, "a path outside the repo is refused");
 assert.throws(() => OutPath.resolve("../../elsewhere"), /refusing/);
 console.log("OutPath: 3 cases ok");
+const other = OutPath.worktrees().find(w => path.resolve(w).toLowerCase() !== OutPath.ROOT.toLowerCase());
+if (other) assert.equal(OutPath.resolve(path.join(other, "public/x")), path.join(other, "public/x"), "another git worktree of this repo is allowed (a review shot goes beside the branch's task dir)");
+assert.throws(() => OutPath.resolve(path.join(path.parse(root).root, "not-a-worktree", "x")), /refusing/, "a plain sibling folder is still refused");
+console.log("OutPath: worktree cases ok");

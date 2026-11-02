@@ -74,6 +74,7 @@ import Browser from "./Browser.mjs";
 import { refuse_links_into_main } from "./junction-guard.mjs";
 import SessionRecord from "./SessionRecord.mjs";
 import MergeTests from "./MergeTests.mjs";
+import IgnoredImageLinks from "./IgnoredImageLinks.mjs";
 
 const BASE = "michael/dev";
 const argv = process.argv.slice(2);
@@ -292,7 +293,7 @@ function reviewGate(branch, head){
 		const walk = d => { try { for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : /^\d+\.png$/.test(e.name) && have.add(Number(e.name.slice(0, -4))); } catch {} };
 		walk(path.join(best.td, "shots"));
 		const missing = need.filter(w => !have.has(w));
-		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; re-run: ${cmd}  (--no-review "why" skips, and is logged)`;
+		if (missing.length) return `refused: ${branch} changes a page but ${path.relative(best.root, best.td).replaceAll("\\", "/")}/shots/ has no screenshot at ${missing.join(", ")}px; take just the pictures from the worktree's own server: ${cmd} --shots-only  (or re-run the review: ${cmd}; --no-review "why" skips, and is logged)`;
 	}
 	return null;
 }
@@ -559,6 +560,8 @@ try {
 		const autoPages = [...new Set(changed.filter(f => !deleted.has(f) && fs.existsSync(path.join(dir, f))).map(pageUrlFor).filter(Boolean))].filter(u => !paths.includes(u));
 		if (autoPages.length) console.log(`merge.mjs found ${autoPages.length} changed page(s) from the diff: ${autoPages.join(", ")}`);
 		shotsReminder(changed, autoPages, branch);
+		const ignoredPics = IgnoredImageLinks.find(dir, changed.filter(f => !deleted.has(f)));
+		if (ignoredPics.length) console.warn(IgnoredImageLinks.sentence(ignoredPics));
 		/* Visibility gate (the owner, 2026-10-12): a branch that touches ext/Figma may not leave a page.js no parent declares. */
 		if (changed.some(f => f.startsWith("public/framework/ext/Figma/")) && fs.existsSync(path.join(dir, "public/framework/ext/Figma/visibility.mjs"))) {
 			const vis = run("node", [path.join(dir, "public/framework/ext/Figma/visibility.mjs")], dir);
