@@ -162,6 +162,21 @@ test("tests: --skip-tests runs nothing", () => {
 	assert.equal(rows(main).length, 0);
 });
 
+test("gate: a review in a task dir of an old session (years old, not in the 4-day scan) is found by the branch's own task dir", () => {
+	const { main, wt } = scratch("worktree/oldtask");
+	const gate = () => spawnSync("node", [MERGE, wt, "--gate-only"], { encoding: "utf8", windowsHide: true });
+	const td = "public/framework/ai/sessions/2025/01/05/session-aaaa1111/oldtask";
+	const base = git(main, "rev-parse", "michael/dev").trim();
+	assert.match(gate().stdout, /no review/, "before any review is written");
+	const review = { review: { verdict: "pass", findings: [], file: "review.md", branch: "worktree/oldtask", head: base, at: "2026-11-02T00:00:00Z" } };
+	write(wt, td + "/task.jsonl", [{ task: "oldtask" }, review].map(o => JSON.stringify(o)).join("\n") + "\n");
+	assert.match(gate().stdout, /gate: ok/, "uncommitted in the worktree: found");
+	git(wt, "add", "."); git(wt, "commit", "-qm", "review line");
+	const r = gate();
+	assert.equal(r.status, 0, r.stdout + r.stderr);
+	assert.match(r.stdout, /gate: ok/, "committed on the branch: found");
+});
+
 for (const t of tmps) { try { git(t, "worktree", "prune"); } catch {} }
 for (const t of tmps) fs.rmSync(t, { recursive: true, force: true });
 console.log(`${passed} passed, 0 failed`);
