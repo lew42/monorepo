@@ -82,6 +82,8 @@ ever appeared — no error, no clue why.
 
 **When is the smart assistant woken?** Not per sentence: on a pause, a question or name, or every N sentences; the two knobs are per session: [`doc/wake-policy.md`](doc/wake-policy.md).
 
+**The assistant's voice coming back through the mic as your words** (why the existing guards do not stop it; the proposed fix, 2026-11-03): [`doc/echo-and-turn-taking.md`](doc/echo-and-turn-taking.md).
+
 **How a reply is paced** (one paragraph at a time, shown then read; title and quoted question not read; conversation mode; questions filed per module): [`doc/reply-pacing.md`](doc/reply-pacing.md), the owner's design, 2026-11-02.
 
 **When should the AI show or speak a reply?** The owner's turn-taking design notes (modes, a short wait after a question, holding replies while you talk, per-sentence smart work, paced streaming, heard-only context) and what is cheapest to try first: [`doc/turn-taking.md`](doc/turn-taking.md).
