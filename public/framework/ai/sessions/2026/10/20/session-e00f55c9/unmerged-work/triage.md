@@ -8,7 +8,7 @@ Counts: **merge 7 · check 8 · superseded 17 · abandoned 15 (logs only) · old
 - `worktree/session-twins-fix` (8 commits, 20 files, task `session-e00f55c9/session-twins-fix`): SessionFolders claim rule, twin check, one-folder doc. Conflicts in 2 files. Owner: that task's mastermind.
 - `worktree/voice-bridge` (6, 7 files, `session-e00f55c9/voice-bridge`): remote.fallback turn counting, voice-agents doc. 1 conflict.
 - `worktree/read-aloud-next` (6, 9 files, `dictation-v3/read-aloud-next`): Recite highlight-dropout fixes. 6 conflicts; the Recite owner (mastermind of dictation-v3) should rebase.
-- `worktree/dictate-plugins` (3, 13 files, `session-e00f55c9/chat-settings-per-session`): VoiceChat plugin registry, Features panel, readme. 8 conflicts; finished and tested, 23 h old.
+- `worktree/dictate-plugins`: superseded, see "Superseded" below (2026-11-03).
 - `worktree/chatv3-title-dedupe` (2, 4 files, `session-00f6d159/mastermind-chatv3-title-dedupe`): small, task marked complete but never merged. Merge first.
 - `worktree/dictation-perf` (10, 12 files, 7 d, task open): 5 of 12 files same; the dictation-v3 mastermind should check what is left and merge.
 - `worktree/v1-switch-prep` (4, 8 files, task complete): 6 of 8 files same; two files left over, then supersede.
@@ -19,6 +19,7 @@ Counts: **merge 7 · check 8 · superseded 17 · abandoned 15 (logs only) · old
 ## Superseded (already on `michael/dev`, or replaced)
 - `drawer-close`, `layout-check`, `page-inbox`, `property-of-serve`, `part-link-run`, `cost-fix`, `pool-fix`: every patch is already on `michael/dev` under another commit (`git cherry`).
 - `dictate-plugins-test`: its two commits are the first two of `dictate-plugins`.
+- `dictate-plugins` (3 commits, 13 files; moved here from "Merge" on 2026-11-03 by `chat-settings-per-session`, not merged): replaced by the core/Plugin-based `VoiceChat` (`ux/Dictate/VoiceChat/`, merges 3-6), the Chat settings panel (`ux/Dictate/ChatSettings.js`) and the plugin rows. Its own `Plugin.js`, `Features.js` and registry have no counterpart on purpose. Not ported: the browser test `ux/Dictate/test/voice-chat-plugins.mjs` (it drives the old Features panel; the new node tests and the panel shots cover the same ground) and its one-line registration in `core/Test/browser-scripts.mjs`. Safe to delete.
 - `dictation-bucket`, `ai-system-page`, `architecture-md-4`, `one-store`, `refine-build`, `refine-confidence`, `refine-mic`, `sessions-layout2`, `undone-to-tasks`: at least 80% of their files are identical on `michael/dev`.
 
 ## Abandoned: logs only (the only commit is "worktree closed: N leftover files saved", jsonl logs and shots, no code)

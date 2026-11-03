@@ -127,26 +127,29 @@ await check("pause cue: one cue after the pause, none while sentences keep comin
 	assert.equal(to_seat().filter(is_cue).length, 1, "and no second cue for the same silence");
 });
 
-await check("text without an open cue is dropped; an empty turn is dropped; a cue turn's text becomes the reply", async () => {
+// CHANGED (ask2a-say-tools, 2026-11-03): plain text is never a reply any more, cue open or not — only `say` (say-tools.test.mjs)
+// ever becomes a reply the owner hears or sees. A turn that ends in plain text now writes a muted `skip` line, cue or no cue.
+await check("text is never a reply, cue open or not; an empty turn writes nothing; plain text writes a skip instead", async () => {
 	sent.length = 0;
 	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
 	s.say({ session: made.session, path: "/a/", text: "Does it work?", via: "voice", floor: "speaking" });
 	await tick();
 	const id = s.map[made.session].smart, agent = { id };
 	const replies = () => lines(file).filter(l => l.chat?.from?.kind === "assistant");
+	const skips = () => lines(file).filter(l => l.skip);
 	s.heard({ type: "result", text: "Sure, it works." }, agent);
-	assert.equal(replies().length, 0, "no cue open: the text is dropped");
+	assert.equal(replies().length, 0, "no cue open: still never a reply");
+	assert.equal(skips().length, 1, "a muted skip instead");
 	s.heard({ type: "result", text: "" }, agent);
 	assert.equal(replies().length, 0, "an empty turn writes nothing");
+	assert.equal(skips().length, 1, "and no skip for the empty one either");
 	idle(id);
 	await wait(150);
-	assert.equal(s.map[made.session].cue_open, true, "the cue opened");
+	assert.equal(s.map[made.session].cue_open, true, "the cue still opens (leave `(pause)` sending exactly as before)");
 	s.heard({ type: "result", text: "Yes, it works." }, agent);
-	assert.equal(replies().length, 1, "the cue turn's text is a reply");
-	assert.equal(replies()[0].chat.text, "Yes, it works.");
-	assert.ok(!s.map[made.session].cue_open, "the cue closes at the result");
-	s.heard({ type: "result", text: "Another." }, agent);
-	assert.equal(replies().length, 1, "after it, text is dropped again");
+	assert.equal(replies().length, 0, "even inside the cue turn, plain text is still not a reply");
+	assert.equal(skips().length, 2, "it is a second skip line");
+	assert.ok(!s.map[made.session].cue_open, "the cue still closes at the result");
 });
 
 // 5 + 6. the brief and Chat V3
