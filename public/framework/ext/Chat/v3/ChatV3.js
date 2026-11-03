@@ -27,6 +27,7 @@ export default class ChatV3 extends JSONL {
 	session = new Session();
 	els = new Map();           // root id -> the View that draws it
 	dirty = new Set();         // roots (Prompt or plain Message) to refill after this batch
+	moved = new Set();         // roots a `move` delta re-ordered: their drawn node is moved in the DOM, never refilled
 	listening = false;
 	partial = null;            // the reply being written right now, from the session's live wire: {role, text}
 	raw_open = new Set();      // prompt ids whose raw words are open
@@ -38,6 +39,8 @@ export default class ChatV3 extends JSONL {
 		if (!this.listening){
 			this.listening = true;
 			this.session.on("delta", (line, from) => {
+				const mid = from instanceof List ? line?.move?.id : null, node = mid != null ? this.session.find(mid) : null;
+				if (node) { if (this.card_roots().includes(node)) this.moved.add(node); else { const card = this.card_for(node); if (card) this.dirty.add(card); } return; }
 				const member = this.added_member(line, from);
 				if (member instanceof Reply) { this.partial = null; this.$partial?.el.remove(); }   // its settled Reply landed: stop drawing the partial
 				const card = this.card_for(member); if (card) this.dirty.add(card);
@@ -49,10 +52,10 @@ export default class ChatV3 extends JSONL {
 			this.session.replay_line(line);
 		}
 		if (first) this.draw(); else this.update();
-		this.dirty.clear();
+		this.dirty.clear(); this.moved.clear();
 		return this;
 	}
-	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.drawn = false; return super.reset(); }
+	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.moved.clear(); this.listening = false; this.drawn = false; return super.reset(); }
 	live(){ super.live(() => {}).then(() => { if (this.stopped) super.unsubscribe(); }); this.listen(true); this.wire(true); return this; }
 	unsubscribe(){ this.stopped = true; this.listen(false); this.wire(false); return super.unsubscribe(); }
 
@@ -143,6 +146,19 @@ export default class ChatV3 extends JSONL {
 				this.draft_at_end();
 			}
 		}
+		for (const node of this.moved) this.relocate(node);
+	}
+
+	// A re-ordered root keeps its drawn node (same object, same text node): only its place in the box changes, to just after the
+	// node of the root now before it in the list, or first when it leads. A root not drawn (older than the shown limit) is skipped.
+	relocate(node){
+		const el = this.els.get(node.id)?.el;
+		if (!el) return;
+		const roots = this.card_roots(), prev = roots[roots.indexOf(node) - 1], prev_el = prev && this.els.get(prev.id)?.el;
+		if (prev_el?.parentNode === el.parentNode) prev_el.after(el);
+		else if (this.$earlier?.el.parentNode === el.parentNode) this.$earlier.el.after(el);
+		else el.parentNode?.prepend(el);
+		this.draft_at_end();
 	}
 
 	card(node){
