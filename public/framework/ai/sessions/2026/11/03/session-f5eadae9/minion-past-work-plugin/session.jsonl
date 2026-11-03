@@ -5,3 +5,4 @@
 {"log":{"at":"2026-11-03T12:58:25-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":1}}
 {"log":{"at":"2026-11-03T13:00:35-06:00","heartbeat":"check","msg":"status check sent to minion-past-work-plugin"}}
 {"log":{"at":"2026-11-03T13:00:43-06:00","heartbeat":"answered","msg":"Task complete. Researched Plugin system and Dictate/Recite integration status:\n- **Plugin**: Built 2026-11-02 at core/Plugin/; UI has live toggle + config panel\n- **Dictate**: Integration planned but "}}
+{"log":{"at":"2026-11-03T13:11:35-06:00","heartbeat":"deliberate","msg":"minion-past-work-plugin its agent is not running: it was stopped on purpose by mastermind-voice-system at 2026-11-03T13:00:44-06:00; not revived."}}
