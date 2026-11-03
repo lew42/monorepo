@@ -30,7 +30,19 @@ check("replay: a tasks.add line adds a Task", () => {
 
 check("settings lines merge in order, a later line wins, and never reach put()", () => {
 	const s = Session.replay([{ session: "m1" }, { settings: { model: "a", notify: true } }, { settings: { model: "b" } }]);
-	return s.settings.model === "b" && s.settings.notify === true && s.get_one?.("settings") === undefined;
+	return s.settings.get("model") === "b" && s.settings.get("notify") === true && s.get_one?.("settings") === undefined;
+});
+
+check("settings groups: a later line replaces only the group (or flat key) it names, never the others", () => {
+	const s = Session.replay([
+		{ session: "m3" },
+		{ settings: { model: "a", dictate: { lang: "en" } } },
+		{ settings: { recite: { Interrupt: { enabled: false } } } },
+		{ settings: { recite: { Interrupt: { enabled: false }, ThinkingCue: { config: { repeat_ms: 3000 } } } } },
+	]);
+	return s.settings.get("model") === "a"
+		&& JSON.stringify(s.settings.dictate.own) === JSON.stringify({ lang: "en" })
+		&& JSON.stringify(s.settings.recite.own) === JSON.stringify({ Interrupt: { enabled: false }, ThinkingCue: { config: { repeat_ms: 3000 } } });
 });
 
 check("the menu is a template: settings first, page entries get a url under the session's own", () => {

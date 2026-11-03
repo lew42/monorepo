@@ -14,6 +14,7 @@ import "../Task/Process.js";   // registers "Process": a task added with {type: 
 import List from "../List/List.js";
 import Chat from "./Chat/Chat.js";
 import Sentence from "./Chat/Sentence.js";
+import { Settings } from "../Settings/Settings.js";
 
 /* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed
    children: Task, Process, Project, Session), queries and cost. What a session adds: its dated folder, its record's line shape (replay_line
@@ -65,8 +66,14 @@ export default class Session extends Task {
 	];
 	// The menu with each page's url filled in; `url` is the session page's own url.
 	menu(url){ return this.constructor.MENU.map(e => e.page ? { ...e, url: url + e.name + "/" } : { ...e }); }
-	// The settings now: every {"settings":{…}} line merged in order, so a later line wins. Never stored whole.
-	get settings(){ return this._settings ??= {}; }
+	/* The settings now: a core/Settings with the groups `dictate` and `recite` (named after the classes; VoiceChat's plugin
+	 * overrides, split by each plugin's `static group`), plus the flat fields of SETTINGS (name, model, effort, notify) at the
+	 * top level — read with `.get(key)`, not a bare property (SessionSettings.js). Never persisted here: replay only loads it. */
+	get settings(){ return this._settings ??= new Settings({ fields: this.constructor.SETTINGS, groups: { dictate: {}, recite: {} } }); }
+	/* Every {"settings":{…}} line merges shallow onto the raw object first (a later line replaces only the top-level key —
+	 * a whole group, or one flat field — it names; everything else stays), then the WHOLE accumulated object is loaded into
+	 * `settings` (core/Settings.load replaces everything it is given, so a partial `delta` alone would wipe the other group). */
+	_merge_settings(obj){ this.settings.load(Object.assign(this._settings_raw ??= {}, obj)); }
 
 	progress(){ return Task.progress_of(this._tasks); }   // no tasks is 0 of 0, not Task's 0 of 1
 	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
@@ -95,7 +102,7 @@ export default class Session extends Task {
 		if (this._shape === "task"){
 			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
 			if (when){ this._first_at ??= when; this._last_at = when; }
-			if (line.settings && typeof line.settings === "object") Object.assign(this.settings, line.settings);
+			if (line.settings && typeof line.settings === "object") this._merge_settings(line.settings);
 			Task.clock = when;
 			try { return super.replay_line(line); } finally { Task.clock = null; }
 		}
@@ -133,7 +140,7 @@ export default class Session extends Task {
 		if (delta.sentences && typeof delta.sentences === "object") this.sentences.set(delta.sentences);
 		if (delta.messages && typeof delta.messages === "object") this.messages.set(delta.messages);
 		delete delta.sentences; delete delta.messages;
-		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
+		if (delta.settings && typeof delta.settings === "object"){ this._merge_settings(delta.settings); delete delta.settings; }   // merged, never replaced
 		// The browser Store's own change line for a field on the session ({"set":{"title":…}}), read as Task.replay_line reads it.
 		// Before, it was kept as one field named "set" (the persistence matrix found it).
 		if (delta.set && typeof delta.set === "object" && !Array.isArray(delta.set)){ for (const [k, v] of Object.entries(delta.set)) this.take(k, v); delete delta.set; }

@@ -120,6 +120,18 @@ test("moving the threshold does not close and reopen the mic: only the values ch
 	t.eq(r.cue_repeat_ms, 4000, "the cue delay changes without a detach");
 });
 
+test("overrides_by_group splits by each plugin's static group; load_grouped is the inverse", t => {
+	reset();
+	const r = recite(), vc = new VoiceChat({ recite: r });
+	row(vc, "Interrupt").set({ config: { threshold: 0.6 } });
+	row(vc, "ThinkingCue").set({ enabled: false });
+	t.eq(Interrupt.group, "recite", "both shipped plugins are read-aloud");
+	t.eq(vc.overrides_by_group(), { dictate: {}, recite: { Interrupt: { config: { threshold: 0.6 } }, ThinkingCue: { enabled: false } } });
+	const vb = new VoiceChat({ recite: recite() });
+	vb.load_grouped(vc.overrides_by_group());
+	t.eq(vb.overrides, vc.overrides, "load_grouped merges the two groups back into one load_overrides call");
+});
+
 test("two chats on one Recite wrap the bar controls once; the newest chat owns them", t => {
 	reset();
 	const r = recite(), a = new VoiceChat({ recite: r }), b = new VoiceChat({ recite: r });

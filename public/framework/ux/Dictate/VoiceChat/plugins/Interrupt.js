@@ -4,6 +4,7 @@ import { VoiceChat } from "../VoiceChat.js";
 // The values go straight onto the object, never through BargeIn.remember(): they belong to the chat, not the browser.
 export default class Interrupt {
 	static label = "Interrupt";
+	static group = "recite";   // read-aloud: session.settings.recite
 	static description = "Stop reading aloud when you start talking.";
 	static defaults = { on: true, mode: "volume", threshold: 0.35, quiet_ms: 2500 };
 	static fields = [
