@@ -197,6 +197,17 @@ test("attach is idempotent per (instance, plugin): use -> unuse -> use never att
 	calls.length = 0;
 	H16.unuse(Other); H16.use(Other);
 	t.eq(calls.length, 0, "no real detach ran, so attach_instance's own guard skips the second attach");
+	calls.length = 0;
+	// A Plugin SUBCLASS with no detach of its own inherits Plugin.detach (a no-op) — review finding 2, 2026-11-03:
+	// `typeof rec.plugin.detach === "function"` is true for that inherited no-op, so detach_instance must also
+	// check it isn't just the base class's default, or it wrongly treats the inherited no-op as a real undo.
+	class NoOwnDetach extends Plugin { static attach(inst){ calls.push(["attach", "NoOwnDetach", inst.tag]); } }
+	class H19 extends Plugin {}
+	H19.use(NoOwnDetach);
+	const live3 = new H19({ tag: "live3" });
+	calls.length = 0;
+	H19.unuse(NoOwnDetach); H19.use(NoOwnDetach);
+	t.eq(calls.length, 0, "the inherited no-op detach is not a real undo either — attached once, stays attached");
 });
 
 test("inst.plugins picks up a plugin the class gains after the row list was first read", t => {

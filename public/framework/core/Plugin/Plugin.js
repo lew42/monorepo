@@ -136,7 +136,11 @@ export class Plugin extends Events(Object) {
 
 	static detach_instance(rec, inst){
 		if (!rec.attached.has(inst)) return;
-		if (typeof rec.plugin.detach !== "function") return;   // irreversible: stays "attached" so a later enable never runs attach twice
+		// Irreversible either way: no `detach` at all, OR a `Plugin` subclass with none of its OWN — it still
+		// inherits the base class's no-op `Plugin.detach` (:209), which IS a function, so `typeof` alone would
+		// treat it as a real undo (review finding 2, 2026-11-03). Either way, stays "attached" so a later enable
+		// never runs attach twice.
+		if (typeof rec.plugin.detach !== "function" || rec.plugin.detach === Plugin.detach) return;
 		rec.attached.delete(inst);
 		rec.plugin.detach(inst);
 	}
