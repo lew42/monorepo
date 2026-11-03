@@ -55,7 +55,7 @@ Resume + queueing + turn-taking (piece (a)), echo suppression, the thinking cue,
 
 1. **Voice chevron** — a dropdown chevron on the voice name in `ReciteBar` (today's heart icon reads as a "like" button), and the `read_aloud_hidden: "keep" | "pause"` setting (default `keep`; `pause` stops playback on `visibilitychange` to hidden and resumes when the page is visible again).
 2. **(c) Karaoke follow** — without phrase-level streaming.
-3. **Gate Dictate's send path on the echo/phantom guards** — proposed to `mastermind-ink-check` ([doc/architecture.md](doc/architecture.md), the echo decision's open item), not scheduled yet.
+3. ~~Gate Dictate's send path on the echo/phantom guards~~ — done: [ux/Dictate/doc/phantom-gate.md](/framework/ux/Dictate/doc/phantom-gate.md).
 
 Not built, and not on this list: the polite interjection ("excuse me", then wait) — a ⬜ in `ux/Dictate/doc/turn-taking.md`, "Voice dynamics" (no page there to link; the file is in the repo).
 
@@ -81,7 +81,7 @@ Every read-aloud step writes one `recite` line to [the Whisper log](/framework/a
 
 ## Files
 
-- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css), [Recite.css](Recite.css), [page.js](page.js) (the demo), [playback-stutter.test.mjs](playback-stutter.test.mjs) (headless: no repeated start, the words interrupt)
+- [Recite.js](Recite.js), [BargeIn.js](BargeIn.js), [phantom-phrases.js](phantom-phrases.js) (the one phrase list and `noise()` that `BargeIn` and the node test share), [ReciteBar.js](ReciteBar.js), [ReciteHighlight.js](ReciteHighlight.js), [ReciteTap.js](ReciteTap.js), [ReciteBubble.js](ReciteBubble.js), [ReciteBubble.css](ReciteBubble.css), [Recite.css](Recite.css), [page.js](page.js) (the demo), [playback-stutter.test.mjs](playback-stutter.test.mjs) (headless: no repeated start, the words interrupt)
 - [ReciteBubble.test.mjs](ReciteBubble.test.mjs): the headless test of the bubble control in Chat V1, V2 and V3 (`FENCE_SERVEX=1 node ReciteBubble.test.mjs <site-url>`; also on the browser-scripts list).
 - [Recite.test.mjs](Recite.test.mjs): runs on [the test page](/framework/core/Test/view/?file=audio/Recite/Recite.test.mjs) (it needs the DOM; in node it skips). The server's test is `Servex/ext/recite/recite.test.mjs`.
 - [doc/architecture.md](doc/architecture.md), [doc/voice-models.md](doc/voice-models.md) (what Kokoro costs here, and which voices sound better)
