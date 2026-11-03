@@ -16,6 +16,16 @@
 3. **Patch, don't rebuild.** V3 `update()` changes only the node that changed (the paragraph text, the reply) instead of emptying the card; it keeps the partial reply, the "show raw" state and the scroll. Redraws are coalesced to one per frame. Medium.
 4. **Optional, fewer model turns:** the assistant files the cleanups for several sentences in one turn at the pause cue instead of one turn per sentence. Cheaper and calmer, but the first clean text shows later. Try after 1 to 3 and compare.
 
+## Batching sentences to the assistant (asked 2026-11-03)
+
+Today the single assistant gets one model turn per sentence (`single_say`, no hold), then a second turn for the pause cue. Recommended: keep the raw sentence reaching the session at once (the raw log stays instant), but hand the assistant the held sentences once per pause (the quiet already used for `hold_thought`/`release_thought`, ~2.5 s, or a cap of about 5 sentences or 20 s so a long monologue is not held forever), with the cue in the same turn. One of everything: reuse the fast seat's thought hold, not a new timer.
+
+- **Latency:** the cleanup and the reply arrive at the pause, one turn instead of two; mid-speech nothing changes, which is what steadies the display. Cost: a short sentence's cleanup shows ~1-2 s later than now.
+- **Jumpiness:** best of the options: no cleanup edits at all while you talk.
+- **Cost:** fewer model turns; the saving is small on one-sentence questions (this session: 34 quiet moments for 41 sentences) and large on long dictation. Not yet measured per sentence.
+- **A middle ground, as a setting** (the owner likes sending a sentence at a time, but finds it a little too much): "hand the assistant what you said every N sentences, or at your pause, or after S seconds, whichever comes first", the same two knobs `WakePolicy` already has for the smart seat (`every`, `gap_ms`; `Servex/agents/WakePolicy.js`), so one policy, not a new one. N = 1 is today's one at a time and stays available; the proposed default is N = 3 with the pause and a 20 s cap. Per session, in the gear panel beside the assistant row ([settings.md](settings.md)).
+- **Not recommended:** raising `sentences_per_send` on the page (it delays the raw words themselves).
+
 ## The proof
 
 `ux/Dictate/test/flicker.mjs` (scenario `clean`) counts words that left the screen and words that moved: after steps 1 and 2 it should show 0 words gone while talking, and an applied clean-up only at the pause. Add a check that a redraw of a card keeps its partial reply and open raw text.
