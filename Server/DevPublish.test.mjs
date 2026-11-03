@@ -74,6 +74,17 @@ test("origin changed a file the main tree has uncommitted edits to: no merge, ed
 	assert.equal(fs.readFileSync(path.join(main, "b.txt"), "utf8"), "my uncommitted edit\n");
 });
 
+test("staged changes in the main tree: no merge commit that would sweep them in", () => {
+	const { main, other } = repos();
+	pushOther(other, "c.txt", "C\n");
+	write(main, "mine.txt", "M\n"); git(main, "add", "."); git(main, "commit", "-m", "mine");
+	write(main, "staged.txt", "S\n"); git(main, "add", "staged.txt");
+	const r = DevPublish.push_dev(main, DEV_BRANCH);
+	assert.ok(!r.ok);
+	assert.match(r.notes.join("; "), /staged changes/);
+	assert.equal(git(main, "diff", "--cached", "--name-only").trim(), "staged.txt");
+});
+
 test("a refused push is retried once: another clone slips a commit in between our fetch and our push", () => {
 	const { origin, main, other } = repos();
 	write(main, "mine.txt", "M\n"); git(main, "add", "."); git(main, "commit", "-m", "mine");

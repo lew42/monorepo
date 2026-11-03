@@ -78,6 +78,8 @@ export default class RenameDevBranch {
 		const lockFile = path.join(main, ".merge.lock");
 		try { fs.writeFileSync(lockFile, JSON.stringify({ pid: process.pid, dir: "rename-dev-branch", at: Date.now() }), { flag: "wx" }); } catch { step("take .merge.lock", false, "held by a merge"); return { ok: false, steps }; }
 		try {
+			const r = g("branch", "-m", from, to);
+			if (!step(`git branch -m ${from} ${to}`, !r.status, r.stderr.trim())) return { ok: false, steps };
 			const re = RenameDevBranch.pattern(from);
 			const rewritten = [];
 			for (const f of m.files.filter(x => x.kind === "rewrite")) {
@@ -91,8 +93,6 @@ export default class RenameDevBranch {
 				fs.writeFileSync(devFile, n); rewritten.push({ file: "Server/dev-branch.mjs", dirty: m.files.some(x => x.file === "Server/dev-branch.mjs" && x.dirty) });
 			}
 			step("rewrite files", true, `${rewritten.length} files`);
-			const r = g("branch", "-m", from, to);
-			if (!step(`git branch -m ${from} ${to}`, !r.status, r.stderr.trim())) return { ok: false, steps };
 			const clean = rewritten.filter(f => !f.dirty).map(f => f.file);
 			if (clean.length) {
 				const a = RenameDevBranch.git(main, clean.join("\n") + "\n", "add", "--pathspec-from-file=-");
@@ -101,8 +101,11 @@ export default class RenameDevBranch {
 			}
 			const p = g("push", "-u", "origin", to);
 			if (!step(`git push -u origin ${to}`, !p.status, (p.stderr || "").trim().split("\n").pop())) return { ok: false, steps };
-			const inside = !g("merge-base", "--is-ancestor", `origin/${from}`, to).status;
-			if (g("rev-parse", "--verify", "-q", `refs/remotes/origin/${from}`).status) step(`delete origin/${from}`, true, "it was not there");
+			const fetched = g("fetch", "origin");
+			if (fetched.status) step(`fetch origin before deleting origin/${from}`, false, "skipped: " + (fetched.stderr || "").trim().split("\n").pop());
+			const inside = !fetched.status && !g("merge-base", "--is-ancestor", `origin/${from}`, to).status;
+			if (!fetched.status && g("rev-parse", "--verify", "-q", `refs/remotes/origin/${from}`).status) step(`delete origin/${from}`, true, "it was not there");
+			else if (fetched.status) { /* reported above */ }
 			else if (!inside) step(`delete origin/${from}`, false, `skipped: origin/${from} has commits that ${to} does not; look first`);
 			else { const d = g("push", "origin", "--delete", from); step(`git push origin --delete ${from}`, !d.status, (d.stderr || "").trim().split("\n").pop()); }
 			return { ok: steps.every(s => s.ok || /skipped/.test(s.note)), steps };

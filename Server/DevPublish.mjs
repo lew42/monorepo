@@ -43,6 +43,7 @@ export default class DevPublish {
 		if (mt.status) return { ok: false, did: "none", note: `${dev} and ${ref} conflict in: ${DevPublish.lines(mt.stdout).slice(1).join(", ")}; resolve by hand` };
 		const theirs = new Set(DevPublish.lines(g("diff", "--name-only", "--no-renames", `HEAD...${ref}`).stdout));
 		const dirty = DevPublish.lines(g("status", "--porcelain", "--untracked-files=no").stdout).map(l => l.slice(3).replace(/^.* -> /, "").replace(/^"|"$/g, ""));
+		if (g("diff", "--cached", "--quiet").status) return { ok: false, did: "none", note: `the main tree has staged changes that a merge commit would sweep in; try again later` };
 		const hit = dirty.filter(f => theirs.has(f));
 		if (hit.length) return { ok: false, did: "none", note: `${ref} changed files with uncommitted edits in the main tree (${hit.slice(0, 3).join(", ")}); try again later` };
 		const r = g("merge", "--no-edit", "--no-autostash", "-m", `Merge ${ref} into ${dev}`, ref);
