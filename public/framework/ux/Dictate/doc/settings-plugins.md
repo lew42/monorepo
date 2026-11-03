@@ -36,9 +36,9 @@ The owner's ask: a Servex side setting as the bridge, so an agent (or a future c
 - **The gap**: everything else (Recite's parts, most of `SETTINGS`) is `localStorage` only, browser-side, invisible to Servex and to `item`. Wiring a plugin group onto `core/Plugin`'s `Host.use` doesn't by itself make it `item`-reachable — that needs the group's `set_config` to also `POST /api/session/settings` (or a sibling route) so the session record carries it, the way wake policy already does.
 - **The per-device open item stands**: ([`ux/Dictate/readme.md`](/framework/ux/Dictate/readme.md#one-session-across-tabs-and-settings-per-device)) "a settings record in Servex, read at load, with the browser's copy as a cache" — this doc's Servex bridge is the mechanism that item already needs; building it answers both asks at once.
 
-## Known gap: core/Plugin's on/off is class-wide
+## The per-instance toggle: built, in core/Plugin itself
 
-`Host.use(P)`/`unuse(P)` installs or removes the hook for **every future instance of the class** — it does not reach already-live instances. A toggle in the gear panel must change the *live* Recite/Mic instance on this page right now, not just future ones. Another minion is adding per-instance rows to `core/Plugin` for this; this settings panel build should wait on that landing (or, if it lands first, use whatever per-instance mechanism it adds) rather than reinventing live-toggle plumbing here.
+`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` now has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`") — one row per class-level plugin, starting unset so it follows the class row, switched for just this instance with `toggle_plugin` the moment the panel's row is touched, and that instance's own wish then wins over a later class-wide `enable()`/`disable()`. The gear panel's "live on/off switch" (above) is this: `inst.plugins.find(name).set({enabled})`, same `PluginEntry` shape as the class list.
 
 ## The settings table (today's knobs, as the build starts from)
 
@@ -51,7 +51,8 @@ The owner's ask: a Servex side setting as the bridge, so an agent (or a future c
 | Recite | Per-bubble replay (`ReciteBubble`) | `enabled` | on | Show a ▶/⏸ and ↺10 control on every reply. |
 | Recite | Thinking cue | `enabled` | on | Play a soft tone while a reply is on its way. |
 | Recite | Thinking cue | `cue_repeat_ms` | 2000 | How often the tone repeats while still waiting. |
-| Recite | No-flood (hold updates) | `turn_wait_ms` | 2500 | Hold back-to-back replies this long so they read as one. |
+| Recite | Turn-taking | `turn_wait_ms` | 2500 | Quiet needed before a freshly queued reply starts over you (the 1 s floor, `Recite.min_quiet_ms()`). |
+| Recite | No-flood (hold updates) | `update_hold_ms` | 4000 | How long an agent update waits for the direct answer before it is queued anyway. |
 | Recite | Interrupt | `quiet_ms` (BargeIn) | — (census: partly wired) | Quiet time after you stop talking before reading resumes. |
 | Dictate | Send timing | `send_mode` | `"pause"` | Send on a pause, or send each finished sentence. |
 | Dictate | Send timing | `pause_send_ms` | 2000 | Quiet before everything on screen is sent. |
@@ -68,11 +69,10 @@ The owner's ask: a Servex side setting as the bridge, so an agent (or a future c
 | Dictate | Destination | `into` | `"chat"` | Dictated words go into the chat log, or into a plain text box. |
 | Dictate | Server answer wait | `answer_quiet_ms` | 2500 | Quiet before a spoken line reaches the fast seat (Servex-side, `Sessions.js:246`). |
 
-Five features the census found with **no switch at all** (word highlight is listed above as it has a class but per the census its row is missing; the rest have neither a class nor a setting): the send cursors (✓/🧠), Whisper repeat collapse. These need a plugin class built from scratch, not just a panel row — out of scope for this doc, noted for the build.
+Five features the census (`wired: false`) found with **no switch at all**: word highlight, tap-a-bubble-to-play/pause and per-bubble replay (all three already have a class — `ReciteHighlight`, `ReciteTap`, `ReciteBubble`, listed above — just no setting or panel row yet), plus the send cursors (✓/🧠) and Whisper repeat collapse (neither has a class or a setting). The first three are a panel row each, reusing the existing class; the last two need a plugin class built from scratch — out of scope for this doc, noted for the build.
 
 ## Build order
 
-1. Wait for (or coordinate with) the per-instance `core/Plugin` fix — a toggle must reach the live instance.
-2. Port the paused branch's `BargeIn`/`Highlight`/`Tap`/`Bubble`/thinking-cue wrapping onto `core/Plugin.use`, keeping their existing `static id/label/defaults/fields`.
-3. Group `Mic.js`'s `SETTINGS` keys into plugin-shaped classes (send timing, wake policy, clean-up) rather than one flat object — each becomes a `fields` list under one toggle, reusing `panel_sections` (`Mic.js:314`) as the insertion point.
-4. Extend `POST /api/session/settings` to carry plugin config, so `item` deltas and cross-device sync have one real bridge instead of `localStorage` alone.
+1. Port the paused branch's `BargeIn`/`Highlight`/`Tap`/`Bubble`/thinking-cue wrapping onto `core/Plugin.use`, keeping their existing `static id/label/defaults/fields` — the per-instance toggle they need (`inst.plugins`) is already there.
+2. Group `Mic.js`'s `SETTINGS` keys into plugin-shaped classes (send timing, wake policy, clean-up) rather than one flat object — each becomes a `fields` list under one toggle, reusing `panel_sections` (`Mic.js:314`) as the insertion point.
+3. Extend `POST /api/session/settings` to carry plugin config, so `item` deltas and cross-device sync have one real bridge instead of `localStorage` alone.
