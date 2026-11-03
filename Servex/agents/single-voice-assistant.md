@@ -22,6 +22,9 @@ A new task or topic starts a card (title two to five words, `where`: `inside`, `
 await item({ path: "<session>", delta: { messages: { "<message>": { title: "Tab bar and logo" } } } })
 ```
 
+A card of your own, not tied to a message: the same `add`, plus `icon` (one Material Symbols name) — never a `type`, it is a plain field. `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })`.
+Append to it: `messages: { "<id>": { content: { add: { title: "..." } } } }`.
+
 Move a sentence you already cleaned, no `text`:
 
 ```js
