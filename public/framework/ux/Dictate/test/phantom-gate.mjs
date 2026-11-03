@@ -2,12 +2,12 @@
 // Fixtures from the real evidence: ai/whisper/bucket.jsonl seq175 (true silence hallucination) and
 // seq995 (the same phrase heard back through the mic while Recite read aloud).
 import { should_drop_phantom, whisper_info } from "../phantom-gate.js";
+import { noise } from "../../../audio/Recite/phantom-phrases.js";
 
-// A stand-in for BargeIn.noise/echo: same two checks (stock-phrase blocklist, fuzzy match against what Recite is
-// reading), kept tiny here because the real BargeIn.js cannot load in plain node (it pulls in Part/MicStream/Whisper,
-// all browser-only). The real wiring (ux/Dictate/chat.js) passes BargeIn.noise itself, never this copy.
-const PHANTOM_PHRASES = ["thank you.", "thank you", "you"];
-const noise = text => PHANTOM_PHRASES.includes(String(text).trim().toLowerCase());
+// The REAL noise() — phantom-phrases.js is a plain module BargeIn.js also uses, so this test and the real wiring
+// (ux/Dictate/chat.js, which passes BargeIn.noise) can never drift apart. Only `echo` (the fuzzy match against what
+// Recite is reading) is a stand-in: `echo_active()`/`barge.echo()` below are plain stub objects, not BargeIn.js
+// itself, which cannot load in plain node (it pulls in Part/MicStream/Whisper, all browser-only).
 
 const silent = { echo_active: () => false, barge: { echo: () => false } };
 const reading = { echo_active: () => true, barge: { echo: text => /thank you/i.test(text) } };
@@ -25,6 +25,8 @@ const cases = [
 		"Thank you.", {}, silent, false],
 	["a real interruption while Recite reads, not an echo of it -> kept",
 		"please stop for a second", { duration_s: 2.0 }, reading, false],
+	["leading space on a stock phrase still matches noise() -> dropped",
+		" Thank you.", { duration_s: 1.4, word_prob: 0.14 }, silent, true],
 ];
 
 let bad = 0;
