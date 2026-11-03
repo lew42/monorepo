@@ -11,9 +11,14 @@ const own_events = Symbol.for("core.Plugin.events");
 export class Plugin extends Events(Object) {
 
 	// Same order the server's Events had: assign the args, announce "new", then instantiate().
+	// A constructor arg named `overrides` ({Name: {enabled?, config?}}, what inst.overrides gave) is loaded BEFORE the plugins attach,
+	// so a plugin this instance has off is never attached for a moment, and the others attach with this instance's own config.
 	constructor(...args){
 		super();
+		let start;
+		args = args.map(a => { if (!a || typeof a !== "object" || !("overrides" in a)) return a; const { overrides, ...rest } = a; start = overrides; return rest; });
 		this.assign(...args);
+		if (start) this.load_overrides(start);
 		this.constructor.emit("new", this);
 		this.instantiate();
 	}
@@ -186,9 +191,11 @@ export class Plugin extends Events(Object) {
 		rec.plugin.detach(inst);
 	}
 
-	// New config for a live instance: detach then attach, so the plugin re-reads it (a plugin with no real detach is left as is).
+	// New config for a live instance: a plugin with reconfigure(inst) is told just that; otherwise detach then attach, so it re-reads
+	// its config (a plugin with no real detach is left as is).
 	static rerun_instance(rec, inst){
 		if (!rec.attached.has(inst)) return;
+		if (typeof rec.plugin.reconfigure === "function") { rec.plugin.reconfigure(inst); return; }
 		this.detach_instance(rec, inst);
 		this.attach_instance(rec, inst);
 	}

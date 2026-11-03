@@ -18,13 +18,23 @@ export default class Interrupt {
 		b.sync(); vc.recite.changed?.();
 	}
 
-	// The bar's mic, mode and threshold controls (audio/Recite/ReciteBar.js) call these three; they now also write this chat's row,
-	// so what a session saves is what the owner set. The host's own call still runs first (it saves to the browser).
+	// Only the values change: the mic stays open while a threshold slider moves (detach then attach would close and reopen it).
+	static reconfigure(vc){
+		const c = VoiceChat.config(vc, this), b = vc.recite.barge;
+		b.mode = c.mode; b.threshold = c.threshold; b.quiet_ms = c.quiet_ms;
+	}
+
+	// The bar's mic, mode and threshold controls (audio/Recite/ReciteBar.js) call these three; they now also write the row of the chat that
+	// owns the bar. Wrapped once per BargeIn (the page has one); the newest bind() decides which chat that is. The host's own call runs first.
 	static bind(vc){
-		const b = vc.recite.barge, row = vc.plugins.find(this.name);
+		const b = vc.recite.barge;
+		b.$interrupt_chat = vc;
+		if (b.$interrupt_wrapped) return;
+		b.$interrupt_wrapped = true;
+		const row = () => b.$interrupt_chat.plugins.find(this.name);
 		for (const [method, write] of [["set_on", v => ({ enabled: !!v })], ["set_mode", v => ({ config: { mode: v } })], ["set_threshold", v => ({ config: { threshold: Number(v) } })]]) {
 			const own = b[method]?.bind(b);
-			if (own) b[method] = v => { own(v); row.set(write(v)); };
+			if (own) b[method] = v => { own(v); row().set(write(v)); };
 		}
 	}
 

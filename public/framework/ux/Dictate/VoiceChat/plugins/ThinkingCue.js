@@ -12,6 +12,8 @@ export default class ThinkingCue {
 		vc.recite.cue_repeat_ms = VoiceChat.config(vc, this).repeat_ms;
 	}
 
+	static reconfigure(vc){ vc.recite.cue_repeat_ms = VoiceChat.config(vc, this).repeat_ms; }
+
 	// Only the pending repeat is dropped: cancel_cue() would also clear cue_pending, which no-flood's hold reads.
 	static detach(vc){
 		const r = vc.recite;

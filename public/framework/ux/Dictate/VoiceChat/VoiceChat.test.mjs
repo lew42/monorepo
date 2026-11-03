@@ -101,8 +101,29 @@ test("what the browser remembered becomes this chat's overrides, not the class",
 	const r = recite(); r.barge.threshold = 0.5; r.barge.on = false;
 	t.eq(Interrupt.snapshot(r), { Interrupt: { enabled: false, config: { threshold: 0.5 } } }, "only what differs from the class");
 	t.eq(Interrupt.snapshot(recite()), {}, "nothing remembered, nothing to adopt");
-	const had = Interrupt.snapshot(r), vc = new VoiceChat({ recite: r }); vc.load_overrides(had);   // read BEFORE the chat starts: its attach writes the class values
+	const had = Interrupt.snapshot(r), seen = [];   // read BEFORE the chat starts: its attach writes the class values
+	let on = r.barge.on; Object.defineProperty(r.barge, "on", { get: () => on, set: v => { seen.push(v); on = v; } });
+	const vc = new VoiceChat({ recite: r, overrides: had });
+	t.eq(seen.includes(true), false, "Interrupt was never switched on, not even for a moment (the mic would have opened)");
 	t.eq(r.barge.on, false, "still off, as the browser remembered");
 	r.barge.set_on(true);
 	t.eq(r.barge.threshold, 0.5, "turned on, it uses the remembered threshold, not the class one");
+});
+
+test("moving the threshold does not close and reopen the mic: only the values change", t => {
+	reset();
+	const r = recite(), vc = new VoiceChat({ recite: r }), syncs = r.barge.syncs;
+	row(vc, "Interrupt").set({ config: { threshold: 0.55 } });
+	t.eq(r.barge.threshold, 0.55, "the new value is on the host");
+	t.eq([r.barge.on, r.barge.syncs], [true, syncs], "still on, and the mic was not told to sync");
+	row(vc, "ThinkingCue").set({ config: { repeat_ms: 4000 } });
+	t.eq(r.cue_repeat_ms, 4000, "the cue delay changes without a detach");
+});
+
+test("two chats on one Recite wrap the bar controls once; the newest chat owns them", t => {
+	reset();
+	const r = recite(), a = new VoiceChat({ recite: r }), b = new VoiceChat({ recite: r });
+	r.barge.set_threshold("0.6");
+	t.eq(r.barge.remembered.length, 1, "the host's own call ran once, not once per chat");
+	t.eq([a.overrides, b.overrides], [{}, { Interrupt: { config: { threshold: 0.6 } } }], "only the newest chat took the change");
 });
