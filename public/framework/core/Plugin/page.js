@@ -138,8 +138,8 @@ Badge.plugins.set({ Glow: { enabled: false } });
 				box.append(line);
 			}
 			box.append(b.el, el("code", `overrides: ${JSON.stringify(b.overrides)}`));
-			const bar = el("div"); bar.className = "flex gap";
-			const button = (text, fn) => el("button", text, { type: "button", onclick: () => { fn(); show(); } });
+			const bar = el("div"); bar.className = "flex gap wrap";
+			const button = (text, fn) => { const b = el("button", text, { type: "button", onclick: () => { fn(); show(); } }); b.style.whiteSpace = "nowrap"; return b; };
 			bar.append(button("Make default", () => Badge.make_default(b)), button("Reset to default", () => b.reset_plugins()));
 			box.append(bar);
 			return box;

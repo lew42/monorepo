@@ -6,7 +6,7 @@ Brief: [requirements.md](requirements.md). Older plan (census of 21 features, 29
 
 `core/Plugin` already lets a **class** list plugins and switch them on and off. This adds a second level: a **Voice Chat instance** (one per open chat) keeps only its *overrides* (which plugins it switched, which values it changed) and reads everything else from the class. The overrides are a small plain object. That object is what is saved on the voice session, loaded when the session is opened, and copied to the class defaults by "Make default". A new session is an instance with no overrides, so it starts from the defaults.
 
-## Step 1: instance-level plugins in core/Plugin (merge 2; built, waits for qf-1)
+## Step 1: instance-level plugins in core/Plugin (merge 2; built, in review)
 
 Built on qf-1's per-instance rows (`inst.plugins`, a List of `PluginEntry`, one per class plugin; `enabled`/`config` stay null until this instance overrides them, then read the class record). On top of that (commit a9a75d7df, 28 tests in `core/Plugin/Plugin.test.mjs`):
 
@@ -68,5 +68,7 @@ Two buttons at the top of the Features section: **Make default** (`VoiceChat.mak
 - Decision 2026-11-03 (vscode-mastermind): ONE core/Plugin implementation. mastermind-voice-system's per-instance rows (`inst.plugins`, commit c8c0af7b2 on worktree/qf-1, merging first) are the base. My own step-1 draft (plugin_state/set_plugin, branch task/chat-settings-per-session, worktree qf-4) is NOT merged; kept as reference. After qf-1 lands I add only: a config change on an instance row re-runs detach then attach; overrides / load_overrides / make_default over the rows.
 - Servex half of steps 4 and 5: built in worktree/chat-settings-servex (commits 9a39ff44a and the one after): per-session `plugins` via POST /api/session/settings, shared defaults via /api/session/defaults, 4 tests. The page does not use them yet.
 - Make default also saves the defaults on Servex (vscode-mastermind, 2026-11-03): done on the Servex side; the page side will read it at load, with localStorage as the fallback (not built yet).
-- Step 1 remainder: built on top of qf-1 in worktree/chat-settings-plugins (stacked on worktree/qf-1, decision of vscode-mastermind 2026-11-03), commit a9a75d7df: overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests. Merges after qf-1 lands.
-- Open: step 1 merge (waits for qf-1), step 2 (Voice Chat plugins; Merge A branch worktree/dictate-plugins, c7330581d, still to port), step 3 (Chat settings panel), page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
+- qf-1 landed on michael/dev (bc4147365, 2026-11-03).
+- Step 1 remainder: built on qf-1 in worktree/chat-settings-plugins (a9a75d7df and after): overrides, load_overrides, reset_plugins, Host.make_default, a config change re-runs detach then attach; 28 core/Plugin tests; page demo and docs. Ready to merge after its review.
+- Step 2, first group (Interrupt, ThinkingCue, the VoiceChat class, chat.js wiring, 10 tests): built in worktree/chat-settings-voicechat, stacked on step 1; merges after step 1. Still to port: send on each sentence end, word highlight, tap to pause, timings.
+- Open: step 2 remainder, step 3 (Chat settings panel), page side of 4 and 5 (load, save, Make default, Reset to default). None of the five asks is ticked.
