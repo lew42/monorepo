@@ -129,6 +129,34 @@ if (Recite) test("Recite + BargeIn: cancel_unheard() does not report a reply alr
 	return r;
 });
 
+// Same bug, the HELD case: finish() leaves `this.at` on the LAST chunk that actually played, and start_or_hold()
+// only sets `wait_at` — it never moves `this.at`. So while a fresh reply sits held (nothing playing), cancel_unheard()
+// must start the skip loop at `wait_at`, not the stale `this.at` from the reply before it (review finding 1, round 3).
+if (Recite) test("Recite + BargeIn: a cut that lands during a turn-taking hold does not report the played reply either", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = true;
+	r.barge.sync = () => {};   // never open a real mic in a test
+
+	r.queue("A first reply, heard in full.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "the first reply started");
+	r.ended();   // finishes: this.at stays on chunk 0, the one that just played
+	t.eq(r.state, "idle", "idle, nothing queued yet");
+
+	r.barge.hear(0.9);   // the owner is talking when the second reply arrives
+	r.queue("A second reply, held while you talk.");
+	t.eq(r.state, "idle", "it does not start over you");
+	t.eq(r.wait_at, 1, "held at chunk 1 — this.at is still 0, the first reply's own chunk");
+
+	const read = []; r.on_read = ev => read.push(ev);
+	r.barge.owner_spoke("hold on a second");
+	t.eq(r.state, "idle", "cancelled");
+	t.eq(read.length, 1, "only the held, never-started reply is reported — not the one already heard in full");
+	t.eq(read[0].heard, "skipped", "it never started playing, so it is skipped, not cut");
+	return r;
+});
+
 // resume_after_cut = true keeps the OLD manners: pause, drop only on a question, otherwise resume once quiet — for
 // an owner who wants the previous behaviour back.
 if (Recite) test("Recite + BargeIn: resume_after_cut = true keeps the old pause-then-resume manners", async t => {

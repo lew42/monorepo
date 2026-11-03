@@ -28,13 +28,9 @@ Each group becomes `static attach(instance)` / `detach(instance)` plus `static d
 - Saved state: `Plugin.store`, key `plugin.<Host>.<Plugin>` = `{on, config}`, only written when changed through a row — so per-device for now, which matches the open item below.
 - A plugin can have its own sub-plugins (`row.plugins`), which is one way to nest "Recite → BargeIn → mode" if a group ever needs it, but a flat `fields` list (as `BargeIn.defaults.mode` already works today) is simpler and should be tried first.
 
-## Reachable by the item tool
+## Reachable by the item tool: built by mastermind-chat-settings, not here
 
-The owner's ask: a Servex side setting as the bridge, so an agent (or a future cross-device sync) can flip a setting with a plain `item` delta like `{plugins:{Interrupt:{enabled:false}}}` on the voice session.
-
-- **Today's bridge, already built**: `POST /api/session/settings {session, gap_ms?, every?, tail?, assistant?}` (`Servex/agents/Sessions.js:355`, called from `Mic.js:388`) — per-session, Servex-side, exactly the shape needed for wake policy. It is the model to extend, not a new mechanism: add a plugin's `{enabled, ...config}` to the same route's body, keyed by plugin id, rather than inventing a second settings endpoint.
-- **The gap**: everything else (Recite's parts, most of `SETTINGS`) is `localStorage` only, browser-side, invisible to Servex and to `item`. Wiring a plugin group onto `core/Plugin`'s `Host.use` doesn't by itself make it `item`-reachable — that needs the group's `set_config` to also `POST /api/session/settings` (or a sibling route) so the session record carries it, the way wake policy already does.
-- **The per-device open item stands**: ([`ux/Dictate/readme.md`](/framework/ux/Dictate/readme.md#one-session-across-tabs-and-settings-per-device)) "a settings record in Servex, read at load, with the browser's copy as a cache" — this doc's Servex bridge is the mechanism that item already needs; building it answers both asks at once.
+`mastermind-chat-settings` built this bridge on `michael/dev` (`7d32afd51`): a voice session's plugin switches are one plain object, `{Name: {enabled?, config?}}`, kept in the session record (`POST /api/session/settings {session, plugins}`, `GET /api/session/<id>`) so a phone and a PC read the same, plus shared defaults ("Make default": `POST`/`GET /api/session/defaults`). Full shape, both checked by `checked_plugins()` in `Servex/agents/Sessions.js`, and the page-side read-at-load (not yet built, Servex side only): [`ux/Dictate/doc/settings.md`](settings.md#plugin-settings-per-session-and-make-default-servex-side). This doc does not design a second bridge — the panel this doc builds is the page side that calls it, same as the owner-feedback "Overlap" bullet says (plugins and settings are chat-settings' to build).
 
 ## The per-instance settings: built, in core/Plugin itself
 
@@ -60,6 +56,7 @@ Three more pieces make a chat's settings saveable ([`chat-settings-per-session/p
 | Recite | Turn-taking | `turn_wait_ms` | 2500 | Quiet needed before a freshly queued reply starts over you (the 1 s floor, `Recite.min_quiet_ms()`). |
 | Recite | No-flood (hold updates) | `update_hold_ms` | 4000 | How long an agent update waits for the direct answer before it is queued anyway. |
 | Recite | Interrupt | `quiet_ms` (BargeIn) | — (census: partly wired) | Quiet time after you stop talking before reading resumes. |
+| Recite | Interrupt | `resume_after_cut` | off | When you cut a reply off, pick it back up once you're quiet, instead of cancelling it outright (console-only today: `Recite.set_resume_after_cut`). |
 | Dictate | Send timing | `send_mode` | `"pause"` | Send on a pause, or send each finished sentence. |
 | Dictate | Send timing | `pause_send_ms` | 2000 | Quiet before everything on screen is sent. |
 | Dictate | Send timing | `paragraph_pause_ms` | 2000 | Quiet after a finished sentence that sends everything so far. |
@@ -81,4 +78,4 @@ Five features the census (`wired: false`) found with **no switch at all**: word 
 
 1. Port the paused branch's `BargeIn`/`Highlight`/`Tap`/`Bubble`/thinking-cue wrapping onto `core/Plugin.use`, keeping their existing `static id/label/defaults/fields` — the per-instance toggle they need (`inst.plugins`) is already there.
 2. Group `Mic.js`'s `SETTINGS` keys into plugin-shaped classes (send timing, wake policy, clean-up) rather than one flat object — each becomes a `fields` list under one toggle, reusing `panel_sections` (`Mic.js:314`) as the insertion point.
-3. Extend `POST /api/session/settings` to carry plugin config, so `item` deltas and cross-device sync have one real bridge instead of `localStorage` alone.
+3. Call the bridge `mastermind-chat-settings` already built (above) from each plugin group's `set_config`/`set_enabled`, so `item` deltas and cross-device sync reach it instead of `localStorage` alone.
