@@ -16,7 +16,7 @@ import LineKey from "/framework/core/Item/LineKey.js";
 import { md_into } from "../md.js";
 import ReciteBubble from "/framework/audio/Recite/ReciteBubble.js";
 import * as Wire from "/framework/ext/Session/Session.js";
-import { owning_prompt, paragraphs, paragraph_groups, note_view, moved_id } from "./placement.js";
+import { owning_prompt, paragraphs, paragraph_groups, note_view } from "./placement.js";
 View.stylesheet(import.meta, "ChatV3.css");
 View.stylesheet(import.meta, "../bubbles.css");
 
@@ -39,7 +39,7 @@ export default class ChatV3 extends JSONL {
 		if (!this.listening){
 			this.listening = true;
 			this.session.on("delta", (line, from) => {
-				const mid = from instanceof List ? moved_id(line) : null, node = mid != null ? this.session.find(mid) : null;
+				const mid = from instanceof List ? line?.move?.id : null, node = mid != null ? this.session.find(mid) : null;
 				if (node) { if (this.card_roots().includes(node)) this.moved.add(node); else { const card = this.card_for(node); if (card) this.dirty.add(card); } return; }
 				const member = this.added_member(line, from);
 				if (member instanceof Reply) { this.partial = null; this.$partial?.el.remove(); }   // its settled Reply landed: stop drawing the partial

@@ -129,13 +129,14 @@ export default class ChatWriter {
 	/* A `{place}` that starts a new topic (`to: "card"`, `where: "up"`) or names a message (`after`): the ONE `List.move` line
 	 * that puts the Prompt holding that sentence after the last message (or after `place.after`). The same message moves, so no
 	 * view ever sees a second copy; a view that gets this line moves its drawn node (ext/Chat/v3/ChatV3.js `moved`). null when
-	 * nothing would move: `same`/`beside`/`inside`, no sentence with that `at`, or the Prompt is already there. */
+	 * nothing may move: `same`/`beside`/`inside`, no sentence with that `at`, the Prompt is already there, it holds other sentences, or a Reply already follows it. */
 	static move_line(session, place){
 		if (!place?.re || !(place.after || (place.to === "card" && place.where === "up"))) return null;
 		const list = session?._messages?.messages ?? [], s = [...(session?._sentences ?? [])].find(x => x.at === place.re);
 		const p = s && list.find(m => m.sentences?.includes?.(s.id));
 		const after = place.after ?? list.at(-1)?.id;
 		if (!p || !after || after === p.id || list[list.indexOf(p) - 1]?.id === after) return null;
+		if (p.sentences.length > 1 || list.slice(list.indexOf(p) + 1).some(m => m.constructor.name === "Reply")) return null;   // moving it would take other sentences along, or put an answer above its question
 		return { messages: { move: { id: p.id, after } } };
 	}
 }
