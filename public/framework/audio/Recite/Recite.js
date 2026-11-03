@@ -141,14 +141,16 @@ export default class Recite extends Part {
 	 *  `key` (Recite.bubble_key) names the bubble these sentences belong to, so it can be replayed and its place remembered;
 	 *  `from` ({i, t}): a replay, start at sentence i, t seconds in, at once. `reply_override`: the id a CONTINUATION
 	 *  belongs to (take()'s own `live.id`, or a settled stream's tail) — `this.reply_id` alone is not safe once a
-	 *  fresh reply can land in between and bump it (newest-first, 2026-11-03). */
-	queue(text, continuing = false, key = null, from = null, reply_override = null){
+	 *  fresh reply can land in between and bump it (newest-first, 2026-11-03). `append`: skip the newest-first
+	 *  reorder and always land at the true end — agent updates (`queue_update()`) are never high priority enough to
+	 *  jump ahead of a reply already queued, held or not (review finding, ask2b round 2, 2026-11-03). */
+	queue(text, continuing = false, key = null, from = null, reply_override = null, append = false){
 		if (!continuing) this.reply_id++;
 		const id = continuing ? (reply_override ?? this.reply_id) : this.reply_id, ts = Date.now();
 		const pieces = Recite.split(text).map(piece => ({ text: piece, start: null, seconds: null, src: null, pending: null, reply: id, key, msg: null, ts }));
 		this.last_queued = null;
 		if (!pieces.length) return this;
-		const at = this.insert_at(id, continuing);
+		const at = append ? this.chunks.length : this.insert_at(id, continuing);
 		this.chunks.splice(at, 0, ...pieces);
 		for (const p of this.pending_ids) if (p.last >= at) p.last += pieces.length;   // a reply's remembered "last chunk" index shifts when a newer one lands ahead of it
 		if (this.wait_at != null && this.wait_at >= at) this.wait_at += pieces.length;
@@ -164,19 +166,26 @@ export default class Recite extends Part {
 	}
 
 	/** Where a reply's sentences land in `chunks` (newest-first, 2026-11-03): a CONTINUATION (same reply, more
-	 *  streamed sentences) goes right after that reply's own run, wherever it now sits. A FRESH reply always goes
-	 *  right after whatever sits at the very front — playing now, held for quiet, or about to start — ahead of every
-	 *  other reply still waiting its turn: the newest arrival plays before the ones that haven't started yet, same
-	 *  as the page-side say gate (Servex/agents/doc/say-tools.md). A reply already playing is never cut: its own run,
-	 *  including sentences not yet said, always stays whole and first. */
+	 *  streamed sentences) goes right after that reply's own run, wherever it now sits. A FRESH reply (unless
+	 *  `append`) goes right after whatever is playing now, or held for quiet (`wait_at`), ahead of every other reply
+	 *  still waiting its turn: the newest arrival plays before the ones that haven't started yet, same as the
+	 *  page-side say gate (Servex/agents/doc/say-tools.md). A reply already playing is never cut: its own run,
+	 *  including sentences not yet said, always stays whole and first. The anchor is the run around `this.at` (or
+	 *  `wait_at` while something sits held, never started) — NOT `chunks[0]`: a finished reply stays in `chunks`
+	 *  until `stop()`, so once more than one has played, chunk 0 is old news, not what is current (review finding,
+	 *  ask2b round 2, 2026-11-03). Idle with nothing playing or held: `this.at` sits on the last chunk that played,
+	 *  so its run is the last one in the array — anchoring there lands a fresh reply at the true end, same as
+	 *  before. */
 	insert_at(id, continuing){
 		if (!this.chunks.length) return 0;
 		if (continuing){
 			for (let i = this.chunks.length - 1; i >= 0; i--) if (this.chunks[i].reply === id) return i + 1;
 			return this.chunks.length;   // the first chunk of a fresh stream: nothing of its own to follow yet
 		}
-		let i = 0;
-		while (this.chunks[i + 1]?.reply === this.chunks[0].reply) i++;
+		const anchor = this.wait_at ?? this.at, anchor_reply = this.chunks[anchor]?.reply;
+		if (anchor_reply === undefined) return this.chunks.length;
+		let i = anchor;
+		while (this.chunks[i + 1]?.reply === anchor_reply) i++;
 		return i + 1;
 	}
 
@@ -484,14 +493,15 @@ export default class Recite extends Part {
 		} else this.queue_update(line, id);
 	}
 
-	/** Queues one collapsed update line, behind whatever is already queued — never replacing it, same as `final()`. */
+	/** Queues one collapsed update line at the true end — `append: true`, never the newest-first reorder — so it
+	 *  always lands behind every reply already queued, the direct answer included, not just the one playing. */
 	queue_update(line, id){
-		this.queue(line);
+		this.queue(line, false, null, null, null, true);
 		this.mark_when_done(id);
 	}
 
-	/** Releases every held update, in the order they arrived, behind whatever is already queued (the direct answer,
-	 *  if one just landed). A no-op when nothing is held. */
+	/** Releases every held update, in the order they arrived, each appended behind whatever is already queued —
+	 *  the direct answer, if one just landed, and any other update released before it. A no-op when nothing is held. */
 	flush_updates(){
 		clearTimeout(this.update_hold_timer); this.update_hold_timer = null;
 		if (!this.pending_updates.length) return;

@@ -115,3 +115,70 @@ if (Recite) test("Recite: a reply waiting more than 2 minutes, never started, is
 	t.eq(r.state, "idle", "nothing left to read");
 	return r;
 });
+
+// Review finding 1 (ask2b round 2, 2026-11-03): a heard reply stays in `chunks` until `stop()` — insert_at() must
+// anchor on the run around `this.at` (the one playing, or just finished), never `chunks[0]`, or from the third
+// reply on a fresh reply lands among already-heard chunks instead of after the one actually current, and an
+// already-heard reply gets read a second time.
+if (Recite) test("Recite: three replies heard one after another, then a fourth queued mid-third, land in arrival order with no re-read", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	const read = [];
+
+	r.queue("R1.");
+	await new Promise(res => setTimeout(res, 20));
+	read.push(r.chunks[r.at].text);
+
+	r.ended();   // R1 finishes and stays in chunks, heard
+	await new Promise(res => setTimeout(res, 20));
+	r.queue("R2.");   // queued fresh, after R1 is already heard and sitting at chunks[0]
+	await new Promise(res => setTimeout(res, 20));
+	read.push(r.chunks[r.at].text);
+	t.eq(r.chunks.map(c => c.text), ["R1.", "R2."], "R2 landed after R1, not interleaved with it");
+
+	r.ended();   // R2 finishes; R1 AND R2 are both heard now — chunks[0] is old news
+	await new Promise(res => setTimeout(res, 20));
+	r.queue("R3.");
+	await new Promise(res => setTimeout(res, 20));
+	read.push(r.chunks[r.at].text);
+	t.eq(r.chunks.map(c => c.text), ["R1.", "R2.", "R3."], "R3 landed after R2 (the one actually just heard), not spliced in behind the old chunks[0]");
+	t.eq(r.at, 2, "R3 is playing, not a repeat of R2");
+
+	r.queue("R4.");   // queued while R3 is still playing
+	t.eq(r.chunks.map(c => c.text), ["R1.", "R2.", "R3.", "R4."], "R4 lands right after R3 — the one actually playing — not after the long-heard R1");
+
+	r.ended();
+	await new Promise(res => setTimeout(res, 20));
+	read.push(r.chunks[r.at].text);
+	t.eq(r.at, 3, "R4 plays next");
+	t.eq(read, ["R1.", "R2.", "R3.", "R4."], "each reply was read exactly once, in order — nothing repeated");
+	return r;
+});
+
+// Review finding 2 (ask2b round 2, 2026-11-03): agent updates are never high priority enough to jump ahead of the
+// direct answer they were held behind — queue_update() appends at the true end, not the newest-first reorder.
+if (Recite) test("Recite: updates held while a reply plays come out after the direct answer, in the order they arrived", async t => {
+	const r = new Recite({ voice: fake_voice });
+	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
+	r.barge.on = false;
+	r.cue_pending = true;   // the owner's line landed; a direct reply is still expected
+
+	r.queue("Something already playing.");
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.state, "playing", "a reply is already playing when the updates arrive");
+
+	r.from_wire({ kind: "line", line: { chat: { text: "Update one.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-a" } } } });
+	r.from_wire({ kind: "line", line: { chat: { text: "Update two.", at: new Date().toISOString(), from: { kind: "assistant", id: "mastermind-b" } } } });
+	t.eq(r.pending_updates.length, 2, "both held — the direct answer hasn't arrived");
+
+	r.from_wire({ kind: "line", line: { chat: { text: "The direct answer.", at: new Date().toISOString(), from: { kind: "assistant", id: "smart" } } } });
+	await new Promise(res => setTimeout(res, 20));
+	t.eq(r.chunks.map(c => c.text), [
+		"Something already playing.",
+		"The direct answer.",
+		"I have an update on a, it is in the chat.",
+		"I have an update on b, it is in the chat.",
+	], "the direct answer lands right after what was already playing (newest-first); both updates follow it, in arrival order — never ahead of the direct answer");
+	return r;
+});
