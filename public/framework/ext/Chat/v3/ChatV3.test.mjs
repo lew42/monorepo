@@ -80,7 +80,7 @@ try {
 	await page.waitForSelector(".chat-v3-prompt[data-id='m-live-topic']", { timeout: 8000 });
 	check("a real topic card (refined text) keeps its title even when short", await page.$(".chat-v3-prompt[data-id='m-live-topic'] .chat-v3-title") !== null);
 
-	// 8. a card (ask3-cards-by-id, review finding 1/4): a fresh one draws its title, icon and content; an upgraded Reply draws its title too
+	// 8. a card: a fresh one draws its title, icon and content; an upgraded Reply draws its title too
 	appendFileSync(here + "fixture/" + live, JSON.stringify({ messages: { add: { id: "m-live-card", type: "Card", by: "owner", at: "2026-11-01T20:40:15.000-06:00", icon: "task", title: "Call the vet" } } }) + "\n");
 	await page.waitForSelector(".chat-v3-loose[data-id='m-live-card']", { timeout: 8000 });
 	check("a card's title is drawn, not the untitled first-words fallback", await page.$eval(".chat-v3-loose[data-id='m-live-card'] .chat-v3-title", e => e.textContent) === "Call the vet");

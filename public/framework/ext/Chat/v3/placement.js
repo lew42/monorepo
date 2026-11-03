@@ -1,5 +1,7 @@
-// placement.js — the two pieces of ChatV3 that are plain data logic, no View, no DOM (chunks.js's pattern): which Prompt a Reply
-// answers, and where a Prompt's words break into paragraphs. ChatV3.js imports these; placement.test.mjs runs them in plain node.
+// placement.js — the pieces of ChatV3 that are plain data logic, no View, no DOM (chunks.js's pattern): which Prompt a Reply
+// answers, where a Prompt's words break into paragraphs, and what a message draws as a card. ChatV3.js and ChatList.js import
+// these; placement.test.mjs runs them in plain node. Servex's own item tool (`page_tools.js`) imports `note_view` too, to
+// answer a card's read-back the same way the views draw it — keep this file node-safe (no DOM, no browser-only API).
 import Prompt from "../../../core/Session/Chat/Prompt.js";
 
 export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)

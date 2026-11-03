@@ -47,8 +47,8 @@ check("a prompt with one sentence and no pause is a single paragraph", paragraph
 // 4. the fixture file was only ever read, never changed by this test
 check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 
-// 5. note_view (review finding 1/2, ask3-cards-by-id): what ChatV3's note() and reply() draw for a plain message, a card, and a
-//    member a view must never show the owner the literal word "undefined" for — DOM-free, so no browser is needed to prove it.
+// 5. note_view: what ChatV3's note() and reply() draw for a plain message, a card, and a member a view must never show the
+//    owner the literal word "undefined" for — DOM-free, so no browser is needed to prove it.
 {
 	const plain = Message.hydrate({ id: "m-1", by: "system", at: "2026-11-01T00:00:00.000-06:00", text: "The smart assistant could not be reached." });
 	const nv1 = note_view(plain);
@@ -56,14 +56,14 @@ check("the fixture was not modified", readFileSync(fixture, "utf8") === before);
 
 	const card = Message.hydrate({ id: "m-2", by: "owner", at: "2026-11-01T00:00:00.000-06:00", type: "Card", icon: "task", title: "Call the vet" });
 	const nv2 = note_view(card);
-	check("a card hydrates with its real title/icon (type:\"Card\" is aliased, review finding 2/3)", nv2.title === "Call the vet" && nv2.icon === "task" && nv2.text === "", nv2);
+	check("a card hydrates with its real title/icon (type:\"Card\" is aliased to Message)", nv2.title === "Call the vet" && nv2.icon === "task" && nv2.text === "", nv2);
 
 	const guess = Message.hydrate({ id: "m-3", by: "owner", at: "2026-11-01T00:00:00.000-06:00", type: "Note" });   // nobody registered "Note"
-	check("hydrate: ANY unknown type becomes a Message (finding 2), not a generic Item with none of its getters", guess.constructor.name === "Message");
+	check("hydrate: any unknown type becomes a Message, not a generic Item with none of its getters", guess.constructor.name === "Message");
 	check("…so it draws empty, never the stringified word \"undefined\"", note_view(guess).text !== "undefined" && note_view(guess).text === "");
 
 	const reply = Message.hydrate({ id: "m-4", type: "Reply", by: "smart", at: "2026-11-01T00:00:00.000-06:00", text: "Which phone?" });
-	check("an ordinary Reply: no title, no icon — reply() draws it plain (finding 4)", note_view(reply).title === null && note_view(reply).icon === null);
+	check("an ordinary Reply: no title, no icon — reply() draws it plain", note_view(reply).title === null && note_view(reply).icon === null);
 	reply.set({ title: "Phone the owner back", icon: "call" });   // "upgrading" it: the same title/icon fields any message has
 	check("…upgraded (title/icon set on it, same item tool call as a fresh card): reply() now has what it needs to draw it as a card", note_view(reply).title === "Phone the owner back" && note_view(reply).icon === "call");
 }

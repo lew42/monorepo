@@ -17,24 +17,29 @@
  * List (`List.prototype.of = Item`), so `content:{add:{type:"Ref",…}}` hydrates through the same generic path `tasks.add`'s
  * own Refs already use (core/Item/Ref.js) — proven here end to end, including resolving it.
  *
- * Scratch sessions live under the real store (`public/framework/ai/sessions/…`), not an OS temp dir: `run_item` (review
- * note 7) resolves every `path` against `public/framework/...` (`page_tools.js`'s `resolve()`), so it cannot address a
- * folder outside the repo at all — there is no "accept a temp dir" form to switch to. Cleaned up in `finally` either way. */
+ * Scratch sessions live in an OS temp tree, never the real store: `SERVEX_PUBLIC` points the item tool's `public/` at it
+ * (the same pattern `ref-cache.test.mjs` uses), so `run_item`'s own real `path.join(ROOT, "public")` is never touched and
+ * a killed run leaves nothing for the file watchers to see. `page_tools.js` reads `SERVEX_PUBLIC` once, at import, so it
+ * is set and `run_item` imported dynamically before anything else loads that module. */
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Session from "../../public/framework/core/Session/Session.js";
-import { run_item } from "./page_tools.js";
 
 let checks = 0;
 const check = (name, fn) => { fn(); checks++; console.log("PASS —", name); };
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const REAL_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");   // the repo: only to read the real v-z0jonhy fixture
 const replay_messages = file => Session.replay(fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map(l => JSON.parse(l))).messages.messages;
 
-// ── a scratch session, under the real sessions store (what `item`'s read path, page_tools.js's session_state(), expects) ──
-const REL = "public/framework/ai/sessions/2026/10/16/.card-messages-test-" + process.pid;
-const DIR = path.join(ROOT, REL), FILE = path.join(DIR, "session.jsonl"), URL_ = "/" + REL.slice("public/".length) + "/";
+const ROOT = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "card-messages-test-")));
+process.env.SERVEX_PUBLIC = path.join(ROOT, "public");
+const { run_item } = await import("./page_tools.js");
+
+// ── a scratch session, under the temp tree (what `item`'s read path, page_tools.js's session_state(), expects) ──
+const REL = "framework/ai/sessions/2026/10/16/.card-messages-test-" + process.pid;
+const DIR = path.join(ROOT, "public", REL), FILE = path.join(DIR, "session.jsonl"), URL_ = "/" + REL + "/";
 fs.mkdirSync(DIR, { recursive: true });
 fs.writeFileSync(FILE, JSON.stringify({ session: { id: "test", kind: "cloud-voice-agent", at: new Date().toISOString() } }) + "\n");
 
@@ -89,9 +94,9 @@ try {
 	});
 
 	// ── Step 3: upgrade an ORDINARY message (no icon, no title) into a card, on a real recorded session ──────────────────
-	const SRC = path.join(ROOT, "public/framework/ai/sessions/2026/11/03/v-z0jonhy/session.jsonl");
-	const REL2 = "public/framework/ai/sessions/2026/10/16/.card-messages-test-upgrade-" + process.pid;
-	const DIR2 = path.join(ROOT, REL2), FILE2 = path.join(DIR2, "session.jsonl"), URL2 = "/" + REL2.slice("public/".length) + "/";
+	const SRC = path.join(REAL_ROOT, "public/framework/ai/sessions/2026/11/03/v-z0jonhy/session.jsonl");
+	const REL2 = "framework/ai/sessions/2026/10/16/.card-messages-test-upgrade-" + process.pid;
+	const DIR2 = path.join(ROOT, "public", REL2), FILE2 = path.join(DIR2, "session.jsonl"), URL2 = "/" + REL2 + "/";
 	fs.mkdirSync(DIR2, { recursive: true });
 	fs.copyFileSync(SRC, FILE2);
 	try {
@@ -126,7 +131,7 @@ try {
 			assert.equal(target.get_one("title"), "Book the follow-up");
 		});
 	}
-} finally { fs.rmSync(DIR, { recursive: true, force: true }); }
+} finally { fs.rmSync(ROOT, { recursive: true, force: true }); }
 
 console.log(`card-messages.test.mjs: ${checks} checks passed`);
 process.exit(0);

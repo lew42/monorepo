@@ -236,6 +236,9 @@ public/framework/ext/Chat/v2/fixture/live-*.jsonl
 # ChatV3.test.mjs does the same beside the v3 fixture
 public/framework/ext/Chat/v3/fixture/live-*.jsonl
 
+# ChatList.test.mjs does the same beside the list fixture
+public/framework/ext/Chat/list/fixture/live-*.jsonl
+
 # the twin check (Server/SessionConsolidate.mjs --check --write, run daily by Servex/TaskLoop.js): rebuilt from the folders each run, so machine state
 public/framework/ai/sessions/session-twins.json
 # the session-folder finder's saved map (core/Session/SessionFolders.mjs): a cache of what each day folder holds, checked against the folders on every read
