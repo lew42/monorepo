@@ -239,6 +239,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		});
 	});
 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
+	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
 
 	// Drawing one line must never stop the lines after it: a throw lands on the Page light, with the raw error.
 	function draw(line){

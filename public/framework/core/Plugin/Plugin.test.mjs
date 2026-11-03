@@ -147,6 +147,115 @@ test("the page can list the live plugin-using classes", t => {
 	t.ok(Plugin.hosts.includes(H10), "Plugin.hosts holds every class that used or listed a plugin");
 });
 
+test("enable() re-attaches to every still-live tracked instance, not just new ones", t => {
+	calls.length = 0;
+	class H14 extends Plugin {}
+	new H14({ tag: "single" });               // exists before use(): never tracked
+	H14.use(Spy);
+	t.eq(calls.length, 0, "use() alone does not reach a pre-existing instance");
+	new H14({ tag: "new1" });
+	t.eq(calls, [["attach", "Spy", "new1"]], "the new instance was attached and is now tracked");
+	H14.unuse(Spy);
+	calls.length = 0;
+	H14.use(Spy);
+	t.eq(calls, [["attach", "Spy", "new1"]], "re-enable reattached the tracked instance, not the untracked singleton");
+});
+
+test("a per-instance switch: enabled is unset and follows the class row, off/on touches only that instance", t => {
+	calls.length = 0;
+	class H11 extends Plugin {}
+	H11.use(Spy);
+	const a = new H11({ tag: "a" });
+	calls.length = 0;
+	const row = a.plugins.find("Spy");
+	t.eq(row.get("enabled"), true, "unset: follows the class row (on)");
+	row.set({ enabled: false });
+	t.eq(calls, [["detach", "Spy", "a"]], "off: detached this instance only");
+	calls.length = 0;
+	row.set({ enabled: true });
+	t.eq(calls, [["attach", "Spy", "a"]], "on: reattached this instance only");
+	calls.length = 0;
+	H11.unuse(Spy);
+	t.eq(calls.length, 0, "the instance's own 'on' wins: the class going off does not detach it");
+	t.eq(row.get("enabled"), true, "row shows the real, still-attached state");
+	H11.use(Spy);
+	t.eq(calls.length, 0, "already attached: re-enabling the class does not attach it a second time");
+});
+
+test("attach is idempotent per (instance, plugin): use -> unuse -> use never attaches the same live instance twice", t => {
+	calls.length = 0;
+	class H15 extends Plugin {}
+	H15.use(Spy);               // Spy has detach, but Other (used below) does not
+	const live = new H15({ tag: "live" });
+	calls.length = 0;
+	H15.unuse(Spy); H15.use(Spy);
+	t.eq(calls, [["detach", "Spy", "live"], ["attach", "Spy", "live"]], "one real detach, then one re-attach — not a duplicate attach");
+	calls.length = 0;
+	class H16 extends Plugin {}
+	H16.use(Other);              // Other has no detach: disable() can't undo the first attach
+	const live2 = new H16({ tag: "live2" });
+	calls.length = 0;
+	H16.unuse(Other); H16.use(Other);
+	t.eq(calls.length, 0, "no real detach ran, so attach_instance's own guard skips the second attach");
+	calls.length = 0;
+	// A Plugin SUBCLASS with no detach of its own inherits Plugin.detach (a no-op) — review finding 2, 2026-11-03:
+	// `typeof rec.plugin.detach === "function"` is true for that inherited no-op, so detach_instance must also
+	// check it isn't just the base class's default, or it wrongly treats the inherited no-op as a real undo.
+	class NoOwnDetach extends Plugin { static attach(inst){ calls.push(["attach", "NoOwnDetach", inst.tag]); } }
+	class H19 extends Plugin {}
+	H19.use(NoOwnDetach);
+	const live3 = new H19({ tag: "live3" });
+	calls.length = 0;
+	H19.unuse(NoOwnDetach); H19.use(NoOwnDetach);
+	t.eq(calls.length, 0, "the inherited no-op detach is not a real undo either — attached once, stays attached");
+});
+
+test("a per-instance switch-off of a plugin with no detach stays attached, and the row says so (review finding 10, 2026-11-03)", t => {
+	calls.length = 0;
+	class H20 extends Plugin {}
+	H20.use(Other);   // Other has no detach: an instance "off" can't really undo its attach
+	const inst = new H20({ tag: "stuck" });
+	calls.length = 0;
+	const row = inst.plugins.find("Other");
+	row.set({ enabled: false });
+	t.eq(calls.length, 0, "no detach ran — there is none");
+	t.eq(row.get("enabled"), true, "the row reports the real state (still attached), not the off it was asked for");
+});
+
+test("inst.plugins picks up a plugin the class gains after the row list was first read", t => {
+	class H17 extends Plugin {}
+	H17.use(Spy);
+	const inst = new H17({ tag: "late" });
+	t.eq(inst.plugins.length, 1, "one row before Other is added");
+	H17.use(Other);
+	t.eq(inst.plugins.length, 2, "Other's row appeared on the already-read instance list");
+	t.eq(inst.plugins.find("Other").get("enabled"), true, "unset: follows the class row");
+});
+
+test("the item-tool delta shape works on both Host.plugins and inst.plugins", t => {
+	calls.length = 0;
+	class H12 extends Plugin {}
+	H12.use(Spy);
+	H12.plugins.set({ Spy: { enabled: false } });
+	t.eq(H12.plugins.find("Spy").get("enabled"), false, "class list toggled off");
+	const inst = new H12({ tag: "z" });
+	calls.length = 0;
+	inst.plugins.set({ Spy: { enabled: true } });
+	t.eq(calls, [["attach", "Spy", "z"]], "instance list toggled on: attach ran for this instance only");
+});
+
+test("instance config falls back to the class config until this instance sets its own", t => {
+	class Dim2 { static defaults = { on: true, opacity: 0.6 }; static attach(){} }
+	class H13 extends Plugin {}
+	H13.use(Dim2);
+	const inst = new H13({ tag: "c" });
+	const row = inst.plugins.find("Dim2");
+	t.eq(row.get("config"), { opacity: 0.6 }, "falls back to the class config");
+	row.set({ config: { opacity: 0.9 } });
+	t.eq(row.get("config"), { opacity: 0.9 }, "its own override, once set");
+	t.eq(H13.plugins.find("Dim2").get("config"), { opacity: 0.6 }, "the class row is unaffected");
+});
+
 test("the server shim: Server/Events.js is a Plugin that keeps assign, then new, then initialize", t => {
 	const order = [];
 	class Sock extends ServerEvents { initialize(){ order.push("initialize:" + this.ws); } }
