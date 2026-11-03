@@ -34,3 +34,4 @@
 {"log":{"at":"2026-11-02T13:43:50-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
 {"log":{"at":"2026-11-02T13:47:50-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T19:47:50.226Z"}
 {"commit":"9bddcd62d07e","by":"append.mjs","ts":"2026-11-02T19:48:05.326Z"}
+{"set":{"state":"complete","completed_at":"2026-11-02T13:43:02-06:00"},"by":"owner","ts":"2026-11-02T23:02:50.114Z","client":"d6aa194c"}

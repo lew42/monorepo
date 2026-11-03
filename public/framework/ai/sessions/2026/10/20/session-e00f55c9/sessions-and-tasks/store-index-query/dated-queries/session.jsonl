@@ -31,3 +31,4 @@
 {"review":{"at":"2026-10-20T19:42:06-05:00","size":"none","verdict":"pass","findings":[],"branch":"worktree/dated-queries","head":"2aa72c17c058da6f38d8db563ba61fa248ec7ecc","model":null,"cost":0,"file":"review.md"}}
 {"commit":"8a05507521b8"}
 {"log":{"at":"2026-10-20T19:50:00-05:00","msg":"Live proof after restart: page at 400 and 1200 shows 6 working now + 1 quiet = 7 rows; DatedFiles.sessions.in_flight() = 7 (6 within 5 min), same moment. check_page 400+1200: no errors. False zero fixed (AINow shows 'Asking the server…' until the first answer; data-ready attr); the earlier headless 0 was that first paint. Sessions grid (remote) renders live: 915 sessions, 74 ms in node; no before-shot existed pre-restart, so it is shown working, not diffed."},"by":"mastermind-dated-queries","session":"4098c883-3ea9-48bd-bc9f-64eb93e93433"}
+{"set":{"state":"complete","completed_at":"2026-10-20T19:40:20-05:00"},"by":"owner","ts":"2026-11-02T23:03:08.934Z","client":"d6aa194c"}

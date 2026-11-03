@@ -33,3 +33,4 @@
 {"log":{"at":"2026-11-02T14:55:13-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T20:55:13.287Z"}
 {"commit":"a55c2a3aebf1","by":"append.mjs","ts":"2026-11-02T20:55:25.624Z"}
 {"log":{"at":"2026-11-02T14:57:54-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T20:57:54.802Z"}
+{"set":{"state":"complete","completed_at":"2026-11-02T14:53:05-06:00"},"by":"owner","ts":"2026-11-02T23:02:50.118Z","client":"d6aa194c"}

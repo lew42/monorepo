@@ -5,3 +5,4 @@
 {"review":{"at":"2026-11-01T18:11:07-06:00","answer":{"n":4,"reply":"noted: two streams on one session for now; chat.js's reading hook can go once the Sheet's proves itself on the phone"}}}
 {"review":{"at":"2026-11-01T18:11:07-06:00","answer":{"n":5,"reply":"noted: Recite's own 2-minute age check and its done-set stand in for watching_since"}}}
 {"review":{"at":"2026-11-01T18:11:07-06:00","answer":{"n":6,"reply":"noted: report.init only sets the session after the first call (the listeners are installed once), so a second call is safe"}}}
+{"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:54.690Z","client":"d6aa194c"}

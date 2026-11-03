@@ -9,3 +9,4 @@
 {"commit":"ded93a90ef02"}
 {"assign":{"landed_at":"2026-10-20T16:58:09-05:00","title":"Projects: Project class and ProjectMove tool","outcome":"Project replays project.jsonl with completion 0..1 (9/9 tests); Server/ProjectMove.mjs + move_project moved a real project with dry run, index lines in both days, session pointer, and --undo; plan for the module tasks written. Merged ded93a90e by fast-forward (merge.mjs smoke hit an unrelated 404); needs restart_servex for the tool.","links":["/framework/ai/tasks/doc/projects.md","/framework/core/Task/"]}}
 {"log":{"at":"2026-10-20T16:58:59-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"set":{"state":"complete","completed_at":"2026-10-20T16:58:09-05:00"},"by":"owner","ts":"2026-11-02T23:02:54.695Z","client":"d6aa194c"}

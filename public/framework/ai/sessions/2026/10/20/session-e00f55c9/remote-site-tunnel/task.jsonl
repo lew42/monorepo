@@ -12,3 +12,4 @@
 {"review":{"at":"2026-11-01T17:07:26-06:00","answer":{"n":8,"reply":"fixed: the servex_url.js header lists all callers and names DEV_SITE (it is end-anchored)"}}}
 {"review":{"at":"2026-11-01T17:07:26-06:00","answer":{"n":9,"reply":"noted: nothing sets window.__SERVEX_URL__; the override is dropped on purpose"}}}
 {"review":{"at":"2026-11-01T17:07:26-06:00","answer":{"n":10,"reply":"noted: network-map.md is a task record, not a site page; the repo links are for agents"}}}
+{"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:50.125Z","client":"d6aa194c"}

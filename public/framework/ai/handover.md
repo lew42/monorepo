@@ -9,29 +9,32 @@ The file a fresh assistant, mastermind or minion reads before anything else. Kee
 **What fell through, computed daily:** [doc/follow-up.md](doc/follow-up.md) (TaskLoop runs it each day and posts the count to the Inbox).
 
 <!-- NOW:start (written by Server/HandoverNow.mjs; do not edit by hand) -->
-## NOW (computed 2026-11-02 00:02 UTC, last 24 h)
+## NOW (computed 2026-11-03 00:03 UTC, last 24 h)
 
-**Pace:** Week: 34% used · 55% gone · 61% of pace (room to spend, 3 days 2 hours left)
+**Pace:** Week: 61% used · 70% gone · 88% of pace (steady, 2 days 2 hours left)
 
 **Connector:** servex.lew42.com/mcp/remote/… (changed 2026-10-20 22:42 UTC)
 
-**Landed (2):**
-- [You're following up on an earlier fan-check investigation. Its full log is at public/framework/ai/sessions/202](/framework/ai/sessions/2026/11/01/spawned/minion-proc-trace/) (minion-proc-trace)
-- [The owner's computer fans are running louder than normal. Find out why. We've had problems before with zombie/](/framework/ai/sessions/2026/11/01/spawned/minion-fan-check/) (minion-fan-check)
+**Landed (5):**
+- [You are a mastermind on Sonnet, medium effort; budget about $5. The new In-flight block (public/framework/core](/framework/ai/sessions/2026/11/02/spawned/mastermind-in-flight-real-data/) (mastermind-in-flight-real-data)
+- [You are a mastermind on Sonnet, medium effort; budget about $5. Two Recite fixes from the owner (via voice, 16](/framework/ai/sessions/2026/11/02/spawned/mastermind-recite-cue-icon/) (mastermind-recite-cue-icon)
+- [Chat V1.2 scroll fix, Recite controls on tapped bubble only, V3 brain avatar removed](/framework/ai/sessions/2026/11/02/spawned/mastermind-v1-2-scroll-fix/) (mastermind-v1-2-scroll-fix)
+- [Budget: $2. Load the minion skill first. Work ONLY in C:/Code/lew42/worktrees/marked-lines-switch (a git workt](/framework/ai/sessions/2026/11/02/session-7bd2fdb6/minion-minion-marked-tests/) (minion-minion-marked-tests)
+- [Chat v3: hide a chit-chat prompt's title when it just repeats its own body](/framework/ai/sessions/2026/11/02/session-00f6d159/mastermind-chatv3-title-dedupe/) (mastermind-chatv3-title-dedupe)
 
-**Open, touched in the window (0):**
-- none
+**Open, touched in the window (1):**
+- [Owner's ask, polished: In Chat v3 (public/framework/ext/Chat/v3, ChatV3.js / ChatV3.css), remove the pink brai](/framework/ai/sessions/2026/11/02/session-00f6d159/mastermind-chatv3-remove-brain/) (mastermind-chatv3-remove-brain)
 
 **Latest commits on this branch:**
 ```
-677adb312 site-socket-append: log the one-banner follow-up
-b84408322 Merge branch 'worktree/site-socket-append' into michael/dev
-3c19e82ab One connection state and one top banner: Link.js replaces the slim dev strip and the sheet's reconnect row
-6f82d581f dictation-v3: what landed for the walk, and the owner's queue in order
-d4055fc40 Merge branch 'worktree/qf-9' into michael/dev
-ee466d254 V1 chat reads every new assistant reply aloud, from the wire or the file poll (Recite dedupes); Recite traces auto-off on settled replies and each speak asked; readme says where to look
-36216b79c Recite: one Whisper-log line per read-aloud step (reply heard, auto off, speak asked or failed, play refused, unlocked), so a silent phone says why
-ac20fa78d Merge branch 'worktree/site-socket-append' into michael/dev
+1d3b937bf Merge branch 'worktree/send-alias' into michael/dev
+0e9db9da4 send_to_agent: also `agent`; readme line; tasks readme entry closed (review answers)
+b528ee62b send-alias: brief
+14b3586f5 send_to_agent: take {to, message} as well as {id, text}; why agents said the tab isn't live
+4dabb5990 Merge branch 'worktree/assistant-toggle' into michael/dev
+32b1c6587 dictation settings: an assistant change sends only the assistant
+14e6cfd2f core/Plugin: task records (plan, investigation, review report and answers, landing)
+65d3fd77f dictation settings: One assistant / Two assistants switch in the gear panel
 ```
 
 The dated sections below are written by hand and go stale; this block does not.

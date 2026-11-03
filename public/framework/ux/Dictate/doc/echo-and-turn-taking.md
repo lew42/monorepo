@@ -35,6 +35,10 @@
 
 **Cost and risk.** One small POST per reply, no model turn, no change to what you see. If the marker never arrives (tab closed, offline) the timeout in point 3 lets the assistant carry on; a missing marker only means "no cue about reading", as today.
 
+## The "How loud counts as talking" slider: what it really does (checked 2026-11-03)
+
+It is the barge-in threshold (`BargeIn.threshold`, `audio/Recite/BargeIn.js:31`, `effective_threshold()` :141), the mic level above which the reading is **paused**. It is a sensitivity, not an echo filter: **lower = more sensitive**, so the assistant's own voice leaking into the mic crosses it, the reading pauses itself at once, and a paused reply makes no more sound to leak. That is why sliding it all the way down seemed to cure the echo. The cost: the assistant is cut off by its own voice and any small noise, and `speaking()` (:136) is true so new replies are held. Raising it was the wrong advice for the echo that reaches the chat: the slider never touches the send path (`take_out()`), so the echoed words still get sent whatever it says. Raising it only stops the false pauses. The real fix stays step 1 above (drop echoed lines at the send). The slider's tooltip now says this.
+
 ## The other options, and when each wins
 
 - **Mute the mic while reading** (`track.enabled = false`). Fully stops echo, but kills barge-in (interrupting a reply by talking). Best as an optional "speakers" mode; headphones users keep the mic open.

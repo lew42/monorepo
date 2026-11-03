@@ -6,3 +6,4 @@
 {"review":{"at":"2026-11-01T18:24:07-06:00","answer":{"n":5,"reply":"noted: AI text is short by its own rule (session-smart: one title plus one cleaned paragraph); clamp it if one turns up long"}}}
 {"review":{"at":"2026-11-01T18:24:07-06:00","answer":{"n":6,"reply":"noted: the first words repeat until the AI titles the card; accepted for now, they are muted"}}}
 {"review":{"at":"2026-11-01T18:24:07-06:00","answer":{"n":7,"reply":"noted: style only"}}}
+{"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:54.692Z","client":"d6aa194c"}

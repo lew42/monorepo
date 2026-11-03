@@ -28,3 +28,4 @@
 {"log":{"at":"2026-11-02T16:52:04-06:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-11-02T16:52:04-06:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"assign":{"at":"2026-11-02T16:52:11-06:00","outcome":"Merged to michael/dev (eea72a24f).\n- [x] [Chat V1.2](/framework/ext/Chat/v1-2/) log scrolls: no more 30vh cap (max-height none; measured at 360x740)\n- [x] [Recite](/framework/audio/Recite/) control shows only on the tapped or playing bubble (test 43/43)\n- [x] [Chat V3](/framework/ext/Chat/v3/) reply brain avatar and indent removed (V2/V3 tests pass)\n- [ ] Owner's exact words not recorded (the ask was cut off at \"Chat v\"), so each tick is unproven against them."}}
+{"set":{"state":"complete","completed_at":"2026-11-02T16:51:42-06:00"},"by":"owner","ts":"2026-11-02T23:02:50.122Z","client":"d6aa194c"}

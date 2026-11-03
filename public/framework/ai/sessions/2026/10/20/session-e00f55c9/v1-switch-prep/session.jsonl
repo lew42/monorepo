@@ -33,3 +33,4 @@
 {"log":{"at":"2026-11-02T03:46:17-06:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"log":{"at":"2026-11-02T03:46:35-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:46:35.939Z"}
 {"log":{"at":"2026-11-02T03:47:43-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T09:47:43.611Z"}
+{"set":{"state":"complete","completed_at":"2026-11-02T03:45:50-06:00"},"by":"owner","ts":"2026-11-02T23:02:50.111Z","client":"d6aa194c"}

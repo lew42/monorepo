@@ -4,3 +4,4 @@
 {"review":{"at":"2026-11-01T17:51:37-06:00","answer":{"n":3,"reply":"declined: the owner is leaving on a walk; the check is the owner's own phone log, read after this lands"}}}
 {"review":{"at":"2026-11-01T17:51:37-06:00","answer":{"n":4,"reply":"fixed: 'speak asked' is traced before each render"}}}
 {"review":{"at":"2026-11-01T17:51:37-06:00","answer":{"n":5,"reply":"noted: import() is cached by the browser after the first call"}}}
+{"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:54.689Z","client":"d6aa194c"}

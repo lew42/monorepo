@@ -7,3 +7,4 @@
 {"review":{"at":"2026-11-01T18:19:18-06:00","answer":{"n":6,"reply":"noted: the Sheet lives as long as the page, so its 5 s check never needs clearing"}}}
 {"review":{"at":"2026-11-01T18:19:18-06:00","answer":{"n":7,"reply":"fixed: a // link is no longer treated as a site path"}}}
 {"review":{"at":"2026-11-01T18:19:18-06:00","answer":{"n":8,"reply":"noted: a failed join falls back to starting a session, which is the old behaviour; the Sheet logs which session it follows"}}}
+{"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:54.688Z","client":"d6aa194c"}

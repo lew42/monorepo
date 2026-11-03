@@ -20,3 +20,4 @@
 {"review":{"at":"2026-10-22T18:38:13-05:00","answer":{"n":3,"reply":"declined: a note; the readme already says it is today's value"}}}
 {"review":{"at":"2026-10-22T18:38:13-05:00","answer":{"n":4,"reply":"declined: dated history, left as is"}}}
 {"review":{"at":"2026-10-22T18:38:13-05:00","answer":{"n":5,"reply":"declined: no page change in this diff"}}}
+{"set":{"state":"complete","completed_at":"2026-10-22T16:28:42-05:00"},"by":"owner","ts":"2026-11-02T23:02:53.466Z","client":"d6aa194c"}

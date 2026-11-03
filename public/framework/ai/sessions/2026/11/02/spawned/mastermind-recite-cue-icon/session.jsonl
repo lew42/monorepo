@@ -21,3 +21,7 @@
 {"set":{"state":"running"},"by":"owner","ts":"2026-11-02T23:02:50.123Z","client":"d6aa194c"}
 {"commit":"3b6504b66dd7","by":"append.mjs","ts":"2026-11-02T23:04:31.850Z"}
 {"log":{"text":"Landed on michael/dev 30065f38c: cue only on {thinking:{by:\"smart\"}} (60 s cap), resume icon ink #1a1a1a ~5.9:1. vscode-mastermind is not a live agent, so the 2-line report could not be sent."},"by":"mastermind-recite-cue-icon","ts":"2026-11-02T23:04:42.209Z"}
+{"commit":"0959fb8bd3f7","by":"append.mjs","ts":"2026-11-02T23:04:44.799Z"}
+{"complete":{"outcome":"The Recite thinking cue plays only on a {thinking:{by:\"smart\"}} line, repeats, and stops on reply or after 60 s; the resume icon ink is #1a1a1a (about 5.9:1 on --prime).","evidence":["commit 30065f38c on michael/dev","shot-360.png in the task dir","Recite.test.mjs cue tests and the headless check on the worktree server"],"confidence":"medium","caveats":["Recite.test.mjs runs only in the browser test view; ReciteBubble.test.mjs failed in the TestRunner run and was not investigated","one merge, not two as the brief asked","the 2-line report could not be sent: vscode-mastermind is not a live agent"]},"by":"mastermind-recite-cue-icon","ts":"2026-11-02T23:04:48.814Z"}
+{"log":{"at":"2026-11-02T17:04:58-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T23:04:58.194Z"}
+{"log":{"at":"2026-11-02T17:05:36-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

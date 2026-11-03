@@ -14,3 +14,4 @@
 {"log":{"at":"2026-10-20T18:00:11-05:00","msg":"lifecycle: nothing of this task's was left running"}}
 {"log":{"at":"2026-10-20T18:00:11-05:00","msg":"layout-check: skipped — the landing names no site pages"}}
 {"log":{"at":"2026-10-20T18:00:42-05:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}
+{"set":{"state":"complete","completed_at":"2026-10-20T17:59:56-05:00"},"by":"owner","ts":"2026-11-02T23:02:52.916Z","client":"d6aa194c"}
