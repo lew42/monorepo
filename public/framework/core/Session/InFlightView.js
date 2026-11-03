@@ -9,6 +9,8 @@ export default class InFlightView extends View {
 	initialize(){
 		this.ac("in-flight");
 		this.sessions = new Map();
+		this.branches = [];
+		fetch("/framework/ai/unmerged.json").then(r => r.ok ? r.json() : { rows: [] }).then(d => { this.branches = d.rows ?? []; this.redraw(); }).catch(() => {});   // written by `node Server/unmerged.mjs --write`
 		this.readers = (this.urls ?? [this.url]).filter(Boolean).map(url => new SessionTasks({ url, on_session: s => { this.sessions.set(url, s); this.redraw(); } }).live());
 		this.empty_text ??= "Nothing is in flight.";
 		this.redraw();
@@ -32,6 +34,8 @@ export default class InFlightView extends View {
 				if (p.inflight.length) this.section("In flight", () => { p.inflight.forEach(t => this.row(t)); if (p.more) small.c("muted", `+ ${p.more} more running`); });
 				if (p.waiting.length) this.section("Waiting on you", () => p.waiting.forEach(w => this.row(w.task, w.what || "needs you", true)));
 				if (p.next.length && !this.all) this.section("Next", () => p.next.forEach(t => this.row(t)));
+				const built = InFlight.unmerged(this.branches, p.url);
+				if (built.length) this.section("Built, not merged", () => built.forEach(b => div.c("if-row if-bare", () => { span.c("if-title", b.branch); div.c("if-now muted", `${b.commits} commit${b.commits > 1 ? "s" : ""}, ${Math.round(b.age_hours)} h old, task ${b.state}`); })));
 				if (p.done && !this.all) small.c("muted if-done", `${p.done} done`);
 			});
 		}

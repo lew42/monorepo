@@ -54,6 +54,7 @@ export default new Page({ meta: import.meta, title: "Hello", children: "about", 
 ## Also here (readme audit, 2026-10-13)
 - [Events](./Events/) — on/off/emit mixin everything else builds on
 - [Plugin](./Plugin/) — a class that takes plugins: `Host.use(A, B)`, `unuse`, a live `Host.plugins` list with on/off and config
+- [Settings](./Settings/) — a plain settings store between data and UI: defaults, one instance's own overrides, a change event, a save policy, `render()` draws a row per field
 - [track](./track/) — opt-in instance tracking: call once, read back live
 
 ## Notes from your asks

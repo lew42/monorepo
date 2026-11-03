@@ -13,7 +13,7 @@ A paused build already did most of this design: `worktree/dictate-plugins` (plan
 - **The override rule**: a URL param or console call for one page load only, never saved — still the right answer, now expressed as `core/Plugin`'s `Plugin.store`.
 - **The panel-fits-in-an-existing-panel rule**: the new grouping is a section inside `ComposerMic.settings_panel()` (`ext/Chat/Mic.js:314`), not a second panel.
 
-**Not reused:** the branch's own `VoiceChat` registry class — `core/Plugin` replaces it. Delete/ignore `ux/Dictate/VoiceChat/VoiceChat.js` and `Plugin.js` on that branch; keep `ThinkingCue.js` and the test shapes as a worked example to port onto `core/Plugin`.
+**Not reused:** the branch's own `VoiceChat` registry class — `core/Plugin` replaces it. That branch's registry and `Plugin.js` are gone; `ux/Dictate/VoiceChat/` on `michael/dev` is the port onto `core/Plugin` (plugins `Interrupt`, `ThinkingCue`), see [`VoiceChat/readme.md`](../VoiceChat/readme.md). Port the next plugin there.
 
 ## The two sections
 
@@ -34,7 +34,7 @@ Each group becomes `static attach(instance)` / `detach(instance)` plus `static d
 
 ## The per-instance settings: built, in core/Plugin itself
 
-`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`"). It holds one row per class-level plugin, starting unset so it follows the class row. `row.set({enabled})` switches the plugin for just this instance, and `row.set({config: {...}})` changes only the fields given (the plugin is re-run, detach then attach, so it re-reads them). That instance's own choice then wins over a later class-wide change of the same thing. The gear panel's "live on/off switch" (above) is this: same `PluginEntry` shape as the class list.
+`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`"). It holds one row per class-level plugin, starting unset so it follows the class row. `row.set({enabled})` switches the plugin for just this instance, and `row.set({config: {...}})` changes only the fields given (the plugin is re-run, detach then attach, so it re-reads them; a plugin that defines `reconfigure(inst)` is called through that instead, so a plugin that holds a mic or a timer open should define it and only rewrite its values). That instance's own choice then wins over a later class-wide change of the same thing. The gear panel's "live on/off switch" (above) is this: same `PluginEntry` shape as the class list.
 
 Three more pieces make a chat's settings saveable ([`chat-settings-per-session/plan.md`](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md)):
 

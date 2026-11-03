@@ -11,6 +11,8 @@ import BargeIn from "/framework/audio/Recite/BargeIn.js";
 import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
 import { should_drop_phantom, whisper_info } from "./phantom-gate.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
+import { VoiceChat } from "./VoiceChat/VoiceChat.js";
+import { Interrupt } from "./VoiceChat/plugins/index.js";
 
 // One chat box, every surface: doc/chat-notes.md
 const SESSION_KEY = "lew42-voice-session";
@@ -253,6 +255,10 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		});
 	});
 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
+	// One Voice Chat per Recite (the page has one Recite, so one set of read-aloud settings): the first chat on the page makes it.
+	// The browser's remembered barge-in values are read before it starts, because its first attach writes the class values.
+	Recite.shared.voice_chat ??= new VoiceChat({ recite: Recite.shared, mic: panel.dictate, overrides: Interrupt.snapshot(Recite.shared) });   // ux/Dictate/VoiceChat/readme.md
+	panel.voice_chat = Recite.shared.voice_chat;
 	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
 
 	// The phantom gate's one source of duration/word-probability: the last FINAL Whisper reply this mic heard, read
