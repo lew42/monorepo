@@ -4,3 +4,4 @@
 {"commit":"6def630e24da","by":"append.mjs","ts":"2026-11-03T21:12:35.905Z"}
 {"log":{"at":"2026-11-03T15:12:42-06:00","msg":"Step 5 built in worktree chat-settings-panel: cf2b89782, 93a6e8a59, 6def630e2. Shots panel-*-full.png in the task dir: no overflow at 360, slider ends shown, header names its level."},"by":"minion-settings-build-step5","session":"ac38091b-b256-41f3-a48b-ce3b38214067"}
 {"commit":"781bfd58f842","by":"append.mjs","ts":"2026-11-03T21:19:38.202Z"}
+{"stop":{"at":"2026-11-03T16:21:49-06:00","why":"dropped: owner minion-settings-build-step5 is stopped"}}
