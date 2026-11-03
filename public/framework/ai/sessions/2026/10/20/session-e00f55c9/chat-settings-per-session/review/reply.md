@@ -1,0 +1,2 @@
+1. [accept] This is merge 1 of 5, plan.md Status says so honestly, and keeping the folder open with no ask ticked is the right handling; nothing needs fixing in this diff.
+6. [accept] The hook can run after an earlier plugin attach or constructor args have loaded overrides into the state, so the check is reachable. The comment now explains this, which settles the "puzzling" concern. (I judged from the stated reason, not re-reading Plugin.js.)

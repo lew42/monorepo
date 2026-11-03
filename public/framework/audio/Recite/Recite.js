@@ -54,6 +54,8 @@ export default class Recite extends Part {
 	update_hold_timer = null;   // no-flood: flush_updates()'s own safety timeout, in case no direct reply ever arrives
 	focus_el = null;        // replay: the bubble element a tapped replay reads, so the highlight lights that bubble's words first
 	update_hold_ms = 4000;   // no-flood: how long an agent update waits for the direct answer before it is queued anyway
+	resume_after_cut = Recite.remember("resume_after_cut") === "true";   // cutting in (2026-11-03): false (default) — real owner speech cancels the whole queue outright, with no auto-resume; true keeps the old behaviour (pause, then resume once quiet, drop only on a question)
+	on_read = null;   // cutting in: injected by the page (chat.js, never audio/'s own import) — called with {id, reply, chunk, sentence, heard: "cut"|"skipped", words} whenever cancel_unheard() stops a reply short, so a "say" with kind "read" can be posted; audio/Recite never posts itself
 
 	constructor(...args){
 		super(...args);
@@ -156,7 +158,11 @@ export default class Recite extends Part {
 	/** Chunk `i` is freshly queued and nothing is playing: start now, or hold until the owner falls quiet. */
 	start_or_hold(i){
 		clearTimeout(this.wait_timer);
-		if (!this.barge?.on || !this.barge.speaking()){ this.wait_at = null; this.play(i, 0); return; }
+		// at least 1 s of quiet since the owner's LAST HEARD WORD, whatever `barge.on` (the interrupt ear) says and
+		// whatever the level reads right this instant — the mic level keeps running either way, through the chat's
+		// own mic (BargeIn.use_mic) (cutting in, 2026-11-03; review finding 5: checking only the instant level let
+		// a reply start with no hold at all when it arrived a moment after the owner stopped)
+		if (this.quiet_long_enough()){ this.wait_at = null; this.play(i, 0); return; }
 		this.wait_at = i;
 		this.quiet_since_wait = null;
 		this.trace("holding: the owner is talking", { sentence: i });
@@ -164,12 +170,18 @@ export default class Recite extends Part {
 		this.wait_timer = setTimeout(() => this.check_wait(), 80);
 	}
 
-	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `turn_wait_ms`. */
+	/** True once at least `min_quiet_ms()` has passed since `barge.last_speech_at` — never just "is the level low
+	 *  right now" (`speaking()`), which reads quiet the instant a word ends. */
+	quiet_long_enough(){ return !this.barge || (this.barge.silence_ms() >= this.min_quiet_ms()); }
+
+	/** The hold before a fresh reply starts: at least 1 s (cutting in, 2026-11-03), never less than `turn_wait_ms`
+	 *  (default 2500, the no-flood setting) even if that were ever set lower. */
+	min_quiet_ms(){ return Math.max(1000, this.turn_wait_ms ?? 2500); }
+
+	/** Polls every ~80 ms while `wait_at` is set: starts once the owner has been quiet for `min_quiet_ms()`. */
 	check_wait(){
 		if (this.wait_at == null) return;
-		if (this.barge.speaking()){ this.quiet_since_wait = null; this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
-		this.quiet_since_wait ??= performance.now();
-		if (performance.now() - this.quiet_since_wait < (this.turn_wait_ms ?? 2500)){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
+		if (!this.quiet_long_enough()){ this.wait_timer = setTimeout(() => this.check_wait(), 80); return; }
 		const i = this.wait_at;
 		this.wait_at = this.quiet_since_wait = null;
 		this.play(i, 0);
@@ -194,6 +206,7 @@ export default class Recite extends Part {
 		this.trace("playing", { sentence: i });
 		if (token !== this.token) return;
 		this.set("playing", "");
+		this.barge.chunk_started();   // the start grace (BargeIn.grace_ms): its own first word must not trip the mic
 		this.unlocked = true;   // it played: no tap-unlock needed any more
 		this.media_session();
 		this.prefetch(i);
@@ -477,6 +490,59 @@ export default class Recite extends Part {
 		else this.set("idle");
 	}
 
+	/** Real owner speech, right now (cutting in, 2026-11-03): stop at once and drop the WHOLE queue, not just the
+	 *  reply that was playing — every reply still waiting its turn is skipped too, so the owner never has to sit
+	 *  through a backlog they never asked to hear. No auto-resume unless `resume_after_cut` is on. Each dropped reply
+	 *  is reported once through `on_read` (the reply playing, if any, as "cut" with the words it had reached; every
+	 *  other distinct reply still queued as "skipped"), so the page can tell the assistant what was and wasn't
+	 *  heard. A reply only held by turn-taking (`wait_at`, never started) counts as queued too. */
+	cancel_unheard(){
+		this.barge.cancel_resume();
+		clearTimeout(this.wait_timer);
+		const held_at = this.wait_at;   // read before clearing: start_or_hold() set only `wait_at`, never `this.at` —
+		                                // `this.at` still sits on the LAST chunk that actually played (finish()), so
+		                                // the skip loop must start at `wait_at` while held, not that stale `this.at`
+		                                // (review finding 1, 2026-11-03)
+		this.wait_at = this.quiet_since_wait = null;
+		const was_going = held_at == null && ["playing", "loading", "heard"].includes(this.state) && this.chunks[this.at];
+		this.token++;
+		this.audio?.pause();
+		globalThis.speechSynthesis?.cancel();
+		const reported = new Set();
+		if (was_going){
+			const c = this.chunks[this.at];
+			reported.add(c.reply);
+			this.report_read(this.at, this.at - this.group_start(this.at), "cut", Recite.heard_words(c));
+		}
+		// Start at `wait_at` when nothing was playing (everything from there on is still unheard); otherwise at
+		// `this.at` (everything before it already finished playing, and chunks stay in the array until a full
+		// stop(), readme.md) — either way, never from 0, or a reply fully heard minutes ago gets reported "skipped".
+		for (let i = held_at ?? this.at; i < this.chunks.length; i++){
+			const c = this.chunks[i];
+			if (reported.has(c.reply)) continue;
+			reported.add(c.reply);
+			this.report_read(i, i - this.group_start(i), "skipped", "");
+		}
+		for (const p of this.pending_ids) Recite.mark_played(p.id);   // dropped, never played: a reload must not read it either
+		this.pending_ids = [];
+		for (const c of this.chunks) if (c.src) URL.revokeObjectURL(c.src);
+		this.chunks = [];
+		this.live = null;
+		this.streamed = null;
+		this.at = 0;
+		this.set("idle");
+	}
+
+	/** Tells `on_read` (if the page wired one) that chunk `i` of its reply was cut or skipped; never throws into the
+	 *  caller — a page's own callback failing must not stop the cut it is reporting on. */
+	report_read(i, sentence, heard, words){
+		const c = this.chunks[i];
+		try { this.on_read?.({ id: c?.msg ?? null, reply: c?.reply ?? null, chunk: i, sentence, heard, words }); }
+		catch (e){ console.error("Recite: on_read failed", e); }
+	}
+
+	set_resume_after_cut(on){ this.resume_after_cut = !!on; Recite.remember("resume_after_cut", this.resume_after_cut); this.changed(); }
+
 	/** Queue the finished sentences of the live reply that are not queued yet (all of it when `all`); always behind
 	 *  whatever is already playing, never replacing it (dictation-v3, 2026-11-01). */
 	take(text, all){
@@ -662,6 +728,7 @@ export default class Recite extends Part {
 		c.seconds ??= c.text.length / 15;   // an estimate, so back 10 s still steps back a sentence or two
 		this.retime();
 		this.set("playing");
+		this.barge.chunk_started();
 		this.voice.speak(c.text, () => {
 			if (token !== this.token || this.state !== "playing") return;
 			this.settle_pending(i);
@@ -728,6 +795,11 @@ export default class Recite extends Part {
 
 	/** About how long a sentence takes to say before it has been rendered: 15 characters a second. */
 	static est_seconds(text){ return Math.max(1, String(text ?? "").length / 15); }
+
+	/** A rough "last heard words" for the cut-off report: no word timer exists (Highlight.word_at is an estimate
+	 *  too), so this is the chunk's own first few words, not truly where the audio had reached. Good enough for a
+	 *  note the assistant reads, not a transcript. */
+	static heard_words(chunk){ return String(chunk?.text ?? "").split(/\s+/).slice(0, 6).join(" "); }
 
 	/** Where `seconds` back from `t` seconds into chunk `at` lands: {i, t}. A sentence not rendered yet counts by its estimate; never earlier than chunk `floor`. */
 	static step_back(chunks, at, t, seconds, floor = 0){

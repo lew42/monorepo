@@ -1,0 +1,372 @@
+diff --git a/public/framework/core/Plugin/Plugin.js b/public/framework/core/Plugin/Plugin.js
+index 14a9d9e20..97b71f906 100644
+--- a/public/framework/core/Plugin/Plugin.js
++++ b/public/framework/core/Plugin/Plugin.js
+@@ -45,6 +45,47 @@ export class Plugin extends Events(Object) {
+ 		else Plugin.detach_instance(rec, this);
+ 	}
+ 
++	// What this instance changed against the class: a plain {Name: {enabled?, config?}} that survives JSON, so it can be saved
++	// with a session and handed back to load_overrides. A plugin this instance left alone is not in it.
++	get overrides(){
++		const out = {};
++		for (const row of this.plugins) {
++			const rec = row.record, o = {}, on = this._plugin_overrides?.get(rec), cfg = row.own("config");
++			if (on !== undefined) o.enabled = on;
++			if (cfg && Object.keys(cfg).length) o.config = { ...cfg };
++			if (Object.keys(o).length) out[rec.name] = o;
++		}
++		return out;
++	}
++
++	// Replace every override with `obj`: a listed plugin takes its value, an unlisted one goes back to the class. A plugin
++	// whose state does not change is not touched, so loading the same overrides twice runs nothing.
++	load_overrides(obj = {}){
++		const Host = this.constructor, rows = [...this.plugins], was = new Map();
++		for (const row of rows) {   // config first, so an attach that follows reads the new values
++			const rec = row.record, cfg = obj[rec.name]?.config, next = cfg && Object.keys(cfg).length ? { ...cfg } : null;
++			if (JSON.stringify(row.own("config") ?? null) === JSON.stringify(next)) continue;
++			was.set(rec, rec.attached.has(this));
++			row.put("config", next);
++			row.emit_safely("change", "config", row.get_one("config"));
++		}
++		for (const row of rows) {
++			const rec = row.record, enabled = obj[rec.name]?.enabled, before = rec.attached.has(this);
++			if (enabled === undefined) {
++				if (this._plugin_overrides?.delete(rec)) row.put("enabled", null);
++				if (rec.on) Host.attach_instance(rec, this); else Host.detach_instance(rec, this);
++			} else {
++				this.toggle_plugin(rec, enabled);
++				row.put("enabled", rec.attached.has(this));
++			}
++			if (was.get(rec) && before && rec.attached.has(this)) Host.rerun_instance(rec, this);   // same on/off, new config
++			if (rec.attached.has(this) !== before) row.emit_safely("change", "enabled", row.get_one("enabled"));
++		}
++		return this;
++	}
++
++	reset_plugins(){ return this.load_overrides({}); }
++
+ 	// ── class-level events. "new" walks the class chain: parents' listeners first, then each subclass's own.
+ 	static get events(){
+ 		if (!Object.hasOwn(this, own_events)) Object.defineProperty(this, own_events, { value: {}, writable: true });
+@@ -107,7 +148,7 @@ export class Plugin extends Events(Object) {
+ 		const name = p.name || "plugin", key = `plugin.${this.name}.${name}`;
+ 		const saved = Plugin.store.get(key), defaults = p.defaults ?? {};
+ 		const { on: default_on = true, ...config_defaults } = defaults;
+-		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), attached: new WeakSet(), n: 0,
++		rec = { plugin: p, name, key, on: false, fn: null, live: new Set(), seen: new WeakSet(), attached: new WeakSet(), n: 0,
+ 			wanted: wanted_on ?? saved?.on ?? default_on, config: { ...config_defaults, ...saved?.config } };
+ 		this.records.set(p, rec);
+ 		if (!Plugin.hosts.includes(this)) Plugin.hosts.push(this);
+@@ -145,6 +186,49 @@ export class Plugin extends Events(Object) {
+ 		rec.plugin.detach(inst);
+ 	}
+ 
++	// New config for a live instance: detach then attach, so the plugin re-reads it (a plugin with no real detach is left as is).
++	static rerun_instance(rec, inst){
++		if (!rec.attached.has(inst)) return;
++		this.detach_instance(rec, inst);
++		this.attach_instance(rec, inst);
++	}
++
++	// The class config changed in `keys`: re-run every live instance that follows the class for those fields (not `except`).
++	static reconfigure_live(rec, keys, except){
++		for (const ref of [...rec.live]) {
++			const inst = ref.deref();
++			if (!inst || inst === except) continue;
++			const own = inst._plugins?.find(rec.name)?.own("config");
++			if (own && keys.some(k => k in own)) continue;
++			this.rerun_instance(rec, inst);
++		}
++	}
++
++	// "Make default": copy what `inst` changed into the class records and the store, so the next page load keeps it. The
++	// instance then has nothing left to override. Other live instances re-run if they follow the class; one with its own
++	// override on that plugin keeps it.
++	static make_default(inst){
++		const overrides = inst.overrides;
++		for (const row of inst.plugins) {
++			const rec = row.record, o = overrides[rec.name];
++			if (!o) continue;
++			inst._plugin_overrides?.delete(rec);
++			row.put("enabled", null);
++			row.put("config", null);
++			const old = rec.config, changed = [];
++			if (o.config) {
++				rec.config = { ...old, ...o.config };
++				for (const k of Object.keys(o.config)) if (JSON.stringify(old[k]) !== JSON.stringify(rec.config[k])) changed.push(k);
++				rec.row?.put("config", rec.config);
++				rec.row?.emit_safely("change", "config", rec.config);
++			}
++			if (o.enabled !== undefined && o.enabled !== rec.on) o.enabled ? this.enable(rec) : this.disable(rec);
++			else if (o.enabled !== undefined) rec.wanted = o.enabled;
++			this.store.set(rec.key, { on: rec.on, config: rec.config });
++			if (changed.length) this.reconfigure_live(rec, changed, inst);
++		}
++	}
++
+ 	// An instance that switched this plugin on/off for ITSELF (Plugin#toggle_plugin) keeps that wish: a class-wide
+ 	// enable()/disable() never overrides an explicit per-instance override, it only moves the instances left unset.
+ 	static overridden(rec, inst, value){ return inst._plugin_overrides?.get(rec) === value; }
+diff --git a/public/framework/core/Plugin/Plugin.test.mjs b/public/framework/core/Plugin/Plugin.test.mjs
+index d108b6ff1..effea39f0 100644
+--- a/public/framework/core/Plugin/Plugin.test.mjs
++++ b/public/framework/core/Plugin/Plugin.test.mjs
+@@ -264,3 +264,118 @@ test("the server shim: Server/Events.js is a Plugin that keeps assign, then new,
+ 	t.eq(order, ["new:7", "initialize:7"], "assign, new event, initialize");
+ 	t.ok(new Sock({}) instanceof Plugin, "it is a Plugin");
+ });
++
++// ── per-instance config, overrides, load_overrides, reset_plugins, make_default (chat-settings-per-session, step 1)
++const cfg_calls = [];
++class Tuned {
++	static defaults = { on: true, level: 1, pause: 200 };
++	static fields = [{ key: "level", kind: "slider" }, { key: "pause", kind: "number" }];
++	static attach(inst){ cfg_calls.push(["attach", inst.tag, JSON.stringify(inst.plugins.find("Tuned").get("config"))]); }
++	static detach(inst){ cfg_calls.push(["detach", inst.tag]); }
++}
++
++test("a config change on a live instance row detaches then attaches, so the plugin re-reads its config", t => {
++	cfg_calls.length = 0;
++	class C1 extends Plugin {}
++	C1.use(Tuned);
++	const a = new C1({ tag: "a" }), b = new C1({ tag: "b" });
++	cfg_calls.length = 0;
++	a.plugins.find("Tuned").set({ config: { level: 5 } });
++	t.eq(cfg_calls, [["detach", "a"], ["attach", "a", '{"level":5,"pause":200}']], "only a re-ran, in order, and read its new level");
++	t.eq(b.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "the other instance is untouched");
++	t.eq(C1.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "the class row is unchanged");
++});
++
++test("an instance stores only the fields it changed: the rest follow the class, also when the class changes later", t => {
++	class C2 extends Plugin {}
++	C2.use(Tuned);
++	const a = new C2({ tag: "a" });
++	const row = a.plugins.find("Tuned");
++	row.set({ config: { level: 5 } });
++	t.eq(row.get("config"), { level: 5, pause: 200 }, "merged read: own level, class pause");
++	C2.plugins.find("Tuned").set({ config: { pause: 300 } });
++	t.eq(row.get("config"), { level: 5, pause: 300 }, "a later class change of another field shows through");
++});
++
++test("a class config change re-attaches live instances that did not override that field, and skips the ones that did", t => {
++	cfg_calls.length = 0;
++	class C3 extends Plugin {}
++	C3.use(Tuned);
++	const plain = new C3({ tag: "plain" }), own = new C3({ tag: "own" });
++	own.plugins.find("Tuned").set({ config: { level: 9 } });
++	cfg_calls.length = 0;
++	C3.plugins.find("Tuned").set({ config: { level: 2 } });
++	t.eq(cfg_calls, [["detach", "plain"], ["attach", "plain", '{"level":2,"pause":200}']], "plain re-ran with the new level; own kept level 9 and was not touched");
++});
++
++test("overrides is a plain object of what this instance changed, and nothing for the rest", t => {
++	class C4 extends Plugin {}
++	C4.use(Tuned, Spy);
++	const a = new C4({ tag: "a" });
++	t.eq(a.overrides, {}, "a new instance has no overrides");
++	a.plugins.find("Tuned").set({ config: { level: 5 } });
++	a.plugins.find("Spy").set({ enabled: false });
++	t.eq(a.overrides, { Tuned: { config: { level: 5 } }, Spy: { enabled: false } }, "only what was changed");
++	t.eq(JSON.parse(JSON.stringify(a.overrides)), a.overrides, "plain data: it survives JSON, so it can be saved");
++});
++
++test("load_overrides replaces all overrides: a listed one changes, an unlisted one goes back to the class", t => {
++	cfg_calls.length = 0; calls.length = 0;
++	class C5 extends Plugin {}
++	C5.use(Tuned, Spy);
++	const a = new C5({ tag: "a" });
++	a.plugins.find("Tuned").set({ config: { level: 5 } });
++	cfg_calls.length = 0; calls.length = 0;
++	a.load_overrides({ Spy: { enabled: false } });
++	t.eq(calls, [["detach", "Spy", "a"]], "Spy switched off");
++	t.eq(cfg_calls, [["detach", "a"], ["attach", "a", '{"level":1,"pause":200}']], "Tuned went back to the class config, re-run once");
++	t.eq(a.overrides, { Spy: { enabled: false } }, "overrides are exactly what was loaded");
++	calls.length = 0; cfg_calls.length = 0;
++	a.load_overrides({ Spy: { enabled: false } });
++	t.eq([calls.length, cfg_calls.length], [0, 0], "loading the same overrides again re-runs nothing");
++});
++
++test("reset_plugins puts an instance back to the class state", t => {
++	calls.length = 0;
++	class C6 extends Plugin {}
++	C6.use(Tuned, Spy);
++	const a = new C6({ tag: "a" });
++	a.plugins.find("Spy").set({ enabled: false });
++	a.plugins.find("Tuned").set({ config: { level: 7 } });
++	a.reset_plugins();
++	t.eq(a.overrides, {}, "no overrides left");
++	t.eq(a.plugins.find("Spy").get("enabled"), true, "Spy is back on");
++	t.eq(a.plugins.find("Tuned").get("config"), { level: 1, pause: 200 }, "Tuned is back on the class config");
++});
++
++test("make_default copies one instance's overrides to the class and the store; its own overrides are then empty", t => {
++	Plugin.store = new Map();
++	class C7 extends Plugin {}
++	C7.use(Tuned, Spy);
++	const a = new C7({ tag: "a" });
++	a.plugins.find("Tuned").set({ config: { level: 5 } });
++	a.plugins.find("Spy").set({ enabled: false });
++	C7.make_default(a);
++	t.eq(a.overrides, {}, "a has nothing left to override");
++	t.eq(a.plugins.find("Tuned").get("config"), { level: 5, pause: 200 }, "a still reads level 5, now from the class");
++	t.eq(a.plugins.find("Spy").get("enabled"), false, "and Spy is still off, now from the class");
++	t.eq(Plugin.store.get("plugin.C7.Tuned"), { on: true, config: { level: 5, pause: 200 } }, "saved for the next page load");
++	t.eq(Plugin.store.get("plugin.C7.Spy").on, false, "Spy's default is saved off");
++	calls.length = 0; cfg_calls.length = 0;
++	const fresh = new C7({ tag: "fresh" });
++	t.eq(cfg_calls, [["attach", "fresh", '{"level":5,"pause":200}']], "a new instance starts from the new default");
++	t.eq(calls.length, 0, "and without the plugin that is now off by default");
++});
++
++test("make_default re-runs other live instances that follow the class, and leaves the ones with their own override", t => {
++	Plugin.store = new Map();
++	class C8 extends Plugin {}
++	C8.use(Tuned);
++	const src = new C8({ tag: "src" }), follower = new C8({ tag: "follower" }), mine = new C8({ tag: "mine" });
++	mine.plugins.find("Tuned").set({ config: { level: 9 } });
++	src.plugins.find("Tuned").set({ config: { level: 5 } });
++	cfg_calls.length = 0;
++	C8.make_default(src);
++	t.eq(cfg_calls, [["detach", "follower"], ["attach", "follower", '{"level":5,"pause":200}']], "follower re-ran with level 5; src already read 5 so it did not re-run; mine kept level 9");
++	t.eq(mine.overrides, { Tuned: { config: { level: 9 } } }, "mine still has its override");
++});
+diff --git a/public/framework/core/Plugin/PluginEntry.js b/public/framework/core/Plugin/PluginEntry.js
+index 7e3388c17..67585bb2d 100644
+--- a/public/framework/core/Plugin/PluginEntry.js
++++ b/public/framework/core/Plugin/PluginEntry.js
+@@ -9,15 +9,19 @@ export class PluginEntry extends Item {
+ 
+ 	// An INSTANCE row (Plugin.add_instance_row) starts unset: until this instance overrides it, "enabled" and
+ 	// "config" read the class row's live values (rec.on / rec.config) instead of this row's own null.
++	// "config" is the class config with only this instance's own fields on top, so a later class change of another field shows through.
+ 	get_one(key){
+ 		const stored = super.get_one(key);
+-		if (this.instance && stored == null) {
+-			if (key === "enabled") return this.record?.on;
+-			if (key === "config") return this.record?.config;
++		if (this.instance) {
++			if (key === "enabled" && stored == null) return this.record?.on;
++			if (key === "config") return { ...this.record?.config, ...stored };
+ 		}
+ 		return stored;
+ 	}
+ 
++	// What this row itself holds (null until overridden), without the class fallback: the saved override.
++	own(key){ return super.get_one(key); }
++
+ 	// A row is active when it is on and the row above it (the plugin it is a sub-plugin of) is active.
+ 	get active(){ return !!this.get_one("enabled") && this.up?.active !== false; }
+ 
+@@ -51,11 +55,18 @@ export class PluginEntry extends Item {
+ 	}
+ 
+ 	set_config(value){
+-		const rec = this.record, config = { ...this.get_one("config"), ...value };
++		const rec = this.record;
++		if (this.instance) {   // only the changed fields are kept; the plugin re-reads them through a detach then attach
++			this.put("config", { ...this.own("config"), ...value });
++			if (rec) this.host.constructor.rerun_instance(rec, this.host);
++			return;
++		}
++		const old = this.get_one("config"), config = { ...old, ...value };
+ 		this.put("config", config);
+-		if (this.instance) return;   // an instance override is not a saved class preference
+ 		if (rec) rec.config = config;
+ 		this.save_row();
++		const changed = Object.keys(value).filter(k => JSON.stringify(old?.[k]) !== JSON.stringify(config[k]));
++		if (rec && changed.length) this.host.reconfigure_live(rec, changed);
+ 	}
+ 
+ 	// Only a change made through a CLASS row is saved; a use() in code and an instance override are not preferences.
+diff --git a/public/framework/core/Plugin/page.js b/public/framework/core/Plugin/page.js
+index 0ac9cd9c5..df2c6b250 100644
+--- a/public/framework/core/Plugin/page.js
++++ b/public/framework/core/Plugin/page.js
+@@ -116,6 +116,36 @@ Badge.plugins.set({ Glow: { enabled: false } });
+ 		for (const row of Badge.plugins) row.on("change", draw);
+ 		draw();
+ 
++		md("## One instance, its own settings");
++		md("Each instance keeps only what it changed (`inst.overrides`) and reads the rest from the class. `Host.make_default(inst)` copies an instance's changes to the class; `inst.reset_plugins()` drops them. Change the first badge, watch its overrides, then press Make default: the second badge follows the class, and the first has nothing left to override. (Make default is saved in this browser, like the box above.)");
++		const pair = div.c("flex wrap gap");
++		const insts = [make_badge(), make_badge()];
++		const el = (tag, text, props = {}) => Object.assign(document.createElement(tag), { textContent: text ?? "" }, props);
++		const show = () => pair.el.replaceChildren(...insts.map((b, i) => {
++			const box = el("div"); box.className = "surface pad flex v gap"; box.style.flex = "1 1 16em";
++			box.append(el("span", `Badge ${i + 1}`, { className: "muted" }));
++			for (const row of b.plugins) {
++				const line = el("label"); line.className = "flex v-center gap"; line.style.minHeight = "2.75em";
++				const check = el("input", "", { type: "checkbox", checked: !!row.get("enabled") });
++				check.onchange = () => { row.set({ enabled: check.checked }); show(); };
++				line.append(check, el("span", row.get("name")));
++				for (const f of row.fields.filter(f => f.kind === "slider")) {
++					const range = el("input", "", { type: "range", min: f.min, max: f.max, step: f.step, value: row.get("config")[f.key] });
++					range.oninput = () => row.set({ config: { [f.key]: +range.value } });
++					range.onchange = show;
++					line.append(range);
++				}
++				box.append(line);
++			}
++			box.append(b.el, el("code", `overrides: ${JSON.stringify(b.overrides)}`));
++			const bar = el("div"); bar.className = "flex gap";
++			const button = (text, fn) => el("button", text, { type: "button", onclick: () => { fn(); show(); } });
++			bar.append(button("Make default", () => Badge.make_default(b)), button("Reset to default", () => b.reset_plugins()));
++			box.append(bar);
++			return box;
++		}));
++		show();
++
+ 		md("## Classes using plugins right now");
+ 		const hosts = div.c("surface pad flex v");
+ 		const list_hosts = () => hosts.el.replaceChildren(...Plugin.hosts.map(h => Object.assign(document.createElement("p"), { textContent: `${h.name}: ${[...h.records.values()].map(r => r.name + (r.on ? "" : " (off)")).join(", ")}` })));
+diff --git a/public/framework/core/Plugin/readme.md b/public/framework/core/Plugin/readme.md
+index 0fc062750..837f0d870 100644
+--- a/public/framework/core/Plugin/readme.md
++++ b/public/framework/core/Plugin/readme.md
+@@ -17,6 +17,9 @@ Badge.plugins.set({ Glow: { enabled: false } });   // the list is live; what the
+ 
+ const b = new Badge();
+ b.plugins.set({ Glow: { enabled: false } });       // THIS instance only — unset follows the class row above
++b.overrides;                                       // {Glow: {enabled: false}}: plain data, what a session saves
++b.load_overrides({});  b.reset_plugins();           // back to the class state (a plugin whose state is unchanged is not touched)
++Badge.make_default(b);                             // "Make default": b's overrides become the class defaults and are saved in Plugin.store
+ ```
+ 
+ [Try it live](/framework/core/Plugin/): the page has a control panel (checkbox, open-a-row settings, sliders, a number you drag).
+@@ -24,9 +27,10 @@ b.plugins.set({ Glow: { enabled: false } });       // THIS instance only — uns
+ ## Structure
+ 
+ - `Plugin.js` — `class Plugin extends Events(Object)`. Constructor: assign the args, `emit("new")` on the class, then `instantiate()` → `initialize()`. Static `on/off/once/clear/emit` keep class-level listeners; `"new"` walks the class chain, parents first, so a subclass reaches its parents' plugins. Static `use/unuse/available/plugins`. A plugin is anything with `static attach(instance)` (`setup` is still accepted), a plain function, and optionally `detach`, `defaults` (`on` plus config) and `fields` (what a panel draws). Every instance a plugin reaches is tracked (`rec.live`, a `WeakRef`, kept past a `disable()`) and whether it is currently attached is tracked too (`rec.attached`, through `attach_instance`/`detach_instance`) — so `enable()` re-attaches to the still-live ones (a live singleton gets the plugin back without a reload) and never attaches the same instance twice, even across a `use()` → `unuse()` → `use()` cycle on a plugin with no real `detach` to undo the first attach.
+-- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` — an instance override is not a class preference.
++- `inst.plugins` — the same shape, per INSTANCE: one row per class-level plugin, `enabled`/`config` unset until that instance overrides them (toggling calls `Plugin#toggle_plugin`, which also remembers the instance's own wish). Unset reads the class row live (`PluginEntry.get_one` falls back to `rec.on` / `rec.config`); the row list stays live too — `Plugin.record()` adds a row to every already-read instance list when the class gains a new plugin afterwards. **An instance's own switch wins:** once an instance has switched a plugin on or off for itself, a later class-wide `enable()`/`disable()` leaves that instance alone (`Plugin.overridden`) — only instances still unset follow the class. Never saved to `Plugin.store` on its own — an instance override is not a class preference. **Config:** an instance row stores only the fields it changed; `get("config")` is the class config with those on top (so a later class change of another field shows through), and `row.own("config")` is just the override. A config change on a live instance detaches then attaches it (`Plugin.rerun_instance`), so a plugin re-reads its config in `attach` and needs no change code; a plugin with no real `detach` is left as it is. A class config change re-runs the live instances that did not override those fields (`reconfigure_live`).
++- `inst.overrides`, `inst.load_overrides(obj)`, `inst.reset_plugins()`, `Host.make_default(inst)` — the save/restore side of the per-instance rows. `overrides` is a plain `{Name: {enabled?, config?}}` of what this instance changed (it survives JSON, so a session can store it); `load_overrides` replaces all of them (unlisted plugins go back to the class); `make_default` copies them into the class records and `Plugin.store`, clears the instance's own, and re-runs the other live instances that follow the class (one with its own override on that plugin keeps it).
+ - `PluginEntry.js` — one row of `Host.plugins` or `inst.plugins`, an `Item` with `name`, `enabled`, `config`. `set_enabled` installs or removes the hook (class row) or calls `toggle_plugin` (instance row); `set_config` saves (class row only); `active` is false when a parent plugin is off; `row.plugins` is the plugin's own list (sub-plugins).
+-- `Plugin.test.mjs` — 20 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
++- `Plugin.test.mjs` — 28 tests, `node public/framework/core/Plugin/Plugin.test.mjs`.
+ - Saved state: `Plugin.store` (a `Map` in node; the page swaps in localStorage), key `plugin.<Host>.<Plugin>` = `{on, config}`. Only a change made through a row is saved.
+ - `Server/Events.js` is now a two-line subclass of `Plugin`, so the server's classes (`Server`, `Socket`, `Servex/*`) are all pluggable and keep their import.
+ 
+diff --git a/public/framework/ux/Dictate/doc/settings-plugins.md b/public/framework/ux/Dictate/doc/settings-plugins.md
+index 3be113fb0..781b91dcc 100644
+--- a/public/framework/ux/Dictate/doc/settings-plugins.md
++++ b/public/framework/ux/Dictate/doc/settings-plugins.md
+@@ -32,9 +32,15 @@ Each group becomes `static attach(instance)` / `detach(instance)` plus `static d
+ 
+ `mastermind-chat-settings` built this bridge on `michael/dev` (`7d32afd51`): a voice session's plugin switches are one plain object, `{Name: {enabled?, config?}}`, kept in the session record (`POST /api/session/settings {session, plugins}`, `GET /api/session/<id>`) so a phone and a PC read the same, plus shared defaults ("Make default": `POST`/`GET /api/session/defaults`). Full shape, both checked by `checked_plugins()` in `Servex/agents/Sessions.js`, and the page-side read-at-load (not yet built, Servex side only): [`ux/Dictate/doc/settings.md`](settings.md#plugin-settings-per-session-and-make-default-servex-side). This doc does not design a second bridge — the panel this doc builds is the page side that calls it, same as the owner-feedback "Overlap" bullet says (plugins and settings are chat-settings' to build).
+ 
+-## The per-instance toggle: built, in core/Plugin itself
++## The per-instance settings: built, in core/Plugin itself
+ 
+-`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` now has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`") — one row per class-level plugin, starting unset so it follows the class row, switched for just this instance with `toggle_plugin` the moment the panel's row is touched, and that instance's own wish then wins over a later class-wide `enable()`/`disable()`. The gear panel's "live on/off switch" (above) is this: `inst.plugins.find(name).set({enabled})`, same `PluginEntry` shape as the class list.
++`Host.use(P)`/`unuse(P)` is class-wide and does not reach an already-live instance on its own, but a panel does not need to solve that: `core/Plugin` has `inst.plugins` for exactly this ([`core/Plugin/readme.md`](/framework/core/Plugin/readme.md), "`inst.plugins`"). It holds one row per class-level plugin, starting unset so it follows the class row. `row.set({enabled})` switches the plugin for just this instance, and `row.set({config: {...}})` changes only the fields given (the plugin is re-run, detach then attach, so it re-reads them). That instance's own choice then wins over a later class-wide change of the same thing. The gear panel's "live on/off switch" (above) is this: same `PluginEntry` shape as the class list.
++
++Three more pieces make a chat's settings saveable ([`chat-settings-per-session/plan.md`](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md)):
++
++- `inst.overrides` is a plain `{Name: {enabled?, config?}}` holding only what this instance changed; that object is what Servex stores on the voice session (`plugins`, [`settings.md`](settings.md)).
++- `inst.load_overrides(obj)` puts a saved object back (opening a session) and `inst.reset_plugins()` empties it (the New session button).
++- `Host.make_default(inst)` copies the overrides to the class defaults (and `Plugin.store`) and clears the instance's own, so the other open chats follow the new default.
+ 
+ ## The settings table (today's knobs, as the build starts from)
+ 

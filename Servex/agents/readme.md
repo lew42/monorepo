@@ -114,7 +114,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
 `Agents.js` (the host, the agent, its queue) · `tools.js` (the MCP tools) ·
 `Assistant.js` + `assistant.md` (the always-up fast assistant and its posture) · `Chain.js` + `doc/assistant-chain.md` (flagged one-global-assistant chain, `SERVEX_CHAIN=on`) ·
 `Layers.js` + `Global.js` (the card and cross-card agents, [`doc/layers.md`](./doc/layers.md)) ·
-`turn-costs.js` (each turn's real dollars from an agent's log; `cost.test.mjs`) ·
+`turn-costs.js` (each turn's real dollars from an agent's log; `cost.test.mjs`) · `Sessions.js` per-session `plugins` (`POST /api/session/settings`) and the shared defaults (`/api/session/defaults`; `Sessions.plugins.test.mjs`, doc [`ux/Dictate/doc/settings.md`](/framework/ux/Dictate/doc/settings.md)) ·
 `policy.js` · `claims.js` · `Brief.js` · `tiers.js` ·
 `roles.js` (role → posture) · `Registry.js` (who has ever been spawned, and which host holds it) ·
 `ops.js` (restart, pause, resume) · `Jobs.js` (background work in node) ·

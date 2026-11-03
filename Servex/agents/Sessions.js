@@ -229,6 +229,30 @@ export const USAGE_LIMIT_RE = new RegExp(`^error:.*${USAGE_LIMIT_WORDS.source}`,
 export const AUTH_FAIL_WORDS = /(invalid.?api.?key|not authenticated|unauthorized|\b401\b|oauth.?token|please run.{0,12}\/?login|failed to log.?in|logged out|authentication.?error|invalid.?x-api-key)/i;
 export const AUTH_FAIL_RE = new RegExp(`^error:.*${AUTH_FAIL_WORDS.source}`, "i");
 
+/* A session's plugin settings, {Name: {enabled?: boolean, config?: {key: number|string|boolean}}}: checked at the door, since it is stored as given. */
+export function checked_plugins(value){
+	const bad = why => Object.assign(new Error(`plugins ${why}`), { status: 400 });
+	if (!value || typeof value !== "object" || Array.isArray(value)) throw bad("must be an object of {Name: {enabled?, config?}}");
+	if (Object.keys(value).length > 64) throw bad("has too many entries");
+	const out = {};
+	for (const [name, o] of Object.entries(value)){
+		if (!/^[A-Za-z][\w-]{0,63}$/.test(name)) throw bad(`name "${name}" is not a plugin name`);
+		if (!o || typeof o !== "object" || Array.isArray(o)) throw bad(`${name} must be {enabled?, config?}`);
+		const entry = {};
+		if (o.enabled !== undefined){ if (typeof o.enabled !== "boolean") throw bad(`${name}.enabled must be true or false`); entry.enabled = o.enabled; }
+		if (o.config !== undefined){
+			if (!o.config || typeof o.config !== "object" || Array.isArray(o.config)) throw bad(`${name}.config must be an object`);
+			entry.config = {};
+			for (const [k, v] of Object.entries(o.config)){
+				if (!/^[A-Za-z_]\w{0,63}$/.test(k) || !["number", "string", "boolean"].includes(typeof v) || String(v).length > 500) throw bad(`${name}.config.${k} must be a short number, string or boolean`);
+				entry.config[k] = v;
+			}
+		}
+		out[name] = entry;
+	}
+	return out;
+}
+
 export default class Sessions {
 
 	constructor(...args){ this.assign(this.defaults(), ...args); }
@@ -354,8 +378,9 @@ export default class Sessions {
 
 	/* The knobs of one session (dictation widget settings panel): POST /api/session/settings {session, gap_ms?, every?, tail?, assistant?};
 	 * null drops a knob back to the default; `tail: true` makes the smart seat follow its own session.jsonl (`tail_log`). Returns the knobs now in force. */
-	settings({ session, gap_ms, every, tail, assistant } = {}){
+	settings({ session, gap_ms, every, tail, assistant, plugins } = {}){
 		const s = this.get(session);
+		const next_plugins = plugins === undefined || plugins === null ? plugins : checked_plugins(plugins);   // checked first, written last (below)
 		if (assistant !== undefined){
 			if (assistant !== null && !ASSISTANTS.includes(assistant)) throw Object.assign(new Error(`assistant must be ${ASSISTANTS.join(", ")} or null`), { status: 400 });
 			const before = this.assistant_of(s);
@@ -368,8 +393,23 @@ export default class Sessions {
 		if (every !== undefined) patch.every = every;
 		const next = this.waker.checked(s.id, patch);
 		Object.keys(next).length ? s.wake = next : delete s.wake;
+		if (next_plugins === null) delete s.plugins; else if (next_plugins !== undefined) s.plugins = next_plugins;
 		this.save();
-		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), ...(s.assistant ? { assistant: s.assistant } : {}) };
+		return { ok: true, ...this.waker.knobs(s.id), ...(s.tail ? { tail: true } : {}), ...(s.assistant ? { assistant: s.assistant } : {}), ...(s.plugins ? { plugins: s.plugins } : {}) };
+	}
+
+	/* "Make default" (Chat settings panel): the plugin settings a NEW voice session starts from, shared by every browser. Kept in its
+	 * own file beside sessions.json (the map there is keyed by session id). POST /api/session/defaults {plugins} sets it (null clears);
+	 * GET /api/session/defaults reads it. Same shape as a session's own `plugins`: {Name: {enabled?, config?}}. */
+	plugin_defaults({ plugins } = {}){
+		this.defaults_file ??= path.join(path.dirname(this.file ?? place("sessions.json")), "session-defaults.json");
+		if (plugins !== undefined){
+			const next = plugins === null ? {} : checked_plugins(plugins);
+			fs.mkdirSync(path.dirname(this.defaults_file), { recursive: true });
+			fs.writeFileSync(this.defaults_file, JSON.stringify({ plugins: next }, null, 2));
+			return { ok: true, plugins: next };
+		}
+		try { return { ok: true, plugins: JSON.parse(fs.readFileSync(this.defaults_file, "utf8")).plugins ?? {} }; } catch { return { ok: true, plugins: {} }; }
 	}
 
 	install(){
@@ -1691,7 +1731,7 @@ export default class Sessions {
 		 * localhost calls Servex directly, so there the body carries its own `location.host`. */
 		const host_of = (req, b) => req.headers["x-forwarded-host"] ?? b.host ?? req.headers.host ?? null;
 		router.get("/api/session/:id/stream", (req, res) => this.open_stream(req, res));
-		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"], ["pause", "pause"], ["select", "select"], ["settings", "settings"]]){
+		for (const [verb, fn] of [["new", "create"], ["say", "say"], ["nav", "nav"], ["resume", "resume"], ["floor", "floor"], ["quiet", "quiet"], ["react", "react"], ["pause", "pause"], ["select", "select"], ["settings", "settings"], ["defaults", "plugin_defaults"]]){
 			router.options(`/api/session/${verb}`, cors, (req, res) => res.status(204).end());
 			router.post(`/api/session/${verb}`, cors, async (req, res) => {
 				try { const b = await body(req); res.json(this[fn](verb === "new" ? { ...b, host: host_of(req, b) } : verb === "react" ? { ...b, from: { kind: "owner" } } : b)); }
@@ -1714,6 +1754,7 @@ export default class Sessions {
 			}
 			catch (e){ res.status(e.status ?? 500).json({ ok: false, error: String(e.message || e) }); }
 		});
+		router.get("/api/session/defaults", cors, (req, res) => res.json(this.plugin_defaults()));   // before /:id, which would take "defaults" for a session
 		router.get("/api/session/:id", cors, (req, res) => {
 			const s = this.map[req.params.id];
 			s ? res.json({ ok: true, ...s }) : res.status(404).json({ ok: false, error: "no such session" });
