@@ -12,4 +12,12 @@
 	.chatlist-msg.is-note .chatlist-who { color: inherit; }
 	.chatlist-text > :first-child { margin-top: 0; }
 	.chatlist-text > :last-child { margin-bottom: 0; }
+
+	/* A card's icon and title (ask3-cards-by-id), on one row — not each its own line in the message's column flow. */
+	.chatlist-head { display: flex; align-items: baseline; gap: .4rem; }
+	.chatlist-icon { font-size: 1.1em; align-self: center; flex: none; }
+
+	/* A card's content (ask3-cards-by-id): whatever was appended or ref'd under it, one indented line each. */
+	.chatlist-content { display: flex; flex-direction: column; gap: .2rem; margin-top: .2rem; }
+	.chatlist-content-line { font-size: .9em; padding-left: .6rem; border-left: 2px solid color-mix(in srgb, currentColor 14%, transparent); }
 }

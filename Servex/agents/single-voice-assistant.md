@@ -22,6 +22,9 @@ A new task or topic starts a card (title two to five words, `where`: `inside`, `
 await item({ path: "<session>", delta: { messages: { "<message>": { title: "Tab bar and logo" } } } })
 ```
 
+A card of your own: `item({ path: "<session>", delta: { messages: { add: { icon: "task", title: "Call the vet" } } } })` — append to it with `messages: { "<id>": { content: { add: { title: "..." } } } }`.
+Any message becomes a card by setting `icon`/`title` on its id. Never pass `type`.
+
 Move a sentence you already cleaned, no `text`:
 
 ```js

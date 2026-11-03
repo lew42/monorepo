@@ -1,5 +1,7 @@
-// placement.js — the two pieces of ChatV3 that are plain data logic, no View, no DOM (chunks.js's pattern): which Prompt a Reply
-// answers, and where a Prompt's words break into paragraphs. ChatV3.js imports these; placement.test.mjs runs them in plain node.
+// placement.js — the pieces of ChatV3 that are plain data logic, no View, no DOM (chunks.js's pattern): which Prompt a Reply
+// answers, where a Prompt's words break into paragraphs, and what a message draws as a card. ChatV3.js and ChatList.js import
+// these; placement.test.mjs runs them in plain node. Servex's own item tool (`page_tools.js`) imports `note_view` too, to
+// answer a card's read-back the same way the views draw it — keep this file node-safe (no DOM, no browser-only API).
 import Prompt from "../../../core/Session/Chat/Prompt.js";
 
 export const PARAGRAPH_GAP_MS = 4000;   // a pause this long between two sentences' `at` starts a new paragraph (views-on-messages.md)
@@ -33,4 +35,15 @@ export function paragraph_groups(sentence_items, gap_ms = PARAGRAPH_GAP_MS){
  *  `clean` prefers the fast seat's cleaned text per sentence id (Prompt.clean), else the sentence's own raw words. */
 export function paragraphs(sentence_items, clean = {}, gap_ms = PARAGRAPH_GAP_MS){
 	return paragraph_groups(sentence_items, gap_ms).map(group => group.map(s => clean[s.id] ?? s.text).join(" "));
+}
+
+/** What a plain Message (`note()`'s root, or an upgraded Reply) draws: a member with neither `title` nor `icon` set draws its
+ *  text and nothing else; a card (icon/title set, by a fresh add or an upgrade) draws its title and icon; `content` (a List
+ *  of plain Items, or Refs — "a ref to an existing item") draws one line each, the Ref's own `label()` when it has no title
+ *  or text of its own. Guarded with `??`/`? :`, never `||`, so a member missing a field answers "" or `null`, never the
+ *  stringified word "undefined". DOM-free so it is testable without a browser. */
+export function note_view(m){
+	const title = m?.title ? String(m.title) : null, icon = m?.icon ? String(m.icon) : null;
+	const content = [...(m?.content ?? [])].map(c => c?.get_one?.("title") ?? c?.get_one?.("text") ?? c?.label?.() ?? null).filter(Boolean).map(String);
+	return { title, icon, text: String(m?.text ?? ""), content };
 }

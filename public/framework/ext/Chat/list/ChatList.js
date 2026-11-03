@@ -10,7 +10,9 @@ import Message from "/framework/core/Session/Chat/Message.js";
 import Prompt from "/framework/core/Session/Chat/Prompt.js";
 import Reply from "/framework/core/Session/Chat/Reply.js";
 import Ref from "/framework/core/Item/Ref.js";
+import List from "/framework/core/List/List.js";
 import { DefaultView } from "/framework/ux/Content/Object/DefaultView.js";
+import { note_view } from "../v3/placement.js";
 import { md_into } from "../md.js";
 View.stylesheet(import.meta, "ChatList.css");
 
@@ -22,10 +24,26 @@ export default class ChatList extends JSONL {
 
 	// { url: the session.jsonl url, $box: the View to draw into }
 	read(entries){
-		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { if (from instanceof Message) this.dirty.add(from); }); }
+		if (!this.listening){ this.listening = true; this.session.on("delta", (line, from) => { const m = this.owning_message(line, from); if (m) this.dirty.add(m); }); }
 		for (const line of entries) if (line && typeof line === "object" && (line.messages || line.sentences || line.session || line.tasks)) this.session.replay_line(line);
 		this.paint();
 		return this;
+	}
+
+	// A list's own "add" bubbles with `from` = the LIST itself (List.announce), so the actual member is resolved from the
+	// line's `add` payload (same shape ChatV3.added_member reads).
+	added_member(line, from){
+		if (!(from instanceof List)) return from;
+		const added = line?.add, one = Array.isArray(added) ? added.at(-1) : added;
+		const id = one && typeof one === "object" ? one.id : one;
+		return id != null ? this.session.find(id) : null;
+	}
+	// The card a changed node belongs to, for a live redraw: a field set lands directly on the Message, but a `content`
+	// member's `.parent` IS the Message that owns it (List.js: `child.parent = this.owner`) — the same walk ChatV3.card_for() does.
+	owning_message(line, from){
+		let n = this.added_member(line, from);
+		while (n && !(n instanceof Message)) n = n.parent;
+		return n ?? null;
 	}
 	live(){ super.live(() => {}); return this; }
 	reset(){ this.session = new Session(); this.els.clear(); this.dirty.clear(); this.listening = false; this.$box?.el.replaceChildren(); return super.reset?.() ?? this; }
@@ -54,6 +72,8 @@ export default class ChatList extends JSONL {
 		return el;
 	}
 
+	// `note_view` (../v3/placement.js, DOM-free, shared with Chat v3 — Law 6) decides the icon/title/content any message draws,
+	// including a Ref's own label: one place, so this view and v3 never drift.
 	fill(el, m){
 		const kind = m instanceof Prompt ? "prompt" : m instanceof Reply ? "reply" : "note";
 		el.className = `chatlist-msg is-${kind}`;
@@ -61,9 +81,21 @@ export default class ChatList extends JSONL {
 		el.replaceChildren();
 		const who = document.createElement("div"); who.className = "chatlist-who";
 		who.textContent = kind === "prompt" ? "You" : kind === "reply" ? `${m.by} assistant${m.level ? " · " + (this.constructor.LEVELS[m.level] ?? m.level) : ""}` : m.by ?? "note";
+		el.append(who);
+		const { title, icon, content } = note_view(m);
+		if (icon || title){
+			const head = document.createElement("div"); head.className = "chatlist-head";
+			if (icon) { const i = document.createElement("span"); i.className = "material-icons icon chatlist-icon"; i.textContent = icon; head.append(i); }
+			if (title) { const t = document.createElement("strong"); t.textContent = title; head.append(t); }
+			el.append(head);
+		}
 		const text = document.createElement("div"); text.className = "chatlist-text md";
-		if (kind === "prompt" && m.title) { const t = document.createElement("strong"); t.textContent = m.title; el.append(who, t); } else el.append(who);
 		md_into(text, kind === "prompt" ? (m.text || m.cleaned) : m.text);
 		el.append(text);
+		if (content.length){
+			const list = document.createElement("div"); list.className = "chatlist-content";
+			for (const line of content){ const row = document.createElement("div"); row.className = "chatlist-content-line"; row.textContent = line; list.append(row); }
+			el.append(list);
+		}
 	}
 }
