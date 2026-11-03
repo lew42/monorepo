@@ -40,3 +40,9 @@ with the text, the reason (`"short-clip"`, `"low-word-prob"`, `"echo-while-noise
 Nothing ties a specific sentence to the Whisper final it came from (`ComposerMic`'s own send pipeline carries no
 such id) — the gate reads whichever final arrived most recently. Safe in practice, since it only ever changes the
 outcome for a line that is *already* on the stock-phrase blocklist.
+
+A real, deliberate spoken "Thank you." said while Recite is reading, or within 1.5 s after it stops
+(`echo_active()`), is also dropped by design (`should_drop_phantom`'s `echo-while-noise` branch) — the gate can't
+tell it from Whisper hearing Recite's own voice say the same phrase. Accepted: it's the one on-the-blocklist phrase
+where the "heard its own TTS" shape is far more likely than someone thanking Recite mid-reply, and the drop is
+always logged (`ai/whisper/bucket.jsonl`), so a wrongly dropped "thank you" is visible, not lost silently.
