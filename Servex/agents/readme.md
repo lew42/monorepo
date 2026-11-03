@@ -108,6 +108,15 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
 - **The roles, one readme each** (what each does, its model, when to use it; the text Servex gives an agent before its first turn): [`roles/readme.md`](./roles/readme.md).
 - Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
 - Landing nag, next-step wake, compaction policy: [`doc/lifecycle.md`](./doc/lifecycle.md).
+- **The single seat's only reply (ask2a-say-tools, 2026-11-03):** plain text from the single seat is never a reply any more — `heard()`
+  always writes it as a muted `skip` line instead (`Sessions.js:1685`-`1693`). Three tools, reachable by any agent but functional only
+  for the single seat (the handler refuses any other caller): `say({text, re?})` queues a reply (`tools.js:215`, `Sessions.js:784`
+  `queue_say`), `nothing()` ends the turn writing nothing at all (`tools.js:228`), `retract_say({id})` takes a queued one back
+  (`tools.js:234`, `Sessions.js:793`). A queued say is released by `release_say` (`Sessions.js:823`) once the floor has been "done"
+  for its gate, picked by `say_gate_ms` (`Sessions.js:802`; 1500ms default, 600ms after a question, 3000ms after 5+ owner sentences
+  since the last release — `SERVEX_SESSION_SAY_GATE_MS` / `_QUESTION_MS` / `_LONG_MS`), newest queued say first; a floor of "speaking"
+  cancels the pending release (`set_floor`, `Sessions.js:1315`-`1318`), and a say past 10 deep or 10 minutes old is dropped as stale.
+  Tests: [`say-tools.test.mjs`](./say-tools.test.mjs).
 
 ## Files
 
