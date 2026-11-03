@@ -67,14 +67,6 @@
 	.audio-recite-wrap.is-heard .audio-recite-label { color: var(--ink); }
 	.audio-recite-wrap.is-error .audio-recite-label { color: var(--error); }
 
-	.audio-recite-voice {
-		flex: none;
-		max-inline-size: 6.5em;
-		font: inherit;
-		color: inherit;
-		background: transparent;
-		border: 0;
-	}
 	.audio-recite-threshold {
 		flex: none;
 		inline-size: 4em;

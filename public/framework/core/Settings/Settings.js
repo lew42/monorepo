@@ -109,7 +109,7 @@ export class Settings extends Events(Object) {
 			const value = this.get(f.key);
 			const set = v => this.set(f.key, v);
 			return label.c("flex v-center gap", () => {
-				span(f.label ?? f.key).style("flex", "0 1 6em");
+				div.c("flex v", () => { span(f.label ?? f.key); if (f.path) span.c("muted", f.path).style("fontSize", "0.7em"); }).style("flex", "0 1 7em");
 				if (f.type === "toggle") {
 					const box = input().attr("type", "checkbox");
 					box.el.checked = !!value;
@@ -140,7 +140,7 @@ export class Settings extends Events(Object) {
 					box.el.addEventListener("change", e => set(e.target.value));
 				}
 				if (f.help && f.type !== "select") span.c("muted", f.help).style("flex", "1 1 100%");
-			}).style("minHeight", "2.25em");
+			}).style("minHeight", "2.25em").style("flexWrap", "wrap");
 		};
 		return div.c("flex v gap", () => {
 			if (this.level) span.c("b", "Editing: " + this.level);

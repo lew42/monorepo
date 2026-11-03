@@ -320,8 +320,7 @@ export class ComposerMic extends Dictate {
 			["send_delay", "send delay (s): keep talking within it and the words join one prompt", "seconds"],
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
-			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
-			["send_on_period", "send on a sentence end (. ! …)", "boolean"], ["send_on_question", "send on question mark (?)", "boolean"], ["send_on_comma", "send on comma (,) too — fragments sentences", "boolean"],
+			["break_pause_ms", "paragraph pause (ms)", "number"],
 		];
 		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -771,7 +770,8 @@ export class ComposerMic extends Dictate {
 	// and off by default (every comma cutting a send fragments a sentence into pieces). A run-on with
 	// none of the checked marks at its end stays chunked together with what follows.
 	cut_re(){
-		const stops = (SETTINGS.send_on_period ? ".!…" : "") + (SETTINGS.send_on_question ? "?" : "") + (SETTINGS.send_on_comma ? "," : "");
+		const on = key => this[key] ?? SETTINGS[key];   // a mic may set its own (ux/Dictate/VoiceChat/plugins/SendAfter.js)
+		const stops = (on("send_on_period") ? ".!…" : "") + (on("send_on_question") ? "?" : "") + (on("send_on_comma") ? "," : "");
 		return new RegExp(`[^${stops || ".!?…"}]*[${stops || ".!?…"}]+["')\\]]*(?=\\s|$)`, "g");   // nothing checked: fall back to the full set, never silently stop sending
 	}
 

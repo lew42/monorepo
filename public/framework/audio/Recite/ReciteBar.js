@@ -1,10 +1,9 @@
-import { View, div, span, button, select, option, input, icon } from "../../core/View/View.js";
-import Voice from "../Voice/Voice.js";
+import { View, div, span, button, input, icon } from "../../core/View/View.js";
 
 /**
  * class ReciteBar extends View — `Recite.Bar`, the one small control line:
  * read new replies by themselves (on/off), play/pause, back 10 s, restart, the progress line (or the last barge-in
- * note), the voice, and the barge-in mic with its threshold. Under it, while reading, the karaoke line: the sentence
+ * note), and the barge-in mic with its threshold. Under it, while reading, the karaoke line: the sentence
  * being read with its current word lit (`draw_now`).
  *
  *   new Recite.Bar({ recite });   // or recite.bar
@@ -34,9 +33,6 @@ export default class ReciteBar extends View {
 			this.$fill = div.c("audio-recite-fill");
 			this.$label = span.c("audio-recite-label", "");
 		});
-		this.$voice = select.c("audio-recite-voice").attr("title", "Voice").on("change", e => r.pick(e.target.value));
-		this.$voice.append(() => Voice.PERSONAS.forEach(p => option(p.name).attr("value", p.name)));
-		this.$voice.el.value = r.voice.name;
 		this.$mic = button.c("audio-recite-btn", () => { this.$mic_icon = icon("hearing"); }).attr("title", "Pause when I talk (barge-in) — off: manual playback only").click(() => r.barge.set_on(!r.barge.on));
 		this.$mode = button.c("audio-recite-btn", () => { this.$mode_icon = icon("graphic_eq"); }).click(() => r.barge.set_mode(r.barge.mode === "words" ? "volume" : "words"));
 		this.$threshold = input.c("audio-recite-threshold").attr("type", "range").attr("min", "0.05").attr("max", "0.95").attr("step", "0.05")

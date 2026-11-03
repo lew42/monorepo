@@ -1,4 +1,5 @@
 import { VoiceChat } from "../VoiceChat.js";
+import DEFAULTS from "../../../../audio/Recite/barge-defaults.js";
 
 // Stop reading aloud when you start talking (audio/Recite's BargeIn does the work; this sets it for one chat).
 // The values go straight onto the object, never through BargeIn.remember(): they belong to the chat, not the browser.
@@ -6,11 +7,14 @@ export default class Interrupt {
 	static label = "Interrupt";
 	static group = "recite";   // read-aloud: session.settings.recite
 	static description = "Stop reading aloud when you start talking.";
-	static defaults = { on: true, mode: "volume", threshold: 0.35, quiet_ms: 2500 };
+	static defaults = { ...DEFAULTS };   // on, mode, threshold, quiet_ms: BargeIn's own
 	static fields = [
-		{ key: "mode", kind: "choice", options: ["volume", "words"], label: "Detect you by", hint: "Loudness, or only real words" },
-		{ key: "threshold", kind: "slider", min: 0.05, max: 1, step: 0.05, label: "How loud counts as you" },
-		{ key: "quiet_ms", kind: "number", min: 500, max: 10000, step: 100, label: "Quiet before reading resumes (ms)" },
+		{ key: "mode", type: "select", label: "Detect you by", options: [
+			{ value: "volume", label: "loudness", help: "Any loud enough sound counts as you, then Whisper checks it." },
+			{ value: "words", label: "real words", help: "Only real words from Whisper count; a cough or a bang does not." },
+		] },
+		{ key: "threshold", type: "slider", min: 0.05, max: 1, step: 0.05, label: "How loud counts as you", low: "any small sound counts as you", high: "only loud talking counts as you" },
+		{ key: "quiet_ms", type: "number", min: 500, max: 10000, step: 100, label: "Quiet before reading resumes (ms)", help: "Lower: reading picks up again sooner. Higher: it waits longer after you stop." },
 	];
 
 	static attach(vc){
