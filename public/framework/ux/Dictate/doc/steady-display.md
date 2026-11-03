@@ -16,6 +16,27 @@
 3. **Patch, don't rebuild.** V3 `update()` changes only the node that changed (the paragraph text, the reply) instead of emptying the card; it keeps the partial reply, the "show raw" state and the scroll. Redraws are coalesced to one per frame. Medium.
 4. **Optional, fewer model turns:** the assistant files the cleanups for several sentences in one turn at the pause cue instead of one turn per sentence. Cheaper and calmer, but the first clean text shows later. Try after 1 to 3 and compare.
 
+## Two sources of jumping, held separately (asked 2026-11-03: "very jumpy paragraph to paragraph")
+
+The sections above are all the second source. The first is on the page and has nothing to do with the assistant.
+
+**Source 1: Whisper's own reflow (page side, `ext/Chat/Mic.js`).** Whisper re-hears the growing segment every `guess_ms` (900 ms) and each answer can differ from the last: a word changes, punctuation appears or goes. Three things move on screen because of it:
+
+- **Words and punctuation inside the guess** change. Held already in place ([flicker.md](flicker.md)), and the box never shrinks (:228).
+- **A paragraph break appears or vanishes.** `build_tail` (:185-191) decides "\n\n" or " " fresh on every draw from `can_break(prev, gap)` (:114): the text before ends in `.?!` AND the pause was at least `break_pause_ms`. When Whisper adds or drops a full stop in the guess, the same sentence flips between one paragraph and two, and everything below it moves.
+- **A sentence is sent early, then the final disagrees.** `early_from_guess` (:673) sends a sentence once the guess shows it ended and more words follow; the segment's final then loses those sentences by word (`drop_early`, :700). The early wording is kept even if the final heard it differently ("no in-place correction exists server-side", :671), and the draft is re-cut (`partial_text = rest`, :694), so words leave the draft and reappear as the sent line.
+
+**Source 2: the assistant's placement moves (Servex side).** After a sentence is sent, the assistant files `place` lines 2-10 s later: `improve` rewrites the words, and `paragraph` or `card` (with `where`, a title) moves the sentence away from where you saw it land. V1 moves it (`Widget.place`); Chat V3 draws only the cleaned text and the card title today ([single-voice-assistant.md](single-voice-assistant.md)), but a `card` still renames and a rebuild still jumps. Nothing you did caused it, and it lands while you may be reading.
+
+**What to hold or smooth, by source:**
+
+| | Hold | Smooth |
+|---|---|---|
+| **Whisper reflow** | The paragraph break: decide it once per sentence, when the sentence is final or sent, never from the moving guess. Inside the open guess, treat the break as "same paragraph" until the segment's final arrives. Same for the sent line: keep its words fixed, and show it in the spot it left from. | Fade the changed word instead of replacing the node, and keep the box height floor (already there). A guess that comes back shorter is ignored unless its final says so. |
+| **Assistant placement** | Everything: a `paragraph` or `card` move, a title, and an `improve` that changes words, applied together at your pause (the floor is no longer "speaking"), in one redraw. The raw sentence stays where it landed until then. Drop an `improve` that changes nothing (step 1 below). | Animate the one move that does happen (the sentence slides to its place, 150 ms) instead of vanishing and reappearing; keep your scroll position and the open "show raw" through it (fix 3). |
+
+**Order of value for "paragraph to paragraph":** (1) paragraph breaks decided once, from final or sent text only (page side, small, `Mic.js` `build_tail`, test in `flicker.mjs` with a guess that toggles a full stop); (2) the assistant's moves held until your pause, then applied together; (3) the slide. The batching setting below (N sentences, pause, cap) also reduces source 2, since the assistant files its moves once per batch instead of after each sentence. Not built: this is the proposal.
+
 ## Batching sentences to the assistant (asked 2026-11-03)
 
 Today the single assistant gets one model turn per sentence (`single_say`, no hold), then a second turn for the pause cue. Recommended: keep the raw sentence reaching the session at once (the raw log stays instant), but hand the assistant the held sentences once per pause (the quiet already used for `hold_thought`/`release_thought`, ~2.5 s, or a cap of about 5 sentences or 20 s so a long monologue is not held forever), with the cue in the same turn. One of everything: reuse the fast seat's thought hold, not a new timer.
@@ -32,4 +53,4 @@ Today the single assistant gets one model turn per sentence (`single_say`, no ho
 
 ## Not covered
 
-The Whisper growing guess itself (the faint draft changes as Whisper revises it): already held in place by [flicker.md](flicker.md); only the clean-up path is addressed here.
+The growing guess's words themselves (the faint draft changes as Whisper revises it) are already held in place by [flicker.md](flicker.md); what is new here is the paragraph break and the early-sent line, in the section "Two sources of jumping".
