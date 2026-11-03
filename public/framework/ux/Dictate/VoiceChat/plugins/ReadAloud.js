@@ -7,7 +7,7 @@ export default class ReadAloud {
 	static group = "recite";   // read-aloud: session.settings.recite
 	static description = "Read new replies aloud by themselves, in the voice you pick.";
 	static defaults = { on: true, voice: PERSONAS[0].name };
-	// `options` is filled by the panel (ChatSettings) from PERSONAS, so the field itself stays a plain description.
+	// The options are the persona names (audio/Voice/personas.js, plain data, so this file stays loadable in node).
 	static fields = [{ key: "voice", type: "select", label: "Voice", options: PERSONAS.map(p => p.name) }];
 
 	static attach(vc){

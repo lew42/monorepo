@@ -115,11 +115,18 @@ export class Settings extends Events(Object) {
 					box.el.checked = !!value;
 					box.el.addEventListener("change", e => set(e.target.checked));
 				} else if (f.type === "slider") {
-					if (f.low != null) span.c("muted", f.low);
-					const range = input().style("flex", "1 1 6em").style("minWidth", "6em").attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
-					const val = span.c("muted", String(value));
-					range.el.addEventListener("input", e => { set(+e.target.value); val.el.textContent = e.target.value; });
-					if (f.high != null) span.c("muted", f.high);
+					// the slider with its two end texts UNDER its two ends (low at the left end, high at the right end), so each says what that end does
+					div.c("flex v", () => {
+						div.c("flex v-center gap", () => {
+							const range = input().style("flex", "1 1 6em").style("minWidth", "6em").attr("type", "range").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
+							const val = span.c("muted", String(value));
+							range.el.addEventListener("input", e => { set(+e.target.value); val.el.textContent = e.target.value; });
+						});
+						div.c("flex gap", () => {
+							span.c("muted", f.low ?? "").style("flex", "1 1 0").style("fontSize", "0.8em");
+							span.c("muted", f.high ?? "").style("flex", "1 1 0").style("fontSize", "0.8em").style("textAlign", "right");
+						});
+					}).style("flex", "1 1 10em");
 				} else if (f.type === "number") {
 					const box = input().attr("type", "number").attr("min", f.min).attr("max", f.max).attr("step", f.step ?? 1).attr("value", value);
 					box.el.addEventListener("change", e => set(+e.target.value || 0));

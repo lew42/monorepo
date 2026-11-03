@@ -14,7 +14,7 @@ export default class SendAfter {
 	static group = "dictate";   // Dictate: session.settings.dictate
 	static description = "How much you say before it goes to the assistants.";
 	static defaults = { on: true, after: "sentence" };
-	static fields = [{ key: "after", type: "select", label: "Send", options: [
+	static fields = [{ key: "after", type: "select", label: "Send after", options: [
 		{ value: "sentence", label: "each sentence", help: "One message per finished sentence (it ends with . ! … or ?)." },
 		{ value: "two", label: "every two sentences", help: "One message for every two finished sentences." },
 		{ value: "pause", label: "when you pause", help: "Nothing goes until you stop talking for the send delay, then everything goes as one message." },

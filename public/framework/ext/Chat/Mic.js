@@ -333,6 +333,8 @@ export class ComposerMic extends Dictate {
 		more.append(summary, grid);
 		for (const [key, label, kind, into] of [...rows.map(r => [...r, panel]), ...expert.map(r => [...r, grid])]){
 			const name = document.createElement("label"); name.textContent = label;
+			const path = document.createElement("small"); path.textContent = "SETTINGS." + key; path.style.cssText = "display: block; font-size: 0.7em; opacity: 0.6";
+			name.append(path);
 			const input = Array.isArray(kind) ? document.createElement("select") : document.createElement("input");
 			if (Array.isArray(kind)) for (const o of kind) input.add(new Option(o, o));
 			else if (kind === "boolean") input.type = "checkbox";
@@ -633,7 +635,7 @@ export class ComposerMic extends Dictate {
 	}
 
 	// Finished sentences go out now; the unfinished tail stays held. Sends the joined RAW text as `raw`. see doc/mic-notes.md#send_sentences
-	async send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
+	async send_sentences(n = Math.max(1, (this.sentences_per_send ?? SETTINGS.sentences_per_send) | 0)){
 		if (this.sending_sentences){ this.send_again = n; return; }   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once; words that arrive meanwhile get one more pass after
 		this.sending_sentences = true;
 		try {

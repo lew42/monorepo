@@ -6,23 +6,26 @@ import { div, span, button } from "../../core/View/View.js";
 import { VoiceChat } from "./VoiceChat/VoiceChat.js";
 
 export const SECTIONS = [
-	{ title: "Sending to the LLM", plugins: ["SendAfter"] },
+	{ title: "Sending to the LLM", plugins: ["SendAfter"], toggle: false },
 	{ title: "Recite: read aloud", plugins: ["ReadAloud", "ThinkingCue"] },
 	{ title: "Interruption", plugins: ["Interrupt"] },
 ];
 
 // One plugin's fields as a core/Settings whose values are the plugin row's own (no copy): get and set go through the row.
 export class PluginSettings extends Settings {
-	constructor(row){
+	// toggle:false leaves the plugin's own on/off out (a plugin whose one field says it all, like SendAfter); before_set() runs before every write.
+	constructor(row, { toggle = true, before_set } = {}){
 		const P = row.plugin;
 		super({ save: "manual", fields: [
-			{ key: "on", type: "toggle", label: P.label, help: P.description, path: `${P.name}.enabled` },
+			...(toggle ? [{ key: "on", type: "toggle", label: P.label, help: P.description, path: `${P.name}.enabled` }] : []),
 			...(P.fields ?? []).map(f => ({ ...f, path: `${P.name}.${f.key}` })),
 		] });
 		this.row = row;
+		this.before_set = before_set;
 	}
 	get(key){ return key === "on" ? !!this.row.get("enabled") : this.row.get("config")?.[key]; }
 	set(key, value){
+		this.before_set?.();
 		if (key === "on") this.row.set({ enabled: !!value });
 		else this.row.set({ config: { [key]: value } });
 		this.emit("change", key, value);
@@ -65,7 +68,7 @@ export default class ChatSettings {
 				for (const name of sec.plugins) {
 					const row = this.vc.plugins.find(name);
 					if (!row) continue;
-					const ps = new PluginSettings(row);
+					const ps = new PluginSettings(row, { toggle: sec.toggle !== false, before_set: () => owner.mark_own() });
 					ps.on("change", () => owner.changed());
 					ps.render();
 				}
@@ -77,9 +80,14 @@ export default class ChatSettings {
 	heading(text){ div.c("b", text).style("marginBlockStart", "0.6em").style("borderBlockEnd", "1px solid currentColor").style("paddingBlockEnd", "0.15em"); }
 
 	// A panel change with no session is a change to the defaults themselves, so it is saved as such.
-	changed(){
+	// The row's "change" fires inside row.set, before the panel's own event: so the guard goes up first (before_set), and a panel write never redraws the panel.
+	mark_own(){
 		this.own = true;
 		queueMicrotask(() => { this.own = false; });
+	}
+
+	changed(){
+		this.mark_own();
 		if (this.session()) return;
 		clearTimeout(this.timer);
 		this.timer = setTimeout(() => this.make_default(true), 400);
@@ -110,7 +118,12 @@ export default class ChatSettings {
 
 	reset(){
 		clearTimeout(this.timer);
-		this.vc.reset_plugins();
+		// The row events of a reset would each save a half-reset snapshot (chat.js's debounced save), so they are held off (vc._loading) and the one
+		// explicit save_session(null) below clears both groups.
+		const was = this.vc._loading;
+		this.vc._loading = true;
+		try { this.vc.reset_plugins(); } finally { this.vc._loading = was; }
+		clearTimeout(this.vc._save_timer);
 		this.save_session?.(null);
 		this.say("This session is back to the defaults.");
 	}

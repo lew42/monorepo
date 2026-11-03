@@ -18,7 +18,7 @@ One `VoiceChat` per Recite (the page has one reader, so the first chat makes it 
 | Plugin | Config | Does |
 |---|---|---|
 | `SendAfter` | `after` (`sentence`, `two`, `pause`, `clause`) | Writes the mic INSTANCE (`sentences_per_send`, `send_mode`, `send_on_period/question/comma`); `detach` puts back what it found. Group: `dictate`. |
-| `ReadAloud` | `voice` (on = auto-read) | Calls `recite.set_voice` and `set_auto`; `bind` makes the bar's 🗣 button write this chat's row; `snapshot(recite)` reads the browser's remembered voice and auto. The voice list is `audio/Voice/personas.js`. Group: `recite`. |
+| `ReadAloud` | `voice` (on = auto-read) | Calls `recite.pick` (the voice) and `set_auto`; `bind` makes the bar's 🗣 button write this chat's row; `snapshot(recite)` reads the browser's remembered voice and auto. The voice list is `audio/Voice/personas.js`. Group: `recite`. |
 | `Interrupt` | `mode`, `threshold`, `quiet_ms` | Sets `recite.barge`; `reconfigure` only rewrites the values, so the mic stays open while the threshold slider moves. `bind` makes the bar's mic, mode and threshold controls also write the row of the chat that owns the bar (wrapped once per bar), dropping the override when the control is moved back to the current class value; `snapshot(recite)` reads the browser's remembered values as overrides. Group: `recite`. |
 | `ThinkingCue` | `repeat_ms` | Sets `recite.thinking_cue` and `cue_repeat_ms`; off also clears the pending repeat (not `cue_pending`). Group: `recite`. |
 
