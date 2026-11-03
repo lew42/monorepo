@@ -22,3 +22,5 @@
 {"file":"failures.jsonl","gone":true}
 {"file":"ai/"}
 {"file":"failures.jsonl"}
+{"file":"report.test.mjs"}
+{"file":"failures.jsonl","gone":true}
