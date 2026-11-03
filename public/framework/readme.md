@@ -28,6 +28,7 @@
 ## The systems (one line each; each links its own readme)
 - [core/Task](./core/Task/) — `class Task extends Item`: one task's state machine, plus the task pages
 - [core/Plugin](./core/Plugin/) — `Host.use(A, B)`: one plugin system for every pluggable class, with a live on/off and config list, per-instance overrides (`inst.overrides`, `Host.make_default(inst)`); `Server/Events.js` is a subclass of it
+- [core/Settings](./core/Settings/) — a plain settings store between data and UI: level defaults, one instance's own overrides (`s.get`/`s.set`/`s.own`), a `change` event, a save policy, groups, and a row-per-field `render()`
 - [core/Test](./core/Test/) — node tests: `X.test.mjs`, one command runs the ones a change covers, results at `/framework/core/Test/`
 - [core/Page/ext/Inbox](./core/Page/ext/Inbox/) — `class Inbox`: one ranked rail of notes, questions and tasks, read from `page.jsonl` and the AI files
 - [core/Page](./core/Page/) — the page system: a folder with `page.js` and/or `page.jsonl`, written by the page tools
