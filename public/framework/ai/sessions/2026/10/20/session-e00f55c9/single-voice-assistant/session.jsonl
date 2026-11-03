@@ -31,3 +31,7 @@
 {"review":{"at":"2026-11-02T17:17:38-06:00","answer":{"n":11,"reply":"noted: the temp folder is a dot-folder removed in finally; a tmp repo root for run_item is a later cleanup."}}}
 {"review":{"at":"2026-11-02T17:17:38-06:00","answer":{"n":12,"reply":"noted: Whisper final-text correction not wired; the place/improve path can serve it; filed in koynvro4."}}}
 {"review":{"at":"2026-11-02T17:17:38-06:00","answer":{"n":13,"reply":"noted: thanks, dual path unchanged."}}}
+{"commit":"11e29e2aab18","by":"append.mjs","ts":"2026-11-02T23:17:39.569Z"}
+{"complete":{"outcome":"Merged 726960503 (pushed): setting `single` (boot file/env or per session via POST /api/session/settings), role single-voice-assistant (Sonnet, brief 673 words), pause cue, V3 placement. Evidence: Sessions.single.test.mjs 11 checks run every brief example for real and replay into Chat V3; Sessions.test.mjs 29, WakePolicy 19, chat-messages 22, placement 18 pass; review answered 13/13. Servex restart needed to load.","evidence":"node Servex/agents/Sessions.single.test.mjs"},"by":"mastermind-single-voice-build","ts":"2026-11-02T23:20:53.596Z"}
+{"log":{"at":"2026-11-02T17:21:01-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T23:21:01.007Z"}
+{"stop":{"at":"2026-11-02T18:23:15-06:00","why":"dropped: owner mastermind-single-voice-build is stopped"}}
