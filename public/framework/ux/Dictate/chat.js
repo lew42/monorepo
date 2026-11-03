@@ -384,10 +384,11 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		/* This session's own Chat settings (a brand-new session has none yet, so this reads as the defaults — the same as New
 		 * session's reset): core/Session/readme.md, "Session.settings". Any pending save still timed for the PREVIOUS session is
 		 * dropped right here (review fix 2): posting it once this session is already watched would save under the wrong one.
-		 * `_loading` (review fix 1) holds `save_plugins` off while `load_grouped` makes its own, synchronous "change" events. */
+		 * `_loading` (review fix 1) holds the change handler off while `load_grouped` makes its own, synchronous "change" events. */
 		clearTimeout(panel.voice_chat?._save_timer);
-		Session.get(owner.ctl.session).then(rec => {
-			if (!panel.voice_chat) return;
+		const opened = owner.ctl.session;
+		Session.get(opened).then(rec => {
+			if (!panel.voice_chat || owner.ctl.session !== opened) return;   // a quicker switch already moved on: this reply is stale
 			panel.voice_chat._loading = true;
 			try { panel.voice_chat.load_grouped(rec.plugins ?? {}); } finally { panel.voice_chat._loading = false; }
 		}).catch(e => quiet_note("the chat settings were not loaded for this session", e));

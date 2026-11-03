@@ -70,8 +70,9 @@ export async function get(session){
 	return out;
 }
 
-/** The session's knobs (gap_ms, every, tail, assistant), and its Chat settings plugin overrides, `plugins` — same shape
- *  VoiceChat.overrides gives: {Name: {enabled?, config?}}. `plugins: null` resets them (Reset to default). */
+/** The session's knobs (gap_ms, every, tail, assistant), and its Chat settings plugin overrides, `plugins` — the GROUPED shape
+ *  `vc.overrides_by_group()` gives: {dictate: {Name: {enabled?, config?}}, recite: {...}} (a flat object is refused with a 400;
+ *  `get()` returns the flat shape). `plugins: null` resets them (Reset to default). */
 export const settings = ({ session, ...rest }) => post("settings", { session, ...rest });
 
 /** The sessions started on, or passing through, `page`, newest first. */

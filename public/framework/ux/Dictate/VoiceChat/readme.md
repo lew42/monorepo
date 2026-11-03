@@ -24,7 +24,7 @@ Both are read-aloud rules, so both declare `static group = "recite"`; a plugin w
 
 ## Watch out
 
-- Values go straight onto the host object, never through `remember()` (the browser's memory): they belong to the chat. The bar's own controls still save to the browser until the settings are saved with the session ([plan](/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/plan.md)).
+- Values go straight onto the host object, never through `remember()` (the browser's memory): they belong to the chat. The settings are saved with the session (`ux/Dictate/doc/settings.md`): opening a session replaces the browser's remembered barge-in values with the session's own, and a session with none starts from the class defaults. The bar's own controls still also write `remember()` until the Chat settings panel (plan step 5) replaces them.
 - Read `Interrupt.snapshot(recite)` BEFORE `new VoiceChat(...)` and pass it as `overrides`: the first attach writes the class values onto the host.
 - One Recite means one set of read-aloud settings on a page: two chats on a page share one VoiceChat, they do not each get their own.
 - A plugin's `detach` must be safe when it was never attached.
