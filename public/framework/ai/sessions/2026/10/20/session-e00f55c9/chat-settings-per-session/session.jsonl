@@ -186,3 +186,5 @@
 {"log":{"at":"2026-11-03T16:08:00-06:00","heartbeat":"answered","msg":"Idle. Task `chat-settings-per-session` is complete and all six steps are merged (the last was step 6, `1f89f58dc`). Nothing is in flight and I have no timers set."}}
 {"log":{"at":"2026-11-03T16:08:55-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-03T22:08:55.523Z"}
 {"log":{"at":"2026-11-03T16:21:49-06:00","msg":"dropped: minion-settings-build-step5: owner minion-settings-build-step5 is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/minion-settings-build-step5/","reason":"owner-stopped"}}
+{"log":{"at":"2026-11-03T16:26:52-06:00","msg":"dropped: Chat settings step 6: status line beside the mic: owner minion-settings-build-step6 is stopped","dropped":"/framework/ai/sessions/2026/10/20/session-e00f55c9/chat-settings-per-session/minion-settings-build-step6/","reason":"owner-stopped"}}
+{"log":{"at":"2026-11-03T16:27:58-06:00","heartbeat":"skipped","msg":"heartbeat: skipped, landed"}}

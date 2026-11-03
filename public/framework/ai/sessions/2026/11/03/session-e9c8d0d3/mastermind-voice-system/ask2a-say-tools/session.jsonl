@@ -31,3 +31,4 @@
 {"log":{"at":"2026-11-03T15:23:06-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-03T21:23:06.286Z"}
 {"log":{"at":"2026-11-03T15:23:06-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-03T21:23:06.656Z"}
 {"log":{"at":"2026-11-03T15:24:47-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-03T21:24:47.563Z"}
+{"stop":{"at":"2026-11-03T17:16:51-06:00","why":"dropped: owner minion-ask2a-say-tools is dormant and the task is untouched"}}

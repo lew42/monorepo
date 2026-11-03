@@ -1,0 +1,513 @@
+diff --git a/Servex/agents/Sessions.js b/Servex/agents/Sessions.js
+index f52548d32..dde4e6226 100644
+--- a/Servex/agents/Sessions.js
++++ b/Servex/agents/Sessions.js
+@@ -286,6 +286,10 @@ export default class Sessions {
+ 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
+ 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
+ 			single_pause_ms: env("SERVEX_SESSION_SINGLE_PAUSE_MS", 1000), answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
++			/* THINKING SOUND (ask10): how long an open cue (`s.thinking_open`) is honoured before a later, unrelated
++			 * hand-off is allowed to open a fresh one anyway — a bit past Recite's own 60 s give-up (`cue_max_ms`),
++			 * so a cue the phone already stopped playing never silently blocks the next one forever. */
++			thinking_open_ms: env("SERVEX_SESSION_THINKING_OPEN_MS", 70000),
+ 			/* THE SAY GATE (ask2a-say-tools, Servex/agents/single-voice-assistant.md "next step"): how long a queued `say` waits, once the
+ 			 * floor has been "done" this whole time, before it is released as the reply. Three bands, picked in `say_gate_ms()`: a question
+ 			 * gets the owner an answer fastest; a long burst (more than 5 owner sentences since the last release) gets the longest, so the
+@@ -818,6 +822,7 @@ export default class Sessions {
+ 		if (!String(text ?? "").trim()) return { ok: false, why: "say needs text" };
+ 		const id = "say-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+ 		(s.says ??= []).push({ id, text: String(text), re, queued_at: Date.now() });
++		s.turn_said = true;   // a say is queued this turn: a later hand-off call in the same turn plays no thinking cue (thinking-sound, ask10)
+ 		this.schedule_say_release(s);
+ 		return { id };
+ 	}
+@@ -878,6 +883,7 @@ export default class Sessions {
+ 		s.says = rest;
+ 		if (!newest) return;
+ 		const re = newest.re ?? s.smart_re;
++		if (s.thinking_open){ this.write(s, { thinking: { at: now_ms(), by: "smart", done: true } }); s.thinking_open = false; }   // the answer landed: stop the cue (thinking-sound, ask10)
+ 		this.write(s, this.reply_line(s, { role: "smart", agent_id: s.smart, text: newest.text, re }));
+ 		this.reply_closes_prompt(s);
+ 		s.smart_said_re = re ?? now_ms();
+@@ -1725,9 +1731,44 @@ export default class Sessions {
+ 		const who = this.by_agent.get(agent.id), s = who && this.map[who.id];
+ 		if (!s) return;
+ 		if (event.type === "delta" && !event.nested) return who.role === "smart" && this.single_seat(s) ? undefined : this.streaming(s, who.role, agent.id, event.text);   // single: its reply is one short paragraph, shown whole at the turn's end, so filler can be dropped before anyone sees it
+-		if (event.type === "tool" && !event.nested) return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
++		/* THINKING SOUND, closing: the delegate's answer can land as an `agent_msg` — a message FROM another agent
++		 * (`send_to_agent`, a mastermind reporting back), queued onto this seat's turn — well before that turn's own
++		 * `result` fires. Three senders are never the delegate: `"owner"` (every normal sentence, including the
++		 * owner's own next one in tail mode, `Servex/Follow.js`'s `"servex-follow"`), `"host"` (a fresh agent's very
++		 * first prompt), and anything starting `"servex"` (Servex's own spend/compact/landing nudges, `Agents.js`).
++		 * Only an actual other agent's message closes the cue. */
++		if (event.type === "agent_msg"){
++			if (who.role === "smart" && this.single_seat(s) && s.thinking_open && event.from && event.from !== "owner" && event.from !== "host" && !/^servex/i.test(event.from)){
++				s.thinking_open = false;
++				this.write(s, { thinking: { at: now_ms(), by: "smart", done: true } });
++			}
++			return;
++		}
++		if (event.type === "tool" && !event.nested){
++			// THINKING SOUND (ask10): the single seat's first hand-off call in a turn marks itself, so the owner's
++			// phone can beep at once, without waiting on the model to say so. Never twice in one turn, and never
++			// when a `say` was already queued or released in this same turn — the owner is about to hear a spoken
++			// hand-off ("I've asked the mastermind") instead, and a beep on top of that would be a second signal
++			// for the same thing. The answer itself still arrives later, the normal way: the delegate's work wakes
++			// this seat again and it `say`s the real reply (release_say marks `done`), or its own `agent_msg` closes
++			// the cue directly, above. An open cue never blocks a hand-off from a LATER turn (`s.turn_id`, bumped
++			// at every turn's end below): "once per turn" means once per turn, not once until closed. It also
++			// expires after `thinking_open_ms` regardless, in case a turn never properly ends.
++			const open_stale = s.thinking_open && (Date.now() - (s.thinking_open_at ?? 0) > this.thinking_open_ms || s.thinking_turn_id !== (s.turn_id ?? 0));
++			if (who.role === "smart" && this.single_seat(s) && !s.turn_said && is_handoff(event) && (!s.thinking_open || open_stale)){
++				s.thinking_open = true;
++				s.thinking_open_at = Date.now();
++				s.thinking_turn_id = s.turn_id ?? 0;
++				this.write(s, { thinking: { at: now_ms(), by: "smart" } });
++			}
++			return this.streaming(s, who.role, agent.id, null);   // text before a tool call was thinking aloud
++		}
+ 		if (event.type !== "result") return;
+ 		this.streaming(s, who.role, agent.id, null);
++		// THINKING SOUND: every turn's end, interrupted or not, bumps the turn id and clears `turn_said` — the ONE
++		// place this resets, not one hand-kept flag per wake path, and it must run even when the turn was cut short
++		// (`event.stopped`, below), or an interrupted hand-off turn would leave the NEXT turn still "mid-turn".
++		if (who.role === "smart" && this.single_seat(s)){ s.turn_said = false; s.turn_id = (s.turn_id ?? 0) + 1; }
+ 		if (event.stopped) return;
+ 		/* THE SINGLE SEAT FILES SILENTLY (ask2a-say-tools): plain text is NEVER a reply, cue open or not -- only `say` (queued,
+ 		 * released through `release_say`) ever becomes something the owner hears or sees. A turn that ends in plain text
+@@ -1891,6 +1932,14 @@ export const is_filler = text => { const t = String(text ?? "").trim(); return !
+  * thing in its reply, stripped off by `heard()` above before anything else reads the text. */
+ const NEW_PARAGRAPH = /^\(new paragraph\)\s*/i;
+ 
++/* A tool call that hands the turn off to a MASTERMIND — the thinking-sound trigger (ask10, as the brief named it:
++ * "spawn_agent, a message to the mastermind, or an ask_*"): the single seat's first one of these in a turn marks
++ * the session as "working" at once. `spawn_agent` and every `ask_*` always count (they only ever reach into the
++ * repo or another agent for real work); `send_to_agent`'s own `id=` argument is checked, so a message to some
++ * other, unrelated agent does not beep. */
++const HANDOFF_TOOL = /^(?:spawn_agent|ask_mastermind|ask_manager|ask_module|ask_expert|ask_directory)$/;
++const is_handoff = event => HANDOFF_TOOL.test(event.name ?? "") || (event.name === "send_to_agent" && /\bid=\S*mastermind\S*/i.test(event.input ?? ""));
++
+ /* A JSON body: the one express already parsed, else read here (64 kB at most). Layers.js has the same. */
+ function body(req){
+ 	if (req.body && typeof req.body === "object") return Promise.resolve(req.body);
+diff --git a/Servex/agents/Sessions.single.test.mjs b/Servex/agents/Sessions.single.test.mjs
+index 7720a4bfd..83a4d5621 100644
+--- a/Servex/agents/Sessions.single.test.mjs
++++ b/Servex/agents/Sessions.single.test.mjs
+@@ -152,6 +152,154 @@ await check("text is never a reply, cue open or not; an empty turn writes nothin
+ 	assert.ok(!s.map[made.session].cue_open, "the cue still closes at the result");
+ });
+ 
++// ask10: the thinking sound — code marks a hand-off, not the model (public/framework/ux/Dictate/doc/thinking-sound.md).
++await check("a hand-off tool call writes one thinking line; a second hand-off in the same turn writes no more", async () => {
++	sent.length = 0;
++	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the tab bar.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.heard({ type: "tool", name: "spawn_agent" }, agent);
++	assert.equal(thinking().length, 1, "the first hand-off writes the open line");
++	assert.deepEqual({ by: thinking()[0].thinking.by, done: thinking()[0].thinking.done }, { by: "smart", done: undefined });
++	s.heard({ type: "tool", name: "ask_mastermind" }, agent);
++	assert.equal(thinking().length, 1, "a second hand-off in the same turn writes nothing more");
++	s.heard({ type: "tool", name: "read_file" }, agent);
++	assert.equal(thinking().length, 1, "a plain tool call is not a hand-off");
++});
++
++// The real path, driven end to end — no hand-resetting flags: turn 1 says the
++// hand-off and calls it, turn 1 ends empty (nothing()), the delegate's own message lands as a real `agent_msg`
++// event (the actual wake a `send_to_agent` reply produces — Agents.js emits it before the seat's next turn even
++// starts), and that next turn answers with its own `say`, released the normal way.
++await check("a say queued before the hand-off suppresses the thinking line, but the delegated answer still arrives", async () => {
++	sent.length = 0;
++	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind, but tell me first.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	const replies = () => lines(file).filter(l => l.chat?.from?.kind === "assistant");
++	s.queue_say(s.map[made.session], { text: "I've asked the mastermind." });   // spoken hand-off, said first in this turn
++	s.heard({ type: "tool", name: "spawn_agent" }, agent);
++	assert.equal(thinking().length, 0, "no beep: the seat already said it is handing off");
++	s.heard({ type: "result", text: "" }, agent);   // the turn ends with nothing() right after the tool call
++	s.release_say(s.map[made.session]);   // the say gate's own timer, fired here directly
++	assert.equal(replies().length, 1, "the spoken hand-off itself is delivered");
++	assert.equal(replies()[0].chat.text, "I've asked the mastermind.");
++	assert.equal(thinking().length, 0, "there was never anything open to close");
++
++	s.heard({ type: "agent_msg", from: "mastermind-voice-system", text: "The tab bar bug is fixed." }, agent);   // the delegate's real wake, not a flag
++	s.queue_say(s.map[made.session], { text: "The tab bar bug is fixed." });   // the next turn answers it
++	s.heard({ type: "result", text: "" }, agent);
++	s.release_say(s.map[made.session]);
++	assert.equal(replies().length, 2, "the delegated answer is delivered too, not lost");
++	assert.equal(replies()[1].chat.text, "The tab bar bug is fixed.");
++});
++
++// The delegate's OWN message closes an open cue; nothing else does — not the owner's own sentences (including a
++// tail-mode seat's own line arriving as `from: "servex-follow"`), and not any of Servex's own nudges (`from`
++// starting "servex": spend/compact/landing-check).
++await check("a servex nudge and an owner line (including tail mode) never close the cue; the delegate's own message does", async () => {
++	sent.length = 0;
++	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.heard({ type: "tool", name: "spawn_agent" }, agent);
++	assert.equal(thinking().length, 1, "the open line is written");
++	s.heard({ type: "agent_msg", from: "owner", text: "also, how's the logo" }, agent);
++	assert.equal(thinking().length, 1, "the owner's own message never closes it");
++	s.heard({ type: "agent_msg", from: "servex-follow", text: "on /a/ at …: also, how's the logo" }, agent);   // tail mode's own echo of the owner's next sentence
++	assert.equal(thinking().length, 1, "nor does a tail-mode echo of the owner's own line");
++	s.heard({ type: "agent_msg", from: "servex", text: "Servex: $1 spent since your last result." }, agent);
++	assert.equal(thinking().length, 1, "nor a spend nudge");
++	s.heard({ type: "agent_msg", from: "servex-landing-check", text: "landing-check: …" }, agent);
++	assert.equal(thinking().length, 1, "nor a landing-check nudge");
++	s.heard({ type: "agent_msg", from: "mastermind-voice-system", text: "The new logo is ready." }, agent);
++	assert.equal(thinking().length, 2, "the delegate's own message closes it");
++	assert.deepEqual({ by: thinking()[1].thinking.by, done: thinking()[1].thinking.done }, { by: "smart", done: true });
++	assert.ok(!s.map[made.session].thinking_open);
++});
++
++// "Once per turn" must mean per turn: a cue an earlier turn left open must not block a hand-off in a NEW turn,
++// even before thinking_open_ms has passed — tied to the turn id, bumped at every turn's end (including a
++// `stopped` — interrupted — turn, so an interrupted hand-off turn does not leave the next turn still "mid-turn").
++await check("a new turn's hand-off beeps again even with an old turn's cue still open, well under thinking_open_ms", async () => {
++	sent.length = 0;
++	const s = make({ thinking_open_ms: 10 * 60000 }), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.heard({ type: "tool", name: "spawn_agent" }, agent);
++	s.heard({ type: "result", stopped: true }, agent);   // the turn is interrupted, not a normal result — must still end the turn
++	assert.equal(thinking().length, 1, "still open: no answer ever came");
++	s.heard({ type: "tool", name: "ask_mastermind" }, agent);   // a brand new turn's own hand-off
++	assert.equal(thinking().length, 2, "a new turn beeps again, long before thinking_open_ms would have expired it");
++});
++
++// Finding 2: a hand-off that never gets answered (the turn ends with nothing(), the brief's own instruction)
++// must not block every LATER, unrelated hand-off from beeping forever — `thinking_open_ms` (here shortened for
++// the test) is the server-side half of Recite's own 60 s give-up.
++await check("a stale open cue (past thinking_open_ms) does not block a later, unrelated hand-off", async () => {
++	sent.length = 0;
++	const s = make({ thinking_open_ms: 10 }), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.heard({ type: "tool", name: "spawn_agent" }, agent);
++	s.heard({ type: "result", text: "" }, agent);   // nothing() — the turn ends with the cue still open, unanswered
++	assert.equal(thinking().length, 1, "still open: no answer ever came");
++	await wait(20);   // past thinking_open_ms (10)
++	s.heard({ type: "tool", name: "ask_mastermind" }, agent);   // a later, unrelated hand-off
++	assert.equal(thinking().length, 2, "a stale open cue does not block a fresh one");
++});
++
++// Review note 6: the brief named "a message to the mastermind" — `send_to_agent` to anyone else is not a hand-off.
++await check("send_to_agent only beeps when its own `id` names a mastermind", async () => {
++	sent.length = 0;
++	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Message someone.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.heard({ type: "tool", name: "send_to_agent", input: "id=fast-helper text=hi" }, agent);
++	assert.equal(thinking().length, 0, "a message to a non-mastermind agent does not beep");
++	s.heard({ type: "tool", name: "send_to_agent", input: "id=vscode-mastermind text=hi" }, agent);
++	assert.equal(thinking().length, 1, "a message to a mastermind does");
++});
++
++await check("release_say closes an open thinking line with a done:true line", async () => {
++	sent.length = 0;
++	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Ask the mastermind about the logo.", via: "voice", floor: "speaking" });
++	await tick();
++	const id = s.map[made.session].smart, agent = { id };
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.heard({ type: "tool", name: "spawn_agent" }, agent);
++	assert.equal(thinking().length, 1, "the open line is written");
++	s.queue_say(s.map[made.session], { text: "The new logo is ready." });
++	s.release_say(s.map[made.session]);
++	assert.equal(thinking().length, 2, "a done line closes it");
++	assert.deepEqual({ by: thinking()[1].thinking.by, done: thinking()[1].thinking.done }, { by: "smart", done: true });
++	assert.ok(!s.map[made.session].thinking_open, "the session no longer thinks it is open");
++});
++
++await check("release_say with no thinking line open never writes a spurious done line", async () => {
++	sent.length = 0;
++	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
++	s.say({ session: made.session, path: "/a/", text: "Just answer directly.", via: "voice", floor: "speaking" });
++	await tick();
++	const thinking = () => lines(file).filter(l => l.thinking);
++	s.queue_say(s.map[made.session], { text: "Sure." });
++	s.release_say(s.map[made.session]);
++	assert.equal(thinking().length, 0, "no hand-off ever happened: no thinking line at all");
++});
++
+ // 5 + 6. the brief and Chat V3
+ const BRIEF = path.join(ROOT, "Servex/agents/single-voice-assistant.md");
+ const brief = fs.existsSync(BRIEF) ? fs.readFileSync(BRIEF, "utf8") : "";
+diff --git a/Servex/agents/doc/say-tools.md b/Servex/agents/doc/say-tools.md
+index ffb8f26ed..19d1ff74f 100644
+--- a/Servex/agents/doc/say-tools.md
++++ b/Servex/agents/doc/say-tools.md
+@@ -40,3 +40,16 @@ reply — never a second, almost-the-same copy of that shape.
+ Tests: [`say-tools.test.mjs`](../say-tools.test.mjs) (the tools and the gate) · [`single-brief.test.mjs`](../single-brief.test.mjs)
+ (the brief itself — its own words, the real opening prompt a seat is spawned with, and a replayed real session driven through the
+ real `say`/`nothing`/`retract_say` handlers, with a narration attempt checked to be a muted skip, never a reply).
++
++## The thinking sound (ask10, 2026-11-03)
++
++`heard()` writes `{"thinking":{"by":"smart"}}` on the single seat's first hand-off call in a turn (`spawn_agent`, any `ask_*`, or
++`send_to_agent` whose own `id` names a mastermind) — the phone's three-bleep cue (`audio/Recite/readme.md`) fires on this line, not
++on anything the model says. It closes two ways: `release_say` writes `{"thinking":{"by":"smart","done":true}}` the moment a real
++reply is written (the hand-off sentence itself, or the delegate's answer landing later as a fresh `say`); or an `agent_msg` from
++the delegate itself (never from `"owner"`, `"host"`, or anything starting `"servex"` — a nudge or a tail-mode echo) closes it
++directly. Never twice in one turn, and never when a `say` was already queued or released earlier in the same turn. A cue from an
++EARLIER turn never blocks a new turn's own hand-off (`s.turn_id`, bumped at every turn's end, interrupted or not); it also expires
++after `SERVEX_SESSION_THINKING_OPEN_MS` (default 70000) regardless, in case a turn never properly ends. Detail and the Recite
++side: [`ux/Dictate/doc/thinking-sound.md`](/framework/ux/Dictate/doc/thinking-sound.md). Tests: the ask10 checks in
++[`Sessions.single.test.mjs`](../Sessions.single.test.mjs).
+diff --git a/Servex/agents/readme.md b/Servex/agents/readme.md
+index 267b2e60b..bd7e2f093 100644
+--- a/Servex/agents/readme.md
++++ b/Servex/agents/readme.md
+@@ -108,7 +108,7 @@ Test: `node Servex/agents/close-loop.test.mjs` (temp task dirs, no live Servex).
+ - **The roles, one readme each** (what each does, its model, when to use it; the text Servex gives an agent before its first turn): [`roles/readme.md`](./roles/readme.md).
+ - Names and aliases for roles and ids: [`doc/names.md`](./doc/names.md).
+ - Landing nag, next-step wake, compaction policy: [`doc/lifecycle.md`](./doc/lifecycle.md).
+-- **The single seat's only reply** — `say`, `nothing`, `retract_say`, the gate that releases a queued say, boot-env only for now: [`doc/say-tools.md`](./doc/say-tools.md). Its brief: [`single-voice-assistant.md`](./single-voice-assistant.md); tests: `say-tools.test.mjs` (the tools and gate), `single-brief.test.mjs` (the brief's own words, its real opening prompt, and a replayed real session).
++- **The single seat's only reply** — `say`, `nothing`, `retract_say`, the gate that releases a queued say, boot-env only for now: [`doc/say-tools.md`](./doc/say-tools.md) (also the thinking sound: when the server writes `{thinking}`/`{thinking,done}`, and `SERVEX_SESSION_THINKING_OPEN_MS`). Its brief: [`single-voice-assistant.md`](./single-voice-assistant.md); tests: `say-tools.test.mjs` (the tools and gate), `single-brief.test.mjs` (the brief's own words, its real opening prompt, and a replayed real session), `Sessions.single.test.mjs` (the thinking sound).
+ 
+ ## Files
+ 
+diff --git a/Servex/agents/single-voice-assistant.md b/Servex/agents/single-voice-assistant.md
+index d0100dfda..622818668 100644
+--- a/Servex/agents/single-voice-assistant.md
++++ b/Servex/agents/single-voice-assistant.md
+@@ -33,7 +33,7 @@ await item({ path: "<session>", delta: { place: { re: "<at3>", to: "card", where
+ 
+ Use `paragraph` or `card` only for a clearly new thought. Never drop or merge two sentences.
+ 
+-A sentence that is a real question, or heavy enough to need the repo, goes once to `mastermind-voice-system` (one short message: the question and its `at`) — see "Anything heavy" below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening."
++A sentence that is a real question, or heavy enough to need the repo, goes once to `mastermind-voice-system` (one short message: the question and its `at`) — see "Anything heavy" below. **Any turn that ends without a `say` ends with `nothing()`** — whether you did silent work in it (a placement, a task, a message to the mastermind) or did nothing at all; never a status line, never "listening." (The phone beeps on hand-off by itself; never write that line.)
+ 
+ ## Speaking: `say` only. Plain text is never a reply
+ 
+diff --git a/public/framework/audio/Recite/Recite.js b/public/framework/audio/Recite/Recite.js
+index e10e34b54..0bea0dfab 100644
+--- a/public/framework/audio/Recite/Recite.js
++++ b/public/framework/audio/Recite/Recite.js
+@@ -47,7 +47,7 @@ export default class Recite extends Part {
+ 	echo_guard_ms = 1500;   // echo: how long after playback stops BargeIn still treats the mic as likely hearing its own voice (a raised threshold, a fuzzy text match against what was just read)
+ 	echo_guard_until = null;   // echo: performance.now() the guard above expires at; set by set() whenever "playing" ends
+ 	thinking_cue = true;    // a short, subtle tone fired by start_thinking() (the voice agent's long-lookup signal), repeated every cue_repeat_ms until the reply starts; false turns it off
+-	cue_repeat_ms = 2000;   // thinking cue: the gap between repeats while the agent is still working
++	cue_repeat_ms = 6000;   // thinking cue: the gap between repeats while the agent is still working (three bleeps per repeat, 2026-11-03)
+ 	cue_max_ms = 60000;     // thinking cue: gives up this long after the thinking line, if no reply ever arrives
+ 	cue_timer = null;       // thinking cue: the timer for the next repeat
+ 	cue_pending = false;    // thinking cue: true from the owner's line landing on the wire until the reply starts, the cue gives up, or a fresh line replaces it
+@@ -96,6 +96,8 @@ export default class Recite extends Part {
+ 			a.play().then(() => {
+ 				a.pause(); a.muted = false; this.unlocked = true; this.trace("unlocked by a tap");
+ 				kinds.forEach(k => document.removeEventListener(k, unlock, true));
++				const Ctx = globalThis.AudioContext ?? globalThis.webkitAudioContext;   // the thinking cue's own context: made (or resumed) on a real tap, so it is never left "suspended" when a reply first needs it (ask10, 2026-11-03)
++				if (typeof Ctx === "function") try { (this.cue_ctx ??= new Ctx()).resume().catch(() => {}); } catch {}
+ 				if (this.state === "paused" && /tap/.test(this.error)) this.resume();   // the reply the browser refused
+ 			}, e => { a.muted = false; this.trace("unlock refused", { error: e?.name }); }).finally(() => { this.unlocking = false; });
+ 		};
+@@ -332,7 +334,7 @@ export default class Recite extends Part {
+ 			if (!Recite.AGENT_ID.test(chat.from.id ?? "")) return;   // "fast", "revise" (every voice revision), "card": not an agent update, ignored exactly as before this task (review finding, read-aloud-b 2026-11-02 — revise posts on every dictated sentence, the very flood this task was meant to stop)
+ 			return this.agent_update(chat.text, chat.at, chat.from.id);
+ 		}
+-		if (line.thinking?.by === "smart"){ if (this.auto) this.start_thinking(); return; }   // the voice agent's own "long lookup" signal: the only thing that plays the cue
++		if (line.thinking?.by === "smart"){ if (line.thinking.done) this.cancel_cue(); else if (this.auto) this.start_thinking(); return; }   // the voice agent's own "long lookup" signal: the only thing that plays the cue; `done` closes it (ask10, 2026-11-03)
+ 		const add = Object.values(line).find(v => v?.replies?.add)?.replies.add;
+ 		if (add){
+ 			if (add.by === "smart"){ const out = this.final(add.text, add.id); this.flush_updates(); return out; }
+@@ -379,23 +381,30 @@ export default class Recite extends Part {
+ 		if (was) this.changed();
+ 	}
+ 
+-	/** A short generated tone, never Kokoro speech — cheap, and never competes with recite-server for the reply
+-	 *  itself. Skipped while a reply is already playing, so it never talks over it. Always traced, so a test (and
+-	 *  the Whisper log) sees it fire even where AudioContext does not exist (node, or a locked-down browser). */
++	/** Three short generated bleeps, never Kokoro speech — cheap, and never competes with recite-server for the
++	 *  reply itself. Skipped while a reply is already playing, so it never talks over it. Always traced (with the
++	 *  context's state), so a test (and the Whisper log) sees it fire even where AudioContext does not exist (node,
++	 *  or a locked-down browser), and a silent phone shows WHY (a context made with no tap stays "suspended" until
++	 *  resumed — the thinking-sound doc's cause 2; `resume()` here, and again in `unlock_on_tap()`, is the fix). */
+ 	play_cue(){
+ 		if (this.state === "playing") return;
+-		this.trace("thinking cue");
+ 		const Ctx = globalThis.AudioContext ?? globalThis.webkitAudioContext;
+-		if (typeof Ctx !== "function") return;
++		if (typeof Ctx !== "function"){ this.trace("thinking cue", { ctx: "none" }); return; }
+ 		try {
+ 			const ctx = this.cue_ctx ??= new Ctx();
+-			const osc = ctx.createOscillator(), gain = ctx.createGain();
+-			osc.frequency.value = 660;
+-			gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+-			gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.02);
+-			gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+-			osc.connect(gain); gain.connect(ctx.destination);
+-			osc.start(); osc.stop(ctx.currentTime + 0.2);
++			this.trace("thinking cue", { ctx: ctx.state });
++			if (ctx.state === "suspended") ctx.resume().catch(() => {});
++			const bleeps = 3, bleep_s = 0.12, gap_s = 0.08;
++			for (let i = 0; i < bleeps; i++){
++				const t0 = ctx.currentTime + i * (bleep_s + gap_s);
++				const osc = ctx.createOscillator(), gain = ctx.createGain();
++				osc.frequency.value = 660;
++				gain.gain.setValueAtTime(0.0001, t0);
++				gain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.02);
++				gain.gain.exponentialRampToValueAtTime(0.0001, t0 + bleep_s);
++				osc.connect(gain); gain.connect(ctx.destination);
++				osc.start(t0); osc.stop(t0 + bleep_s + 0.02);
++			}
+ 		} catch (e){ this.trace("thinking cue failed", { error: String(e?.message ?? e).slice(0, 120) }); }
+ 	}
+ 
+@@ -493,6 +502,7 @@ export default class Recite extends Part {
+ 	 *  `pending_updates` rather than queued — `flush_updates()` releases it (behind the direct answer) once that
+ 	 *  reply lands, or after `update_hold_ms` regardless, so it is never lost if no direct reply ever comes. */
+ 	agent_update(text, id, from_id){
++		this.cancel_cue();   // the delegate's answer landed: stop waiting for it, same as a direct reply (final()/partial()) — a `{thinking:done:true}` line from the server (above) does the same thing from the other side, but the cue must stop here too even if that line is ever late or dropped
+ 		if (!this.auto){ this.trace("not read: auto is off (the 🗣 button)", { text: String(text ?? "").slice(0, 40) }); return; }
+ 		if (id && Recite.was_played(id)) return;
+ 		const key = Recite.norm(text);
+diff --git a/public/framework/audio/Recite/Recite.test.mjs b/public/framework/audio/Recite/Recite.test.mjs
+index 043f7edb8..c92a11f68 100644
+--- a/public/framework/audio/Recite/Recite.test.mjs
++++ b/public/framework/audio/Recite/Recite.test.mjs
+@@ -530,6 +530,48 @@ if (Recite) test("Recite: a thinking cue is skipped while a reply is already pla
+ 	return r;
+ });
+ 
++// A `{thinking:{by:"smart",done:true}}` line closes the cue the same way a reply does — the server writes this
++// when the delegated answer lands (ask10, 2026-11-03), so Recite must react to it even with no reply text at all.
++if (Recite) test("Recite: a thinking line with done:true closes the cue with no reply needed", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	r.barge.on = false;
++	r.cue_repeat_ms = 20;
++	const cues = []; const real_trace = r.trace.bind(r); r.trace = (kind, fields) => { if (kind === "thinking cue") cues.push(kind); real_trace(kind, fields); };
++
++	r.from_wire({ kind: "line", line: { thinking: { by: "smart" } } });
++	t.eq(cues.length, 1, "the cue plays once");
++	t.ok(r.cue_pending, "and is waiting for the answer");
++
++	r.from_wire({ kind: "line", line: { thinking: { by: "smart", done: true } } });
++	t.ok(!r.cue_pending, "done:true closes it, with no reply text ever having arrived");
++	const n = cues.length;
++	await new Promise(res => setTimeout(res, 50));
++	t.eq(cues.length, n, "and it never beeps again");
++	return r;
++});
++
++// play_cue() logs ctx.state (so a silent phone shows WHY) and resumes a suspended context before the tone —
++// a context made with no tap starts "suspended" and nothing is heard otherwise (thinking-sound doc, cause 2).
++if (Recite) test("Recite: play_cue logs the AudioContext state and resumes a suspended one", async t => {
++	const r = new Recite({ voice: fake_voice });
++	r.audio = { src: "", muted: false, currentTime: 0, pause(){}, play(){ return Promise.resolve(); } };
++	let resumed = false;
++	r.cue_ctx = {
++		state: "suspended", currentTime: 0,
++		resume(){ resumed = true; this.state = "running"; return Promise.resolve(); },
++		createOscillator(){ return { frequency: {}, connect(){}, start(){}, stop(){} }; },
++		createGain(){ return { gain: { setValueAtTime(){}, exponentialRampToValueAtTime(){} }, connect(){} }; },
++	};
++	const fields = []; const real_trace = r.trace.bind(r); r.trace = (kind, f) => { if (kind === "thinking cue") fields.push(f); real_trace(kind, f); };
++	const had = globalThis.AudioContext;
++	globalThis.AudioContext = function(){};   // node has none; play_cue must still reach the ctx.state check, not bail out early
++	try { r.play_cue(); } finally { if (had === undefined) delete globalThis.AudioContext; else globalThis.AudioContext = had; }
++	t.eq(fields[0]?.ctx, "suspended", "the trace line names the context's state before resuming");
++	t.ok(resumed, "a suspended context is resumed before the tone plays");
++	return r;
++});
++
+ // The setting itself: false turns the cue off entirely.
+ if (Recite) test("Recite: thinking_cue = false turns the cue off", async t => {
+ 	const r = new Recite({ voice: fake_voice });
+diff --git a/public/framework/audio/Recite/readme.md b/public/framework/audio/Recite/readme.md
+index 33bc28c3b..7c263d03b 100644
+--- a/public/framework/audio/Recite/readme.md
++++ b/public/framework/audio/Recite/readme.md
+@@ -27,7 +27,7 @@ Tapping a reply bubble's text (or its ▶/⏸) plays or pauses that bubble — f
+ 
+ **Echo settings:** `recite.echo_guard_ms` (default 1500) is how long after playback stops the echo guard below still applies; `recite.barge.echo_threshold_mult` (default 1.6) raises the barge-in loudness floor during that guard, so the voice itself and a cough right after it don't hold a reply or fire the fast trigger; `recite.barge.near_silent` (default 0.045) is the own-mic peak level below which a Whisper final is treated as hallucinated, not real speech.
+ 
+-**The thinking cue:** a short, subtle generated tone that replaces a long silence. It plays only when the voice agent fires it, by writing the session line `{"thinking":{"by":"smart"}}` (`item({path: <session>, delta: {thinking: {by: "smart"}}})`); `Recite.start_thinking()` then plays it and repeats every `recite.cue_repeat_ms` (default 2000 ms) until the reply starts (or 60 s pass with none). A plain owner line plays nothing. `recite.thinking_cue = false` turns it off. `Recite.on(fn)` also fires when the cue starts or stops (`cue_pending` flips): the status line beside the mic (`ux/Dictate/ChatStatus.js`) reads it as `agent working`.
++**The thinking cue:** three short bleeps that replace a long silence. It plays only on the session line `{"thinking":{"by":"smart"}}` — written by the single seat's own code the moment it hands a turn off (`Sessions.js`, `heard()`, a hand-off tool call), never typed by the model — or by hand (`item({path: <session>, delta: {thinking: {by: "smart"}}})`); `Recite.start_thinking()` then plays `play_cue()` (three ~0.12 s bleeps, ~0.08 s apart; `ctx.resume()`d if the AudioContext is still suspended) and repeats every `recite.cue_repeat_ms` (default 6000 ms) until the reply starts, a `{"thinking":{"by":"smart","done":true}}` line closes it, an agent update arrives (`agent_update()` cancels it too, independently of that line), or 60 s pass with none of those. A plain owner line plays nothing. `recite.thinking_cue = false` turns it off. `Recite.on(fn)` also fires when the cue starts or stops (`cue_pending` flips): the status line beside the mic (`ux/Dictate/ChatStatus.js`) reads it as `agent working`. Detail: [ux/Dictate/doc/thinking-sound.md](/framework/ux/Dictate/doc/thinking-sound.md).
+ 
+ In the chat it is already wired: the phone sheet (✦) shows the bar above the mic, and every reply from the smart assistant is read as it streams.
+ 
+diff --git a/public/framework/ux/Dictate/doc/thinking-sound.md b/public/framework/ux/Dictate/doc/thinking-sound.md
+index 8ee93f00d..d54f0e726 100644
+--- a/public/framework/ux/Dictate/doc/thinking-sound.md
++++ b/public/framework/ux/Dictate/doc/thinking-sound.md
+@@ -1,35 +1,21 @@
+-# The thinking sound: why it is silent, and two ways to signal "working on it" (proposal, 2026-11-03)
++# The thinking sound (ask10, 2026-11-03)
+ 
+-**What it is.** A short tone the phone plays while the assistant works on something slow, so the owner is not left in silence. Code: `Recite.start_thinking()` / `play_cue()` (`audio/Recite/Recite.js:288`, `:311`), asked for by the owner on 2026-11-02.
++**What it is.** Three short bleeps the phone plays while the single seat hands a question off to a mastermind, so the owner is not left in silence. Server: `Servex/agents/Sessions.js` `heard()` (also documented in [`Servex/agents/doc/say-tools.md`](/Servex/agents/doc/say-tools.md)). Client: `Recite.start_thinking()` / `play_cue()` (`audio/Recite/Recite.js`, also documented in its [readme](/framework/audio/Recite/readme.md)).
+ 
+-## Why it does not play (checked, three causes)
++## What is built
+ 
+-1. **Nobody in the single seat ever fires it.** The cue plays only on a session line `{thinking: {by: "smart"}}` (`Recite.js:265`). Only the smart seat's brief tells its agent to write that (`Servex/agents/session-smart.md:56`). The single assistant's brief (`Servex/agents/single-voice-assistant.md`) never mentions it, and session `v-z0jonhy` has zero `thinking` lines. So in single mode the cue cannot fire.
+-2. **The tone's AudioContext is probably asleep.** `play_cue()` makes `new AudioContext()` the first time it is needed, from a wire event, not a tap, and never calls `resume()`. A browser keeps a context made without a tap in `suspended`, so the tone is scheduled and nothing is heard. The tap unlock (`unlock_on_tap`, `:83`) unlocks only the `<audio>` element used for speech, not this context. Not yet proven on a device: the first step of the fix is to log `ctx.state` in the existing `thinking cue` trace.
+-3. **It also needs read-aloud on (`this.auto`) and a fresh page.** On 2026-11-02 the owner's phone ran a stale cached `Recite.js` (the cue code was not even there); that is the cache-version task's cause, separate from 1 and 2.
++- **Code marks the hand-off, not the model.** The single seat's first hand-off tool call in a turn (`spawn_agent`, any `ask_*`, or `send_to_agent` to a mastermind) writes `{thinking: {by: "smart"}}` on the session. Never twice in one turn, and never when a `say` was already queued or released earlier in the same turn — a spoken "I've asked the mastermind" is the signal then, not a beep.
++- **Closing, two ways.** `release_say()` writes `{thinking: {by: "smart", done: true}}` the moment a real reply is written (the hand-off sentence, or the delegate's answer landing later as a fresh `say`). Separately, the delegate's own message landing on the seat closes it directly and at once — never the owner's own lines (including a tail-mode echo), and never one of Servex's own nudges (spend, compaction, landing-check: anything `from` starting `"servex"`). `Recite.agent_update()` also cancels the cue client-side on any such line, independent of the server's `done` line.
++- **A cue never blocks forever, or across turns.** Past `SERVEX_SESSION_THINKING_OPEN_MS` (default 70000) an open cue is stale and a fresh hand-off opens a new one anyway. A cue an earlier turn left open never blocks a hand-off in a NEW turn either way, tied to a per-session turn id bumped at every turn's end — a normal result or an interrupted one.
++- **The tone.** `play_cue()`: three ~0.12 s bleeps at 660 Hz, ~0.08 s apart, gain 0.3, repeating every 6 s until closed or 60 s pass. `ctx.state` is traced, and a suspended `AudioContext` is `resume()`d — in `play_cue()` itself and again on the first real tap (`unlock_on_tap()`).
++- **Tests**: the ask10 checks in `Servex/agents/Sessions.single.test.mjs` (19/19, run for real) cover all of the above, including the real `say → hand-off → agent_msg → next turn → say` delivery path end to end. `Recite.test.mjs` has matching cases but needs a browser; not run from this worktree.
+ 
+-Also: one 0.18 s tone at gain 0.1 is easy to miss on a phone speaker.
++## Left
+ 
+-## The two ways to signal a heavy question
++- ⬜ **Chat V3's "..." row.** `ext/Chat/v3/ChatV3.js` does not yet draw anything for an open `thinking` line. Needs: confirm it ignores the line type safely today, then draw the dots while open and remove them on close.
++- ⬜ **The Recite-side tests** (`done:true` closing, `ctx.state`/`resume()`) have not run in a browser.
++- ⬜ **Audibility on a real phone** is unproven — only that the tone-scheduling code runs.
+ 
+-**A. A quick response first, while the work continues.** The assistant says one short sentence at once ("Looking at it; my guess is the cue never fires in single mode"), then delegates, and the real answer arrives later as an agent update. Good when the first idea is itself useful. Cost: it is a reply, so it uses a turn, is read aloud (and can echo), and the "one item at a time, very small" style means it must stay one sentence.
++## The ordering edge case
+ 
+-**B. The thinking sound, then the answer later.** A tone the moment the assistant starts something slow. Costs no tokens and nothing to read aloud, so no echo risk. It says "working" but nothing about what.
+-
+-**The owner's addition: let the assistant fire it itself, as a triple bleep.** This is already the design: the assistant writes one delta line through the item tool, `item({path: "<session>", delta: {thinking: {by: "smart"}}})`, and the page plays the tone. What is missing is only (1) the instruction in the single brief and (2) the tone: three short bleeps (about 0.12 s each, 660 Hz, 0.08 s apart) at a clearer volume, played once, then repeated every ~6 s (not 2 s) until the reply starts, 60 s at most.
+-
+-**The owner's addition: near-instant, with a "..." marker.** The signal should mean one thing: "message received, I have asked someone, the answer will be late". Two parts:
+-
+-- **The marker is the same `thinking` line, not a message.** It is a data line in `session.jsonl` (no text, never read aloud, never a bubble). Chat V3 draws it as a small "..." row at the end of the chat while the line is open, and removes it when the next assistant reply or an agent update arrives, or a `{thinking: {by: "smart", done: true}}` line closes it. One line, two readers: Recite plays the sound, V3 shows the dots. (V3 does not draw it today: to build, in `ext/Chat/v3/ChatV3.js`; first check that views ignoring an unknown line type stay quiet.)
+-- **Near-instant means code writes it, not the model.** Asking the model to write it first still costs a model turn start (a second or two). Faster: `Sessions.js` writes the `thinking` line itself the moment the single seat makes its first handing-off tool call (a `spawn_agent`, a message to the mastermind, or an `ask_*`; the same place `heard()` already sees tool events, ~:1569). The line is then there within a few hundred milliseconds of the decision to delegate, and the brief needs no instruction for it. Not on every pause cue (that was the "after every line" annoyance), only on a real hand-off.
+-
+-## Recommendation
+-
+-**Do B always, A only when there is something worth saying.** On any hand-off the `thinking` line (sound plus "..." marker) appears at once, free and silent in the chat. If the assistant also has a real first idea, it says it in one sentence on the next cue; it never says "looking into it" (the filler the owner already ruled out). Build, in order:
+-
+-1. `Sessions.js`: write `{thinking: {by: "smart"}}` when the single seat makes its first hand-off tool call (plus a one-line fallback in the brief: "if you hand something off, the system marks it; you can also write the line yourself"); write the closing `done` line when its reply or the helper's update lands.
+-2. `play_cue()`: `ctx.resume()` before the tone, create the context in `unlock_on_tap`, trace `ctx.state`, and play the triple bleep.
+-3. Chat V3: draw the "..." row while a `thinking` line is open; stop the sound and the dots also when an agent update arrives (a delegated answer comes back as `agent_update`, not a smart reply), and cap the repeats.
+-4. A test in the existing Recite headless test: a `thinking` line fires the cue once, a reply cancels it, and a suspended context is resumed; plus a V3 replay showing the dots and then removing them.
+-
+-Nothing here is built yet.
++If the model calls the hand-off tool BEFORE queuing its spoken line, the open `{thinking:{by:"smart"}}` line is written first (nothing has suppressed it yet), and `release_say()` closes it moments later when that sentence releases. The owner may hear one short beep-and-stop, then silence until the real answer, rather than no beep at all — still "no beep running on into the silence," just not identical to the `say`-first case. Fixing this exactly would mean asking the model to always `say` before it hands off (a brief change), not a cheap code one, and was not done.
+diff --git a/public/framework/ux/Dictate/readme.md b/public/framework/ux/Dictate/readme.md
+index 51594fbb7..0e7fc4e99 100644
+--- a/public/framework/ux/Dictate/readme.md
++++ b/public/framework/ux/Dictate/readme.md
+@@ -86,7 +86,7 @@ ever appeared — no error, no clue why.
+ 
+ **The assistant's voice coming back through the mic as your words** (why the existing guards do not stop it; the proposed fix, 2026-11-03): [`doc/echo-and-turn-taking.md`](doc/echo-and-turn-taking.md).
+ 
+-**The thinking sound never plays; two ways to signal "working on it"** (the single seat never fires it, the tone's AudioContext is probably suspended; a code-written "..." marker plus a triple bleep, proposed 2026-11-03): [`doc/thinking-sound.md`](doc/thinking-sound.md).
++**The thinking sound: triple bleep built, code marks the hand-off** (ask10, 2026-11-03 — `Sessions.js` marks a hand-off to a mastermind itself and closes it on the real reply or the delegate's own message, `play_cue()` plays three bleeps and resumes a suspended AudioContext; the "..." row on Chat V3 is still proposed): [`doc/thinking-sound.md`](doc/thinking-sound.md).
+ 
+ **The gear panel, organized into Recite and Dictate plugin groups** (reusing the paused `dictate-plugins` branch, on `core/Plugin`, with the settings table to build from): [`doc/settings-plugins.md`](doc/settings-plugins.md).
+ 
