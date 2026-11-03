@@ -273,6 +273,12 @@ export default class Sessions {
 			 * mark), or `hold_max_ms` passed with no such event (the browser engine has no level meter).
 			 * `thoughts` holds those lines; `held` (below, the floor) holds a fast REPLY. */
 			single_pause_ms: env("SERVEX_SESSION_SINGLE_PAUSE_MS", 1000), answer_quiet_ms: env("SERVEX_SESSION_ANSWER_QUIET_MS", 2500), hold_max_ms: env("SERVEX_SESSION_HOLD_MAX_MS", 8000),
+			/* THE SAY GATE (ask2a-say-tools, Servex/agents/single-voice-assistant.md "next step"): how long a queued `say` waits, once the
+			 * floor has been "done" this whole time, before it is released as the reply. Three bands, picked in `say_gate_ms()`: a question
+			 * gets the owner an answer fastest; a long burst (more than 5 owner sentences since the last release) gets the longest, so the
+			 * owner has time to finish; everything else is the default. */
+			say_gate_default_ms: env("SERVEX_SESSION_SAY_GATE_MS", 1500), say_gate_question_ms: env("SERVEX_SESSION_SAY_GATE_QUESTION_MS", 600),
+			say_gate_long_ms: env("SERVEX_SESSION_SAY_GATE_LONG_MS", 3000), say_timers: new Map(),
 			/* GROUPING (the owner, 2026-10-25: "my chat logs are coming in very quickly"): a spoken Prompt (one bubble)
 			 * stays open for `prompt_close_ms` of quiet after the thought is handed to the seats, so the next sentences
 			 * join it as one paragraph instead of a new bubble every 2.5 s; it also closes the moment an assistant
@@ -734,9 +740,13 @@ export default class Sessions {
 	}
 
 	/* THE SINGLE SEAT hears each sentence the moment it is said (no thought hold, no wake gate), files it with the item tool, and answers
-	 * only when `single_cue` tells it the owner paused. Nothing else runs: no refine(), no fast agent. */
+	 * only through `say` (ask2a-say-tools): a queued say is released once the floor has been "done" for its gate, below. Nothing else
+	 * runs: no refine(), no fast agent. */
 	single_say(s, line, { site, text, selection, floor }){
 		s.smart_re = line.at;
+		/* the gate's own inputs (say_gate_ms): the latest sentence, for the question band, and how many since the last release, for the long band */
+		s.last_sentence_text = text;
+		s.say_pending_count = (s.say_pending_count ?? 0) + 1;
 		this.set_floor(s, floor ?? "done");
 		this.wake(s, "smart");
 		this.save();
@@ -765,6 +775,67 @@ export default class Sessions {
 		const t = setTimeout(fire, this.single_pause_ms);
 		t.unref?.();
 		timers.set(s.id, t);
+	}
+
+	/* THE SAY QUEUE (ask2a-say-tools): the single seat's only way to produce something the owner hears or sees. `say` (the MCP tool,
+	 * Servex/agents/tools.js) calls `queue_say`; it answers `{id}` at once but writes nothing yet — the line is held in `s.says`
+	 * (`{id, text, re, queued_at}`) until `release_say` below lets it through, same as `heard()` writes a smart reply (`write()` ->
+	 * `mirror_chat` -> `ChatWriter`, so the messages list and the read-aloud see it exactly as any other reply). */
+	queue_say(s, { text, re } = {}){
+		if (!String(text ?? "").trim()) return { ok: false, why: "say needs text" };
+		const id = "say-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+		(s.says ??= []).push({ id, text: String(text), re, queued_at: Date.now() });
+		this.schedule_say_release(s);
+		return { id };
+	}
+
+	/* Takes a queued say off before it is released — the owner kept talking, or the agent changed its mind. */
+	retract_say(s, { id } = {}){
+		const before = s.says?.length ?? 0;
+		s.says = (s.says ?? []).filter(q => q.id !== id);
+		return { ok: true, removed: before !== s.says.length };
+	}
+
+	/* `say_gate_ms`: how long a queued say waits, once the floor has been "done" this whole time, before it is released — the
+	 * question band answers fastest, the long-burst band (more than 5 owner sentences since the last release) gives the owner the
+	 * most room to keep going, everything else is the default (`defaults()`, above). */
+	say_gate_ms(s){
+		if (/\?["'”’)]*$/.test(String(s.last_sentence_text ?? "").trim())) return this.say_gate_question_ms;
+		if ((s.say_pending_count ?? 0) > 5) return this.say_gate_long_ms;
+		return this.say_gate_default_ms;
+	}
+
+	/* (Re)starts the release timer for the newest queued say, from a clean slate every time: called once the floor goes "done"
+	 * (`set_floor`) and once more by `queue_say` itself (a `say` called mid-turn, with the floor already done). A floor of
+	 * "speaking" cancels this instead (`set_floor`'s own branch) — a new owner sentence keeps the say queued, not released. */
+	schedule_say_release(s){
+		const timers = this.say_timers ??= new Map();
+		clearTimeout(timers.get(s.id));
+		if (!s.says?.length || this.speaking(s)) return;
+		const t = setTimeout(() => this.release_say(s), this.say_gate_ms(s));
+		t.unref?.();
+		timers.set(s.id, t);
+	}
+
+	/* Releases only the NEWEST queued say, written the normal reply way (`write()`'s own `mirror_chat`); anything older waits its
+	 * own gate (`schedule_say_release` runs again at the end, if the queue is not empty). A say more than 10 deep or 10 minutes
+	 * old is dropped with a muted `skip` line instead of ever being spoken (newest-first, 2026-11-03). */
+	release_say(s){
+		this.say_timers?.delete(s.id);
+		const queue = [...(s.says ?? [])].sort((a, b) => b.queued_at - a.queued_at);
+		if (!queue.length) return;
+		const STALE_MS = 10 * 60000, now = Date.now(), fresh = [], stale = [];
+		queue.forEach((q, i) => (i >= 10 || now - q.queued_at > STALE_MS ? stale : fresh).push(q));
+		for (const q of stale) this.write(s, { skip: { at: now_ms(), role: "smart", text: q.text, why: "stale", ...(q.re ? { re: q.re } : {}) } });
+		const [newest, ...rest] = fresh;
+		s.says = rest;
+		if (!newest) return;
+		const from = { kind: "assistant", id: "smart", agent: s.smart };
+		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text: newest.text, ...(newest.re ? { re: newest.re } : {}) } });
+		this.reply_closes_prompt(s);
+		s.smart_said_re = newest.re ?? now_ms();
+		s.say_pending_count = 0;
+		if (s.says.length) this.schedule_say_release(s);
 	}
 
 	/* A `{sent}` line: these owner lines have just been handed to the `to` seat ("fast" | "smart"). `delay_ms` is the time from the
@@ -1241,8 +1312,9 @@ export default class Sessions {
 	set_floor(s, floor){
 		s.floor = floor;
 		clearTimeout(this.floor_timers.get(s.id));
-		if (floor !== "speaking"){ this.waker.resume(s.id); this.flush_chat(s); return this.release(s); }
+		if (floor !== "speaking"){ this.waker.resume(s.id); this.flush_chat(s); this.schedule_say_release(s); return this.release(s); }
 		this.waker.hold(s.id);   // the owner is talking, so no pause is running: the smart seat's pause timer stops until the floor is "done"
+		clearTimeout(this.say_timers?.get(s.id));   // ask2a-say-tools: a new owner sentence cancels a pending say release; it stays queued
 		const t = setTimeout(() => this.set_floor(s, "done"), this.floor_wait_ms);
 		this.floor_timers.set(s.id, t);
 		t.unref?.();
@@ -1610,11 +1682,15 @@ export default class Sessions {
 		if (event.type !== "result") return;
 		this.streaming(s, who.role, agent.id, null);
 		if (event.stopped) return;
-		/* The single assistant files silently: a turn's text is a reply ONLY when a pause cue is open; the cue closes at its result. */
+		/* THE SINGLE SEAT FILES SILENTLY (ask2a-say-tools): plain text is NEVER a reply, cue open or not -- only `say` (queued,
+		 * released through `release_say`) ever becomes something the owner hears or sees. A turn that ends in plain text
+		 * writes a muted `skip` line instead, same as a fast filler, so nothing is lost for debugging. An EMPTY turn (the
+		 * `nothing` tool, or no text at all) writes nothing at all (requirement 1), handled by the `!text` check below. */
 		if (who.role === "smart" && this.single_seat(s)){
-			const cued = !!s.cue_open;
 			delete s.cue_open;
-			if (!cued || is_filler(event.text ?? agent.last_text)) return;
+			const text = String(event.text ?? agent.last_text ?? "").trim();
+			if (!text) return;
+			return this.write(s, { skip: { at: now_ms(), role: who.role, text } });
 		}
 		/* The voice assistant answers with a {place} line (item tool), never in chat: whatever text its turn ends on is dropped. */
 		if (who.role === "fast" && s.fast_seat === "voice") return;

@@ -204,7 +204,41 @@ function session_tools(agents){
 	 * the model passes is now only a fallback, for a test or a direct call with no live caller. */
 	const caller_session = caller => /^session-smart-(.+)$/.exec(caller ?? "")?.[1] ?? null;
 	const SESSION = { type: "string", description: "The session id, `v-…`, as your brief names it." };
+	/* THE SINGLE SEAT ONLY (ask2a-say-tools, Servex/agents/single-voice-assistant.md "next step"): the single-voice-assistant's own
+	 * agent id IS `single-voice-assistant-<session id>` (`name: s.id` at spawn, Sessions.js's `spawn()`), the same trick
+	 * `caller_session` above plays for the dual smart seat. `say`, `nothing` and `retract_say` below refuse any caller this does not
+	 * match — a dual-seat agent, a minion, a mastermind — with no session found, so the tools are reachable by any agent (no new MCP
+	 * server; item itself reaches every agent the same way) but only ever DO anything for the one seat they are for. */
+	const caller_single_session = caller => /^single-voice-assistant-(.+)$/.exec(caller ?? "")?.[1] ?? null;
+	const single_session = ctx => { const id = caller_single_session(ctx.caller); return id ? sessions().map[id] : null; };
 	return [
+		tool("say",
+			"THE SINGLE SEAT'S ONLY REPLY (ask2a-say-tools): queue one reply for the owner. It is not spoken at once — it waits behind"
+			+ " the gate (`say_gate_ms`: 1500ms by default once the floor has been done that whole time, 600ms after a question, 3000ms"
+			+ " after a long burst of 5+ owner sentences since the last reply), and a NEW owner sentence cancels the wait so the say"
+			+ " stays queued. If a newer `say` lands first, the newer one is released and this one waits its own gate (newest first)."
+			+ " Returns `{id}` — keep it to `retract_say` before release, if you change your mind.",
+			{ text: { type: "string", description: "What to say — the owner's ear: plain, one or two short sentences." },
+				re: { type: "string", description: "The `at` of the owner line this answers, if any." } },
+			["text"],
+			(args, ctx) => {
+				const s = single_session(ctx);
+				return JSON.stringify(s ? sessions().queue_say(s, args) : { ok: false, why: "say is for the single seat only; no session found for this caller" });
+			}),
+		tool("nothing",
+			"End this turn with no reply and write nothing anywhere (ask2a-say-tools) — the single seat's default for a sentence that"
+			+ " is only filed, never answered. Ending the turn with plain text instead still writes nothing TO THE OWNER, but leaves a"
+			+ " muted `skip` line for debugging; calling this tool explicitly skips even that.",
+			{}, [],
+			() => JSON.stringify({ ok: true })),
+		tool("retract_say",
+			"Take a queued `say` back before it is released (ask2a-say-tools) — the owner kept talking, or you changed your mind.",
+			{ id: { type: "string", description: "The id `say` returned." } },
+			["id"],
+			(args, ctx) => {
+				const s = single_session(ctx);
+				return JSON.stringify(s ? sessions().retract_say(s, args) : { ok: false, why: "retract_say is for the single seat only; no session found for this caller" });
+			}),
 		tool("session_summary",
 			"Give a voice session its title and one-line summary: the index a new session reads to know what this one was about, and"
 			+ " what the Switch-session dropdown shows instead of the bare `v-…` id. Call it once the topic is clear, and again whenever"
