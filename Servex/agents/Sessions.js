@@ -817,9 +817,23 @@ export default class Sessions {
 		timers.set(s.id, t);
 	}
 
-	/* Releases only the NEWEST queued say, written the normal reply way (`write()`'s own `mirror_chat`); anything older waits its
-	 * own gate (`schedule_say_release` runs again at the end, if the queue is not empty). A say more than 10 deep or 10 minutes
-	 * old is dropped with a muted `skip` line instead of ever being spoken (newest-first, 2026-11-03). */
+	/* THE ONE SHAPE OF AN ASSISTANT'S REPLY (review, ask2a-say-tools finding 1): a lone emoji is a tap-back reaction on the line
+	 * it answers, never a bubble; anything else is a chat line, threaded when it answers a threaded owner line. `heard()` and
+	 * `release_say()` both build their reply line through this one method, so a released `say` is written exactly the way a
+	 * dual-seat smart reply always has been — never a second, almost-the-same copy of this shape. */
+	reply_line(s, { role, agent_id, text, re }){
+		const from = { kind: "assistant", id: role, agent: agent_id };
+		const threaded = re && s.threaded?.includes(re) ? { thread: true } : {};
+		return LONE_EMOJI.test(text) && re
+			? { react: { at: now_ms(), session: s.id, re, emoji: text, from } }
+			: { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text, ...(re ? { re } : {}), ...threaded } };
+	}
+
+	/* Releases only the NEWEST queued say, written the normal reply way (`reply_line()`, same as `heard()` -> `write()`'s own
+	 * `mirror_chat`); anything older waits its own gate (`schedule_say_release` runs again at the end, if the queue is not
+	 * empty). A say with no `re` of its own defaults to `s.smart_re` (review finding 1: "exactly as before" means a released
+	 * say with no `re` still links to the owner's latest sentence, the same fallback `heard()` always used). A say more than
+	 * 10 deep or 10 minutes old is dropped with a muted `skip` line instead of ever being spoken (newest-first, 2026-11-03). */
 	release_say(s){
 		this.say_timers?.delete(s.id);
 		const queue = [...(s.says ?? [])].sort((a, b) => b.queued_at - a.queued_at);
@@ -830,10 +844,10 @@ export default class Sessions {
 		const [newest, ...rest] = fresh;
 		s.says = rest;
 		if (!newest) return;
-		const from = { kind: "assistant", id: "smart", agent: s.smart };
-		this.write(s, { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text: newest.text, ...(newest.re ? { re: newest.re } : {}) } });
+		const re = newest.re ?? s.smart_re;
+		this.write(s, this.reply_line(s, { role: "smart", agent_id: s.smart, text: newest.text, re }));
 		this.reply_closes_prompt(s);
-		s.smart_said_re = newest.re ?? now_ms();
+		s.smart_said_re = re ?? now_ms();
 		s.say_pending_count = 0;
 		if (s.says.length) this.schedule_say_release(s);
 	}
@@ -1718,12 +1732,7 @@ export default class Sessions {
 		/* ADDRESSED BY NAME ONLY (the owner, requirements-5 ask 2): the fast one replies only when the sentence it heard says "fast". */
 		if (who.role === "fast" && !is_filler(text) && !FAST_NAMED.test(s.fast_heard ?? "")) return this.write(s, { skip: { at: now_ms(), role: who.role, text, why: "not addressed", ...(re ? { re } : {}) } });
 		if (who.role === "fast" && is_filler(text)) return this.write(s, { skip: { at: now_ms(), role: who.role, text, ...(re ? { re } : {}) } });
-		const from = { kind: "assistant", id: who.role, agent: agent.id };
-		// An answer to a threaded owner line goes into the same thread.
-		const threaded = re && s.threaded?.includes(re) ? { thread: true } : {};
-		const line = () => LONE_EMOJI.test(text) && re
-			? { react: { at: now_ms(), session: s.id, re, emoji: text, from } }
-			: { chat: { at: now_ms(), session: s.id, path: s.path, from, via: "text", text, ...(re ? { re } : {}), ...threaded } };
+		const line = () => this.reply_line(s, { role: who.role, agent_id: agent.id, text, re });
 		if (who.role === "smart"){
 			s.smart_said_re = re ?? now_ms();
 			const written = this.write(s, line());

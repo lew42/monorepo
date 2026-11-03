@@ -8,6 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Sessions from "./Sessions.js";
 import Session from "../../public/framework/core/Session/Session.js";
+import { tools as servex_tools } from "./tools.js";
 
 let checks = 0;
 const check = async (name, fn) => { await fn(); checks++; console.log("PASS —", name); };
@@ -78,6 +79,32 @@ try {
 		assert.ok(replay.messages.messages.some(m => m.constructor.name === "Reply"), "the messages list has the reply (ChatWriter's own path, same as heard())");
 	});
 
+	// review finding 1 (ask2a-say-tools): a say with no `re` of its own still links to the owner's latest sentence, the same
+	// fallback `heard()` always used for a dual-seat smart reply ("exactly as before") — and a threaded owner line stays threaded.
+	await check("a say with no `re` lands linked to the owner's latest sentence (s.smart_re), and threaded when that line was", async () => {
+		const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+		s.say({ session: made.session, path: "/a/", text: "Plain thought.", via: "text", thread: false });
+		await tick();
+		const sess = s.map[made.session];
+		const owner_at = sess.smart_re;
+		assert.ok(owner_at, "single_say stamped smart_re for this sentence");
+		s.queue_say(sess, { text: "No re given." });   // no `re` at all
+		await wait(70);
+		const got = replies(file);
+		assert.equal(got.length, 1);
+		assert.equal(got[0].chat.re, owner_at, "defaulted to smart_re, same as heard()'s own fallback");
+		assert.ok(!got[0].chat.thread, "not threaded: the owner line was not");
+
+		// a threaded owner line: the reply threads too, through the same reply_line() heard() uses.
+		sess.threaded = [owner_at];
+		s.queue_say(sess, { text: "Again, no re." });
+		await wait(70);
+		const got2 = replies(file);
+		assert.equal(got2.length, 2);
+		assert.equal(got2[1].chat.re, owner_at);
+		assert.ok(got2[1].chat.thread, "threaded, because the owner line it defaults to was");
+	});
+
 	// 3. a floor `speaking` between cancels the release; the say stays queued
 	await check("floor speaking cancels the pending release; the say stays queued until done again", async () => {
 		const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
@@ -126,12 +153,37 @@ try {
 		assert.equal(replies(file).length, 0, "nothing was released: it was retracted");
 	});
 
-	// 5b. nothing writes nothing — re-proven directly on the Sessions side for the tool's own shape
-	await check("nothing writes nothing (the tool handler itself, Servex/agents/tools.js, is a no-op)", async () => {
+	// 5b. review finding 3: the REAL tool handlers in tools.js, not a stand-in — `ctx.caller` set to the single seat's own
+	// agent id works; any other caller (a dual-seat smart agent, a minion, nobody) is refused.
+	await check("say / nothing / retract_say through the real tools.js handlers: the single seat's own caller works, any other is refused", async () => {
 		const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
+		s.say({ session: made.session, path: "/a/", text: "Plain thought.", via: "text" });
+		await tick();
+		const sess = s.map[made.session], agent_id = sess.smart;
+		assert.match(agent_id, /^single-voice-assistant-/, "the single seat's own minted id");
+		const list = servex_tools({ servex: { sessions: s } });
+		const say_tool = list.find(t => t.name === "say"), nothing_tool = list.find(t => t.name === "nothing"), retract_tool = list.find(t => t.name === "retract_say");
+		assert.ok(say_tool && nothing_tool && retract_tool, "all three are registered in the real tool list");
+
+		const r = JSON.parse(await say_tool.handler({ text: "Through the real handler." }, { caller: agent_id }));
+		assert.ok(r.id, "say answers {id} for the single seat's own caller");
+		assert.equal(replies(file).length, 0, "queued, not released yet");
+
+		const bad = JSON.parse(await say_tool.handler({ text: "Should not queue." }, { caller: "session-smart-" + made.session }));
+		assert.equal(bad.ok, false, "a dual-seat smart agent's own id is refused");
+		assert.match(bad.why, /single seat only/);
+		const bad2 = JSON.parse(await say_tool.handler({ text: "Also refused." }, {}));
+		assert.equal(bad2.ok, false, "no caller at all is refused the same way");
+
+		const g = JSON.parse(await retract_tool.handler({ id: r.id }, { caller: agent_id }));
+		assert.equal(g.removed, true, "retract_say works for the single seat's own caller");
+		const g2 = JSON.parse(await retract_tool.handler({ id: "whatever" }, { caller: "minion-something" }));
+		assert.equal(g2.ok, false, "and refuses any other caller");
+
 		const before = lines(file).length;
-		// the `nothing` tool has no Sessions-side call at all — proven by its absence changing anything on disk
-		assert.equal(lines(file).length, before);
+		assert.equal(JSON.parse(await nothing_tool.handler({}, { caller: agent_id })).ok, true);
+		assert.equal(JSON.parse(await nothing_tool.handler({}, {})).ok, true, "nothing is a no-op for any caller, even none");
+		assert.equal(lines(file).length, before, "nothing never touches the log, for anyone");
 	});
 
 	// 6. the question gate and the long-dictation gate
