@@ -40,7 +40,9 @@ export class PluginEntry extends Item {
 		if (!rec) return this.put("enabled", !!value);
 		if (this.instance) {
 			this.host.toggle_plugin(rec, !!value);
-			this.put("enabled", !!value);
+			// Irreversible (no real detach): the row must say what is actually attached, not what was asked for
+			// (review finding 10, 2026-11-03) — `rec.attached` is Plugin's own source of truth for this instance.
+			this.put("enabled", rec.attached.has(this.host));
 			return;
 		}
 		value ? this.host.enable(rec) : this.host.disable(rec);

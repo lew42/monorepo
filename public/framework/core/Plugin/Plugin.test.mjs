@@ -210,6 +210,18 @@ test("attach is idempotent per (instance, plugin): use -> unuse -> use never att
 	t.eq(calls.length, 0, "the inherited no-op detach is not a real undo either — attached once, stays attached");
 });
 
+test("a per-instance switch-off of a plugin with no detach stays attached, and the row says so (review finding 10, 2026-11-03)", t => {
+	calls.length = 0;
+	class H20 extends Plugin {}
+	H20.use(Other);   // Other has no detach: an instance "off" can't really undo its attach
+	const inst = new H20({ tag: "stuck" });
+	calls.length = 0;
+	const row = inst.plugins.find("Other");
+	row.set({ enabled: false });
+	t.eq(calls.length, 0, "no detach ran — there is none");
+	t.eq(row.get("enabled"), true, "the row reports the real state (still attached), not the off it was asked for");
+});
+
 test("inst.plugins picks up a plugin the class gains after the row list was first read", t => {
 	class H17 extends Plugin {}
 	H17.use(Spy);
