@@ -25,7 +25,7 @@ export default class SessionSettings extends Page {
 		this.session().then(s => $form.empty(() => {
 			p(`Saved to this session's log, one line per change: ${this.file}`);
 			p.c("muted", "Nothing acts on these settings yet: they are saved and shown, but a resumed session does not read them (doc/menu.md, \"Not built yet\").");
-			for (const f of this.session_class.SETTINGS) this.field(f, s.settings[f.key]);
+			for (const f of this.session_class.SETTINGS) this.field(f, s.settings.get(f.key));
 		}));
 	}
 

@@ -1,0 +1,1 @@
+{"log":{"text":"Built say/nothing/retract_say for the single seat; 11-check say-tools.test.mjs passes; Sessions.single.test.mjs updated for the new plain-text-never-replies rule; readme documented. 4 commits on worktree/qf-2 (b3f52a3bf, c1776b29e, 4314060c9). Landing report next."},"by":"minion-ask2a-say-tools","ts":"2026-11-03T20:50:34.757Z"}

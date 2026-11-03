@@ -320,8 +320,7 @@ export class ComposerMic extends Dictate {
 			["send_delay", "send delay (s): keep talking within it and the words join one prompt", "seconds"],
 			["clean", "clean transcription (fast assistant clean-up)", "boolean"],
 			["into", "dictation goes into", ["chat", "box"]],
-			["send_mode", "send mode", ["pause", "sentences"]], ["sentences_per_send", "sentences per send (0 = off)", "number"], ["break_pause_ms", "paragraph pause (ms)", "number"],
-			["send_on_period", "send on a sentence end (. ! …)", "boolean"], ["send_on_question", "send on question mark (?)", "boolean"], ["send_on_comma", "send on comma (,) too — fragments sentences", "boolean"],
+			["break_pause_ms", "paragraph pause (ms)", "number"],
 		];
 		const expert = [   // under the closed "More" below the smart assistant rows
 			["guess_ms", "guess every (ms)", "number"], ["box_lines", "box lines before scroll", "number"], ["chunk_chars", "safety chunk (chars)", "number"], ["chunk_ms", "safety chunk (ms)", "number"], ["fillers", "filler words", "text"],
@@ -334,6 +333,8 @@ export class ComposerMic extends Dictate {
 		more.append(summary, grid);
 		for (const [key, label, kind, into] of [...rows.map(r => [...r, panel]), ...expert.map(r => [...r, grid])]){
 			const name = document.createElement("label"); name.textContent = label;
+			const path = document.createElement("small"); path.textContent = "SETTINGS." + key; path.style.cssText = "display: block; font-size: 0.7em; opacity: 0.6";
+			name.append(path);
 			const input = Array.isArray(kind) ? document.createElement("select") : document.createElement("input");
 			if (Array.isArray(kind)) for (const o of kind) input.add(new Option(o, o));
 			else if (kind === "boolean") input.type = "checkbox";
@@ -634,7 +635,7 @@ export class ComposerMic extends Dictate {
 	}
 
 	// Finished sentences go out now; the unfinished tail stays held. Sends the joined RAW text as `raw`. see doc/mic-notes.md#send_sentences
-	async send_sentences(n = Math.max(1, SETTINGS.sentences_per_send | 0)){
+	async send_sentences(n = Math.max(1, (this.sentences_per_send ?? SETTINGS.sentences_per_send) | 0)){
 		if (this.sending_sentences){ this.send_again = n; return; }   // `await_clean()` below can take up to 5s — never two of these reading/cutting `held` at once; words that arrive meanwhile get one more pass after
 		this.sending_sentences = true;
 		try {
@@ -771,7 +772,8 @@ export class ComposerMic extends Dictate {
 	// and off by default (every comma cutting a send fragments a sentence into pieces). A run-on with
 	// none of the checked marks at its end stays chunked together with what follows.
 	cut_re(){
-		const stops = (SETTINGS.send_on_period ? ".!…" : "") + (SETTINGS.send_on_question ? "?" : "") + (SETTINGS.send_on_comma ? "," : "");
+		const on = key => this[key] ?? SETTINGS[key];   // a mic may set its own (ux/Dictate/VoiceChat/plugins/SendAfter.js)
+		const stops = (on("send_on_period") ? ".!…" : "") + (on("send_on_question") ? "?" : "") + (on("send_on_comma") ? "," : "");
 		return new RegExp(`[^${stops || ".!?…"}]*[${stops || ".!?…"}]+["')\\]]*(?=\\s|$)`, "g");   // nothing checked: fall back to the full set, never silently stop sending
 	}
 

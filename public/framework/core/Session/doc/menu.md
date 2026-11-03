@@ -13,7 +13,7 @@ class Session extends Item
   ]
   static SETTINGS = [{ key, label, type: "text" | "select" | "checkbox", options? }, …]  // what the Settings page shows
   menu(url)        // MENU with each page entry's url filled in
-  get settings     // every {"settings":{…}} line merged in order; a later line wins
+  get settings     // a core/Settings, groups "dictate"/"recite" + flat SETTINGS fields; read with .get(key); a group line replaces that group whole (core/Session/readme.md, "Session.settings")
 
 class AISession extends Session   // static MENU = [...Session.MENU, { … }] to add an entry
 ```

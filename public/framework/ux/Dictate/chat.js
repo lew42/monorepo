@@ -12,7 +12,10 @@ import WhisperLog from "/framework/audio/Whisper/WhisperLog.js";
 import { should_drop_phantom, whisper_info } from "./phantom-gate.js";
 import * as report from "/framework/ext/Chat/v2/report.js";
 import { VoiceChat } from "./VoiceChat/VoiceChat.js";
-import { Interrupt } from "./VoiceChat/plugins/index.js";
+import { Interrupt, ReadAloud } from "./VoiceChat/plugins/index.js";
+import ChatSettings from "./ChatSettings.js";
+import ChatDefaults from "./ChatDefaults.js";
+import { servex_url } from "/framework/dev/servex_url.js";
 
 // One chat box, every surface: doc/chat-notes.md
 const SESSION_KEY = "lew42-voice-session";
@@ -257,8 +260,37 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 	Recite.shared.barge.use_mic(panel.dictate);   // barge-in hears this chat's own mic while it is on (audio/Recite)
 	// One Voice Chat per Recite (the page has one Recite, so one set of read-aloud settings): the first chat on the page makes it.
 	// The browser's remembered barge-in values are read before it starts, because its first attach writes the class values.
-	Recite.shared.voice_chat ??= new VoiceChat({ recite: Recite.shared, mic: panel.dictate, overrides: Interrupt.snapshot(Recite.shared) });   // ux/Dictate/VoiceChat/readme.md
+	Recite.shared.voice_chat ??= new VoiceChat({ recite: Recite.shared, mic: panel.dictate, overrides: { ...Interrupt.snapshot(Recite.shared), ...ReadAloud.snapshot(Recite.shared) } });   // ux/Dictate/VoiceChat/readme.md
 	panel.voice_chat = Recite.shared.voice_chat;
+	/* Chat settings (chat-settings-session, step-4 review fixes 1-3): one Recite per page, so this wiring is done once no matter
+	 * how many chat() mounts share it. `_save_timer`/`_loading` live on the shared VoiceChat instance, not a closure variable, so
+	 * ANY mount's attach() (below) can clear a pending save when its session switches, and a load in progress can hold off a save
+	 * of its own making. `session` and the grouped overrides are captured at CHANGE time, not when the debounce timer fires — by
+	 * then the owner may have switched sessions, which would save this chat's settings under the wrong one. */
+	if (!panel.voice_chat._settings_wired){
+		panel.voice_chat._settings_wired = true;
+		const vc = panel.voice_chat;
+		for (const row of vc.plugins) row.on("change", () => {
+			if (vc._loading || !owner.ctl.session) return;
+			const session = owner.ctl.session, plugins = vc.overrides_by_group();   // the page splits by group; Servex no longer does (one splitter)
+			clearTimeout(vc._save_timer);
+			vc._save_timer = setTimeout(() => Session.settings({ session, plugins }).catch(e => quiet_note("the chat settings were not saved", e)), 400);
+		});
+	}
+	/* The Chat settings panel (the gear): one panel per page, built when the gear is first opened. "Make default" saves the class values at
+	 * Servex (GET/POST /api/session/defaults, localStorage as the fallback) and every page start reads them back as the class level. */
+	if (!panel.voice_chat._defaults){
+		const vc = panel.voice_chat, defaults = vc._defaults = new ChatDefaults({ url: servex_url });
+		defaults.get().then(out => { if (Object.keys(out.plugins).length) VoiceChat.apply_defaults(out.plugins); if (out.error) quiet_note("the shared chat defaults could not be read (using this browser's copy)", out.error); });
+	}
+	if (panel.dictate){
+		const vc = panel.voice_chat;
+		panel.dictate.chat_settings = () => {
+			vc._panel ??= new ChatSettings({ vc, mic: panel.dictate, defaults: vc._defaults, session: () => owner.ctl.session,
+				save_session: plugins => { const session = owner.ctl.session; if (session) Session.settings({ session, plugins }).catch(e => quiet_note("the chat settings were not saved", e)); } });
+			return vc._panel.build();
+		};
+	}
 	Recite.shared.on_read = ev => report.read(ev);   // cutting in, 2026-11-03: a note for the assistant's next turn, never a prompt (ext/Chat/v2/report.js, kind "context")
 
 	// The phantom gate's one source of duration/word-probability: the last FINAL Whisper reply this mic heard, read
@@ -366,6 +398,18 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		if (!(was === null && watching)) panel.reset();
 		if (!owner.ctl.session){ maybe_offer(); return; }
 		watching_since = Date.now();   // lines older than this are history, not an answer just now
+		/* This session's own Chat settings (a brand-new session has none yet, so this reads as the defaults — the same as New
+		 * session's reset): core/Session/readme.md, "Session.settings". Any pending save still timed for the PREVIOUS session is
+		 * dropped right here (review fix 2): posting it once this session is already watched would save under the wrong one.
+		 * `_loading` (review fix 1) holds the change handler off while `load_grouped` makes its own, synchronous "change" events. */
+		clearTimeout(panel.voice_chat?._save_timer);
+		const opened = owner.ctl.session;
+		Session.get(opened).then(rec => {
+			if (!panel.voice_chat || owner.ctl.session !== opened) return;   // a quicker switch already moved on: this reply is stale
+			panel.voice_chat._loading = true;
+			try { panel.voice_chat.load_grouped(rec.plugins ?? {}); } finally { panel.voice_chat._loading = false; }
+			panel.voice_chat._panel?.refresh();   // the open panel shows this session's values
+		}).catch(e => quiet_note("the chat settings were not loaded for this session", e));
 		report.init(owner.ctl.session);   // the page's own errors reach the assistants too (ext/Chat/v2/report.js): a log line, never a wake-up
 		stop_watch = Session.watch(owner.ctl.file, draw, { on_history: lines => panel.$thread?.hold_history?.(lines, draw), on_status: (kind, d) => {
 			// The poll reads the session file every 1.5 s; its trouble is the Wire light's, so a dead file cannot pass for "no answer yet".

@@ -8,6 +8,7 @@ import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import SessionFolders from "../public/framework/core/Session/SessionFolders.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_REPO = path.resolve(process.env.TRACKING_ROOT || path.join(HERE, ".."));
@@ -61,14 +62,9 @@ export default class SessionIdentity {
 		return r;
 	}
 
-	/** Every dated folder for the id: sessions/YYYY/MM/DD/session-<first 8> or the full uuid. */
+	/** Every dated folder that holds the id, the home first: the store's one finder (core/Session/SessionFolders.mjs), slug-named folders too. */
 	folders_of(id){
-		const out = [], names = new Set([`session-${id.slice(0, 8)}`, id]);
-		const kids = dir => { try { return fs.readdirSync(dir, { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name); } catch { return []; } };
-		for (const y of kids(this.sessions)) if (/^\d{4}$/.test(y))
-			for (const m of kids(path.join(this.sessions, y))) for (const d of kids(path.join(this.sessions, y, m))) for (const n of kids(path.join(this.sessions, y, m, d)))
-				if (names.has(n)) out.push({ dir: path.join(this.sessions, y, m, d, n), day: `${y}/${m}/${d}`, name: n });
-		return out;
+		return SessionFolders.at(this.sessions).all(id).map(dir => ({ dir, day: path.relative(this.sessions, path.dirname(dir)).split(path.sep).join("/"), name: path.basename(dir) }));
 	}
 
 	/** The newest {"summary"} line of a folder's cache.jsonl. */

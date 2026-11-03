@@ -34,10 +34,10 @@ try {
 	ok(DatedFiles.sessions.session_dir(A, "2026-10-25") === short, "36 days later, with a second folder on 10/24, the oldest folder (the day it began) wins");
 
 	// Session.locate: the same rule from the class side (an AISessionIndex cache write).
-	class S extends Session { static days = new Map(); static slugs = new Map(); static scanned = true; static root_url(){ return pathToFileURL(path.join(TMP, "sessions") + path.sep); } }
-	S.days.set(A, "2026/09/19"); S.slugs.set(A, "session-a1c1d1e1");
-	const url = await S.locate(B, "2026-09-19T18:00:00");
-	ok(url.href.endsWith(`/2026/09/19/${B}/`), "locate gives the second id its full uuid");
+	// The folders on disk are the truth (SessionFolders): A holds session-a1c1d1e1 on 09/19, so a new B that day gets its full uuid.
+	class S extends Session { static days = new Map(); static slugs = new Map(); static scanned = false; static root_url(){ return pathToFileURL(path.join(TMP, "public/framework/ai/sessions") + path.sep); } }
+	const D2 = "a1c1d1e1-0003-4a19-9b01-000000000003", url = await S.locate(D2, "2026-09-19T18:00:00");
+	ok(url.href.endsWith(`/2026/09/19/${D2}/`), "locate gives the second id its full uuid");
 	const C = "cccccccc-0001-4a19-9b01-000000000001";
 	ok((await S.locate(C, "2026-09-19T18:00:00")).href.endsWith("/2026/09/19/session-cccccccc/"), "an id with no clash keeps session-<id8>");
 } finally { DatedFiles.ROOT = ROOT; fs.rmSync(TMP, { recursive: true, force: true }); }

@@ -14,6 +14,7 @@ import "../Task/Process.js";   // registers "Process": a task added with {type: 
 import List from "../List/List.js";
 import Chat from "./Chat/Chat.js";
 import Sentence from "./Chat/Sentence.js";
+import { Settings } from "../Settings/Settings.js";
 
 /* A Session IS a Task (the owner, 2026-10-24, session-is-a-task): Task's states, completion, `tasks` list (strings, objects, typed
    children: Task, Process, Project, Session), queries and cost. What a session adds: its dated folder, its record's line shape (replay_line
@@ -65,8 +66,14 @@ export default class Session extends Task {
 	];
 	// The menu with each page's url filled in; `url` is the session page's own url.
 	menu(url){ return this.constructor.MENU.map(e => e.page ? { ...e, url: url + e.name + "/" } : { ...e }); }
-	// The settings now: every {"settings":{…}} line merged in order, so a later line wins. Never stored whole.
-	get settings(){ return this._settings ??= {}; }
+	/* The settings now: a core/Settings with the groups `dictate` and `recite` (named after the classes; VoiceChat's plugin
+	 * overrides, split by each plugin's `static group`), plus the flat fields of SETTINGS (name, model, effort, notify) at the
+	 * top level — read with `.get(key)`, not a bare property (SessionSettings.js). Never persisted here: replay only loads it. */
+	get settings(){ return this._settings ??= new Settings({ fields: this.constructor.SETTINGS, groups: { dictate: {}, recite: {} } }); }
+	/* Every {"settings":{…}} line merges shallow onto the raw object first (a later line replaces only the top-level key —
+	 * a whole group, or one flat field — it names; everything else stays), then the WHOLE accumulated object is loaded into
+	 * `settings` (core/Settings.load replaces everything it is given, so a partial `delta` alone would wipe the other group). */
+	_merge_settings(obj){ this.settings.load(Object.assign(this._settings_raw ??= {}, obj)); }
 
 	progress(){ return Task.progress_of(this._tasks); }   // no tasks is 0 of 0, not Task's 0 of 1
 	/* The agent sessions that ran under this session's folder: dir -> [{id, role, state, session_id, cost, started_at}]. Node wires it
@@ -95,7 +102,7 @@ export default class Session extends Task {
 		if (this._shape === "task"){
 			const when = line.at ?? line.ts ?? line.assign?.requested_at ?? null;
 			if (when){ this._first_at ??= when; this._last_at = when; }
-			if (line.settings && typeof line.settings === "object") Object.assign(this.settings, line.settings);
+			if (line.settings && typeof line.settings === "object") this._merge_settings(line.settings);
 			Task.clock = when;
 			try { return super.replay_line(line); } finally { Task.clock = null; }
 		}
@@ -133,7 +140,7 @@ export default class Session extends Task {
 		if (delta.sentences && typeof delta.sentences === "object") this.sentences.set(delta.sentences);
 		if (delta.messages && typeof delta.messages === "object") this.messages.set(delta.messages);
 		delete delta.sentences; delete delta.messages;
-		if (delta.settings && typeof delta.settings === "object"){ Object.assign(this.settings, delta.settings); delete delta.settings; }   // merged, never replaced
+		if (delta.settings && typeof delta.settings === "object"){ this._merge_settings(delta.settings); delete delta.settings; }   // merged, never replaced
 		// The browser Store's own change line for a field on the session ({"set":{"title":…}}), read as Task.replay_line reads it.
 		// Before, it was kept as one field named "set" (the persistence matrix found it).
 		if (delta.set && typeof delta.set === "object" && !Array.isArray(delta.set)){ for (const [k, v] of Object.entries(delta.set)) this.take(k, v); delete delta.set; }
@@ -166,32 +173,32 @@ export default class Session extends Task {
 	// Sync: the dated folder when the day is known, else the old flat one.
 	static dir_url(id, day = this.days.get(id)){ return new URL(day ? `./${day}/${this.slugs.get(id) ?? id}/` : `./${id}/`, this.root_url()); }
 
-	// Node, async: read every dated folder once to learn which folder holds which session. A uuid-named folder is its own id; any other
-	// folder says its id in index.json, in its cache summary, or in the first line of its page.jsonl ({"session":uuid}, made by the page tool).
+	// Node, async: the store's finder (core/Session/SessionFolders.mjs, the only one: which folder holds which session, read from disk).
+	static async folders(){
+		const [{ default: SessionFolders }, { fileURLToPath }] = await Promise.all([import("./SessionFolders.mjs"), import("node:url")]);
+		return SessionFolders.at(fileURLToPath(this.root_url()));
+	}
+	// Node, async: fill `days` and `slugs` with every session's home, so dir_url() answers without a read. A filler only: locate() never trusts
+	// it, because a map read before a folder moved would send a write to a folder that is gone (the 2026-10-09 twins).
 	static async scan(){
 		if (Object.hasOwn(this, "scanned") ? this.scanned : false) return;
 		this.scanned = true;
-		const fs = await import("node:fs/promises"), root = this.root_url(), UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-		const ls = async u => fs.readdir(u, { withFileTypes: true }).then(r => r.filter(d => d.isDirectory()).map(d => d.name), () => []);
-		for (const y of await ls(root)) if (/^\d{4}$/.test(y)) for (const m of await ls(new URL(`./${y}/`, root))) for (const d of await ls(new URL(`./${y}/${m}/`, root))) for (const name of await ls(new URL(`./${y}/${m}/${d}/`, root))){
-			const dir = new URL(`./${y}/${m}/${d}/${name}/`, root);
-			let id = UUID.test(name) ? name : null;
-			if (!id) try { id = JSON.parse(await fs.readFile(new URL("index.json", dir), "utf8")).id; } catch {}
-			if (!id) try { id = JSON.parse((await fs.readFile(new URL("cache.jsonl", dir), "utf8")).split("\n").find(l => l.startsWith('{"summary"'))).summary.id; } catch {}
-			if (!id) try { id = JSON.parse((await fs.readFile(new URL("page.jsonl", dir), "utf8")).split("\n")[0]).session; } catch {}   // a folder the page tool made first (Servex/agents/page_tools.js)
-			for (const log of ["session.jsonl", "task.jsonl"]) if (!id) try { id = JSON.parse((await fs.readFile(new URL(log, dir), "utf8")).split("\n")[0]).session?.id; } catch {}   // a tab's folder: the SessionStart hook writes only line 1, {"session":{"id"}}
-			if (!id || !UUID.test(id)) continue;
-			this.days.set(id, `${y}/${m}/${d}`);
-			if (name !== id) this.slugs.set(id, name);
-		}
+		const store = await this.folders();
+		for (const { id, dir } of store.homes()) this.remember(id, dir, store.root);
+	}
+	static remember(id, dir, root){
+		const rel = dir.slice(root.length + 1).split(/[\\/]/), name = rel.pop();
+		if (rel.length !== 3) return;
+		this.days.set(id, rel.join("/"));
+		if (name !== id) this.slugs.set(id, name); else this.slugs.delete(id);
 	}
 
-	// Node, async: the folder to WRITE into. Where the session already lives (found by scan), else an old flat uuid folder (moved into its
-	// day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
+	// Node, async: the folder to WRITE into. Where the session lives now (SessionFolders, checked on disk every call), else an old flat
+	// uuid folder (moved into its day), else a new folder named `slug` (default session-<id8>) under the day of first_at, else today.
 	static async locate(id, first_at, slug){
-		const fs = await import("node:fs/promises"), root = this.root_url();
-		if (!this.days.has(id)) await this.scan();
-		if (this.days.has(id)) return this.dir_url(id);
+		const fs = await import("node:fs/promises"), root = this.root_url(), store = await this.folders();
+		const found = store.of(id);
+		if (found){ this.remember(id, found, store.root); return this.dir_url(id); }
 		const flat = new URL(`./${id}/`, root), exists = u => fs.stat(u).then(() => true, () => false);
 		let day = this.day(first_at);
 		if (!day && await exists(flat)){      // an old flat folder: its own cache knows the day
@@ -201,11 +208,9 @@ export default class Session extends Task {
 			if (!day) return flat;
 		}
 		day ??= this.day(new Date());
-		this.days.set(id, day);
-		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); return this.dir_url(id); }
-		// Two ids can share their first 8 hex (hand-picked test ids did, 2026-09-19): a default name another id already holds that day becomes the full uuid.
-		const short = "session-" + id.slice(0, 8), taken = !slug && [...this.slugs].some(([o, s]) => o !== id && s === short && this.days.get(o) === day);
-		if (!taken) this.slugs.set(id, slug || short);
+		if (await exists(flat)){ await fs.mkdir(new URL(`./${day}/`, root), { recursive: true }); await fs.rename(flat, new URL(`./${day}/${id}/`, root)); this.days.set(id, day); this.slugs.delete(id); return this.dir_url(id); }
+		// Two ids can share their first 8 hex (hand-picked test ids did, 2026-09-19): home() gives the second one its full uuid.
+		this.remember(id, store.home(id, day, slug), store.root);
 		return this.dir_url(id);
 	}
 }

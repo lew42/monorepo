@@ -1,4 +1,5 @@
 import Part from "../Part.js";
+import DEFAULTS from "./barge-defaults.js";
 import MicStream from "../MicStream/MicStream.js";
 import Whisper from "../Whisper/Whisper.js";
 import { PHANTOM_PHRASES, noise as phantom_noise } from "./phantom-phrases.js";
@@ -25,11 +26,11 @@ export default class BargeIn extends Part {
 
 	static id = "barge";
 	static label = "Interrupt";
-	static defaults = { on: true, mode: "volume" };   // mode: "volume" | "words"
+	static defaults = DEFAULTS;   // barge-defaults.js; the fields below start from it
 
 	on = true;
-	mode = "volume";      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
-	threshold = 0.35;     // on MicStream's shown level, 0..1 (the meter's own scale)
+	mode = DEFAULTS.mode;      // what pauses reading: "volume" (loud, then check) or "words" (only real words from Whisper); remembered as "barge_mode"
+	threshold = DEFAULTS.threshold;     // on MicStream's shown level, 0..1 (the meter's own scale)
 	hold_ms = 250;
 	quick_hold_ms = 120;   // cutting in (2026-11-03): the hold used instead of hold_ms when the owner was ALREADY talking as the chunk began (no grace to wait out) — a reply that starts over the owner must die fast
 	grace_ms = 1000;       // cutting in: for this long after a chunk starts, the fast volume trigger is blocked (the chunk's own first word tripping the mic, then stopping it — the stutter) — but only when the owner was quiet when it began; skipped entirely if they were already talking (quick_hold_ms applies instead)
@@ -44,7 +45,7 @@ export default class BargeIn extends Part {
 	peak = 0;             // the loudest level while checking
 	heard = "";           // what Whisper heard last ("" = noise)
 	note = "";            // the last outcome, one line: "noise — resumed", "heard: …"
-	quiet_ms = 2500;      // no-flood: real speech heard: once this much quiet passes, pick the interrupted reply back up (2-3 s, the owner's own range, 2026-11-02; was 1.5 s) — a separate field from Recite.turn_wait_ms with the same new default: see that field's own comment for why
+	quiet_ms = DEFAULTS.quiet_ms;      // no-flood: real speech heard: once this much quiet passes, pick the interrupted reply back up (2-3 s, the owner's own range, 2026-11-02; was 1.5 s) — a separate field from Recite.turn_wait_ms with the same new default: see that field's own comment for why
 	resume_timer = null;   // the schedule_resume() timer waiting for quiet
 	echo_threshold_mult = 1.6;   // echo: while recite.echo_active(), the fast barge-in trigger and speaking() need this much more level before they fire, so the read-aloud voice leaking into the mic (and a cough right after) don't pause or hold a reply
 	near_silent = 0.045;   // echo: a Whisper final heard with the mic at or below this level is treated as hallucinated text on near-silence, not real speech

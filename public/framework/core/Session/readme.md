@@ -16,7 +16,7 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   static days, slugs: Map   // id -> "YYYY/MM/DD" / folder name. A subclass declares its OWN (statics inherit by reference)
   static scanned: boolean   // true once scan() has read the tree
   static MENU, SETTINGS     // the session menu template and its settings form (doc/menu.md)
-  menu(url), settings       // MENU with urls; {"settings":{…}} lines merged, a later line wins
+  menu(url), settings       // MENU with urls; settings is a core/Settings, groups "dictate"/"recite" (doc/menu.md)
   id                        // from the constructor, or line 1 of the log
   messages: Chat, sentences: List<Sentence>   // the chat, in order, and the owner's raw words: ./Chat/readme.md (written by Servex beside V1's {chat} lines since 2026-11-01)
   tasks: Task.List          // Task's list: add("a title"), add({title,…}), add({type: "Project"|"Process"|"Session"|"Prompt"|"Question", …}) (Prompt and Question: [core/Task/doc/prompt.md](/framework/core/Task/md/doc/prompt/)); each child knows created_at (its line's time)
@@ -32,13 +32,15 @@ class Session extends Task                       // ../Task/Task.js (Task extend
   static root_url(): URL    // ../../ai/sessions/ ; subclasses override
   static day(first_at)      // "YYYY/MM/DD" via Day.path, or null
   static dir_url(id, day?)  // sync: the dated folder, else the old flat <id>/
-  static async scan()       // node: reads every dated folder once, learns id -> day/slug
-  static async locate(id, first_at?, slug?)  // node: the folder to WRITE into; never makes a second one
+  static async scan()       // node: fills days/slugs with every session's home, from SessionFolders (a filler; locate never trusts it)
+  static async locate(id, first_at?, slug?)  // node: the folder to WRITE into, asked of SessionFolders on every call; never makes a second one
+
+// SessionFolders.mjs (node only): the store's ONE finder. at(root).of(id), .home(id, day, name), .all(id), .twins(); static owner(dir)
 
 // Day.js: class Day, static of(t) "YYYY-MM-DD", path(t) "YYYY/MM/DD" - the owner's LOCAL day, never UTC
 ```
 
-- **Lines it replays:** `{"messages":{…}}` and `{"sentences":{…}}` (the chat list, [Chat/readme.md](Chat/readme.md); sentences first, so one line can add a sentence and the Prompt that holds it), `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task; with `"type":"Session","spawn":{…}` a Session entry, below), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (merged into `settings`), `{"set":{…}}` (fields on the session, the browser Store's own line; since 2026-10-28), a dotted key (`{"tasks.c3":{…}}` is `{"tasks":{"c3":{…}}}`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
+- **Lines it replays:** `{"messages":{…}}` and `{"sentences":{…}}` (the chat list, [Chat/readme.md](Chat/readme.md); sentences first, so one line can add a sentence and the Prompt that holds it), `{"stop":{why}}` and `{"start":{}}` (the session's own state; a start clears the stop's why), `{"session":id}`, `{"tasks":{"add":…}}`, `{"task":"<ref>"}` (a live child task; with `"type":"Session","spawn":{…}` a Session entry, below), `{"<task id>":{…}}` (goes to that task), `{"settings":{…}}` (a `core/Settings` with groups `dictate`/`recite` — VoiceChat's plugin overrides, split by each plugin's `static group` — plus the flat `SETTINGS` fields; a later line replaces only the top-level key or group it names, [ux/Dictate/doc/settings.md](/framework/ux/Dictate/doc/settings.md)), `{"set":{…}}` (fields on the session, the browser Store's own line; since 2026-10-28), a dotted key (`{"tasks.c3":{…}}` is `{"tasks":{"c3":{…}}}`), `{"decide":{task,is}}` (the owner's Approve, Reject or Make it a project on a waiting task, [doc/prompt-tasks.md](doc/prompt-tasks.md)), and any other key is set on the session. `by`, `ts` and `at` are dropped.
 - **Subclasses:** `AISession` (`ai/AISession/AISession.js`) adds cost, cache and transcript, and overrides `root_url()`. `RefineSession` is planned, not built.
 - **Who calls it:** the item tool in `Servex/agents/page_tools.js` maps `session.jsonl` to `Session` and replays it; `ai/AIDashboard/SessionStore.js`, `AISessionIndex.mjs`, `AISessionLive.js`, `Server/State.mjs`, `Server/TaskDirs.mjs` and `Server/SessionDayMove.mjs` use it or `Day`.
 - **How it loads:** a session's folder holds `session.jsonl`, written by `.claude/hooks/append.mjs`, `Agents.open_task` and the page tools, never by hand. Older folders are still found by `scan()` through `index.json`, `cache.jsonl` or the first `page.jsonl` line. Folder layout: [ai/sessions/readme.md](/framework/ai/sessions/readme.md).
@@ -46,6 +48,14 @@ class Session extends Task                       // ../Task/Task.js (Task extend
 - ⬜ A spawned agent's record (it opens with a task line, not `{"session":…}`) is still replayed whole on every streamed batch; applying only its new lines too is the next step (`SessionTasks.js` `read()`; build A's review, finding 11).
 - **Times are the lines' own.** While a line replays, `Task.clock` holds its `at`/`ts`, so a nested task's `completed_at` and duration are when it happened, not when the log was read.
 - **Test:** `node Session.test.mjs` (tasks, progress, replay, `Day`); `node session-task.test.mjs` (a Session is a Task, `tasks.add` with a string or an object, totals from the children). Demo page: `page.js`.
+
+## Session.settings
+
+`session.settings` is a [`core/Settings`](/framework/core/Settings/readme.md) instance, not a plain object: two groups, `dictate` and `recite` (named after the classes they belong to — [`VoiceChat`](/framework/ux/Dictate/VoiceChat/readme.md)'s plugin overrides, split by each plugin's own `static group`), plus the flat fields of `static SETTINGS` (`name`, `model`, `effort`, `notify`) at the top level.
+
+- **Read with `.get(key)`**, never a bare property: `session.settings.get("model")`, `session.settings.dictate.own` (the group's own overrides, plain `{Name: {enabled?, config?}}`).
+- **A `{"settings":{…}}` line replaces only the top-level key it names** — a whole group (`dictate` or `recite`), or one flat field — and leaves everything else as it was; a later line for the same key wins. Replay merges this shallow onto a raw object first (so the keys the line never mentions survive) and then loads the WHOLE accumulated object into `settings` (`core/Settings.load()` itself replaces everything it is given).
+- **Session never persists this itself.** Replay only calls `settings.load(...)`; saving is Servex's job (`Servex/agents/Sessions.js` `settings()` appends the line; [ux/Dictate/doc/settings.md](/framework/ux/Dictate/doc/settings.md) is the Chat-settings side of the same mechanism, including who reads and writes each group).
 
 ## How work gets into a session
 
@@ -97,9 +107,9 @@ A session's `tasks` is the one list of everything to be done: prompts, tasks and
 **References.**
 - A session is named by its **session id**: its page is `/framework/ai/sessions/<id>/`, and a child names its parent by `parent_session`.
 - A task is named by its **path**: `{"task": "<folder url>"}`.
-- `Session.locate(id)` turns an id into its folder.
+- `Session.locate(id)` turns an id into its folder, by asking `SessionFolders` (`SessionFolders.mjs`, node only): the store's one finder, checked on disk every call ([one-folder.md](/framework/ai/sessions/doc/one-folder.md)).
 
-**A session stays on the day it began.** `DatedFiles.session_dir` looks back 31 days for the session's folder before it makes one (4 until 2026-10-24, which split session-e00f55c9 across 10/20 and 10/24). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
+**A session stays on the day it began.** `DatedFiles.session_dir` asks `SessionFolders`, which finds the session's folder on any day, slug-named too, before it names a new one (until 2026-11-01 it knew only `<uuid>` and `session-<id8>` names, so a slug-only session got a second folder). `TaskDirs --new` uses it, so it never opens a second day's record. The session page also reads a session's folders on later days.
 
 **One source of truth: the file.**
 - The `.jsonl` record is the only truth.
