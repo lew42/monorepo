@@ -37,3 +37,4 @@
 {"log":{"at":"2026-11-03T06:03:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-03T07:03:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
 {"log":{"at":"2026-11-03T08:03:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
+{"log":{"at":"2026-11-03T09:03:24-06:00","msg":"task-loop red flag: {\n  \"ok\": false,\n  \"why\": \"no card \\\"live\\\"\"\n}","flag":2}}
