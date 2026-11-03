@@ -63,6 +63,12 @@ What the check showed (session `cloud-voice-session-system-test`):
 - ⚠ **Open:** a nested subtask gets a uuid id, while a top-level task gets a slug of its title. Reported to mastermind-item.
 - ⚠ **Open:** a phase that runs `owner` goes to the creator. For you, that is `voice-app`, which is not a Servex agent, so the phase waits on you. Read `updates` to see it.
 
+## Asking without waiting (the bridge, 2026-11-01)
+
+- `ask_mastermind` waits a few seconds. Without an answer it returns a ticket, the mastermind's status and its first sentence: say that sentence, then keep talking.
+- The answer comes to you by itself on your next tool result (your `cloud_voice_log` call every turn carries it), or call `voice_hear({ticket})` to hear the status and the answer the moment they change.
+- `ask_mastermind({question, to: "vscode-mastermind"})` asks the VS Code tab instead. Which agent is which, and the measured paths: [voice-agents.md](../../../../public/framework/ai/doc/voice-agents.md).
+
 ## Caveats
 
 - Never call `restart_servex` or stop Servex during a call: it drops your own connection.
@@ -89,6 +95,6 @@ More: [voice-logging.md](voice-logging.md) (how the logging works), [remote-tool
 - **Speed of the ask flow is the top priority** ("definitely"). The agent says "hold on", waits for `ask_mastermind` up to its timeout, and the mastermind often takes longer than that.
 - **Worth double checking:** when the owner speaks during that wait, the MCP call is interrupted. Does its answer ever arrive? Can Servex tell whether an answer was received, and queue it so it always arrives? The async ask (landed 18:33) routes a cancelled ask's answer to `updates`; a real interrupt from the voice app is untested.
 - **Caveat, fixed 2026-10-20:** an interrupted ask could lose its answer (the app cancels with `notifications/cancelled`, which was ignored, and a returned answer went into a dead response). Now every answer is also put in the inbox, a cancel stops the wait, and a restart sweep delivers unsent replies. Details: [remote-tools.md](remote-tools.md); task [voice-20261020](/framework/ai/sessions/2026/10/20/voice-20261020/).
-- **Alternative workflow to try:** never wait. Fire the ask (`wait: false`), go back to listening, offer a guess ("I've asked Servex; I'd guess…"), and deliver the answer when `updates` brings it.
+- **Alternative workflow to try** (superseded 2026-11-01 by "Asking without waiting" above: the ask waits a few seconds and the answer then arrives by itself): never wait. Fire the ask (`wait: false`), go back to listening, offer a guess ("I've asked Servex; I'd guess…"), and deliver the answer when `updates` brings it.
 - **Trade-offs the owner sees:** it reads everything aloud, so it phrases for speech ("slash whatever" instead of typing a path) and can't do code blocks. "I don't know if we want to put a ton of work there."
-- **Pull, never wait (the owner, 2026-10-22).** Nothing can push to the voice app: it only learns what it asks for. So every slow call is fired without waiting, and the agent polls `updates` (changes since its last poll) on every turn, or on a loop of about 15 seconds if the app allows one; most polls say "nothing new", and a hit returns only what changed. A call it waits on can be cut off when the owner speaks, and its answer is then lost to the conversation. The goal this serves: the owner talks while watching the session page, and tasks and answers appear there, not in long chat replies.
+- **Pull, never wait (the owner, 2026-10-22; how it works now: "Asking without waiting" above).** Nothing can push to the voice app: it only learns what it asks for. So every slow call is fired without waiting, and the agent polls `updates` (changes since its last poll) on every turn, or on a loop of about 15 seconds if the app allows one; most polls say "nothing new", and a hit returns only what changed. A call it waits on can be cut off when the owner speaks, and its answer is then lost to the conversation. The goal this serves: the owner talks while watching the session page, and tasks and answers appear there, not in long chat replies.
