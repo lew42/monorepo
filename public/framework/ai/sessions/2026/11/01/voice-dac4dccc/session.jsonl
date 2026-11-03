@@ -12,3 +12,8 @@
 {"log":{"at":"2026-11-01T20:22:17-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T02:22:17.043Z"}
 {"log":{"at":"2026-11-01T20:22:17-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-02T02:22:17.065Z"}
 {"log":{"at":"2026-11-01T20:24:13-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-02T02:24:13.778Z"}
+{"follow_up":{"n":2,"to":"mastermind-voice-dac4dccc","at":"2026-11-02T20:23:21-06:00"}}
+{"log":{"at":"2026-11-02T20:23:22-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-03T02:23:22.880Z"}
+{"log":{"at":"2026-11-02T20:23:23-06:00","msg":"session resumed"},"by":"ledger","ts":"2026-11-03T02:23:23.130Z"}
+{"log":{"at":"2026-11-02T20:23:23-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-03T02:23:23.421Z"}
+{"log":{"at":"2026-11-02T20:27:46-06:00","msg":"session ended (other) without landing"},"by":"ledger","ts":"2026-11-03T02:27:46.336Z"}
