@@ -1935,10 +1935,10 @@ const NEW_PARAGRAPH = /^\(new paragraph\)\s*/i;
 /* A tool call that hands the turn off to a MASTERMIND — the thinking-sound trigger (ask10, as the brief named it:
  * "spawn_agent, a message to the mastermind, or an ask_*"): the single seat's first one of these in a turn marks
  * the session as "working" at once. `spawn_agent` and every `ask_*` always count (they only ever reach into the
- * repo or another agent for real work); `send_to_agent`'s own `id=` argument is checked, so a message to some
+ * repo or another agent for real work); `send_to_agent`'s own `to=` argument is checked, so a message to some
  * other, unrelated agent does not beep. */
-const HANDOFF_TOOL = /^(?:spawn_agent|ask_mastermind|ask_manager|ask_module|ask_expert|ask_directory)$/;
-const is_handoff = event => HANDOFF_TOOL.test(event.name ?? "") || (event.name === "send_to_agent" && /\bid=\S*mastermind\S*/i.test(event.input ?? ""));
+const HANDOFF_TOOL = /(?:^|__)(?:spawn_agent|ask_mastermind|ask_manager|ask_module|ask_expert|ask_directory)$/;
+const is_handoff = event => HANDOFF_TOOL.test(event.name ?? "") || (/(?:^|__)send_to_agent$/.test(event.name ?? "") && /(?:^|\s)(?:to|id)=\S*mastermind/i.test(event.input ?? ""));
 
 /* A JSON body: the one express already parsed, else read here (64 kB at most). Layers.js has the same. */
 function body(req){

@@ -160,7 +160,7 @@ await check("a hand-off tool call writes one thinking line; a second hand-off in
 	await tick();
 	const id = s.map[made.session].smart, agent = { id };
 	const thinking = () => lines(file).filter(l => l.thinking);
-	s.heard({ type: "tool", name: "spawn_agent" }, agent);
+	s.heard({ type: "tool", name: "mcp__servex__spawn_agent" }, agent);
 	assert.equal(thinking().length, 1, "the first hand-off writes the open line");
 	assert.deepEqual({ by: thinking()[0].thinking.by, done: thinking()[0].thinking.done }, { by: "smart", done: undefined });
 	s.heard({ type: "tool", name: "ask_mastermind" }, agent);
@@ -241,7 +241,7 @@ await check("a new turn's hand-off beeps again even with an old turn's cue still
 	assert.equal(thinking().length, 2, "a new turn beeps again, long before thinking_open_ms would have expired it");
 });
 
-// Finding 2: a hand-off that never gets answered (the turn ends with nothing(), the brief's own instruction)
+// A hand-off that never gets answered (the turn ends with nothing(), the brief's own instruction)
 // must not block every LATER, unrelated hand-off from beeping forever — `thinking_open_ms` (here shortened for
 // the test) is the server-side half of Recite's own 60 s give-up.
 await check("a stale open cue (past thinking_open_ms) does not block a later, unrelated hand-off", async () => {
@@ -259,17 +259,17 @@ await check("a stale open cue (past thinking_open_ms) does not block a later, un
 	assert.equal(thinking().length, 2, "a stale open cue does not block a fresh one");
 });
 
-// Review note 6: the brief named "a message to the mastermind" — `send_to_agent` to anyone else is not a hand-off.
-await check("send_to_agent only beeps when its own `id` names a mastermind", async () => {
+// The brief named "a message to the mastermind" — `send_to_agent` to anyone else is not a hand-off.
+await check("send_to_agent only beeps when its `to` names a mastermind, and live tool names carry the mcp__servex__ prefix", async () => {
 	sent.length = 0;
 	const s = make(), made = s.create({ path: "/a/", fresh: true }), file = file_of(made);
 	s.say({ session: made.session, path: "/a/", text: "Message someone.", via: "voice", floor: "speaking" });
 	await tick();
 	const id = s.map[made.session].smart, agent = { id };
 	const thinking = () => lines(file).filter(l => l.thinking);
-	s.heard({ type: "tool", name: "send_to_agent", input: "id=fast-helper text=hi" }, agent);
+	s.heard({ type: "tool", name: "mcp__servex__send_to_agent", input: "to=fast-helper message=hi" }, agent);
 	assert.equal(thinking().length, 0, "a message to a non-mastermind agent does not beep");
-	s.heard({ type: "tool", name: "send_to_agent", input: "id=vscode-mastermind text=hi" }, agent);
+	s.heard({ type: "tool", name: "mcp__servex__send_to_agent", input: "to=vscode-mastermind message=hi" }, agent);
 	assert.equal(thinking().length, 1, "a message to a mastermind does");
 });
 
