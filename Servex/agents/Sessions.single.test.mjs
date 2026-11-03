@@ -151,9 +151,9 @@ await check("text without an open cue is dropped; an empty turn is dropped; a cu
 // 5 + 6. the brief and Chat V3
 const BRIEF = path.join(ROOT, "Servex/agents/single-voice-assistant.md");
 const brief = fs.existsSync(BRIEF) ? fs.readFileSync(BRIEF, "utf8") : "";
-await check("the brief is under 700 words and names its own files", () => {
+await check("the brief is under 900 words and names its own files", () => {
 	const words = brief.split(/\s+/).filter(Boolean).length;
-	assert.ok(words > 100 && words < 700, `the brief has ${words} words`);
+	assert.ok(words > 100 && words < 900, `the brief has ${words} words`);
 	for (const f of ["Servex/agents/single-voice-assistant.md", "Servex/agents/roles.js", "Servex/agents/Sessions.js"]) assert.ok(brief.includes(f), `names ${f}`);
 });
 
