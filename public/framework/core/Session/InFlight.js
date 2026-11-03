@@ -15,6 +15,13 @@ export default class InFlight {
 	/** How many of a session's top-level tasks are still being read from their own files (a reference not yet opened). */
 	static loading(session){ return [...(session._tasks ?? [])].filter(t => t.state === "loading").length; }
 
+	/** Branches built but not merged, for one session: rows of `node Server/unmerged.mjs` (ai/unmerged.json) not already on the base, older than `hours`, whose task folder is inside `dir` (a path or url containing the session folder). */
+	static unmerged(rows, dir, { hours = 6 } = {}){
+		const at = String(dir ?? "").replace(/session\.jsonl$/, "").replace(/^\/?(public\/)?/, "").replace(/\/$/, "");
+		if (!at) return [];
+		return (rows ?? []).filter(r => !r.on_base && r.age_hours >= hours && r.task && (r.task + "/").replace(/^public\//, "").startsWith(at + "/"));
+	}
+
 	/** {inflight, more, waiting, next, done} from a session's top-level tasks. Prompts and dropped tasks are not work. */
 	static pick(session, { max = this.MAX, next = this.NEXT } = {}){
 		const all = [...(session._tasks ?? [])].filter(t => t.state !== "stopped" && t.constructor.name !== "Prompt");

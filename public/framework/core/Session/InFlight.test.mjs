@@ -27,4 +27,12 @@ t.eq(p.waiting[0].what, "go on the rename", "the one thing needed");
 t.ok(p.next.some(x => x.id === "n1"), "an idle task is next");
 t.eq(p.done, 1, "done is a count");
 t.ok(![...p.inflight, ...p.next].some(x => x.id === "x"), "a stopped task is nowhere");
+const rows = [
+	{ branch: "worktree/a", age_hours: 7, on_base: false, task: "public/framework/ai/sessions/2026/10/20/session-e00f55c9/a" },
+	{ branch: "worktree/fresh", age_hours: 1, on_base: false, task: "public/framework/ai/sessions/2026/10/20/session-e00f55c9/f" },
+	{ branch: "worktree/landed", age_hours: 9, on_base: true, task: "public/framework/ai/sessions/2026/10/20/session-e00f55c9/l" },
+	{ branch: "worktree/other", age_hours: 9, on_base: false, task: "public/framework/ai/sessions/2026/10/20/session-aaaa/o" },
+	{ branch: "worktree/nobody", age_hours: 9, on_base: false, task: null }];
+t.eq(InFlight.unmerged(rows, "/framework/ai/sessions/2026/10/20/session-e00f55c9/session.jsonl").map(r => r.branch).join(), "worktree/a", "built, not merged: old, not landed, this session's task only");
+t.eq(InFlight.unmerged(rows, "").length, 0, "no session folder, no rows");
 t.done();

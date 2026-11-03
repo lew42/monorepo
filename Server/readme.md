@@ -11,6 +11,7 @@ Slow or crashing again (2026-10-09 first look): [`doc/perf-2026-10-09.md`](./doc
 Dictation failing while the page will not reload: Whisper died with a Servex restart, now fixed, with the loop that reproduces it: [`doc/transcription-crash-2026-10-12.md`](./doc/transcription-crash-2026-10-12.md).
 Clear out landed worktrees, with a plan first and a manifest (`node Server/Worktrees.mjs --plan`): [`doc/worktrees.md`](./doc/worktrees.md).
 Worktree dev servers: what stops them, and the list / stop-stale tool (`node Server/worktree-servers.mjs`): [`doc/worktree-servers.md`](./doc/worktree-servers.md).
+Branches built but never merged (age, files, owner task, already-on-dev check): `node Server/unmerged.mjs`, [`doc/unmerged.md`](./doc/unmerged.md).
 Every task log held in memory and queryable (module, landed, text, raw-log paths): [`doc/session-index.md`](./doc/session-index.md).
 `Events.js` is a two-line subclass of [core/Plugin](../public/framework/core/Plugin/readme.md): `Server`, `Socket` and `Servex/*` extend it, so each takes `use()` plugins and has chaining `on/off/emit`. The server therefore imports from `public/framework/core/`. If the server ever moves to its own package, Events (now core/Events plus core/Plugin) moves with it.
 
