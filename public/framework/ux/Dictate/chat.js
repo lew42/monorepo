@@ -288,7 +288,7 @@ export default function chat(el, { path = location.pathname, card, placeholder, 
 		defaults.get().then(out => { if (Object.keys(out.plugins).length) VoiceChat.apply_defaults(out.plugins); if (out.error) quiet_note("the shared chat defaults could not be read (using this browser's copy)", out.error); });
 	}
 	if (panel.dictate){
-		// The status line beside the mic: one ChatStatus per page, fed by the three existing sources (floor, Recite, the post in flight).
+		// The status line beside the mic: one ChatStatus per chat() call (floor is page-global, so two chats on one page would both show listening; the listeners are never removed), fed by the three existing sources (floor, Recite, the post in flight).
 		const recite = Recite.shared;
 		const status = new ChatStatus({
 			speaking: () => ["playing", "loading"].includes(recite.state),
